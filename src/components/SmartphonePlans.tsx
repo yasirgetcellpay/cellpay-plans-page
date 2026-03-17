@@ -112,20 +112,15 @@ export const SmartphonePlans = () => {
   ];
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <div className="text-center mb-12">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
+      <div className="text-center mb-10">
         <h2 className="text-3xl font-extrabold text-foreground mb-2">30-Day Smartphone Plans</h2>
         <p className="text-muted-foreground max-w-3xl mx-auto">
           All plans include unlimited talk, text &amp; data. High-speed data reduced to 2G (64 kbps) after monthly allotment. Taxes &amp; fees not included.
         </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {plans.slice(0, 3).map((p) => (
-          <PlanCard key={p.name} {...p} />
-        ))}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-        {plans.slice(3).map((p) => (
+        {plans.map((p) => (
           <PlanCard key={p.name} {...p} />
         ))}
       </div>

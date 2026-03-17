@@ -22,15 +22,15 @@ export const PaymentBar = () => (
         </svg>
         {/* Discover */}
         <svg className="h-8 w-12" viewBox="0 0 50 30">
-          <rect width="50" height="30" rx="4" fill="#FFFFFF" stroke="#ccc" />
-          <circle cx="32" cy="15" r="8" fill="#F76B1C" />
-          <text x="18" y="18" textAnchor="middle" fill="#333" fontSize="7" fontWeight="bold" fontFamily="sans-serif">DISC</text>
+          <rect width="50" height="30" rx="4" fill="#FFFFFF" stroke="#ccc" strokeWidth="1" />
+          <text x="4" y="18" fill="#333" fontSize="6.5" fontWeight="bold" fontFamily="sans-serif">DISCOVER</text>
+          <circle cx="40" cy="15" r="7" fill="#F76B1C" />
         </svg>
         {/* PayPal */}
         <svg className="h-8 w-12" viewBox="0 0 50 30">
           <rect width="50" height="30" rx="4" fill="#003087" />
-          <text x="25" y="18" textAnchor="middle" fill="#009CDE" fontSize="9" fontWeight="bold" fontFamily="sans-serif">Pay</text>
-          <text x="25" y="18" textAnchor="middle" fill="#012169" fontSize="9" fontWeight="bold" fontFamily="sans-serif" dx="11">Pal</text>
+          <text x="14" y="19" fill="#009CDE" fontSize="9" fontWeight="bold" fontFamily="sans-serif">Pay</text>
+          <text x="30" y="19" fill="#00B4E6" fontSize="9" fontWeight="bold" fontFamily="sans-serif">Pal</text>
         </svg>
       </div>
     </div>
