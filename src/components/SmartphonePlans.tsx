@@ -10,7 +10,7 @@ interface PlanCardProps {
 }
 
 const PlanCard = ({ name, price, badge, badgeColor, headerColorClass, highlight, highlightColorClass, features }: PlanCardProps) => (
-  <div className="plan-card bg-card border border-border rounded-xl overflow-hidden flex flex-col">
+  <div className="plan-card bg-card border border-border rounded-xl overflow-hidden flex h-full flex-col">
     {badge ? (
       <div className={`${badgeColor} text-primary-foreground text-center py-1 text-xs font-bold uppercase tracking-widest`}>
         {badge}
@@ -112,16 +112,18 @@ export const SmartphonePlans = () => {
   ];
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
-      <div className="text-center mb-10">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-4">
+      <div className="text-center mb-8">
         <h2 className="text-3xl font-extrabold text-foreground mb-2">30-Day Smartphone Plans</h2>
         <p className="text-muted-foreground max-w-3xl mx-auto">
           All plans include unlimited talk, text &amp; data. High-speed data reduced to 2G (64 kbps) after monthly allotment. Taxes &amp; fees not included.
         </p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="flex flex-wrap justify-start gap-6">
         {plans.map((p) => (
-          <PlanCard key={p.name} {...p} />
+          <div key={p.name} className="w-full md:w-[calc(50%-0.75rem)] lg:w-[calc((100%-3rem)/3)]">
+            <PlanCard {...p} />
+          </div>
         ))}
       </div>
     </section>

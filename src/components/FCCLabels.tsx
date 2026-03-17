@@ -26,18 +26,20 @@ const FCCCard = ({ plan }: { plan: FCCPlan }) => {
   ];
 
   return (
-    <div className="bg-card border-2 border-foreground p-3 flex flex-col">
-      <div className="bg-cellpay-fcc-header text-primary-foreground text-[10px] p-2 font-bold mb-2 uppercase">
+    <div className="flex h-full flex-col rounded-sm border-2 border-foreground bg-card p-4">
+      <div className="mb-3 flex min-h-[54px] items-center bg-cellpay-fcc-header p-3 text-[11px] font-bold leading-tight text-primary-foreground">
         {plan.label}
       </div>
-      <div className="text-lg font-black border-b-4 border-foreground mb-2 text-foreground">Broadband Facts</div>
+      <div className="mb-3 border-b-4 border-foreground pb-2 text-xl font-black leading-none text-foreground">
+        Broadband Facts
+      </div>
       {rows.map(([label, value]) => (
-        <div key={label} className="fcc-label-row flex justify-between text-foreground">
-          <span>{label}</span>
-          <span className="font-bold">{value}</span>
+        <div key={label} className="fcc-label-row flex items-start justify-between text-foreground">
+          <span className="pr-3">{label}</span>
+          <span className="text-right font-bold">{value}</span>
         </div>
       ))}
-      <a href="#" className="mt-4 bg-cellpay-green text-primary-foreground text-[10px] py-2 text-center font-bold rounded block">
+      <a href="#" className="mt-4 block rounded bg-cellpay-green py-2 text-center text-xs font-bold text-primary-foreground">
         Select plan
       </a>
     </div>
@@ -52,14 +54,14 @@ export const FCCLabels = () => (
         The FCC requires us to display Broadband Facts labels for all service plans.
       </p>
     </div>
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
       {fccPlans.map((p) => (
         <FCCCard key={p.label} plan={p} />
       ))}
     </div>
-    <div className="mt-8 text-center text-[10px] text-muted-foreground max-w-2xl mx-auto">
+    <div className="mt-8 max-w-2xl mx-auto text-center text-[10px] text-muted-foreground">
       All plans are 30-day service plans. Data speeds reduced after monthly allotment. Taxes and fees not included.{" "}
-      <a href="#" className="text-cellpay-green underline font-bold">
+      <a href="#" className="font-bold text-cellpay-green underline">
         View Full FCC Broadband Facts Labels
       </a>
     </div>
