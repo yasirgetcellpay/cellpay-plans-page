@@ -3,10 +3,7 @@ export const HeroSection = () => {
     <section className="bg-gradient-to-r from-plan-tier1 to-plan-tier2 text-primary-foreground overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 flex flex-col md:flex-row items-center">
         <div className="md:w-1/2 mb-6 md:mb-0">
-          <h1 className="text-3xl md:text-5xl font-extrabold mb-3 leading-tight">Service Plans</h1>
-          <p className="text-base md:text-lg opacity-90 max-w-lg leading-relaxed">
-            No contracts. No annual commitments. Unlimited plans starting at $25 on a powerful nationwide network.
-          </p>
+          <h1 className="text-3xl md:text-5xl font-extrabold leading-tight">Service Plans</h1>
         </div>
         <div className="md:w-1/2 flex justify-end">
           <img
