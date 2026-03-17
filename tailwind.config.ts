@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["'Open Sans'", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -47,6 +50,20 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        cellpay: {
+          green: "hsl(var(--cellpay-green))",
+          "green-hover": "hsl(var(--cellpay-green-hover))",
+          dark: "hsl(var(--cellpay-dark))",
+          "fcc-header": "hsl(var(--cellpay-fcc-header))",
+          surface: "hsl(var(--cellpay-surface))",
+        },
+        plan: {
+          tier1: "hsl(var(--plan-tier-1))",
+          tier2: "hsl(var(--plan-tier-2))",
+          tier3: "hsl(var(--plan-tier-3))",
+          tier4: "hsl(var(--plan-tier-4))",
+        },
+        "badge-best": "hsl(var(--badge-best))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -65,20 +82,12 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
