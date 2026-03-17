@@ -20,12 +20,12 @@ const PlanCard = ({ name, price, badge, badgeColor, headerColorClass, highlight,
     )}
     <div className={`${headerColorClass} p-6 text-primary-foreground text-center`}>
       <h3 className="text-2xl font-extrabold">{name}</h3>
+      <div className="mt-2">
+        <span className="text-4xl font-extrabold">{price}</span>
+        <span className="block text-sm opacity-90">/ Per 30 Days</span>
+      </div>
     </div>
     <div className="p-6 flex-grow flex flex-col">
-      <div className="text-center mb-6">
-        <span className="text-4xl font-extrabold text-foreground">{price}</span>
-        <span className="text-muted-foreground block text-sm">/ Per 30 Days</span>
-      </div>
       <div className={`bg-muted p-3 rounded-lg text-center font-bold ${highlightColorClass} mb-6`}>
         {highlight}
       </div>
@@ -119,12 +119,12 @@ export const SmartphonePlans = () => {
           All plans include unlimited talk, text &amp; data. High-speed data reduced to 2G (64 kbps) after monthly allotment. Taxes &amp; fees not included.
         </p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.slice(0, 3).map((p) => (
           <PlanCard key={p.name} {...p} />
         ))}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
         {plans.slice(3).map((p) => (
           <PlanCard key={p.name} {...p} />
         ))}

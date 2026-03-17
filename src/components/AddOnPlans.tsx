@@ -8,8 +8,8 @@ interface AddOnProps {
 
 const AddOnCard = ({ price, name, description, outlined, priceColorClass = "text-cellpay-green" }: AddOnProps) => (
   <div className="border border-border rounded-lg p-6 flex flex-col items-center text-center bg-card">
-    <div className={`${priceColorClass} text-3xl font-black mb-2`}>{price}</div>
-    <h4 className="font-bold text-foreground mb-4">{name}</h4>
+    <div className={`${priceColorClass} text-4xl font-black mb-2`}>{price}</div>
+    <h4 className="font-bold text-foreground text-lg mb-4">{name}</h4>
     <p className="text-sm text-muted-foreground mb-6">{description}</p>
     <a
       href="#"
@@ -35,7 +35,7 @@ export const AddOnPlans = () => {
   ];
 
   return (
-    <section className="bg-card py-16">
+    <section className="bg-cellpay-surface py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-extrabold text-foreground mb-2">Add-On Plans</h2>

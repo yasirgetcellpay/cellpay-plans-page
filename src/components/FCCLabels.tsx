@@ -7,11 +7,11 @@ interface FCCPlan {
 }
 
 const fccPlans: FCCPlan[] = [
-  { label: "Simple Mobile $25", price: "$25.00", data: "15GB", hotspot: "Included", network: "Verizon 5G" },
-  { label: "Simple Mobile $30", price: "$30.00", data: "20GB", hotspot: "Included", network: "Verizon 5G" },
-  { label: "Simple Mobile $40", price: "$40.00", data: "30GB", hotspot: "Included", network: "Verizon 5G" },
-  { label: "SM $50 Unlimited", price: "$50.00", data: "Unlimited", hotspot: "20GB", network: "Verizon 5G" },
-  { label: "SM $60 Unlimited+", price: "$60.00", data: "Unlimited", hotspot: "30GB", network: "Verizon UWB" },
+  { label: "$25 / 30 Days", price: "$25.00", data: "15GB", hotspot: "Included", network: "Verizon 5G" },
+  { label: "$30 / 30 Days", price: "$30.00", data: "20GB", hotspot: "Included", network: "Verizon 5G" },
+  { label: "$40 / 30 Days", price: "$40.00", data: "30GB", hotspot: "Included", network: "Verizon 5G" },
+  { label: "$50 Unlimited World / 30 Days", price: "$50.00", data: "Unlimited", hotspot: "20GB", network: "Verizon 5G" },
+  { label: "$60 Unlimited World+ / 30 Days", price: "$60.00", data: "Unlimited", hotspot: "30GB", network: "Verizon UWB" },
 ];
 
 const FCCCard = ({ plan }: { plan: FCCPlan }) => {
