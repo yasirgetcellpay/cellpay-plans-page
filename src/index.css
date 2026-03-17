@@ -108,10 +108,19 @@
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
 }
 .fcc-label-row {
-  border-bottom: 1px solid #e5e7eb;
-  padding: 4px 0;
-  font-size: 0.75rem;
+  border-bottom: 1px solid hsl(var(--border));
+  padding: 0.375rem 0;
+  font-size: 0.8125rem;
+  line-height: 1.35;
 }
 .fcc-label-row:last-child {
   border-bottom: none;
+}
+
+body > a[href*="lovable"],
+body > div[data-lovable-badge],
+body > div[class*="lovable-badge"],
+body > div[id*="lovable-badge"],
+body [aria-label*="Lovable"] {
+  display: none !important;
 }
