@@ -124,3 +124,9 @@ body > div[id*="lovable-badge"],
 body [aria-label*="Lovable"] {
   display: none !important;
 }
+
+[data-lovable-badge],
+.lovable-badge,
+#lovable-badge {
+  display: none !important;
+}
