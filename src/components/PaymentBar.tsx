@@ -17,10 +17,10 @@ export const PaymentBar = () => (
           <rect width="50" height="30" rx="4" fill="hsl(var(--payment-amex))" />
           <text x="25" y="19" textAnchor="middle" fill="hsl(var(--primary-foreground))" fontSize="8" fontWeight="bold" fontFamily="sans-serif">AMEX</text>
         </svg>
-        <svg className="h-8 w-16" viewBox="0 0 64 30" aria-label="Discover">
-          <rect x="0.5" y="0.5" width="63" height="29" rx="4" fill="hsl(var(--card))" stroke="hsl(var(--border))" />
-          <text x="6" y="18" fill="hsl(var(--foreground))" fontSize="8" fontWeight="bold" fontFamily="sans-serif">DISCOVER</text>
-          <circle cx="54" cy="15" r="6.5" fill="hsl(var(--payment-discover))" />
+        <svg className="h-7 w-[93px]" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" aria-label="Discover">
+          <rect width="200" height="60" rx="6" fill="#fff" stroke="#ddd"/>
+          <text x="20" y="38" fontFamily="Arial" fontSize="15" fill="#231F20" fontWeight="800">DISCOVER</text>
+          <circle cx="170" cy="30" r="20" fill="#F76F20"/>
         </svg>
         <svg className="h-8 w-14" viewBox="0 0 56 30" aria-label="PayPal">
           <rect width="56" height="30" rx="4" fill="hsl(var(--payment-paypal-dark))" />
