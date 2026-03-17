@@ -39,6 +39,16 @@
     --plan-tier-4: 101 56% 36%;
     --badge-best: 222 68% 37%;
 
+    --payment-visa: 225 82% 44%;
+    --payment-mastercard-bg: 0 0% 15%;
+    --payment-mastercard-red: 356 100% 46%;
+    --payment-mastercard-orange: 37 94% 54%;
+    --payment-mastercard-center: 24 100% 50%;
+    --payment-amex: 208 100% 41%;
+    --payment-discover: 24 93% 54%;
+    --payment-paypal-dark: 218 100% 26%;
+    --payment-paypal-light: 198 100% 45%;
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
