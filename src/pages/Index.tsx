@@ -74,8 +74,6 @@ const Index = () => {
 
       <SmartphonePlans />
       <FAQSection />
-      <AddOnPlans />
-      <FCCLabels />
       <PaymentBar />
       <Footer />
       <LegalBar />
