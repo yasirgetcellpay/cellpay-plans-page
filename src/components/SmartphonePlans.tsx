@@ -10,29 +10,29 @@ interface PlanCardProps {
 }
 
 const PlanCard = ({ name, price, badge, badgeColor, headerColorClass, highlight, highlightColorClass, features }: PlanCardProps) => (
-  <div className="plan-card bg-card border border-border rounded-xl overflow-hidden flex h-full flex-col">
+  <div className="plan-card bg-card border border-border rounded-lg sm:rounded-xl overflow-hidden flex h-full flex-col">
     {badge ? (
-      <div className={`${badgeColor} text-primary-foreground text-center py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest`}>
+      <div className={`${badgeColor} text-primary-foreground text-center py-px sm:py-1 text-[8px] sm:text-xs font-bold uppercase tracking-widest`}>
         {badge}
       </div>
     ) : (
-      <div className="h-[18px] sm:h-[24px]" />
+      <div className="h-[14px] sm:h-[24px]" />
     )}
-    <div className={`${headerColorClass} p-3 sm:p-6 text-primary-foreground text-center`}>
-      <span className="text-xl sm:text-4xl font-extrabold">{price}</span>
-      <span className="block text-[10px] sm:text-sm opacity-90">/ Per 30 Days</span>
+    <div className={`${headerColorClass} px-2 py-1.5 sm:p-6 text-primary-foreground text-center`}>
+      <span className="text-base sm:text-4xl font-extrabold">{price}</span>
+      <span className="block text-[8px] sm:text-sm opacity-90">/ Per 30 Days</span>
     </div>
-    <div className="p-2.5 sm:p-6 flex-grow flex flex-col">
-      <div className={`bg-muted p-1.5 sm:p-3 rounded-lg text-center font-bold text-[11px] sm:text-base ${highlightColorClass} mb-2.5 sm:mb-6`}>
+    <div className="p-1.5 sm:p-6 flex-grow flex flex-col">
+      <div className={`bg-muted p-1 sm:p-3 rounded text-center font-bold text-[9px] sm:text-base ${highlightColorClass} mb-1.5 sm:mb-6`}>
         {highlight}
       </div>
-      <a href="#" className="w-full bg-cellpay-green text-primary-foreground text-center py-1.5 sm:py-3 rounded font-bold text-xs sm:text-base mb-2.5 sm:mb-6 hover:bg-cellpay-green-hover block">
+      <a href="#" className="w-full bg-cellpay-green text-primary-foreground text-center py-1 sm:py-3 rounded font-bold text-[10px] sm:text-base mb-1.5 sm:mb-6 hover:bg-cellpay-green-hover block">
         Pay Now
       </a>
-      <ul className="space-y-1 sm:space-y-3 text-[10px] sm:text-sm text-foreground mb-2 sm:mb-8">
+      <ul className="hidden sm:block space-y-3 text-sm text-foreground mb-8">
         {features.map((f, i) => (
           <li key={i} className="flex items-start">
-            <span className="text-cellpay-green mr-1 sm:mr-2 font-bold">✓</span> {f}
+            <span className="text-cellpay-green mr-2 font-bold">✓</span> {f}
           </li>
         ))}
       </ul>
@@ -106,8 +106,8 @@ export const SmartphonePlans = () => {
   ];
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-10 pb-4">
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+    <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-2 sm:pt-10 pb-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6">
         {plans.map((p) => (
           <PlanCard key={p.name} {...p} />
         ))}
