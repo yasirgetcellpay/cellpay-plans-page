@@ -44,7 +44,7 @@ export const SmartphonePlans = () => {
   const plans: PlanCardProps[] = [
     {
       name: "$25 15GB Plan",
-      price: "$25.00",
+      price: "$25",
       headerColorClass: "bg-plan-tier4",
       highlight: "15GB High-Speed Data",
       highlightColorClass: "text-plan-tier4",
@@ -55,7 +55,7 @@ export const SmartphonePlans = () => {
     },
     {
       name: "$30 20GB Plan",
-      price: "$30.00",
+      price: "$30",
       headerColorClass: "bg-plan-tier4",
       highlight: "20GB High-Speed Data",
       highlightColorClass: "text-plan-tier4",
@@ -66,7 +66,7 @@ export const SmartphonePlans = () => {
     },
     {
       name: "$40 30GB Plan",
-      price: "$40.00",
+      price: "$40",
       headerColorClass: "bg-plan-tier3",
       highlight: "30GB High-Speed Data",
       highlightColorClass: "text-plan-tier3",
@@ -77,7 +77,7 @@ export const SmartphonePlans = () => {
     },
     {
       name: "$50 Unlimited World",
-      price: "$50.00",
+      price: "$50",
       badge: "Popular",
       badgeColor: "bg-cellpay-green",
       headerColorClass: "bg-plan-tier2",
@@ -91,7 +91,7 @@ export const SmartphonePlans = () => {
     },
     {
       name: "$60 Unlimited World+",
-      price: "$60.00",
+      price: "$60",
       badge: "Best Value",
       badgeColor: "bg-badge-best",
       headerColorClass: "bg-plan-tier1",
@@ -107,7 +107,7 @@ export const SmartphonePlans = () => {
 
   return (
     <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-2 sm:pt-10 pb-4">
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6 [&>*:last-child]:col-span-2 [&>*:last-child]:mx-auto [&>*:last-child]:w-[calc(50%-4px)] sm:[&>*:last-child]:col-span-1 sm:[&>*:last-child]:w-full lg:[&>*:last-child]:col-span-1">
         {plans.map((p) => (
           <PlanCard key={p.name} {...p} />
         ))}

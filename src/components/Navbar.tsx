@@ -10,12 +10,6 @@ export const Navbar = () => {
             alt="Simple Mobile"
             className="w-[100px] sm:w-[140px]"
           />
-          <a
-            href="#"
-            className="bg-cellpay-green text-primary-foreground px-4 sm:px-6 py-2 sm:py-2.5 rounded font-extrabold text-xs sm:text-sm uppercase hover:bg-cellpay-green-hover transition-colors"
-          >
-            Recharge Now
-          </a>
         </div>
       </div>
     </nav>
