@@ -73,12 +73,12 @@ const Index = () => {
       </div>
 
       <SmartphonePlans />
-      <FAQSection />
       <AddOnPlans />
-      <FCCLabels />
-      <PaymentBar />
-      <Footer />
-      <LegalBar />
+    </div>
+  );
+};
+
+export default Index;
     </div>
   );
 };
