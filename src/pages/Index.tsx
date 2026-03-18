@@ -28,21 +28,21 @@ const Index = () => {
       <Navbar />
       <HeroSection />
 
-      {/* Logo */}
-      <div className="text-center pt-4 sm:pt-8 pb-2 sm:pb-4 px-4">
+      {/* Logo - desktop only (moved to navbar on mobile) */}
+      <div className="hidden sm:block text-center pt-8 pb-4 px-4">
         <img
           src={simpleMobileLogo}
           alt="Simple Mobile"
-          className="mx-auto w-[130px] sm:w-[180px]"
+          className="mx-auto w-[180px]"
         />
       </div>
 
-      {/* Page intro */}
-      <div className="text-center pb-3 sm:pb-6 px-4">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground mb-1 sm:mb-2">
+      {/* Page intro - desktop only */}
+      <div className="hidden sm:block text-center pb-6 px-4">
+        <h1 className="text-3xl font-extrabold text-foreground mb-2">
           30-Day Smartphone Plans
         </h1>
-        <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
+        <p className="text-base text-muted-foreground max-w-xl mx-auto">
           Select your plan, enter your phone number and recharge instantly. Available 24/7.
         </p>
       </div>
