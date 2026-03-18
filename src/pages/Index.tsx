@@ -48,7 +48,7 @@ const Index = () => {
       </div>
 
       {/* Phone number input card */}
-      <div className="max-w-[340px] sm:max-w-[480px] mx-auto px-4 pb-4 sm:pb-8">
+      <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pb-4 sm:pb-8">
         <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">
           <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
             Enter Your Simple Mobile Phone Number
