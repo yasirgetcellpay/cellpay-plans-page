@@ -73,7 +73,6 @@ const Index = () => {
       </div>
 
       <SmartphonePlans />
-      <FAQSection />
       <PaymentBar />
       <Footer />
       <LegalBar />
