@@ -3,12 +3,7 @@ import { Phone } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { SmartphonePlans } from "@/components/SmartphonePlans";
-import { FAQSection } from "@/components/FAQSection";
 import { AddOnPlans } from "@/components/AddOnPlans";
-import { FCCLabels } from "@/components/FCCLabels";
-import { PaymentBar } from "@/components/PaymentBar";
-import { Footer } from "@/components/Footer";
-import { LegalBar } from "@/components/LegalBar";
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
 
 const formatPhone = (value: string): string => {
@@ -74,11 +69,6 @@ const Index = () => {
 
       <SmartphonePlans />
       <AddOnPlans />
-    </div>
-  );
-};
-
-export default Index;
     </div>
   );
 };
