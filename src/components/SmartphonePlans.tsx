@@ -19,11 +19,8 @@ const PlanCard = ({ name, price, badge, badgeColor, headerColorClass, highlight,
       <div className="h-[18px] sm:h-[24px]" />
     )}
     <div className={`${headerColorClass} p-3 sm:p-6 text-primary-foreground text-center`}>
-      <h3 className="text-sm sm:text-2xl font-extrabold leading-tight">{name}</h3>
-      <div className="mt-1 sm:mt-2">
-        <span className="text-xl sm:text-4xl font-extrabold">{price}</span>
-        <span className="block text-[10px] sm:text-sm opacity-90">/ Per 30 Days</span>
-      </div>
+      <span className="text-xl sm:text-4xl font-extrabold">{price}</span>
+      <span className="block text-[10px] sm:text-sm opacity-90">/ Per 30 Days</span>
     </div>
     <div className="p-2.5 sm:p-6 flex-grow flex flex-col">
       <div className={`bg-muted p-1.5 sm:p-3 rounded-lg text-center font-bold text-[11px] sm:text-base ${highlightColorClass} mb-2.5 sm:mb-6`}>
