@@ -55,7 +55,7 @@ export const SmartphonePlans = () => {
     },
     {
       name: "$30 20GB Plan",
-      price: "$30.00",
+      price: "$30",
       headerColorClass: "bg-plan-tier4",
       highlight: "20GB High-Speed Data",
       highlightColorClass: "text-plan-tier4",
