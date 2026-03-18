@@ -77,7 +77,7 @@ export const SmartphonePlans = () => {
     },
     {
       name: "$50 Unlimited World",
-      price: "$50.00",
+      price: "$50",
       badge: "Popular",
       badgeColor: "bg-cellpay-green",
       headerColorClass: "bg-plan-tier2",
