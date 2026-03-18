@@ -30,7 +30,7 @@ const PlanCard = ({ name, price, badge, badgeColor, headerColorClass, highlight,
         {highlight}
       </div>
       <a href="#" className="w-full bg-cellpay-green text-primary-foreground text-center py-3 rounded font-bold mb-6 hover:bg-cellpay-green-hover block">
-        Select plan
+        Pay Now
       </a>
       <ul className="space-y-3 text-sm text-foreground mb-8">
         {features.map((f, i) => (
@@ -39,9 +39,6 @@ const PlanCard = ({ name, price, badge, badgeColor, headerColorClass, highlight,
           </li>
         ))}
       </ul>
-      <div className="mt-auto pt-4 border-t border-border text-center font-bold text-muted-foreground">
-        Add a Line: from $20/mo
-      </div>
     </div>
   </div>
 );
