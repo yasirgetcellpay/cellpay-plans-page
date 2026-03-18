@@ -107,15 +107,10 @@ export const SmartphonePlans = () => {
 
   return (
     <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-2 sm:pt-10 pb-4">
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6">
-        {plans.slice(0, 4).map((p) => (
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6 [&>*:last-child]:col-span-2 [&>*:last-child]:mx-auto [&>*:last-child]:w-[calc(50%-4px)] sm:[&>*:last-child]:col-span-1 sm:[&>*:last-child]:w-full lg:[&>*:last-child]:col-span-1">
+        {plans.map((p) => (
           <PlanCard key={p.name} {...p} />
         ))}
-      </div>
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6 mt-2 sm:mt-6">
-        <div className="col-start-1 col-end-2 sm:col-start-1 sm:col-end-2 lg:col-start-1 lg:col-end-2 mx-auto w-full max-w-[calc(50%-4px)] sm:max-w-none lg:max-w-none">
-          <PlanCard {...plans[4]} />
-        </div>
       </div>
     </section>
   );
