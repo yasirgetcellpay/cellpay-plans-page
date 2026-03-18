@@ -26,9 +26,11 @@ const PlanCard = ({ name, price, badge, badgeColor, headerColorClass, highlight,
       <div className={`bg-muted p-1 sm:p-3 rounded text-center font-bold text-[9px] sm:text-base ${highlightColorClass} mb-1.5 sm:mb-6`}>
         {highlight}
       </div>
-      <a href="#" className="w-full bg-cellpay-green text-primary-foreground text-center py-1 sm:py-3 rounded font-bold text-[10px] sm:text-base mb-1.5 sm:mb-6 hover:bg-cellpay-green-hover block">
-        Pay Now
-      </a>
+      <div className="flex justify-center mb-1.5 sm:mb-6">
+        <a href="#" className="bg-cellpay-green text-primary-foreground text-center py-1 sm:py-3 px-4 sm:px-8 rounded font-bold text-[10px] sm:text-base hover:bg-cellpay-green-hover inline-block">
+          Pay Now
+        </a>
+      </div>
       <ul className="hidden sm:block space-y-3 text-sm text-foreground mb-8">
         {features.map((f, i) => (
           <li key={i} className="flex items-start">
