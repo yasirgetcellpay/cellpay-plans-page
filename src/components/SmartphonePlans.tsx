@@ -20,7 +20,7 @@ const PlanCard = ({ name, price, badge, badgeColor, headerColorClass, highlight,
     )}
     <div className={`${headerColorClass} px-2 py-1.5 sm:p-6 text-primary-foreground text-center`}>
       <span className="text-base sm:text-4xl font-extrabold">{price}</span>
-      <span className="text-[8px] sm:text-sm font-semibold opacity-90"> /30 Days</span>
+      <span className="text-[8px] sm:text-sm font-semibold opacity-90"> / 30 Days</span>
     </div>
     <div className="p-1.5 sm:p-6 flex-grow flex flex-col">
       <div className={`bg-muted p-1 sm:p-3 rounded text-center font-bold text-[9px] sm:text-base ${highlightColorClass} mb-1.5 sm:mb-6`}>
