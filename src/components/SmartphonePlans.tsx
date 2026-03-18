@@ -44,7 +44,7 @@ export const SmartphonePlans = () => {
   const plans: PlanCardProps[] = [
     {
       name: "$25 15GB Plan",
-      price: "$25.00",
+      price: "$25",
       headerColorClass: "bg-plan-tier4",
       highlight: "15GB High-Speed Data",
       highlightColorClass: "text-plan-tier4",
