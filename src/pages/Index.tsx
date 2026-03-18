@@ -49,7 +49,7 @@ const Index = () => {
 
       {/* Phone number input card */}
       <div className="max-w-[600px] mx-auto px-4 pb-4 sm:pb-8">
-        <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6">
+        <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">
           <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
             Enter Your Simple Mobile Phone Number
           </label>
@@ -60,7 +60,7 @@ const Index = () => {
               value={phone}
               onChange={handlePhoneChange}
               placeholder="(XXX) XXX-XXXX"
-              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cellpay-green focus:border-transparent"
+              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cellpay-green focus:border-transparent text-center"
             />
           </div>
           <p className="text-[10px] sm:text-xs text-muted-foreground">
