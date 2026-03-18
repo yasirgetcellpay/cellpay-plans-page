@@ -39,9 +39,6 @@ const PlanCard = ({ name, price, badge, badgeColor, headerColorClass, highlight,
           </li>
         ))}
       </ul>
-      <div className="mt-auto pt-4 border-t border-border text-center font-bold text-muted-foreground">
-        Add a Line: from $20/mo
-      </div>
     </div>
   </div>
 );
