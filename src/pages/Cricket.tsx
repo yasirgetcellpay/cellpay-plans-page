@@ -23,10 +23,7 @@ const Cricket = () => {
 
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/[^0-9]/g, "");
-    if (val === "") {
-      setAmount("");
-      return;
-    }
+    if (val === "") { setAmount(""); return; }
     const num = parseInt(val, 10);
     if (num <= 250) setAmount(val);
   }, []);
@@ -37,7 +34,6 @@ const Cricket = () => {
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
-      {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-card border-b-4 border-[hsl(82,60%,42%)] shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center h-14 sm:h-20 items-center">
@@ -46,139 +42,71 @@ const Cricket = () => {
         </div>
       </nav>
 
-      {/* Hero */}
       <section className="bg-[hsl(82,60%,42%)] text-primary-foreground">
         <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl md:text-2xl font-extrabold">Cricket Wireless Bill Pay</h1>
         </div>
       </section>
 
-      {/* Phone number input card */}
+      {/* Phone + Amount card */}
       <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">
         <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">
           <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
             Enter Your Cricket Wireless Phone Number
           </label>
-          <div className="relative mb-2">
+          <div className="relative mb-3">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-            <input
-              type="tel"
-              value={phone}
-              onChange={handlePhoneChange}
-              placeholder="(XXX) XXX-XXXX"
-              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(82,60%,42%)] focus:border-transparent text-center"
-            />
+            <input type="tel" value={phone} onChange={handlePhoneChange} placeholder="(XXX) XXX-XXXX"
+              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(82,60%,42%)] focus:border-transparent text-center" />
           </div>
-          <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2 mt-4">
+          <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
             Recharge Amount
           </label>
           <div className="relative mb-1">
             <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-            <input
-              type="text"
-              inputMode="numeric"
-              value={amount}
-              onChange={handleAmountChange}
-              placeholder="$5 - $250"
-              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(82,60%,42%)] focus:border-transparent text-center"
-            />
+            <input type="text" inputMode="numeric" value={amount} onChange={handleAmountChange} placeholder="$5 - $250"
+              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(82,60%,42%)] focus:border-transparent text-center" />
           </div>
-          <p className="text-[10px] sm:text-xs text-muted-foreground">
-            Enter the amount you want to recharge
-          </p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">Enter the amount you want to recharge</p>
         </div>
       </div>
 
       {/* Checkboxes & Pay */}
       <div className="max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
-
-          {/* Important checkboxes */}
-          <p className="text-xs sm:text-sm font-bold text-foreground mb-2">Important</p>
-          <label className="flex items-start gap-2 mb-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={confirmed}
-              onChange={(e) => setConfirmed(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-input accent-[hsl(82,60%,42%)]"
-            />
-            <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
-              I have confirmed that I entered the correct phone number. I understand that this sale is final as the minutes cannot be removed nor transferred once loaded to the phone number I have provided above.
-            </span>
-          </label>
-          <label className="flex items-start gap-2 mb-6 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={agreedTerms}
-              onChange={(e) => setAgreedTerms(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-input accent-[hsl(82,60%,42%)]"
-            />
-            <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
-              Agree with Cricket Wireless Product Policies and Sales.{" "}
-              <a href="https://www.cricketwireless.com/terms" className="text-[hsl(82,60%,42%)] underline font-semibold">
-                View More
-              </a>
-            </span>
-          </label>
-
-          {/* Pay Now */}
-          <div className="flex justify-center">
-            <button
-              type="button"
-              disabled={!isValid}
-              className="h-[48px] sm:h-[52px] px-12 sm:px-16 rounded-lg bg-[hsl(82,60%,42%)] hover:bg-[hsl(82,60%,36%)] disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]"
-            >
-              PAY NOW
-            </button>
-          </div>
-          <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">
-            Secure payment. Instant refill sent directly to your phone.
-          </p>
+        <p className="text-xs sm:text-sm font-bold text-foreground mb-2">Important</p>
+        <label className="flex items-start gap-2 mb-3 cursor-pointer">
+          <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input accent-[hsl(82,60%,42%)]" />
+          <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">I have confirmed that I entered the correct phone number. I understand that this sale is final as the minutes cannot be removed nor transferred once loaded to the phone number I have provided above.</span>
+        </label>
+        <label className="flex items-start gap-2 mb-6 cursor-pointer">
+          <input type="checkbox" checked={agreedTerms} onChange={(e) => setAgreedTerms(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input accent-[hsl(82,60%,42%)]" />
+          <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
+            Agree with Cricket Wireless Product Policies and Sales.{" "}
+            <a href="https://www.cricketwireless.com/terms" className="text-[hsl(82,60%,42%)] underline font-semibold">View More</a>
+          </span>
+        </label>
+        <div className="flex justify-center">
+          <button type="button" disabled={!isValid} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg bg-[hsl(82,60%,42%)] hover:bg-[hsl(82,60%,36%)] disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]">PAY NOW</button>
         </div>
+        <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
       </div>
 
       <PaymentBar />
-
-      {/* Footer */}
       <footer className="bg-cellpay-dark text-muted-foreground py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
-            <div>
-              <h5 className="text-primary-foreground font-bold mb-5 uppercase tracking-widest text-sm">Company</h5>
-              <ul className="space-y-3 text-sm">
-                <li><a href="#" className="hover:text-primary-foreground">About Us</a></li>
-                <li><a href="#" className="hover:text-primary-foreground">Contact Us</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="text-primary-foreground font-bold mb-5 uppercase tracking-widest text-sm">Policy</h5>
-              <ul className="space-y-3 text-sm">
-                <li><a href="#" className="hover:text-primary-foreground">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-primary-foreground">Terms &amp; Conditions</a></li>
-                <li><a href="#" className="hover:text-primary-foreground">Returns &amp; Refunds Policy</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="text-primary-foreground font-bold mb-5 uppercase tracking-widest text-sm">Help &amp; FAQ</h5>
-              <ul className="space-y-3 text-sm">
-                <li><a href="#" className="hover:text-primary-foreground">How to Use</a></li>
-                <li><a href="#" className="hover:text-primary-foreground">FAQ</a></li>
-              </ul>
-            </div>
+            <div><h5 className="text-primary-foreground font-bold mb-5 uppercase tracking-widest text-sm">Company</h5><ul className="space-y-3 text-sm"><li><a href="#" className="hover:text-primary-foreground">About Us</a></li><li><a href="#" className="hover:text-primary-foreground">Contact Us</a></li></ul></div>
+            <div><h5 className="text-primary-foreground font-bold mb-5 uppercase tracking-widest text-sm">Policy</h5><ul className="space-y-3 text-sm"><li><a href="#" className="hover:text-primary-foreground">Privacy Policy</a></li><li><a href="#" className="hover:text-primary-foreground">Terms &amp; Conditions</a></li><li><a href="#" className="hover:text-primary-foreground">Returns &amp; Refunds Policy</a></li></ul></div>
+            <div><h5 className="text-primary-foreground font-bold mb-5 uppercase tracking-widest text-sm">Help &amp; FAQ</h5><ul className="space-y-3 text-sm"><li><a href="#" className="hover:text-primary-foreground">How to Use</a></li><li><a href="#" className="hover:text-primary-foreground">FAQ</a></li></ul></div>
           </div>
           <div className="border-t border-muted pt-6 text-center">
             <p className="text-xs">© 2026 All rights reserved.</p>
-            <p className="text-[10px] leading-relaxed max-w-4xl mx-auto opacity-50 mt-3">
-              Cricket Wireless® is a registered trademark of Cricket Communications, Inc. All carrier names and trademarks are property of their respective owners.
-            </p>
+            <p className="text-[10px] leading-relaxed max-w-4xl mx-auto opacity-50 mt-3">Cricket Wireless® is a registered trademark of Cricket Communications, Inc. All carrier names and trademarks are property of their respective owners.</p>
           </div>
         </div>
       </footer>
-
-      {/* Legal Bar */}
       <div className="bg-[hsl(82,60%,42%)] text-primary-foreground py-3 text-[10px] md:text-xs">
-        <div className="max-w-7xl mx-auto px-4 text-center leading-relaxed">
-          All prices shown are full retail prices. Taxes and fees are additional and vary by location. Service plans are non-refundable.
-        </div>
+        <div className="max-w-7xl mx-auto px-4 text-center leading-relaxed">All prices shown are full retail prices. Taxes and fees are additional and vary by location. Service plans are non-refundable.</div>
       </div>
     </div>
   );
