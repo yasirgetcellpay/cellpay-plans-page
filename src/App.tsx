@@ -31,6 +31,7 @@ const App = () => (
       <Route path="/lyca" element={<Lyca />} />
       <Route path="/net10" element={<Net10 />} />
       <Route path="/pageplus" element={<PagePlus />} />
+      <Route path="/tracfone" element={<Tracfone />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </BrowserRouter>
