@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { Phone, DollarSign } from "lucide-react";
+import verizonLogo from "@/assets/verizon-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 
 const quickAmounts = [80, 75, 70, 60, 50, 45, 40, 35, 30, 25, 20, 15];
@@ -42,7 +43,7 @@ const Verizon = () => {
       <nav className="sticky top-0 z-50 bg-card border-b-4 border-[hsl(0,100%,45%)] shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center h-14 sm:h-20 items-center">
-            <span className="text-[hsl(0,100%,45%)] font-extrabold text-2xl sm:text-3xl tracking-tight">verizon</span>
+            <img src={verizonLogo} alt="Verizon" className="h-[24px] sm:h-[32px] w-auto" />
           </div>
         </div>
       </nav>
