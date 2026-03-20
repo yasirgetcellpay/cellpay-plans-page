@@ -11,6 +11,7 @@ const carriers = [
   { name: "Metro PCS", logo: metroLogo, path: "/metro", bg: "bg-[hsl(270,60%,32%)]" },
   { name: "T-Mobile", logo: tmobileLogo, path: "/tmobile", bg: "bg-[hsl(330,100%,45%)]" },
   { name: "AT&T Prepaid", logo: attLogo, path: "/att", bg: "bg-[hsl(196,100%,44%)]" },
+  { name: "Verizon", logo: null, path: "/verizon", bg: "bg-[hsl(0,100%,45%)]" },
 ];
 
 const Home = () => (
