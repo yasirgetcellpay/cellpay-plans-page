@@ -3,19 +3,7 @@ import { Phone } from "lucide-react";
 import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import { PaymentBar } from "@/components/PaymentBar";
 
-interface Plan { price: string; label: string; }
-
-const plans: Plan[] = [
-  { price: "$19.99", label: "60 Minutes for Talk, Text and Web (90 Days)" },
-  { price: "$29.99", label: "120 Minutes for Talk, Text and Web (90 Days)" },
-  { price: "$39.99", label: "200 Minutes for Talk, Text and Web (90 Days)" },
-  { price: "$99.99", label: "400 Minutes for Talk, Text and Web (365 Days)" },
-  { price: "$20", label: "TracFone Unltd Classic RTR $20 Data 1 GB" },
-  { price: "$25", label: "TracFone Unltd Classic RTR $25 Data 2 GB" },
-  { price: "$30", label: "TracFone Unltd Classic RTR $30 Data 3 GB" },
-  { price: "$15", label: "TracFone Smartphone RTR $15 500 min 500 text n 500mb 30 days service" },
-  { price: "$125", label: "TracFone Smartphone RTR $125 365 days service monthly 750 min 1000 text Data 1GB" },
-];
+const plans = ["$19.99", "$29.99", "$39.99", "$99.99", "$20", "$25", "$30", "$15", "$125"];
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -66,18 +54,15 @@ const Tracfone = () => {
         </div>
       </div>
 
-      <div className="max-w-[500px] mx-auto px-4 pb-4">
+      <div className="max-w-[420px] mx-auto px-4 pb-4">
         <label className="block text-xs sm:text-sm font-bold text-foreground mb-3">Select Amount</label>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-          {plans.map((plan, i) => {
+        <div className="grid grid-cols-5 gap-2">
+          {plans.map((price, i) => {
             const isSelected = selectedPlan === i;
             return (
               <button key={i} type="button" onClick={() => setSelectedPlan(i)}
-                className={`h-full flex flex-col rounded-lg border-2 text-left overflow-hidden transition-all active:scale-[0.97] ${isSelected ? "border-[hsl(230,70%,30%)]" : "border-border hover:border-[hsl(230,70%,30%)]/50"}`}>
-                <div className={`px-3 py-1.5 text-center font-extrabold text-sm sm:text-base ${isSelected ? "bg-[hsl(230,70%,24%)] text-primary-foreground" : "bg-[hsl(230,70%,30%)] text-primary-foreground"}`}>{plan.price}</div>
-                <div className="px-2 py-1.5 flex-1 flex items-center justify-center">
-                  <div className="text-[9px] sm:text-[11px] text-muted-foreground leading-tight text-center">{plan.label}</div>
-                </div>
+                className={`rounded-lg border-2 py-2 text-xs sm:text-sm font-bold transition-all active:scale-[0.96] ${isSelected ? "border-[hsl(230,70%,30%)] bg-[hsl(230,70%,30%)] text-primary-foreground" : "border-border bg-muted text-foreground hover:border-[hsl(230,70%,30%)]"}`}>
+                {price}
               </button>
             );
           })}

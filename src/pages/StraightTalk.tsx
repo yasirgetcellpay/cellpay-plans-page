@@ -3,26 +3,9 @@ import { Phone } from "lucide-react";
 import straightTalkLogo from "@/assets/straight-talk-logo.svg";
 import { PaymentBar } from "@/components/PaymentBar";
 
-interface Plan { price: string; label: string; }
-
-const wirelessPlans: Plan[] = [
-  { price: "$65", label: "Platinum Unlimited, Unlimited data, Talk & text, Unlimited Hotspot, 100 GB cloud storage, 30 Days" },
-  { price: "$55", label: "Gold Unlimited, Unlimited data, Talk & text, 30 GB Hotspot, 100 GB cloud storage, 30 Days" },
-  { price: "$45", label: "Silver Unlimited, Unlimited data, Talk & text, 10 GB Hotspot, 30 Days" },
-  { price: "$35", label: "Bronze 10 GB, Unlimited Talk & text, 10 GB at high speed then 2G, 30 Days" },
-];
-
-const broadbandPlans: Plan[] = [
-  { price: "$65", label: "Platinum Unlimited" },
-  { price: "$55", label: "Gold Unlimited" },
-  { price: "$45", label: "Silver Unlimited" },
-  { price: "$35", label: "10 GB" },
-];
-
-const addonPlans: Plan[] = [
-  { price: "$10", label: "2 GB of data. Unused balance rollover" },
-  { price: "$10", label: "Global Calling Add-On, International call and text to Canada and Mexico" },
-];
+const wirelessPlans = ["$65", "$55", "$45", "$35"];
+const broadbandPlans = ["$65", "$55", "$45", "$35"];
+const addonPlans = ["$10", "$10"];
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -45,21 +28,18 @@ const StraightTalk = () => {
   const phoneDigits = phone.replace(/\D/g, "");
   const isValid = phoneDigits.length === 10 && selectedPlan !== null && confirmed && agreedTerms;
 
-  const PlanGrid = ({ title, plans, cols = 4 }: { title: string; plans: Plan[]; cols?: number }) => (
+  const PlanGrid = ({ title, plans, cols = 4 }: { title: string; plans: string[]; cols?: number }) => (
     <div className="mb-4">
       <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2">{title}</h3>
       <div className="border-t border-border pt-3">
-        <div className={`grid gap-2 ${cols === 4 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2"}`}>
-          {plans.map((plan, i) => {
+        <div className={`grid gap-2 ${cols === 4 ? "grid-cols-4 sm:grid-cols-5" : "grid-cols-2"}`}>
+          {plans.map((price, i) => {
             const key = `${title}-${i}`;
             const isSelected = selectedPlan === key;
             return (
               <button key={key} type="button" onClick={() => setSelectedPlan(key)}
-                className={`h-full flex flex-col rounded-lg border-2 text-left overflow-hidden transition-all active:scale-[0.97] ${isSelected ? "border-[hsl(72,74%,44%)]" : "border-border hover:border-[hsl(72,74%,44%)]/50"}`}>
-                <div className="px-3 py-1.5 text-center font-extrabold text-sm sm:text-base bg-[hsl(72,74%,44%)] text-foreground">{plan.price}</div>
-                <div className="px-2 py-1.5 flex-1 flex items-center justify-center">
-                  <div className="text-[9px] sm:text-[11px] text-muted-foreground leading-tight text-center">{plan.label}</div>
-                </div>
+                className={`rounded-lg border-2 py-2 text-xs sm:text-sm font-bold transition-all active:scale-[0.96] ${isSelected ? "border-[hsl(72,74%,44%)] bg-[hsl(72,74%,44%)] text-foreground" : "border-border bg-muted text-foreground hover:border-[hsl(72,74%,44%)]"}`}>
+                {price}
               </button>
             );
           })}
@@ -98,7 +78,7 @@ const StraightTalk = () => {
       </div>
 
       {/* Plans */}
-      <div className="max-w-[500px] mx-auto px-4 pb-4">
+      <div className="max-w-[420px] mx-auto px-4 pb-4">
         <PlanGrid title="Wireless Plans" plans={wirelessPlans} cols={4} />
         <PlanGrid title="Broadband Plans" plans={broadbandPlans} cols={4} />
         <PlanGrid title="Addon Plans" plans={addonPlans} cols={2} />

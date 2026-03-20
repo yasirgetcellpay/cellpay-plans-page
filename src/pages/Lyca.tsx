@@ -3,25 +3,7 @@ import { Phone } from "lucide-react";
 import lycaLogo from "@/assets/lyca-logo.webp";
 import { PaymentBar } from "@/components/PaymentBar";
 
-interface Plan { price: string; label: string; }
-
-const plans: Plan[] = [
-  { price: "$59", label: "Unlimited Nationwide Talk, Text & Data (Unlimited Data at up to 4G LTE speed) Unlimited Intl Talk & Text" },
-  { price: "$55", label: "Lycamobile RTR $55" },
-  { price: "$49", label: "Unlimited Nationwide Talk, Text & Data (40GB at up to 4G LTE speed) + Unlimited Intl Text" },
-  { price: "$45", label: "Unlimited Nationwide Talk, Text & Data (10GB at up to 4G LTE speed) + Unlimited Intl Text" },
-  { price: "$39", label: "Unlimited Talk, Global Text & Data (15GB at up to 4G LTE speed) + Intl Calling" },
-  { price: "$33", label: "Unlimited Nationwide Talk, Text & Data (12GB at up to 4G LTE speed)" },
-  { price: "$29", label: "Unlimited Nationwide Talk, Text & Data (6GB at up to 4G LTE speed) $2.50 International credit" },
-  { price: "$23", label: "Unlimited Nationwide Talk, Text & Data (3GB at up to 4G LTE speed) $1.50 International credit" },
-  { price: "$21", label: "Addon $21" },
-  { price: "$20", label: "Lyca International Recharge - Paygo 20.00 USD" },
-  { price: "$19", label: "Unlimited Nationwide Talk, Text & Data (2GB at up to 4G LTE speed)" },
-  { price: "$15", label: "Lyca International Recharge - Paygo 10.00 USD" },
-  { price: "$13", label: "Lycamobile RTR $13" },
-  { price: "$11", label: "Addon $11" },
-  { price: "$10", label: "Lycamobile RTR $10" },
-];
+const plans = ["$59", "$55", "$49", "$45", "$39", "$33", "$29", "$23", "$21", "$20", "$19", "$15", "$13", "$11", "$10"];
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -74,18 +56,15 @@ const Lyca = () => {
       </div>
 
       {/* Plan Selection */}
-      <div className="max-w-[560px] mx-auto px-4 pb-4">
+      <div className="max-w-[420px] mx-auto px-4 pb-4">
         <label className="block text-xs sm:text-sm font-bold text-foreground mb-3">Select Amount</label>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-          {plans.map((plan, i) => {
+        <div className="grid grid-cols-5 gap-2">
+          {plans.map((price, i) => {
             const isSelected = selectedPlan === i;
             return (
               <button key={i} type="button" onClick={() => setSelectedPlan(i)}
-                className={`h-full flex flex-col rounded-lg border-2 text-left overflow-hidden transition-all active:scale-[0.97] ${isSelected ? "border-[hsl(168,76%,42%)]" : "border-border hover:border-[hsl(168,76%,42%)]/50"}`}>
-                <div className={`px-3 py-1.5 text-center font-extrabold text-sm sm:text-base ${isSelected ? "bg-[hsl(168,76%,34%)] text-primary-foreground" : "bg-[hsl(168,76%,42%)] text-primary-foreground"}`}>{plan.price}</div>
-                <div className="px-2 py-1.5 flex-1 flex items-center justify-center">
-                  <div className="text-[9px] sm:text-[11px] text-muted-foreground leading-tight text-center">{plan.label}</div>
-                </div>
+                className={`rounded-lg border-2 py-2 text-xs sm:text-sm font-bold transition-all active:scale-[0.96] ${isSelected ? "border-[hsl(168,76%,42%)] bg-[hsl(168,76%,42%)] text-primary-foreground" : "border-border bg-muted text-foreground hover:border-[hsl(168,76%,42%)]"}`}>
+                {price}
               </button>
             );
           })}
