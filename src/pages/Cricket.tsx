@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { Phone, DollarSign } from "lucide-react";
 import cricketLogo from "@/assets/cricket-logo.webp";
+import { PaymentBar } from "@/components/PaymentBar";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
