@@ -53,9 +53,6 @@ const Cricket = () => {
       </section>
 
       {/* Logo + Title — desktop only */}
-      <div className="hidden sm:block text-center pt-8 pb-4 px-4">
-        <img src={cricketLogo} alt="Cricket Wireless" className="mx-auto w-[180px]" />
-      </div>
       <div className="hidden sm:block text-center pb-6 px-4">
         <h2 className="text-3xl font-extrabold text-foreground mb-2">
           Cricket Wireless Bill Pay
