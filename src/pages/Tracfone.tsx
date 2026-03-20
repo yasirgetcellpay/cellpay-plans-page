@@ -54,7 +54,7 @@ const Tracfone = () => {
         </div>
       </div>
 
-      <div className="max-w-[500px] mx-auto px-4 pb-4">
+      <div className="max-w-[420px] mx-auto px-4 pb-4">
         <label className="block text-xs sm:text-sm font-bold text-foreground mb-3">Select Amount</label>
         <div className="grid grid-cols-5 gap-2">
           {plans.map((price, i) => {

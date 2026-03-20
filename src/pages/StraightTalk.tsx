@@ -78,7 +78,7 @@ const StraightTalk = () => {
       </div>
 
       {/* Plans */}
-      <div className="max-w-[500px] mx-auto px-4 pb-4">
+      <div className="max-w-[420px] mx-auto px-4 pb-4">
         <PlanGrid title="Wireless Plans" plans={wirelessPlans} cols={4} />
         <PlanGrid title="Broadband Plans" plans={broadbandPlans} cols={4} />
         <PlanGrid title="Addon Plans" plans={addonPlans} cols={2} />
