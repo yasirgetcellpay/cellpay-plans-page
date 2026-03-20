@@ -48,54 +48,49 @@ const Cricket = () => {
 
       {/* Hero */}
       <section className="bg-[hsl(82,60%,42%)] text-primary-foreground">
-        <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center sm:text-left">
+        <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl md:text-2xl font-extrabold">Cricket Wireless Bill Pay</h1>
         </div>
       </section>
 
-      {/* Logo + Title — desktop only */}
-      <div className="hidden sm:block text-center pb-6 px-4">
-        <h2 className="text-3xl font-extrabold text-foreground mb-2">
-          Cricket Wireless Bill Pay
-        </h2>
-        <p className="text-base text-muted-foreground max-w-xl mx-auto">
-          Cricket Mobile Bill Pay and Prepaid Plan Refill Payments
-        </p>
-      </div>
-
-      {/* Form Card */}
-      <div className="max-w-[600px] mx-auto px-4 pb-8 sm:pb-12">
-        <div className="bg-card rounded-xl shadow-lg border border-border p-5 sm:p-8">
-          {/* Phone Number */}
+      {/* Phone number input card */}
+      <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">
+        <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">
           <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
             Enter Your Cricket Wireless Phone Number
           </label>
-          <div className="relative mb-5 sm:mb-6">
+          <div className="relative mb-2">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             <input
               type="tel"
               value={phone}
               onChange={handlePhoneChange}
               placeholder="(XXX) XXX-XXXX"
-              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(82,60%,42%)] focus:border-transparent"
+              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(82,60%,42%)] focus:border-transparent text-center"
             />
           </div>
-
-          {/* Recharge Amount */}
-          <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
+          <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2 mt-4">
             Recharge Amount
           </label>
-          <div className="relative mb-5 sm:mb-6">
+          <div className="relative mb-1">
             <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             <input
               type="text"
               inputMode="numeric"
               value={amount}
               onChange={handleAmountChange}
-              placeholder="Enter an amount between 5 - 250"
-              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(82,60%,42%)] focus:border-transparent"
+              placeholder="$5 - $250"
+              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(82,60%,42%)] focus:border-transparent text-center"
             />
           </div>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">
+            Enter the amount you want to recharge
+          </p>
+        </div>
+      </div>
+
+      {/* Checkboxes & Pay */}
+      <div className="max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
 
           {/* Important checkboxes */}
           <p className="text-xs sm:text-sm font-bold text-foreground mb-2">Important</p>
