@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { Phone, DollarSign } from "lucide-react";
-import attLogo from "@/assets/att-prepaid-logo.png";
+import attLogo from "@/assets/att-prepaid-logo.webp";
 import { PaymentBar } from "@/components/PaymentBar";
 
 const quickAmounts = [100, 85, 80, 75, 70, 65, 60, 50, 45, 40, 35, 30, 25, 20, 15, 10];
