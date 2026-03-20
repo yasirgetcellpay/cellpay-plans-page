@@ -1,0 +1,208 @@
+import { useState, useCallback } from "react";
+import { Phone } from "lucide-react";
+import h2oLogo from "@/assets/h2o-logo.png";
+import { PaymentBar } from "@/components/PaymentBar";
+
+interface Plan {
+  price: string;
+  label: string;
+}
+
+const plans: Plan[] = [
+  { price: "$100", label: "H2O Unlimited Talk/Text/Data" },
+  { price: "$60", label: "Monthly Unlimited Talk, Text & Unlimited LTE Data with Hotspot, $5 International Talk Credit" },
+  { price: "$50", label: "Unlimited Talk & Text, 6GB of Data, International Calling, Global Text, $5 Intl Call Credit on each line" },
+  { price: "$40", label: "Monthly Unlimited Talk, Text, 15GB Data, $5 International Talk Credit" },
+  { price: "$35", label: "H2O Unlimited Talk & Text/500mb Data (4G)" },
+  { price: "$30", label: "Monthly Unlimited Talk, Text, 6GB Data, $5 International Talk Credit" },
+  { price: "$20", label: "Monthly Unlimited Talk, Text, 2GB Data, $1.5 International Talk Credit" },
+  { price: "$10", label: "H2O Paygo 10.00 USD" },
+];
+
+const formatPhone = (value: string): string => {
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+  if (digits.length === 0) return "";
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+};
+
+const H2O = () => {
+  const [phone, setPhone] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
+  const [agreedTerms, setAgreedTerms] = useState(false);
+
+  const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhone(formatPhone(e.target.value));
+  }, []);
+
+  const phoneDigits = phone.replace(/\D/g, "");
+  const isValid = phoneDigits.length === 10 && selectedPlan !== null && confirmed && agreedTerms;
+
+  return (
+    <div className="min-h-screen bg-background font-sans antialiased">
+      {/* Navbar */}
+      <nav className="sticky top-0 z-50 bg-card border-b-4 border-[hsl(195,85%,50%)] shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-center h-14 sm:h-20 items-center">
+            <img src={h2oLogo} alt="H2O Wireless" className="h-[24px] sm:h-[32px] w-auto" />
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="bg-[hsl(195,85%,50%)] text-primary-foreground">
+        <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-xl md:text-2xl font-extrabold">H2O Wireless Recharge</h1>
+        </div>
+      </section>
+
+      {/* Form Card */}
+      <div className="max-w-[700px] mx-auto px-4 pt-6 pb-8 sm:pb-12">
+        <div className="bg-card rounded-xl shadow-lg border border-border p-5 sm:p-8">
+          {/* Phone Number */}
+          <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
+            Enter Your H2O Wireless Phone Number
+          </label>
+          <div className="relative mb-5 sm:mb-6">
+            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+            <input
+              type="tel"
+              value={phone}
+              onChange={handlePhoneChange}
+              placeholder="(XXX) XXX-XXXX"
+              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(195,85%,50%)] focus:border-transparent"
+            />
+          </div>
+
+          {/* Plan Selection */}
+          <label className="block text-xs sm:text-sm font-bold text-foreground mb-3">
+            Select Amount
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-5 sm:mb-6">
+            {plans.map((plan, i) => {
+              const isSelected = selectedPlan === i;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setSelectedPlan(i)}
+                  className={`rounded-lg border-2 text-left overflow-hidden transition-all active:scale-[0.97] ${
+                    isSelected
+                      ? "border-[hsl(195,85%,50%)]"
+                      : "border-border hover:border-[hsl(195,85%,50%)]/50"
+                  }`}
+                >
+                  <div
+                    className={`px-3 py-2 text-center font-extrabold text-base sm:text-lg ${
+                      isSelected
+                        ? "bg-[hsl(195,85%,40%)] text-primary-foreground"
+                        : "bg-[hsl(195,85%,50%)] text-primary-foreground"
+                    }`}
+                  >
+                    {plan.price}
+                  </div>
+                  <div className="px-2 py-2">
+                    <div className="text-[10px] sm:text-xs text-muted-foreground leading-tight text-center">
+                      {plan.label}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Important checkboxes */}
+          <p className="text-xs sm:text-sm font-bold text-foreground mb-2">Important</p>
+          <label className="flex items-start gap-2 mb-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={confirmed}
+              onChange={(e) => setConfirmed(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-input accent-[hsl(195,85%,50%)]"
+            />
+            <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
+              I have confirmed that I entered the correct phone number. I understand that this sale is final as the minutes cannot be removed nor transferred once loaded to the phone number I have provided above.
+            </span>
+          </label>
+          <label className="flex items-start gap-2 mb-6 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={agreedTerms}
+              onChange={(e) => setAgreedTerms(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-input accent-[hsl(195,85%,50%)]"
+            />
+            <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
+              Agree with H2O Wireless Product Policies and Sales.{" "}
+              <a href="https://www.h2owireless.com/terms-and-conditions" className="text-[hsl(195,85%,50%)] underline font-semibold">
+                View More
+              </a>
+            </span>
+          </label>
+
+          {/* Pay Now */}
+          <div className="flex justify-center">
+            <button
+              type="button"
+              disabled={!isValid}
+              className="h-[48px] sm:h-[52px] px-12 sm:px-16 rounded-lg bg-[hsl(195,85%,50%)] hover:bg-[hsl(195,85%,42%)] disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]"
+            >
+              PAY NOW
+            </button>
+          </div>
+          <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">
+            Secure payment. Instant refill sent directly to your phone.
+          </p>
+        </div>
+      </div>
+
+      <PaymentBar />
+
+      {/* Footer */}
+      <footer className="bg-cellpay-dark text-muted-foreground py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+            <div>
+              <h5 className="text-primary-foreground font-bold mb-5 uppercase tracking-widest text-sm">Company</h5>
+              <ul className="space-y-3 text-sm">
+                <li><a href="#" className="hover:text-primary-foreground">About Us</a></li>
+                <li><a href="#" className="hover:text-primary-foreground">Contact Us</a></li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="text-primary-foreground font-bold mb-5 uppercase tracking-widest text-sm">Policy</h5>
+              <ul className="space-y-3 text-sm">
+                <li><a href="#" className="hover:text-primary-foreground">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-primary-foreground">Terms &amp; Conditions</a></li>
+                <li><a href="#" className="hover:text-primary-foreground">Returns &amp; Refunds Policy</a></li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="text-primary-foreground font-bold mb-5 uppercase tracking-widest text-sm">Help &amp; FAQ</h5>
+              <ul className="space-y-3 text-sm">
+                <li><a href="#" className="hover:text-primary-foreground">How to Use</a></li>
+                <li><a href="#" className="hover:text-primary-foreground">FAQ</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-muted pt-6 text-center">
+            <p className="text-xs">© 2026 All rights reserved.</p>
+            <p className="text-[10px] leading-relaxed max-w-4xl mx-auto opacity-50 mt-3">
+              H2O Wireless® is a trademark of Locus Telecommunications, Inc. All carrier names and trademarks are property of their respective owners.
+            </p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Legal Bar */}
+      <div className="bg-[hsl(195,85%,50%)] text-primary-foreground py-3 text-[10px] md:text-xs">
+        <div className="max-w-7xl mx-auto px-4 text-center leading-relaxed">
+          All prices shown are full retail prices. Taxes and fees are additional and vary by location. Service plans are non-refundable.
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default H2O;
