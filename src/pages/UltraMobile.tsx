@@ -3,21 +3,7 @@ import { Phone } from "lucide-react";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 
-interface Plan { price: string; label: string; }
-
-const plans: Plan[] = [
-  { price: "$64", label: "" },
-  { price: "$59", label: "RTR $59 recharge" },
-  { price: "$54", label: "" },
-  { price: "$49", label: "40GB of 5G/4G LTE Data, Monthly $5 INTL Call Credit, One-Time $5 INTL Roaming Credit" },
-  { price: "$44", label: "" },
-  { price: "$39", label: "15GB of 5G/4G LTE Data, Monthly $5 INTL Call Credit, One-Time $5 INTL Roaming Credit" },
-  { price: "$34", label: "" },
-  { price: "$29", label: "10GB of 5G/4G LTE Data, Monthly $5 INTL Call Credit, One-Time $5 INTL Roaming Credit" },
-  { price: "$24", label: "" },
-  { price: "$19", label: "3GB of 5G/4G LTE Data, Monthly $1.50 INTL Call Credit, One-Time $5 INTL Roaming Credit" },
-  { price: "$15", label: "" },
-];
+const plans = ["$64", "$59", "$54", "$49", "$44", "$39", "$34", "$29", "$24", "$19", "$15"];
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
