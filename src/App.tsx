@@ -12,6 +12,7 @@ import H2O from "./pages/H2O.tsx";
 import Lyca from "./pages/Lyca.tsx";
 import Net10 from "./pages/Net10.tsx";
 import PagePlus from "./pages/PagePlus.tsx";
+import Tracfone from "./pages/Tracfone.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const App = () => (
@@ -30,6 +31,7 @@ const App = () => (
       <Route path="/lyca" element={<Lyca />} />
       <Route path="/net10" element={<Net10 />} />
       <Route path="/pageplus" element={<PagePlus />} />
+      <Route path="/tracfone" element={<Tracfone />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </BrowserRouter>
