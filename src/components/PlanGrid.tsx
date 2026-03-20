@@ -4,9 +4,10 @@ interface PlanGridProps {
   plans: Plan[];
   brandColor: string;
   textOnBrand?: string;
+  onSelect?: (plan: Plan) => void;
 }
 
-export const PlanGrid = ({ plans, brandColor, textOnBrand = "text-primary-foreground" }: PlanGridProps) => {
+export const PlanGrid = ({ plans, brandColor, textOnBrand = "text-primary-foreground", onSelect }: PlanGridProps) => {
   const isOdd = plans.length % 2 !== 0;
   const gridPlans = isOdd ? plans.slice(0, -1) : plans;
   const lastPlan = isOdd ? plans[plans.length - 1] : null;
@@ -22,9 +23,15 @@ export const PlanGrid = ({ plans, brandColor, textOnBrand = "text-primary-foregr
           {plan.highlight}
         </div>
         <div className="flex justify-center mb-1.5 sm:mb-6">
-          <a href="#" className={`${textOnBrand} text-center py-1 sm:py-3 px-4 sm:px-8 rounded font-bold text-[10px] sm:text-base hover:opacity-90 inline-block active:scale-[0.97] transition-all`} style={{ backgroundColor: brandColor }}>
-            Pay Now
-          </a>
+          {onSelect ? (
+            <button type="button" onClick={() => onSelect(plan)} className={`${textOnBrand} text-center py-1 sm:py-3 px-4 sm:px-8 rounded font-bold text-[10px] sm:text-base hover:opacity-90 inline-block active:scale-[0.97] transition-all`} style={{ backgroundColor: brandColor }}>
+              Pay Now
+            </button>
+          ) : (
+            <a href="#" className={`${textOnBrand} text-center py-1 sm:py-3 px-4 sm:px-8 rounded font-bold text-[10px] sm:text-base hover:opacity-90 inline-block active:scale-[0.97] transition-all`} style={{ backgroundColor: brandColor }}>
+              Pay Now
+            </a>
+          )}
         </div>
       </div>
     </div>
