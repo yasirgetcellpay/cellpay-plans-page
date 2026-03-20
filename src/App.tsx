@@ -29,6 +29,7 @@ const App = () => (
       <Route path="/h2o" element={<H2O />} />
       <Route path="/lyca" element={<Lyca />} />
       <Route path="/net10" element={<Net10 />} />
+      <Route path="/pageplus" element={<PagePlus />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </BrowserRouter>
