@@ -56,16 +56,13 @@ const UltraMobile = () => {
 
       <div className="max-w-[500px] mx-auto px-4 pb-4">
         <label className="block text-xs sm:text-sm font-bold text-foreground mb-3">Select Amount</label>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-          {plans.map((plan, i) => {
+        <div className="grid grid-cols-5 gap-2">
+          {plans.map((price, i) => {
             const isSelected = selectedPlan === i;
             return (
               <button key={i} type="button" onClick={() => setSelectedPlan(i)}
-                className={`h-full flex flex-col rounded-lg border-2 text-left overflow-hidden transition-all active:scale-[0.97] ${isSelected ? "border-[hsl(270,50%,40%)]" : "border-border hover:border-[hsl(270,50%,40%)]/50"}`}>
-                <div className={`px-3 py-1.5 text-center font-extrabold text-sm sm:text-base ${isSelected ? "bg-[hsl(270,50%,32%)] text-primary-foreground" : "bg-[hsl(270,50%,40%)] text-primary-foreground"}`}>{plan.price}</div>
-                <div className="px-2 py-1.5 flex-1 flex items-center justify-center">
-                  <div className="text-[9px] sm:text-[11px] text-muted-foreground leading-tight text-center">{plan.label}</div>
-                </div>
+                className={`rounded-lg border-2 py-2 text-xs sm:text-sm font-bold transition-all active:scale-[0.96] ${isSelected ? "border-[hsl(270,50%,40%)] bg-[hsl(270,50%,40%)] text-primary-foreground" : "border-border bg-muted text-foreground hover:border-[hsl(270,50%,40%)]"}`}>
+                {price}
               </button>
             );
           })}
