@@ -48,7 +48,7 @@ const Cricket = () => {
 
       {/* Hero */}
       <section className="bg-[hsl(82,60%,42%)] text-primary-foreground">
-        <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center sm:text-left">
           <h1 className="text-xl md:text-2xl font-extrabold">Cricket Wireless Bill Pay</h1>
         </div>
       </section>
