@@ -3,25 +3,7 @@ import { Phone } from "lucide-react";
 import lycaLogo from "@/assets/lyca-logo.webp";
 import { PaymentBar } from "@/components/PaymentBar";
 
-interface Plan { price: string; label: string; }
-
-const plans: Plan[] = [
-  { price: "$59", label: "Unlimited Nationwide Talk, Text & Data (Unlimited Data at up to 4G LTE speed) Unlimited Intl Talk & Text" },
-  { price: "$55", label: "Lycamobile RTR $55" },
-  { price: "$49", label: "Unlimited Nationwide Talk, Text & Data (40GB at up to 4G LTE speed) + Unlimited Intl Text" },
-  { price: "$45", label: "Unlimited Nationwide Talk, Text & Data (10GB at up to 4G LTE speed) + Unlimited Intl Text" },
-  { price: "$39", label: "Unlimited Talk, Global Text & Data (15GB at up to 4G LTE speed) + Intl Calling" },
-  { price: "$33", label: "Unlimited Nationwide Talk, Text & Data (12GB at up to 4G LTE speed)" },
-  { price: "$29", label: "Unlimited Nationwide Talk, Text & Data (6GB at up to 4G LTE speed) $2.50 International credit" },
-  { price: "$23", label: "Unlimited Nationwide Talk, Text & Data (3GB at up to 4G LTE speed) $1.50 International credit" },
-  { price: "$21", label: "Addon $21" },
-  { price: "$20", label: "Lyca International Recharge - Paygo 20.00 USD" },
-  { price: "$19", label: "Unlimited Nationwide Talk, Text & Data (2GB at up to 4G LTE speed)" },
-  { price: "$15", label: "Lyca International Recharge - Paygo 10.00 USD" },
-  { price: "$13", label: "Lycamobile RTR $13" },
-  { price: "$11", label: "Addon $11" },
-  { price: "$10", label: "Lycamobile RTR $10" },
-];
+const plans = ["$59", "$55", "$49", "$45", "$39", "$33", "$29", "$23", "$21", "$20", "$19", "$15", "$13", "$11", "$10"];
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
