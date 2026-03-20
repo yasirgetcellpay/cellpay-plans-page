@@ -39,7 +39,7 @@ const ATT = () => {
       <nav className="sticky top-0 z-50 bg-card border-b-4 border-[hsl(196,100%,44%)] shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center h-14 sm:h-20 items-center">
-            <img src={attLogo} alt="AT&T Prepaid" className="h-[24px] sm:h-[32px] w-auto max-w-[200px] sm:max-w-[260px] object-contain" />
+            <img src={attLogo} alt="AT&T Prepaid" className="h-[48px] sm:h-[64px] w-auto object-contain" />
           </div>
         </div>
       </nav>
