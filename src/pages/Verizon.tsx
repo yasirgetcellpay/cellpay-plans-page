@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { Phone, DollarSign } from "lucide-react";
+import verizonLogo from "@/assets/verizon-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 
 const quickAmounts = [80, 75, 70, 60, 50, 45, 40, 35, 30, 25, 20, 15];
