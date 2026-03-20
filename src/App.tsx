@@ -35,6 +35,7 @@ const App = () => (
       <Route path="/pageplus" element={<PagePlus />} />
       <Route path="/tracfone" element={<Tracfone />} />
       <Route path="/ultra-mobile" element={<UltraMobile />} />
+      <Route path="/uscellular" element={<USCellular />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </BrowserRouter>
