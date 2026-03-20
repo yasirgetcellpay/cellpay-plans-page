@@ -2,8 +2,19 @@ import { useState, useCallback } from "react";
 import { Phone, DollarSign } from "lucide-react";
 import tmobileLogo from "@/assets/tmobile-logo.svg";
 import { PaymentBar } from "@/components/PaymentBar";
+import { PlanGrid } from "@/components/PlanGrid";
 
-const quickAmounts = [100, 70, 60, 50, 40, 30, 25, 15, 10];
+const plans = [
+  { price: "$100", highlight: "Prepaid Refill" },
+  { price: "$70", highlight: "Prepaid Refill" },
+  { price: "$60", highlight: "Prepaid Refill" },
+  { price: "$50", highlight: "Prepaid Refill" },
+  { price: "$40", highlight: "Prepaid Refill" },
+  { price: "$30", highlight: "Prepaid Refill" },
+  { price: "$25", highlight: "Prepaid Refill" },
+  { price: "$15", highlight: "Prepaid Refill" },
+  { price: "$10", highlight: "Prepaid Refill" },
+];
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -12,6 +23,8 @@ const formatPhone = (value: string): string => {
   if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 };
+
+const BRAND = "hsl(330,100%,45%)";
 
 const TMobile = () => {
   const [phone, setPhone] = useState("");
@@ -36,7 +49,7 @@ const TMobile = () => {
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
-      <nav className="sticky top-0 z-50 bg-card border-b-4 border-[hsl(330,100%,45%)] shadow-sm">
+      <nav className="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style={{ borderColor: BRAND }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center h-14 sm:h-20 items-center">
             <img src={tmobileLogo} alt="T-Mobile" className="w-[44px] sm:w-[52px]" />
@@ -44,59 +57,44 @@ const TMobile = () => {
         </div>
       </nav>
 
-      <section className="bg-[hsl(330,100%,45%)] text-primary-foreground">
+      <section className="text-primary-foreground" style={{ backgroundColor: BRAND }}>
         <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl md:text-2xl font-extrabold">T-Mobile Prepaid Bill Pay</h1>
         </div>
       </section>
 
-      {/* Phone input card */}
       <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">
         <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">
           <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">Enter Your T-Mobile Phone Number</label>
           <div className="relative mb-3">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             <input type="tel" value={phone} onChange={handlePhoneChange} placeholder="(XXX) XXX-XXXX"
-              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(330,100%,45%)] focus:border-transparent text-center" />
+              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" style={{ "--tw-ring-color": BRAND } as React.CSSProperties} />
           </div>
           <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">Select Amount</label>
           <div className="relative mb-1">
             <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
             <input type="text" inputMode="numeric" value={amount} onChange={handleAmountChange} placeholder="$10 - $500"
-              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(330,100%,45%)] focus:border-transparent text-center" />
+              className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" style={{ "--tw-ring-color": BRAND } as React.CSSProperties} />
           </div>
-          <p className="text-[10px] sm:text-xs text-muted-foreground">Or select a quick amount below</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">Or select a plan below</p>
         </div>
       </div>
 
-      {/* Quick-select buttons */}
-      <div className="max-w-[420px] mx-auto px-4 pb-4">
-        <div className="grid grid-cols-5 gap-2">
-          {quickAmounts.map((amt) => {
-            const isSelected = amount === String(amt);
-            return (
-              <button key={amt} type="button" onClick={() => setAmount(String(amt))}
-                className={`rounded-lg border-2 py-2 text-xs sm:text-sm font-bold transition-all active:scale-[0.96] ${isSelected ? "border-[hsl(330,100%,45%)] bg-[hsl(330,100%,45%)] text-primary-foreground" : "border-border bg-muted text-foreground hover:border-[hsl(330,100%,45%)]"}`}>
-                ${amt}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <PlanGrid plans={plans} brandColor={BRAND} onSelect={(plan) => setAmount(plan.price.replace("$", ""))} />
 
-      {/* Checkboxes & Pay */}
       <div className="max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
         <p className="text-xs sm:text-sm font-bold text-foreground mb-2 mt-2">Important</p>
         <label className="flex items-start gap-2 mb-3 cursor-pointer">
-          <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input accent-[hsl(330,100%,45%)]" />
+          <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: BRAND }} />
           <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">I have confirmed that I entered the correct phone number. I understand that this sale is final as the minutes cannot be removed nor transferred once loaded to the phone number I have provided above.</span>
         </label>
         <label className="flex items-start gap-2 mb-6 cursor-pointer">
-          <input type="checkbox" checked={agreedTerms} onChange={(e) => setAgreedTerms(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input accent-[hsl(330,100%,45%)]" />
-          <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">Agree with T-Mobile Product Policies and Sales.{" "}<a href="https://www.t-mobile.com/terms-conditions" className="text-[hsl(330,100%,45%)] underline font-semibold">View More</a></span>
+          <input type="checkbox" checked={agreedTerms} onChange={(e) => setAgreedTerms(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: BRAND }} />
+          <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">Agree with T-Mobile Product Policies and Sales.{" "}<a href="https://www.t-mobile.com/terms-conditions" className="underline font-semibold" style={{ color: BRAND }}>View More</a></span>
         </label>
         <div className="flex justify-center">
-          <button type="button" disabled={!isValid} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg bg-[hsl(330,100%,45%)] hover:bg-[hsl(330,100%,38%)] disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]">PAY NOW</button>
+          <button type="button" disabled={!isValid} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]" style={{ backgroundColor: BRAND }}>PAY NOW</button>
         </div>
         <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
       </div>
@@ -115,7 +113,7 @@ const TMobile = () => {
           </div>
         </div>
       </footer>
-      <div className="bg-[hsl(330,100%,45%)] text-primary-foreground py-3 text-[10px] md:text-xs">
+      <div className="text-primary-foreground py-3 text-[10px] md:text-xs" style={{ backgroundColor: BRAND }}>
         <div className="max-w-7xl mx-auto px-4 text-center leading-relaxed">All prices shown are full retail prices. Taxes and fees are additional and vary by location. Service plans are non-refundable.</div>
       </div>
     </div>
