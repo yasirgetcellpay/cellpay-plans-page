@@ -3,19 +3,7 @@ import { Phone } from "lucide-react";
 import pageplusLogo from "@/assets/pageplus-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 
-interface Plan { price: string; label: string; }
-
-const plans: Plan[] = [
-  { price: "$80", label: "Page Plus $80 PayGO" },
-  { price: "$69.95", label: "" },
-  { price: "$55", label: "Unlimited Talk, Unlimited Global Text, Fully Unlimited 4G LTE Data, $10 International Calling" },
-  { price: "$50", label: "Page Plus $50 PayGO" },
-  { price: "$39.95", label: "Unlimited Talk, Unlimited Global Text, 8GB of 4G LTE Data, $10 International Calling" },
-  { price: "$29.95", label: "Unlimited Talk, Unlimited Global Text, 3GB of 4G LTE Data, $10 International Calling" },
-  { price: "$25", label: "Page Plus $25 PayGO" },
-  { price: "$12", label: "500 Min, 500 Text, 100 MB of Data (30 Days)" },
-  { price: "$10", label: "Page Plus $10 PayGo" },
-];
+const plans = ["$80", "$69.95", "$55", "$50", "$39.95", "$29.95", "$25", "$12", "$10"];
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
