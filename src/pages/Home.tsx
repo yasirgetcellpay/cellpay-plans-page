@@ -11,6 +11,7 @@ import h2oLogo from "@/assets/h2o-logo.png";
 import lycaLogo from "@/assets/lyca-logo.webp";
 import net10Logo from "@/assets/net10-logo.png";
 import pageplusLogo from "@/assets/pageplus-logo.png";
+import tracfoneLogo from "@/assets/tracfone-logo.svg";
 
 const carriers = [
   { name: "Simple Mobile", logo: simpleMobileLogo, path: "/simple-mobile", bg: "bg-[hsl(101,67%,44%)]" },
