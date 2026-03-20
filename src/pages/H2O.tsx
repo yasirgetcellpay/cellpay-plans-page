@@ -3,18 +3,7 @@ import { Phone } from "lucide-react";
 import h2oLogo from "@/assets/h2o-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 
-interface Plan { price: string; label: string; }
-
-const plans: Plan[] = [
-  { price: "$100", label: "H2O Unlimited Talk/Text/Data" },
-  { price: "$60", label: "Monthly Unlimited Talk, Text & Unlimited LTE Data with Hotspot, $5 International Talk Credit" },
-  { price: "$50", label: "Unlimited Talk & Text, 6GB of Data, International Calling, Global Text, $5 Intl Call Credit on each line" },
-  { price: "$40", label: "Monthly Unlimited Talk, Text, 15GB Data, $5 International Talk Credit" },
-  { price: "$35", label: "H2O Unlimited Talk & Text/500mb Data (4G)" },
-  { price: "$30", label: "Monthly Unlimited Talk, Text, 6GB Data, $5 International Talk Credit" },
-  { price: "$20", label: "Monthly Unlimited Talk, Text, 2GB Data, $1.5 International Talk Credit" },
-  { price: "$10", label: "H2O Paygo 10.00 USD" },
-];
+const plans = ["$100", "$60", "$50", "$40", "$35", "$30", "$20", "$10"];
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
