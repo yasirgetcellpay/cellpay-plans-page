@@ -50,7 +50,7 @@ const Metro = () => {
 
       {/* Hero */}
       <section className="bg-[hsl(270,60%,32%)] text-primary-foreground">
-        <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center sm:text-left">
+        <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl md:text-2xl font-extrabold">Metro PCS Bill Pay</h1>
         </div>
       </section>
