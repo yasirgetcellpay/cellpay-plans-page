@@ -5,6 +5,7 @@ import metroLogo from "@/assets/metro-logo.svg";
 import tmobileLogo from "@/assets/tmobile-logo.svg";
 import attLogo from "@/assets/att-prepaid-logo.webp";
 import verizonLogo from "@/assets/verizon-logo.png";
+import boostLogo from "@/assets/boost-logo.png";
 
 const carriers = [
   { name: "Simple Mobile", logo: simpleMobileLogo, path: "/simple-mobile", bg: "bg-[hsl(101,67%,44%)]" },
@@ -13,6 +14,7 @@ const carriers = [
   { name: "T-Mobile", logo: tmobileLogo, path: "/tmobile", bg: "bg-[hsl(330,100%,45%)]" },
   { name: "AT&T Prepaid", logo: attLogo, path: "/att", bg: "bg-[hsl(196,100%,44%)]" },
   { name: "Verizon", logo: verizonLogo, path: "/verizon", bg: "bg-[hsl(0,100%,45%)]" },
+  { name: "Boost Mobile", logo: boostLogo, path: "/boost", bg: "bg-[hsl(27,100%,50%)]" },
 ];
 
 const Home = () => (
