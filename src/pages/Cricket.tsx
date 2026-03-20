@@ -54,10 +54,7 @@ const Cricket = () => {
 
       {/* Logo + Title — desktop only */}
       <div className="hidden sm:block text-center pt-8 pb-4 px-4">
-        <span className="text-4xl font-extrabold text-[hsl(82,60%,42%)] inline-block">
-          cricket
-          <span className="block text-sm font-semibold tracking-widest -mt-1">wireless</span>
-        </span>
+        <img src={cricketLogo} alt="Cricket Wireless" className="mx-auto w-[180px]" />
       </div>
       <div className="hidden sm:block text-center pb-6 px-4">
         <h2 className="text-3xl font-extrabold text-foreground mb-2">
