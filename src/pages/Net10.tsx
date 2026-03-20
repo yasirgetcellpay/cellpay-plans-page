@@ -3,17 +3,7 @@ import { Phone } from "lucide-react";
 import net10Logo from "@/assets/net10-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 
-interface Plan { price: string; label: string; }
-
-const plans: Plan[] = [
-  { price: "$75", label: "Unlimited* Talk / Text / Web 10GB (NOT THE FAMILY PLAN)" },
-  { price: "$65", label: "UNLIMITED* INTERNATIONAL TALK, TEXT 3GB DATA" },
-  { price: "$60", label: "Unlimited Talk, Text & Data (First 10GB at 4G LTE speeds)" },
-  { price: "$50", label: "Unlimited Talk, Text & Data (First 8GB at 4G LTE speeds)" },
-  { price: "$40", label: "Unlimited Talk, Text & Data (First 4GB at 4G LTE speeds)" },
-  { price: "$35", label: "Unlimited Talk, Text & Data (First 2GB at 4G LTE speeds)" },
-  { price: "$25", label: "Unlimited Talk, Text & Data (3GB High Speed Data)" },
-];
+const plans = ["$75", "$65", "$60", "$50", "$40", "$35", "$25"];
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
