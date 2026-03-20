@@ -3,19 +3,7 @@ import { Phone } from "lucide-react";
 import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import { PaymentBar } from "@/components/PaymentBar";
 
-interface Plan { price: string; label: string; }
-
-const plans: Plan[] = [
-  { price: "$19.99", label: "60 Minutes for Talk, Text and Web (90 Days)" },
-  { price: "$29.99", label: "120 Minutes for Talk, Text and Web (90 Days)" },
-  { price: "$39.99", label: "200 Minutes for Talk, Text and Web (90 Days)" },
-  { price: "$99.99", label: "400 Minutes for Talk, Text and Web (365 Days)" },
-  { price: "$20", label: "TracFone Unltd Classic RTR $20 Data 1 GB" },
-  { price: "$25", label: "TracFone Unltd Classic RTR $25 Data 2 GB" },
-  { price: "$30", label: "TracFone Unltd Classic RTR $30 Data 3 GB" },
-  { price: "$15", label: "TracFone Smartphone RTR $15 500 min 500 text n 500mb 30 days service" },
-  { price: "$125", label: "TracFone Smartphone RTR $125 365 days service monthly 750 min 1000 text Data 1GB" },
-];
+const plans = ["$19.99", "$29.99", "$39.99", "$99.99", "$20", "$25", "$30", "$15", "$125"];
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
