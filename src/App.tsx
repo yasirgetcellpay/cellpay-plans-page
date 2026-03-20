@@ -10,6 +10,7 @@ import Boost from "./pages/Boost.tsx";
 import StraightTalk from "./pages/StraightTalk.tsx";
 import H2O from "./pages/H2O.tsx";
 import Lyca from "./pages/Lyca.tsx";
+import Net10 from "./pages/Net10.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const App = () => (
