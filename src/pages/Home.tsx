@@ -11,6 +11,7 @@ const carriers = [
   { name: "Metro PCS", logo: metroLogo, path: "/metro", bg: "bg-[hsl(270,60%,32%)]" },
   { name: "T-Mobile", logo: tmobileLogo, path: "/tmobile", bg: "bg-[hsl(330,100%,45%)]" },
   { name: "AT&T Prepaid", logo: attLogo, path: "/att", bg: "bg-[hsl(196,100%,44%)]" },
+  { name: "Verizon", logo: null, path: "/verizon", bg: "bg-[hsl(0,100%,45%)]" },
 ];
 
 const Home = () => (
@@ -33,11 +34,17 @@ const Home = () => (
             className="group bg-card rounded-xl border border-border shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden active:scale-[0.97]"
           >
             <div className="flex items-center justify-center h-32 sm:h-40 bg-background p-6">
-              <img
-                src={carrier.logo}
-                alt={carrier.name}
-                className="max-h-16 sm:max-h-20 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
-              />
+              {carrier.logo ? (
+                <img
+                  src={carrier.logo}
+                  alt={carrier.name}
+                  className="max-h-16 sm:max-h-20 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <span className="text-[hsl(0,100%,45%)] font-extrabold text-3xl sm:text-4xl tracking-tight group-hover:scale-105 transition-transform duration-300">
+                  verizon
+                </span>
+              )}
             </div>
             <div className={`${carrier.bg} py-3 text-center`}>
               <span className="text-primary-foreground font-bold text-sm sm:text-base">

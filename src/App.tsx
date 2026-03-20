@@ -5,6 +5,7 @@ import Cricket from "./pages/Cricket.tsx";
 import Metro from "./pages/Metro.tsx";
 import TMobile from "./pages/TMobile.tsx";
 import ATT from "./pages/ATT.tsx";
+import Verizon from "./pages/Verizon.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const App = () => (
@@ -16,6 +17,7 @@ const App = () => (
       <Route path="/metro" element={<Metro />} />
       <Route path="/tmobile" element={<TMobile />} />
       <Route path="/att" element={<ATT />} />
+      <Route path="/verizon" element={<Verizon />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </BrowserRouter>
