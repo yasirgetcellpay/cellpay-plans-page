@@ -2,10 +2,9 @@ import { useState, useCallback } from "react";
 import { Phone } from "lucide-react";
 import lycaLogo from "@/assets/lyca-logo.webp";
 import { PaymentBar } from "@/components/PaymentBar";
+import { PlanGrid } from "@/components/PlanGrid";
 
-interface Plan { price: string; highlight: string; }
-
-const plans: Plan[] = [
+const plans = [
   { price: "$59", highlight: "Unlimited 4G LTE Data" },
   { price: "$55", highlight: "Lycamobile RTR" },
   { price: "$49", highlight: "40GB 4G LTE Data" },
@@ -24,7 +23,6 @@ const plans: Plan[] = [
 ];
 
 const brandColor = "hsl(168,76%,42%)";
-const brandColorDark = "hsl(168,76%,34%)";
 const heroColor = "hsl(220,50%,22%)";
 
 const formatPhone = (value: string): string => {
@@ -37,14 +35,13 @@ const formatPhone = (value: string): string => {
 
 const Lyca = () => {
   const [phone, setPhone] = useState("");
-
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
   }, []);
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
-      <nav className="sticky top-0 z-50 bg-card border-b-4 border-[hsl(168,76%,42%)] shadow-sm">
+      <nav className="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style={{ borderColor: brandColor }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center h-14 sm:h-20 items-center">
             <img src={lycaLogo} alt="Lyca Mobile" className="h-[28px] sm:h-[40px] w-auto" />
@@ -52,7 +49,7 @@ const Lyca = () => {
         </div>
       </nav>
 
-      <section className={`bg-[${heroColor}] text-primary-foreground`} style={{ backgroundColor: heroColor }}>
+      <section className="text-primary-foreground" style={{ backgroundColor: heroColor }}>
         <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl md:text-2xl font-extrabold">Lyca Mobile Prepaid Refill</h1>
         </div>
@@ -70,29 +67,7 @@ const Lyca = () => {
         </div>
       </div>
 
-      <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pb-6">
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-          {plans.map((plan, i) => (
-            <div key={i} className="bg-card border border-border rounded-lg sm:rounded-xl overflow-hidden flex flex-col">
-              <div className="h-[14px] sm:h-[24px]" />
-              <div className="px-2 py-1.5 sm:p-6 text-primary-foreground text-center" style={{ backgroundColor: brandColor }}>
-                <span className="text-base sm:text-4xl font-extrabold">{plan.price}</span>
-                <span className="text-[8px] sm:text-sm font-semibold opacity-90"> / 30 Days</span>
-              </div>
-              <div className="p-1.5 sm:p-6 flex-grow flex flex-col">
-                <div className="bg-muted p-1 sm:p-3 rounded text-center font-bold text-[9px] sm:text-base mb-1.5 sm:mb-6" style={{ color: brandColor }}>
-                  {plan.highlight}
-                </div>
-                <div className="flex justify-center mb-1.5 sm:mb-6">
-                  <a href="#" className="text-primary-foreground text-center py-1 sm:py-3 px-4 sm:px-8 rounded font-bold text-[10px] sm:text-base hover:opacity-90 inline-block active:scale-[0.97] transition-all" style={{ backgroundColor: brandColor }}>
-                    Pay Now
-                  </a>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <PlanGrid plans={plans} brandColor={brandColor} />
 
       <PaymentBar />
       <footer className="bg-cellpay-dark text-muted-foreground py-12">
