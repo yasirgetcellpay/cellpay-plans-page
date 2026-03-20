@@ -40,10 +40,7 @@ const Cricket = () => {
       <nav className="sticky top-0 z-50 bg-card border-b-4 border-[hsl(82,60%,42%)] shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center h-14 sm:h-20 items-center">
-            <span className="text-2xl sm:text-3xl font-extrabold text-[hsl(82,60%,42%)]">
-              cricket
-              <span className="block text-[10px] sm:text-xs font-semibold tracking-widest -mt-1">wireless</span>
-            </span>
+            <img src={cricketLogo} alt="Cricket Wireless" className="w-[100px] sm:w-[140px]" />
           </div>
         </div>
       </nav>
