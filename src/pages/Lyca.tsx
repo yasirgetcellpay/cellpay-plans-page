@@ -3,7 +3,29 @@ import { Phone } from "lucide-react";
 import lycaLogo from "@/assets/lyca-logo.webp";
 import { PaymentBar } from "@/components/PaymentBar";
 
-const plans = ["$59", "$55", "$49", "$45", "$39", "$33", "$29", "$23", "$21", "$20", "$19", "$15", "$13", "$11", "$10"];
+interface Plan { price: string; highlight: string; }
+
+const plans: Plan[] = [
+  { price: "$59", highlight: "Unlimited 4G LTE Data" },
+  { price: "$55", highlight: "Lycamobile RTR" },
+  { price: "$49", highlight: "40GB 4G LTE Data" },
+  { price: "$45", highlight: "10GB 4G LTE Data" },
+  { price: "$39", highlight: "15GB 4G LTE Data" },
+  { price: "$33", highlight: "12GB 4G LTE Data" },
+  { price: "$29", highlight: "6GB 4G LTE Data" },
+  { price: "$23", highlight: "3GB 4G LTE Data" },
+  { price: "$21", highlight: "Add-On" },
+  { price: "$20", highlight: "PayGo Recharge" },
+  { price: "$19", highlight: "2GB 4G LTE Data" },
+  { price: "$15", highlight: "PayGo Recharge" },
+  { price: "$13", highlight: "Lycamobile RTR" },
+  { price: "$11", highlight: "Add-On" },
+  { price: "$10", highlight: "Lycamobile RTR" },
+];
+
+const brandColor = "hsl(168,76%,42%)";
+const brandColorDark = "hsl(168,76%,34%)";
+const heroColor = "hsl(220,50%,22%)";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -15,16 +37,10 @@ const formatPhone = (value: string): string => {
 
 const Lyca = () => {
   const [phone, setPhone] = useState("");
-  const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
-  const [confirmed, setConfirmed] = useState(false);
-  const [agreedTerms, setAgreedTerms] = useState(false);
 
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
   }, []);
-
-  const phoneDigits = phone.replace(/\D/g, "");
-  const isValid = phoneDigits.length === 10 && selectedPlan !== null && confirmed && agreedTerms;
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -36,13 +52,12 @@ const Lyca = () => {
         </div>
       </nav>
 
-      <section className="bg-[hsl(220,50%,22%)] text-primary-foreground">
+      <section className={`bg-[${heroColor}] text-primary-foreground`} style={{ backgroundColor: heroColor }}>
         <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl md:text-2xl font-extrabold">Lyca Mobile Prepaid Refill</h1>
         </div>
       </section>
 
-      {/* Phone input card */}
       <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">
         <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">
           <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">Enter Your Lyca Mobile Phone Number</label>
@@ -55,38 +70,29 @@ const Lyca = () => {
         </div>
       </div>
 
-      {/* Plan Selection */}
-      <div className="max-w-[420px] mx-auto px-4 pb-4">
-        <label className="block text-xs sm:text-sm font-bold text-foreground mb-3">Select Amount</label>
-        <div className="grid grid-cols-5 gap-2">
-          {plans.map((price, i) => {
-            const isSelected = selectedPlan === i;
-            return (
-              <button key={i} type="button" onClick={() => setSelectedPlan(i)}
-                className={`rounded-lg border-2 py-2 text-xs sm:text-sm font-bold transition-all active:scale-[0.96] ${isSelected ? "border-[hsl(168,76%,42%)] bg-[hsl(168,76%,42%)] text-primary-foreground" : "border-border bg-muted text-foreground hover:border-[hsl(168,76%,42%)]"}`}>
-                {price}
-              </button>
-            );
-          })}
+      <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
+          {plans.map((plan, i) => (
+            <div key={i} className="bg-card border border-border rounded-lg sm:rounded-xl overflow-hidden flex flex-col">
+              <div className="h-[14px] sm:h-[24px]" />
+              <div className="px-2 py-1.5 sm:p-6 text-primary-foreground text-center" style={{ backgroundColor: brandColor }}>
+                <span className="text-base sm:text-4xl font-extrabold">{plan.price}</span>
+                <span className="text-[8px] sm:text-sm font-semibold opacity-90"> / 30 Days</span>
+              </div>
+              <div className="p-1.5 sm:p-6 flex-grow flex flex-col">
+                <div className="bg-muted p-1 sm:p-3 rounded text-center font-bold text-[9px] sm:text-base mb-1.5 sm:mb-6" style={{ color: brandColor }}>
+                  {plan.highlight}
+                </div>
+                <div className="flex justify-center mb-1.5 sm:mb-6">
+                  <a href="#" className="text-primary-foreground text-center py-1 sm:py-3 px-4 sm:px-8 rounded font-bold text-[10px] sm:text-base hover:opacity-90 inline-block active:scale-[0.97] transition-all" style={{ backgroundColor: brandColor }}>
+                    Pay Now
+                  </a>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
-
-      {/* Checkboxes & Pay */}
-      <div className="max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
-        <p className="text-xs sm:text-sm font-bold text-foreground mb-2 mt-2">Important</p>
-        <label className="flex items-start gap-2 mb-3 cursor-pointer">
-          <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input accent-[hsl(168,76%,42%)]" />
-          <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">I have confirmed that I entered the correct phone number. I understand that this sale is final as the minutes cannot be removed nor transferred once loaded to the phone number I have provided above.</span>
-        </label>
-        <label className="flex items-start gap-2 mb-6 cursor-pointer">
-          <input type="checkbox" checked={agreedTerms} onChange={(e) => setAgreedTerms(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input accent-[hsl(168,76%,42%)]" />
-          <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">Agree with Lyca Mobile Product Policies and Sales.{" "}<a href="https://www.lycamobile.us/en/terms-and-conditions/" className="text-[hsl(168,76%,42%)] underline font-semibold">View More</a></span>
-        </label>
-        <div className="flex justify-center">
-          <button type="button" disabled={!isValid} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg bg-[hsl(168,76%,42%)] hover:bg-[hsl(168,76%,34%)] disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]">PAY NOW</button>
-        </div>
-        <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
-      </div>
+      </section>
 
       <PaymentBar />
       <footer className="bg-cellpay-dark text-muted-foreground py-12">
@@ -102,7 +108,7 @@ const Lyca = () => {
           </div>
         </div>
       </footer>
-      <div className="bg-[hsl(220,50%,22%)] text-primary-foreground py-3 text-[10px] md:text-xs">
+      <div className="text-primary-foreground py-3 text-[10px] md:text-xs" style={{ backgroundColor: heroColor }}>
         <div className="max-w-7xl mx-auto px-4 text-center leading-relaxed">All prices shown are full retail prices. Taxes and fees are additional and vary by location. Service plans are non-refundable.</div>
       </div>
     </div>
