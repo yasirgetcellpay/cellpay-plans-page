@@ -13,6 +13,7 @@ import net10Logo from "@/assets/net10-logo.png";
 import pageplusLogo from "@/assets/pageplus-logo.png";
 import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
+import uscellularLogo from "@/assets/uscellular-logo.png";
 
 const carriers = [
   { name: "Simple Mobile", logo: simpleMobileLogo, path: "/simple-mobile", bg: "bg-[hsl(101,67%,44%)]" },
