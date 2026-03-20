@@ -43,7 +43,7 @@ const Verizon = () => {
       <nav className="sticky top-0 z-50 bg-card border-b-4 border-[hsl(0,100%,45%)] shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center h-14 sm:h-20 items-center">
-            <span className="text-[hsl(0,100%,45%)] font-extrabold text-2xl sm:text-3xl tracking-tight">verizon</span>
+            <img src={verizonLogo} alt="Verizon" className="h-[24px] sm:h-[32px] w-auto" />
           </div>
         </div>
       </nav>
