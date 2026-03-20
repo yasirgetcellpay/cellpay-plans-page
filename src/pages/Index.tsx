@@ -28,14 +28,6 @@ const Index = () => {
       <Navbar />
       <HeroSection />
 
-      {/* Logo - desktop only (moved to navbar on mobile) */}
-      <div className="hidden sm:block text-center pt-8 pb-4 px-4">
-        <img
-          src={simpleMobileLogo}
-          alt="Simple Mobile"
-          className="mx-auto w-[180px]"
-        />
-      </div>
 
       {/* Page intro - desktop only */}
       <div className="hidden sm:block text-center pb-6 px-4">
