@@ -27,6 +27,7 @@ const App = () => (
       <Route path="/straight-talk" element={<StraightTalk />} />
       <Route path="/h2o" element={<H2O />} />
       <Route path="/lyca" element={<Lyca />} />
+      <Route path="/net10" element={<Net10 />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </BrowserRouter>
