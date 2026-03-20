@@ -55,9 +55,9 @@ const StraightTalk = () => {
             const isSelected = selectedPlan === key;
             return (
               <button key={key} type="button" onClick={() => setSelectedPlan(key)}
-                className={`rounded-lg border-2 text-left overflow-hidden transition-all active:scale-[0.97] ${isSelected ? "border-[hsl(72,74%,44%)]" : "border-border hover:border-[hsl(72,74%,44%)]/50"}`}>
+                className={`h-full flex flex-col rounded-lg border-2 text-left overflow-hidden transition-all active:scale-[0.97] ${isSelected ? "border-[hsl(72,74%,44%)]" : "border-border hover:border-[hsl(72,74%,44%)]/50"}`}>
                 <div className="px-3 py-1.5 text-center font-extrabold text-sm sm:text-base bg-[hsl(72,74%,44%)] text-foreground">{plan.price}</div>
-                <div className="px-2 py-1.5">
+                <div className="px-2 py-1.5 flex-1 flex items-center justify-center">
                   <div className="text-[9px] sm:text-[11px] text-muted-foreground leading-tight text-center">{plan.label}</div>
                 </div>
               </button>

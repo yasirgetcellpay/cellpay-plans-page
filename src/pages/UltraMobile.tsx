@@ -75,9 +75,9 @@ const UltraMobile = () => {
             const isSelected = selectedPlan === i;
             return (
               <button key={i} type="button" onClick={() => setSelectedPlan(i)}
-                className={`rounded-lg border-2 text-left overflow-hidden transition-all active:scale-[0.97] ${isSelected ? "border-[hsl(270,50%,40%)]" : "border-border hover:border-[hsl(270,50%,40%)]/50"}`}>
+                className={`h-full flex flex-col rounded-lg border-2 text-left overflow-hidden transition-all active:scale-[0.97] ${isSelected ? "border-[hsl(270,50%,40%)]" : "border-border hover:border-[hsl(270,50%,40%)]/50"}`}>
                 <div className={`px-3 py-1.5 text-center font-extrabold text-sm sm:text-base ${isSelected ? "bg-[hsl(270,50%,32%)] text-primary-foreground" : "bg-[hsl(270,50%,40%)] text-primary-foreground"}`}>{plan.price}</div>
-                <div className="px-2 py-1.5">
+                <div className="px-2 py-1.5 flex-1 flex items-center justify-center">
                   <div className="text-[9px] sm:text-[11px] text-muted-foreground leading-tight text-center">{plan.label}</div>
                 </div>
               </button>
