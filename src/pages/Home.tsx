@@ -7,6 +7,7 @@ import attLogo from "@/assets/att-prepaid-logo.webp";
 import verizonLogo from "@/assets/verizon-logo.png";
 import boostLogo from "@/assets/boost-logo.png";
 import straightTalkLogo from "@/assets/straight-talk-logo.svg";
+import h2oLogo from "@/assets/h2o-logo.png";
 
 const carriers = [
   { name: "Simple Mobile", logo: simpleMobileLogo, path: "/simple-mobile", bg: "bg-[hsl(101,67%,44%)]" },
@@ -17,6 +18,7 @@ const carriers = [
   { name: "Verizon", logo: verizonLogo, path: "/verizon", bg: "bg-[hsl(0,100%,45%)]" },
   { name: "Boost Mobile", logo: boostLogo, path: "/boost", bg: "bg-[hsl(27,100%,50%)]" },
   { name: "Straight Talk", logo: straightTalkLogo, path: "/straight-talk", bg: "bg-[hsl(72,74%,44%)]" },
+  { name: "H2O Wireless", logo: h2oLogo, path: "/h2o", bg: "bg-[hsl(195,85%,50%)]" },
 ];
 
 const Home = () => (

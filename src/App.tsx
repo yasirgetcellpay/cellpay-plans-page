@@ -8,6 +8,7 @@ import ATT from "./pages/ATT.tsx";
 import Verizon from "./pages/Verizon.tsx";
 import Boost from "./pages/Boost.tsx";
 import StraightTalk from "./pages/StraightTalk.tsx";
+import H2O from "./pages/H2O.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const App = () => (
@@ -22,6 +23,7 @@ const App = () => (
       <Route path="/verizon" element={<Verizon />} />
       <Route path="/boost" element={<Boost />} />
       <Route path="/straight-talk" element={<StraightTalk />} />
+      <Route path="/h2o" element={<H2O />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </BrowserRouter>
