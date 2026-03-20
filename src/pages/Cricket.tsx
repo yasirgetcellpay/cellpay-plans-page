@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { Phone, DollarSign } from "lucide-react";
+import cricketLogo from "@/assets/cricket-logo.webp";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -39,10 +40,7 @@ const Cricket = () => {
       <nav className="sticky top-0 z-50 bg-card border-b-4 border-[hsl(82,60%,42%)] shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center h-14 sm:h-20 items-center">
-            <span className="text-2xl sm:text-3xl font-extrabold text-[hsl(82,60%,42%)]">
-              cricket
-              <span className="block text-[10px] sm:text-xs font-semibold tracking-widest -mt-1">wireless</span>
-            </span>
+            <img src={cricketLogo} alt="Cricket Wireless" className="w-[100px] sm:w-[140px]" />
           </div>
         </div>
       </nav>
@@ -56,10 +54,7 @@ const Cricket = () => {
 
       {/* Logo + Title — desktop only */}
       <div className="hidden sm:block text-center pt-8 pb-4 px-4">
-        <span className="text-4xl font-extrabold text-[hsl(82,60%,42%)] inline-block">
-          cricket
-          <span className="block text-sm font-semibold tracking-widest -mt-1">wireless</span>
-        </span>
+        <img src={cricketLogo} alt="Cricket Wireless" className="mx-auto w-[180px]" />
       </div>
       <div className="hidden sm:block text-center pb-6 px-4">
         <h2 className="text-3xl font-extrabold text-foreground mb-2">
