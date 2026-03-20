@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { Phone, DollarSign } from "lucide-react";
 import cricketLogo from "@/assets/cricket-logo.webp";
+import { PaymentBar } from "@/components/PaymentBar";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -140,19 +141,7 @@ const Cricket = () => {
         </div>
       </div>
 
-      {/* Payment Bar */}
-      <div className="bg-muted py-4">
-        <div className="max-w-7xl mx-auto px-4 flex justify-center items-center gap-4">
-          <span className="text-xs text-muted-foreground font-semibold">We Accept:</span>
-          <div className="flex gap-3">
-            {["Visa", "MC", "Amex", "Discover", "PayPal"].map((c) => (
-              <span key={c} className="text-[10px] sm:text-xs font-bold text-muted-foreground bg-card px-2 py-1 rounded border border-border">
-                {c}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
+      <PaymentBar />
 
       {/* Footer */}
       <footer className="bg-cellpay-dark text-muted-foreground py-12">
