@@ -30,6 +30,7 @@ const formatPhone = (value: string): string => {
 };
 
 const UltraMobile = () => {
+  const { plans } = useCarrierData("ultra-mobile", staticPlans);
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));

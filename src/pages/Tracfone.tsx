@@ -28,6 +28,7 @@ const formatPhone = (value: string): string => {
 };
 
 const Tracfone = () => {
+  const { plans } = useCarrierData("tracfone", staticPlans);
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
