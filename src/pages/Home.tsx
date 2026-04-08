@@ -60,12 +60,6 @@ const Home = () => {
 
       {/* Carrier Grid */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
-        {loading ? (
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Loading carriers...</p>
-          </div>
-        ) : (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl w-full">
             {carriers.map((carrier) => (
               <Link
