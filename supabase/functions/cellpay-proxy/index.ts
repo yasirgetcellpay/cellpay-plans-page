@@ -113,6 +113,8 @@ Deno.serve(async (req) => {
       }
     }
 
+    console.log("Fetching:", method, endpoint, "Headers:", JSON.stringify(Object.keys(baseHeaders)));
+
     const response = await fetch(endpoint, {
       method,
       headers: body
