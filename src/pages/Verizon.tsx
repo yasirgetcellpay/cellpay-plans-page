@@ -31,7 +31,7 @@ const formatPhone = (value: string): string => {
 const BRAND = "hsl(0,100%,45%)";
 
 const Verizon = () => {
-  const { plans } = useCarrierData("verizon", staticPlans);
+  const { plans, loading } = useCarrierData("verizon", staticPlans);
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);
@@ -86,7 +86,7 @@ const Verizon = () => {
         </div>
       </div>
 
-      <PlanGrid plans={plans} brandColor={BRAND} onSelect={(plan) => setAmount(plan.price.replace("$", ""))} />
+      <PlanGrid plans={plans} loading={loading} brandColor={BRAND} onSelect={(plan) => setAmount(plan.price.replace("$", ""))} />
 
       <div className="max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
         <p className="text-xs sm:text-sm font-bold text-foreground mb-2 mt-2">Important</p>

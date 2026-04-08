@@ -1,3 +1,5 @@
+import { Loader2 } from "lucide-react";
+
 interface Plan { price: string; highlight: string; }
 
 interface PlanGridProps {
@@ -5,9 +7,21 @@ interface PlanGridProps {
   brandColor: string;
   textOnBrand?: string;
   onSelect?: (plan: Plan) => void;
+  loading?: boolean;
 }
 
-export const PlanGrid = ({ plans, brandColor, textOnBrand = "text-primary-foreground", onSelect }: PlanGridProps) => {
+export const PlanGrid = ({ plans, brandColor, textOnBrand = "text-primary-foreground", onSelect, loading }: PlanGridProps) => {
+  if (loading) {
+    return (
+      <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pb-6">
+        <div className="flex flex-col items-center justify-center py-12 gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" style={{ color: brandColor }} />
+          <p className="text-sm text-muted-foreground">Loading plans...</p>
+        </div>
+      </section>
+    );
+  }
+
   const isOdd = plans.length % 2 !== 0;
   const gridPlans = isOdd ? plans.slice(0, -1) : plans;
   const lastPlan = isOdd ? plans[plans.length - 1] : null;

@@ -35,7 +35,7 @@ const formatPhone = (value: string): string => {
 };
 
 const Lyca = () => {
-  const { plans } = useCarrierData("lycamobile", staticPlans);
+  const { plans, loading } = useCarrierData("lycamobile", staticPlans);
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
@@ -69,7 +69,7 @@ const Lyca = () => {
         </div>
       </div>
 
-      <PlanGrid plans={plans} brandColor={brandColor} />
+      <PlanGrid plans={plans} loading={loading} brandColor={brandColor} />
 
       <PaymentBar />
       <footer className="bg-cellpay-dark text-muted-foreground py-12">
