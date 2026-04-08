@@ -3,8 +3,9 @@ import { Phone, DollarSign } from "lucide-react";
 import attLogo from "@/assets/att-prepaid-logo.webp";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { useCarrierData } from "@/hooks/use-carrier-data";
 
-const plans = [
+const staticPlans = [
   { price: "$100", highlight: "Prepaid Refill" },
   { price: "$85", highlight: "Prepaid Refill" },
   { price: "$80", highlight: "Prepaid Refill" },
