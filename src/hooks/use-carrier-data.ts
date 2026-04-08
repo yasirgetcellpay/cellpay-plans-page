@@ -18,6 +18,7 @@ export interface CarrierData {
   carrier?: {
     id?: number;
     name?: string;
+    title?: string;
     slug?: string;
     carrierId?: number;
     [key: string]: unknown;

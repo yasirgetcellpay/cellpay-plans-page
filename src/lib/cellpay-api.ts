@@ -1,43 +1,48 @@
 const CELLPAY_BASE = "https://yasircell.cellpay.us/api";
-const CELLPAY_API_KEY = "local-test-api-key";
-const CELLPAY_API_SECRET = "local-test-api-secret";
 
-const request = async <T = unknown>(
-  endpoint: string,
+const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cellpay-proxy`;
+const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+const proxyCall = async <T = unknown>(
+  params: Record<string, string>,
   options?: { method?: string; body?: unknown }
 ): Promise<T> => {
-  const { method = "GET", body } = options ?? {};
+  const url = new URL(proxyUrl);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
 
   const headers: Record<string, string> = {
-    Accept: "*/*",
-    "X-Api-Key": CELLPAY_API_KEY,
-    "X-Api-Secret": CELLPAY_API_SECRET,
+    Authorization: `Bearer ${anonKey}`,
+    apikey: anonKey,
   };
 
-  if (body) {
+  if (options?.body) {
     headers["Content-Type"] = "application/json";
   }
 
-  const res = await fetch(`${CELLPAY_BASE}${endpoint}`, {
-    method,
+  const res = await fetch(url.toString(), {
+    method: options?.method ?? "GET",
     headers,
-    ...(body ? { body: JSON.stringify(body) } : {}),
+    ...(options?.body ? { body: JSON.stringify(options.body) } : {}),
   });
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`CellPay API error ${res.status}: ${text.slice(0, 200)}`);
+    throw new Error(`Proxy error ${res.status}: ${text.slice(0, 200)}`);
   }
 
   return res.json();
 };
 
 /** List all carriers */
-export const listCarriers = () => request("/carriers");
+export const listCarriers = () => proxyCall({ action: "list-carriers" });
 
 /** Get carrier details + plans by slug */
 export const viewCarrier = (slug: string, refill?: boolean) =>
-  request(`/carriers/view/${slug}${refill ? "?refill=1" : ""}`);
+  proxyCall({
+    action: "view-carrier",
+    slug,
+    ...(refill ? { refill: "1" } : {}),
+  });
 
 /** Verify a phone number for a carrier */
 export const verifyPhone = (
@@ -46,15 +51,18 @@ export const verifyPhone = (
   planId?: string,
   amount?: number
 ) =>
-  request(`/carriers/verify-phone/${slug}`, {
-    method: "POST",
-    body: {
-      phone_number: phoneNumber,
-      confirm_phone_number: phoneNumber,
-      ...(planId ? { plan_id: planId } : {}),
-      ...(amount ? { amount } : {}),
-    },
-  });
+  proxyCall(
+    { action: "verify-phone", slug },
+    {
+      method: "POST",
+      body: {
+        phone_number: phoneNumber,
+        confirm_phone_number: phoneNumber,
+        ...(planId ? { plan_id: planId } : {}),
+        ...(amount ? { amount } : {}),
+      },
+    }
+  );
 
 /** Checkout / process payment */
 export interface CheckoutPayload {
@@ -91,4 +99,4 @@ export interface CheckoutPayload {
 }
 
 export const checkout = (payload: CheckoutPayload) =>
-  request("/checkout/transaction", { method: "POST", body: payload });
+  proxyCall({ action: "checkout" }, { method: "POST", body: payload });
