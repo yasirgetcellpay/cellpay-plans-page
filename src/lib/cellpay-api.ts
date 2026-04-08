@@ -32,12 +32,6 @@ const request = async <T = unknown>(
   }
 
   const data = await res.json();
-
-  // Handle fallback responses from proxy
-  if (data && data.fallback === true) {
-    throw new Error(data.error || "API temporarily unavailable");
-  }
-
   return data as T;
 };
 
