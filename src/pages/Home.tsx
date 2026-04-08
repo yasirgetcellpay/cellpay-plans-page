@@ -1,7 +1,4 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
 import cricketLogo from "@/assets/cricket-logo.webp";
 import metroLogo from "@/assets/metro-logo.svg";
@@ -27,7 +24,7 @@ interface Carrier {
   carrierId: number;
 }
 
-const staticCarriers: Carrier[] = [
+const carriers: Carrier[] = [
   { name: "AT&T Prepaid", logo: attLogo, path: "/att", bg: "bg-[hsl(196,100%,44%)]", apiSlug: "topup-at", carrierId: 3 },
   { name: "Boost Mobile", logo: boostLogo, path: "/boost", bg: "bg-[hsl(27,100%,50%)]", apiSlug: "boost", carrierId: 36 },
   { name: "Cricket Wireless", logo: cricketLogo, path: "/cricket", bg: "bg-[hsl(82,60%,42%)]", apiSlug: "topup-crc", carrierId: 45 },
@@ -46,42 +43,6 @@ const staticCarriers: Carrier[] = [
 ];
 
 const Home = () => {
-  const [carriers, setCarriers] = useState<Carrier[]>(staticCarriers);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchCarriers = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke(
-          "cellpay-proxy?action=list-carriers"
-        );
-
-        if (cancelled) return;
-
-        if (error || !data?.data?.carriers) {
-          console.warn("Failed to fetch carriers from API, using static list");
-          setLoading(false);
-          return;
-        }
-
-        // API returned carriers — we still use our local logos/paths but could
-        // enrich with API data in the future
-        console.log("Carriers API responded:", data.data.carriers.length, "carriers");
-      } catch (err) {
-        if (!cancelled) {
-          console.warn("Carriers fetch failed, using static list:", err);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    fetchCarriers();
-    return () => { cancelled = true; };
-  }, []);
-
   return (
     <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
       {/* Header */}
@@ -94,35 +55,28 @@ const Home = () => {
 
       {/* Carrier Grid */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
-        {loading ? (
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Loading carriers...</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl w-full">
-            {carriers.map((carrier) => (
-              <Link
-                key={carrier.path}
-                to={carrier.path}
-                className="group bg-card rounded-xl border border-border shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden active:scale-[0.97]"
-              >
-                <div className="flex items-center justify-center h-32 sm:h-40 bg-background p-6">
-                  <img
-                    src={carrier.logo}
-                    alt={carrier.name}
-                    className="max-h-12 sm:max-h-16 max-w-[80%] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className={`${carrier.bg} py-3 text-center`}>
-                  <span className="text-primary-foreground font-bold text-sm sm:text-base">
-                    {carrier.name}
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl w-full">
+          {carriers.map((carrier) => (
+            <Link
+              key={carrier.path}
+              to={carrier.path}
+              className="group bg-card rounded-xl border border-border shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden active:scale-[0.97]"
+            >
+              <div className="flex items-center justify-center h-32 sm:h-40 bg-background p-6">
+                <img
+                  src={carrier.logo}
+                  alt={carrier.name}
+                  className="max-h-12 sm:max-h-16 max-w-[80%] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className={`${carrier.bg} py-3 text-center`}>
+                <span className="text-primary-foreground font-bold text-sm sm:text-base">
+                  {carrier.name}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
       </main>
 
       {/* Footer */}
