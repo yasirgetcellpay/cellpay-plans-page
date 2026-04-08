@@ -1,43 +1,52 @@
-const CELLPAY_BASE = "https://yasircell.cellpay.us/api";
-const CELLPAY_API_KEY = "local-test-api-key";
-const CELLPAY_API_SECRET = "local-test-api-secret";
+const PROXY_BASE = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/cellpay-proxy`;
 
 const request = async <T = unknown>(
-  endpoint: string,
+  action: string,
+  params?: Record<string, string>,
   options?: { method?: string; body?: unknown }
 ): Promise<T> => {
   const { method = "GET", body } = options ?? {};
 
-  const headers: Record<string, string> = {
-    Accept: "*/*",
-    "X-Api-Key": CELLPAY_API_KEY,
-    "X-Api-Secret": CELLPAY_API_SECRET,
-  };
-
-  if (body) {
-    headers["Content-Type"] = "application/json";
+  const url = new URL(PROXY_BASE);
+  url.searchParams.set("action", action);
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      url.searchParams.set(k, v);
+    }
   }
 
-  const res = await fetch(`${CELLPAY_BASE}${endpoint}`, {
-    method,
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+  };
+
+  const res = await fetch(url.toString(), {
+    method: body ? "POST" : method,
     headers,
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`CellPay API error ${res.status}: ${text.slice(0, 200)}`);
+    throw new Error(`API error ${res.status}: ${text.slice(0, 200)}`);
   }
 
-  return res.json();
+  const data = await res.json();
+
+  // Handle fallback responses from proxy
+  if (data && data.fallback === true) {
+    throw new Error(data.error || "API temporarily unavailable");
+  }
+
+  return data as T;
 };
 
 /** List all carriers */
-export const listCarriers = () => request("/carriers");
+export const listCarriers = () => request("list-carriers");
 
 /** Get carrier details + plans by slug */
 export const viewCarrier = (slug: string, refill?: boolean) =>
-  request(`/carriers/view/${slug}${refill ? "?refill=1" : ""}`);
+  request("view-carrier", { slug, ...(refill ? { refill: "1" } : {}) });
 
 /** Verify a phone number for a carrier */
 export const verifyPhone = (
@@ -46,7 +55,7 @@ export const verifyPhone = (
   planId?: string,
   amount?: number
 ) =>
-  request(`/carriers/verify-phone/${slug}`, {
+  request("verify-phone", { slug }, {
     method: "POST",
     body: {
       phone_number: phoneNumber,
@@ -91,4 +100,4 @@ export interface CheckoutPayload {
 }
 
 export const checkout = (payload: CheckoutPayload) =>
-  request("/checkout/transaction", { method: "POST", body: payload });
+  request("checkout", {}, { method: "POST", body: payload });
