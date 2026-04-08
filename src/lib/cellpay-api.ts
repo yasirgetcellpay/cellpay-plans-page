@@ -1,23 +1,36 @@
-import { supabase } from "@/integrations/supabase/client";
+const CELLPAY_BASE = "https://yasircell.cellpay.us/api";
 
-const proxyCall = async <T = unknown>(params: Record<string, string>, options?: { method?: string; body?: unknown }): Promise<T> => {
-  const searchParams = new URLSearchParams(params);
-  const url = `cellpay-proxy?${searchParams.toString()}`;
+const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cellpay-proxy`;
+const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-  const fetchOptions: Record<string, unknown> = {
-    method: options?.method ?? "GET",
-    headers: options?.body ? { "Content-Type": "application/json" } : undefined,
-    body: options?.body ? JSON.stringify(options.body) : undefined,
+const proxyCall = async <T = unknown>(
+  params: Record<string, string>,
+  options?: { method?: string; body?: unknown }
+): Promise<T> => {
+  const url = new URL(proxyUrl);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${anonKey}`,
+    apikey: anonKey,
   };
 
-  const { data, error } = await supabase.functions.invoke(url.split("?")[0], {
-    body: options?.body ?? undefined,
-    method: (options?.method as "GET" | "POST") ?? "GET",
-    headers: { "x-proxy-params": JSON.stringify(params) },
+  if (options?.body) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const res = await fetch(url.toString(), {
+    method: options?.method ?? "GET",
+    headers,
+    ...(options?.body ? { body: JSON.stringify(options.body) } : {}),
   });
 
-  if (error) throw new Error(`Proxy error: ${error.message}`);
-  return data as T;
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Proxy error ${res.status}: ${text.slice(0, 200)}`);
+  }
+
+  return res.json();
 };
 
 /** List all carriers */
