@@ -3,8 +3,9 @@ import { Phone } from "lucide-react";
 import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { useCarrierData } from "@/hooks/use-carrier-data";
 
-const plans = [
+const staticPlans = [
   { price: "$19.99", highlight: "60 Min Talk/Text/Web" },
   { price: "$29.99", highlight: "120 Min Talk/Text/Web" },
   { price: "$39.99", highlight: "200 Min Talk/Text/Web" },
@@ -27,6 +28,7 @@ const formatPhone = (value: string): string => {
 };
 
 const Tracfone = () => {
+  const { plans } = useCarrierData("tracfone", staticPlans);
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));

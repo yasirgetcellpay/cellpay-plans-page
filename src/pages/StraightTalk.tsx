@@ -3,6 +3,7 @@ import { Phone } from "lucide-react";
 import straightTalkLogo from "@/assets/straight-talk-logo.svg";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { useCarrierData } from "@/hooks/use-carrier-data";
 
 const wirelessPlans = [
   { price: "$65", highlight: "Platinum Unlimited" },

@@ -3,8 +3,9 @@ import { Phone } from "lucide-react";
 import h2oLogo from "@/assets/h2o-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { useCarrierData } from "@/hooks/use-carrier-data";
 
-const plans = [
+const staticPlans = [
   { price: "$100", highlight: "Unlimited Talk/Text/Data" },
   { price: "$60", highlight: "Unlimited LTE + Hotspot" },
   { price: "$50", highlight: "6GB Data + Intl Calling" },
@@ -26,6 +27,7 @@ const formatPhone = (value: string): string => {
 };
 
 const H2O = () => {
+  const { plans } = useCarrierData("h2o-wireless", staticPlans);
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));

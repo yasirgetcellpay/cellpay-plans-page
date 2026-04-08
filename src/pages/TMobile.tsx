@@ -3,8 +3,9 @@ import { Phone, DollarSign } from "lucide-react";
 import tmobileLogo from "@/assets/tmobile-logo.svg";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { useCarrierData } from "@/hooks/use-carrier-data";
 
-const plans = [
+const staticPlans = [
   { price: "$100", highlight: "Prepaid Refill" },
   { price: "$70", highlight: "Prepaid Refill" },
   { price: "$60", highlight: "Prepaid Refill" },
@@ -27,6 +28,7 @@ const formatPhone = (value: string): string => {
 const BRAND = "hsl(330,100%,45%)";
 
 const TMobile = () => {
+  const { plans } = useCarrierData("tmobile", staticPlans);
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);

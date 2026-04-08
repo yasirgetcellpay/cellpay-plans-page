@@ -3,8 +3,9 @@ import { Phone } from "lucide-react";
 import lycaLogo from "@/assets/lyca-logo.webp";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { useCarrierData } from "@/hooks/use-carrier-data";
 
-const plans = [
+const staticPlans = [
   { price: "$59", highlight: "Unlimited 4G LTE Data" },
   { price: "$55", highlight: "Lycamobile RTR" },
   { price: "$49", highlight: "40GB 4G LTE Data" },
@@ -34,6 +35,7 @@ const formatPhone = (value: string): string => {
 };
 
 const Lyca = () => {
+  const { plans } = useCarrierData("lycamobile", staticPlans);
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));

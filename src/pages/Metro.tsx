@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { Phone, DollarSign } from "lucide-react";
 import metroLogo from "@/assets/metro-logo.svg";
 import { PaymentBar } from "@/components/PaymentBar";
+import { useCarrierData } from "@/hooks/use-carrier-data";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
