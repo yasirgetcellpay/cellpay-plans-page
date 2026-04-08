@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { viewCarrier } from "@/lib/cellpay-api";
 
 export interface CarrierPlan {
   id?: string;
@@ -28,6 +28,32 @@ export interface CarrierData {
   [key: string]: unknown;
 }
 
+interface CarrierFallbackResponse {
+  fallback?: boolean;
+  error?: string;
+  upstreamStatus?: number;
+  data?: CarrierData | null;
+}
+
+const isFallbackResponse = (value: unknown): value is CarrierFallbackResponse =>
+  typeof value === "object" &&
+  value !== null &&
+  ("fallback" in value || "error" in value || "data" in value);
+
+const extractCarrierData = (value: unknown): CarrierData | null => {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  if (isFallbackResponse(value)) {
+    return value.data && typeof value.data === "object"
+      ? value.data
+      : null;
+  }
+
+  return value as CarrierData;
+};
+
 /**
  * Fetches carrier data from the CellPay API via edge function.
  * Returns { data, plans, loading, error }.
@@ -44,24 +70,27 @@ export const useCarrierData = (slug: string, staticPlans: CarrierPlan[]) => {
 
     const fetchData = async () => {
       try {
-        const { data: result, error: fnError } = await supabase.functions.invoke(
-          `cellpay-proxy?action=view-carrier&slug=${encodeURIComponent(slug)}`
-        );
+        const result = await viewCarrier(slug);
 
         if (cancelled) return;
 
-        if (fnError) {
-          console.warn(`CellPay API error for ${slug}, using static plans:`, fnError);
-          setError(fnError.message);
-          setLoading(false);
+        if (isFallbackResponse(result) && result.fallback) {
+          console.warn(`CellPay API fallback for ${slug}, using static plans:`, result.error, result.upstreamStatus);
+          setError(result.error ?? "Carrier data temporarily unavailable");
+          setData(null);
           return;
         }
 
-        const carrierData = result?.data || result;
+        const carrierData = extractCarrierData(result);
+        if (!carrierData) {
+          setError("Carrier data unavailable");
+          setData(null);
+          return;
+        }
+
         setData(carrierData);
 
-        // Parse plans from the API response
-        const apiPlans = carrierData?.carrier_plans;
+        const apiPlans = carrierData.carrier_plans;
         if (Array.isArray(apiPlans) && apiPlans.length > 0) {
           const parsed: CarrierPlan[] = apiPlans.map((p: Record<string, unknown>) => ({
             price: `$${p.price || p.amount || "0"}`,
@@ -74,6 +103,7 @@ export const useCarrierData = (slug: string, staticPlans: CarrierPlan[]) => {
         if (!cancelled) {
           console.warn(`CellPay fetch failed for ${slug}, using static plans:`, err);
           setError(err instanceof Error ? err.message : "Unknown error");
+          setData(null);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -81,7 +111,9 @@ export const useCarrierData = (slug: string, staticPlans: CarrierPlan[]) => {
     };
 
     fetchData();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
   return { data, plans, loading, error, carrierId: data?.carrier?.id };
