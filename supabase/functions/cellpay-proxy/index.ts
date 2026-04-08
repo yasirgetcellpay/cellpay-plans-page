@@ -149,13 +149,9 @@ Deno.serve(async (req) => {
 
   try {
     const baseHeaders: Record<string, string> = {
-      "Accept": "application/json, text/plain, */*",
-      "Accept-Language": "en-US,en;q=0.9",
+      "Accept": "*/*",
       "X-Api-Key": CELLPAY_API_KEY,
       "X-Api-Secret": CELLPAY_API_SECRET,
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-      "Referer": "https://yasircell.cellpay.us/",
-      "Origin": "https://yasircell.cellpay.us",
     };
 
     let endpoint: string;
@@ -191,6 +187,7 @@ Deno.serve(async (req) => {
     }
 
     console.log("Fetching:", method, endpoint);
+    console.log("Using API Key:", CELLPAY_API_KEY.substring(0, 5) + "...");
 
     const response = await fetch(endpoint, {
       method,
@@ -198,22 +195,19 @@ Deno.serve(async (req) => {
       ...(body ? { body } : {}),
     });
 
-    const contentType = response.headers.get("content-type") || "";
-    if (!contentType.includes("application/json") || response.status === 403) {
+    const responseText = await response.text();
+    console.log(`Response: status=${response.status}, content-type=${response.headers.get("content-type")}, body=${responseText.substring(0, 300)}`);
+
+    if (response.status === 403 || !response.headers.get("content-type")?.includes("application/json")) {
       console.warn(`CellPay blocked (${response.status}), serving fallback`);
       return serveFallback(action, url);
     }
 
     let data: unknown;
     try {
-      data = await response.json();
+      data = JSON.parse(responseText);
     } catch {
       console.warn("JSON parse failed, serving fallback");
-      return serveFallback(action, url);
-    }
-
-    if (!response.ok) {
-      console.warn(`Upstream error ${response.status}, serving fallback`);
       return serveFallback(action, url);
     }
 
