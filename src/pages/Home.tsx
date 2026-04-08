@@ -1,48 +1,46 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
-import cricketLogo from "@/assets/cricket-logo.webp";
-import metroLogo from "@/assets/metro-logo.svg";
-import tmobileLogo from "@/assets/tmobile-logo.svg";
-import attLogo from "@/assets/att-prepaid-logo.webp";
-import verizonLogo from "@/assets/verizon-logo.png";
-import boostLogo from "@/assets/boost-logo.png";
-import straightTalkLogo from "@/assets/straight-talk-logo.svg";
-import h2oLogo from "@/assets/h2o-logo.png";
-import lycaLogo from "@/assets/lyca-logo.webp";
-import net10Logo from "@/assets/net10-logo.png";
-import pageplusLogo from "@/assets/pageplus-logo.png";
-import tracfoneLogo from "@/assets/tracfone-logo.svg";
-import ultraLogo from "@/assets/ultra-mobile-logo.png";
-import uscellularLogo from "@/assets/uscellular-logo.png";
+import { Loader2 } from "lucide-react";
+import { listCarriers } from "@/lib/cellpay-api";
 
-interface Carrier {
-  name: string;
-  logo: string;
-  path: string;
-  bg: string;
-  apiSlug: string;
-  carrierId: number;
+interface ApiCarrier {
+  id?: number;
+  name?: string;
+  slug?: string;
+  title?: string;
+  logo?: string;
+  image?: string;
+  active?: boolean;
+  [key: string]: unknown;
 }
 
-const carriers: Carrier[] = [
-  { name: "AT&T Prepaid", logo: attLogo, path: "/att", bg: "bg-[hsl(196,100%,44%)]", apiSlug: "topup-at", carrierId: 3 },
-  { name: "Boost Mobile", logo: boostLogo, path: "/boost", bg: "bg-[hsl(27,100%,50%)]", apiSlug: "boost", carrierId: 36 },
-  { name: "Cricket Wireless", logo: cricketLogo, path: "/cricket", bg: "bg-[hsl(82,60%,42%)]", apiSlug: "topup-crc", carrierId: 45 },
-  { name: "H2O Wireless", logo: h2oLogo, path: "/h2o", bg: "bg-[hsl(195,85%,50%)]", apiSlug: "h2o", carrierId: 6 },
-  { name: "Lyca Mobile", logo: lycaLogo, path: "/lyca", bg: "bg-[hsl(220,50%,22%)]", apiSlug: "lyca", carrierId: 29 },
-  { name: "Metro PCS", logo: metroLogo, path: "/metro", bg: "bg-[hsl(270,60%,32%)]", apiSlug: "metropcs", carrierId: 38 },
-  { name: "NET10", logo: net10Logo, path: "/net10", bg: "bg-[hsl(195,100%,50%)]", apiSlug: "net10", carrierId: 7 },
-  { name: "Page Plus", logo: pageplusLogo, path: "/pageplus", bg: "bg-[hsl(0,70%,50%)]", apiSlug: "pageplus", carrierId: 1 },
-  { name: "Simple Mobile", logo: simpleMobileLogo, path: "/simple-mobile", bg: "bg-[hsl(101,67%,44%)]", apiSlug: "s1", carrierId: 15 },
-  { name: "T-Mobile", logo: tmobileLogo, path: "/tmobile", bg: "bg-[hsl(330,100%,45%)]", apiSlug: "tmobile", carrierId: 43 },
-  { name: "TracFone", logo: tracfoneLogo, path: "/tracfone", bg: "bg-[hsl(230,70%,30%)]", apiSlug: "tracfone", carrierId: 10 },
-  { name: "Ultra Mobile", logo: ultraLogo, path: "/ultra-mobile", bg: "bg-[hsl(270,50%,40%)]", apiSlug: "ultra-mobile", carrierId: 25 },
-  { name: "US Cellular", logo: uscellularLogo, path: "/uscellular", bg: "bg-[hsl(220,80%,35%)]", apiSlug: "us-cellular", carrierId: 88 },
-  { name: "Verizon", logo: verizonLogo, path: "/verizon", bg: "bg-[hsl(0,100%,45%)]", apiSlug: "verizon", carrierId: 14 },
-  { name: "Straight Talk", logo: straightTalkLogo, path: "/straight-talk", bg: "bg-[hsl(72,74%,44%)]", apiSlug: "straight-talk", carrierId: 0 },
-];
-
 const Home = () => {
+  const [carriers, setCarriers] = useState<ApiCarrier[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetch = async () => {
+      try {
+        const result = (await listCarriers()) as { success?: boolean; data?: ApiCarrier[] } | ApiCarrier[];
+        if (cancelled) return;
+        const list = Array.isArray(result) ? result : (result as { data?: ApiCarrier[] }).data;
+        if (Array.isArray(list)) {
+          setCarriers(list.filter((c) => c.active !== false));
+        } else {
+          setError("Unexpected API response");
+        }
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load carriers");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    fetch();
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
       {/* Header */}
@@ -53,30 +51,53 @@ const Home = () => {
         <p className="text-sm text-muted-foreground mt-1">Select your carrier to get started</p>
       </header>
 
-      {/* Carrier Grid */}
+      {/* Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl w-full">
-          {carriers.map((carrier) => (
-            <Link
-              key={carrier.path}
-              to={carrier.path}
-              className="group bg-card rounded-xl border border-border shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden active:scale-[0.97]"
-            >
-              <div className="flex items-center justify-center h-32 sm:h-40 bg-background p-6">
-                <img
-                  src={carrier.logo}
-                  alt={carrier.name}
-                  className="max-h-12 sm:max-h-16 max-w-[80%] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className={`${carrier.bg} py-3 text-center`}>
-                <span className="text-primary-foreground font-bold text-sm sm:text-base">
-                  {carrier.name}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+        {loading && (
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Loading carriers...</p>
+          </div>
+        )}
+
+        {error && !loading && (
+          <p className="text-sm text-destructive">{error}</p>
+        )}
+
+        {!loading && !error && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 max-w-4xl w-full">
+            {carriers.map((carrier) => {
+              const slug = carrier.slug || "";
+              const displayName = carrier.title || carrier.name || slug;
+              return (
+                <Link
+                  key={carrier.id ?? slug}
+                  to={`/${slug}`}
+                  className="group bg-card rounded-xl border border-border shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden active:scale-[0.97]"
+                >
+                  <div className="flex items-center justify-center h-24 sm:h-32 bg-background p-4">
+                    {carrier.logo || carrier.image ? (
+                      <img
+                        src={(carrier.logo || carrier.image) as string}
+                        alt={displayName}
+                        className="max-h-12 sm:max-h-16 max-w-[80%] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <span className="text-base sm:text-lg font-bold text-foreground text-center">
+                        {displayName}
+                      </span>
+                    )}
+                  </div>
+                  <div className="bg-primary py-2.5 text-center">
+                    <span className="text-primary-foreground font-bold text-xs sm:text-sm">
+                      {displayName}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </main>
 
       {/* Footer */}
