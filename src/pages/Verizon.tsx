@@ -31,6 +31,7 @@ const formatPhone = (value: string): string => {
 const BRAND = "hsl(0,100%,45%)";
 
 const Verizon = () => {
+  const { plans } = useCarrierData("verizon", staticPlans);
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);

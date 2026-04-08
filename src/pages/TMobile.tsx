@@ -28,6 +28,7 @@ const formatPhone = (value: string): string => {
 const BRAND = "hsl(330,100%,45%)";
 
 const TMobile = () => {
+  const { plans } = useCarrierData("tmobile", staticPlans);
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);
