@@ -28,35 +28,8 @@ export interface CarrierData {
   [key: string]: unknown;
 }
 
-interface CarrierFallbackResponse {
-  fallback?: boolean;
-  error?: string;
-  upstreamStatus?: number;
-  data?: CarrierData | null;
-}
-
-const isFallbackResponse = (value: unknown): value is CarrierFallbackResponse =>
-  typeof value === "object" &&
-  value !== null &&
-  ("fallback" in value || "error" in value || "data" in value);
-
-const extractCarrierData = (value: unknown): CarrierData | null => {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  if (isFallbackResponse(value)) {
-    return value.data && typeof value.data === "object"
-      ? value.data
-      : null;
-  }
-
-  return value as CarrierData;
-};
-
 /**
- * Fetches carrier data from the CellPay API via edge function.
- * Returns { data, plans, loading, error }.
+ * Fetches carrier data from the CellPay API (client-side).
  * Falls back to provided staticPlans if the API fails.
  */
 export const useCarrierData = (slug: string, staticPlans: CarrierPlan[]) => {
@@ -70,21 +43,13 @@ export const useCarrierData = (slug: string, staticPlans: CarrierPlan[]) => {
 
     const fetchData = async () => {
       try {
-        const result = await viewCarrier(slug);
+        const result = (await viewCarrier(slug)) as { success?: boolean; data?: CarrierData };
 
         if (cancelled) return;
 
-        if (isFallbackResponse(result) && result.fallback) {
-          console.warn(`CellPay API fallback for ${slug}, using static plans:`, result.error, result.upstreamStatus);
-          setError(result.error ?? "Carrier data temporarily unavailable");
-          setData(null);
-          return;
-        }
-
-        const carrierData = extractCarrierData(result);
+        const carrierData = result?.data ?? (result as unknown as CarrierData);
         if (!carrierData) {
           setError("Carrier data unavailable");
-          setData(null);
           return;
         }
 
@@ -92,7 +57,7 @@ export const useCarrierData = (slug: string, staticPlans: CarrierPlan[]) => {
 
         const apiPlans = carrierData.carrier_plans;
         if (Array.isArray(apiPlans) && apiPlans.length > 0) {
-          const parsed: CarrierPlan[] = apiPlans.map((p: Record<string, unknown>) => ({
+          const parsed: CarrierPlan[] = apiPlans.map((p) => ({
             price: `$${p.price || p.amount || "0"}`,
             highlight: (p.title || p.highlight || p.description || "Prepaid Refill") as string,
             plan_id: String(p.plan_id || p.id || ""),
@@ -103,7 +68,6 @@ export const useCarrierData = (slug: string, staticPlans: CarrierPlan[]) => {
         if (!cancelled) {
           console.warn(`CellPay fetch failed for ${slug}, using static plans:`, err);
           setError(err instanceof Error ? err.message : "Unknown error");
-          setData(null);
         }
       } finally {
         if (!cancelled) setLoading(false);
