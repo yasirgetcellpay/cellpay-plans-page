@@ -46,40 +46,8 @@ const staticCarriers: Carrier[] = [
 ];
 
 const Home = () => {
-  const [carriers, setCarriers] = useState<Carrier[]>(staticCarriers);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchCarriers = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke(
-          "cellpay-proxy?action=list-carriers"
-        );
-
-        if (cancelled) return;
-
-        if (error || !data?.data?.carriers) {
-          console.warn("Failed to fetch carriers from API, using static list");
-          setLoading(false);
-          return;
-        }
-
-        // API returned carriers — we still use our local logos/paths but could
-        // enrich with API data in the future
-        console.log("Carriers API responded:", data.data.carriers.length, "carriers");
-      } catch (err) {
-        if (!cancelled) {
-          console.warn("Carriers fetch failed, using static list:", err);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    fetchCarriers();
-    return () => { cancelled = true; };
+  const [carriers] = useState<Carrier[]>(staticCarriers);
+  const [loading, setLoading] = useState(false);
   }, []);
 
   return (
