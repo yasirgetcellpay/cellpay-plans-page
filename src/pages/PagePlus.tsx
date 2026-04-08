@@ -3,8 +3,9 @@ import { Phone } from "lucide-react";
 import pageplusLogo from "@/assets/pageplus-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { useCarrierData } from "@/hooks/use-carrier-data";
 
-const plans = [
+const staticPlans = [
   { price: "$80", highlight: "PayGO Plan" },
   { price: "$69.95", highlight: "Unlimited LTE Data" },
   { price: "$55", highlight: "Unlimited 4G LTE + Intl" },

@@ -3,8 +3,9 @@ import { Phone } from "lucide-react";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { useCarrierData } from "@/hooks/use-carrier-data";
 
-const plans = [
+const staticPlans = [
   { price: "$64", highlight: "Ultra Mobile RTR" },
   { price: "$59", highlight: "Ultra Mobile RTR" },
   { price: "$54", highlight: "Ultra Mobile RTR" },

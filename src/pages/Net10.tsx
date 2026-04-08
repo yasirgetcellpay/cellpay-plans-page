@@ -3,8 +3,9 @@ import { Phone } from "lucide-react";
 import net10Logo from "@/assets/net10-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { useCarrierData } from "@/hooks/use-carrier-data";
 
-const plans = [
+const staticPlans = [
   { price: "$75", highlight: "Unlimited + 10GB Data" },
   { price: "$65", highlight: "Intl Talk, Text, 3GB Data" },
   { price: "$60", highlight: "10GB 4G LTE Data" },
