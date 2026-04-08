@@ -23,25 +23,26 @@ interface Carrier {
   logo: string;
   path: string;
   bg: string;
-  slug?: string;
+  apiSlug: string;
+  carrierId: number;
 }
 
 const staticCarriers: Carrier[] = [
-  { name: "Simple Mobile", logo: simpleMobileLogo, path: "/simple-mobile", bg: "bg-[hsl(101,67%,44%)]", slug: "simple-mobile" },
-  { name: "Cricket Wireless", logo: cricketLogo, path: "/cricket", bg: "bg-[hsl(82,60%,42%)]", slug: "cricket" },
-  { name: "Metro PCS", logo: metroLogo, path: "/metro", bg: "bg-[hsl(270,60%,32%)]", slug: "metro" },
-  { name: "T-Mobile", logo: tmobileLogo, path: "/tmobile", bg: "bg-[hsl(330,100%,45%)]", slug: "tmobile" },
-  { name: "AT&T Prepaid", logo: attLogo, path: "/att", bg: "bg-[hsl(196,100%,44%)]", slug: "att" },
-  { name: "Verizon", logo: verizonLogo, path: "/verizon", bg: "bg-[hsl(0,100%,45%)]", slug: "verizon" },
-  { name: "Boost Mobile", logo: boostLogo, path: "/boost", bg: "bg-[hsl(27,100%,50%)]", slug: "boostmobile" },
-  { name: "Straight Talk", logo: straightTalkLogo, path: "/straight-talk", bg: "bg-[hsl(72,74%,44%)]", slug: "straight-talk" },
-  { name: "H2O Wireless", logo: h2oLogo, path: "/h2o", bg: "bg-[hsl(195,85%,50%)]", slug: "h2o-wireless" },
-  { name: "Lyca Mobile", logo: lycaLogo, path: "/lyca", bg: "bg-[hsl(220,50%,22%)]", slug: "lycamobile" },
-  { name: "Net10 Wireless", logo: net10Logo, path: "/net10", bg: "bg-[hsl(195,100%,50%)]", slug: "net10" },
-  { name: "Page Plus", logo: pageplusLogo, path: "/pageplus", bg: "bg-[hsl(0,70%,50%)]", slug: "pageplus" },
-  { name: "TracFone", logo: tracfoneLogo, path: "/tracfone", bg: "bg-[hsl(230,70%,30%)]", slug: "tracfone" },
-  { name: "Ultra Mobile", logo: ultraLogo, path: "/ultra-mobile", bg: "bg-[hsl(270,50%,40%)]", slug: "ultra-mobile" },
-  { name: "US Cellular", logo: uscellularLogo, path: "/uscellular", bg: "bg-[hsl(220,80%,35%)]", slug: "uscellular" },
+  { name: "AT&T Prepaid", logo: attLogo, path: "/att", bg: "bg-[hsl(196,100%,44%)]", apiSlug: "topup-at", carrierId: 3 },
+  { name: "Boost Mobile", logo: boostLogo, path: "/boost", bg: "bg-[hsl(27,100%,50%)]", apiSlug: "boost", carrierId: 36 },
+  { name: "Cricket Wireless", logo: cricketLogo, path: "/cricket", bg: "bg-[hsl(82,60%,42%)]", apiSlug: "topup-crc", carrierId: 45 },
+  { name: "H2O Wireless", logo: h2oLogo, path: "/h2o", bg: "bg-[hsl(195,85%,50%)]", apiSlug: "h2o", carrierId: 6 },
+  { name: "Lyca Mobile", logo: lycaLogo, path: "/lyca", bg: "bg-[hsl(220,50%,22%)]", apiSlug: "lyca", carrierId: 29 },
+  { name: "Metro PCS", logo: metroLogo, path: "/metro", bg: "bg-[hsl(270,60%,32%)]", apiSlug: "metropcs", carrierId: 38 },
+  { name: "NET10", logo: net10Logo, path: "/net10", bg: "bg-[hsl(195,100%,50%)]", apiSlug: "net10", carrierId: 7 },
+  { name: "Page Plus", logo: pageplusLogo, path: "/pageplus", bg: "bg-[hsl(0,70%,50%)]", apiSlug: "pageplus", carrierId: 1 },
+  { name: "Simple Mobile", logo: simpleMobileLogo, path: "/simple-mobile", bg: "bg-[hsl(101,67%,44%)]", apiSlug: "s1", carrierId: 15 },
+  { name: "T-Mobile", logo: tmobileLogo, path: "/tmobile", bg: "bg-[hsl(330,100%,45%)]", apiSlug: "tmobile", carrierId: 43 },
+  { name: "TracFone", logo: tracfoneLogo, path: "/tracfone", bg: "bg-[hsl(230,70%,30%)]", apiSlug: "tracfone", carrierId: 10 },
+  { name: "Ultra Mobile", logo: ultraLogo, path: "/ultra-mobile", bg: "bg-[hsl(270,50%,40%)]", apiSlug: "ultra-mobile", carrierId: 25 },
+  { name: "US Cellular", logo: uscellularLogo, path: "/uscellular", bg: "bg-[hsl(220,80%,35%)]", apiSlug: "us-cellular", carrierId: 88 },
+  { name: "Verizon", logo: verizonLogo, path: "/verizon", bg: "bg-[hsl(0,100%,45%)]", apiSlug: "verizon", carrierId: 14 },
+  { name: "Straight Talk", logo: straightTalkLogo, path: "/straight-talk", bg: "bg-[hsl(72,74%,44%)]", apiSlug: "straight-talk", carrierId: 0 },
 ];
 
 const Home = () => {
