@@ -46,9 +46,7 @@ const staticCarriers: Carrier[] = [
 ];
 
 const Home = () => {
-  const [carriers] = useState<Carrier[]>(staticCarriers);
-  const [loading, setLoading] = useState(false);
-  }, []);
+  const carriers = staticCarriers;
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
