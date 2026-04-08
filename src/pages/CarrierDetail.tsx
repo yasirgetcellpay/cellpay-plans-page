@@ -23,7 +23,7 @@ const CarrierDetail = () => {
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const carrierName = data?.carrier?.title || data?.carrier?.name || slug || "";
+  const carrierName = String(data?.carrier?.title || data?.carrier?.name || slug || "");
   const brandColor = "hsl(27, 100%, 50%)"; // Default orange, could be dynamic
 
   const rangeMin = range?.rangeMin ?? 5;
