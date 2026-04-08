@@ -3,8 +3,9 @@ import { Phone, DollarSign } from "lucide-react";
 import verizonLogo from "@/assets/verizon-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { useCarrierData } from "@/hooks/use-carrier-data";
 
-const plans = [
+const staticPlans = [
   { price: "$80", highlight: "Prepaid Refill" },
   { price: "$75", highlight: "Prepaid Refill" },
   { price: "$70", highlight: "Prepaid Refill" },
