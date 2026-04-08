@@ -1,3 +1,5 @@
+import { Loader2 } from "lucide-react";
+
 interface Plan { price: string; highlight: string; }
 
 interface PlanGridProps {
@@ -5,6 +7,7 @@ interface PlanGridProps {
   brandColor: string;
   textOnBrand?: string;
   onSelect?: (plan: Plan) => void;
+  loading?: boolean;
 }
 
 export const PlanGrid = ({ plans, brandColor, textOnBrand = "text-primary-foreground", onSelect }: PlanGridProps) => {
