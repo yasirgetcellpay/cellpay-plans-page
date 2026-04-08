@@ -84,6 +84,19 @@ Deno.serve(async (req) => {
       ...(body ? { body } : {}),
     });
 
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      const text = await response.text();
+      console.error("CellPay returned non-JSON:", response.status, text.slice(0, 200));
+      return new Response(JSON.stringify({ 
+        error: "CellPay API returned non-JSON response (possible Cloudflare challenge)", 
+        status: response.status 
+      }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const data = await response.json();
 
     return new Response(JSON.stringify(data), {
