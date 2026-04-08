@@ -1,28 +1,43 @@
-import { supabase } from "@/integrations/supabase/client";
+const CELLPAY_BASE = "https://yasircell.cellpay.us/api";
+const CELLPAY_API_KEY = "local-test-api-key";
+const CELLPAY_API_SECRET = "local-test-api-secret";
 
-const invoke = async (params: Record<string, string>, body?: unknown) => {
-  const searchParams = new URLSearchParams(params);
-  const url = `cellpay-proxy?${searchParams.toString()}`;
+const baseHeaders: Record<string, string> = {
+  Accept: "*/*",
+  "X-Api-Key": CELLPAY_API_KEY,
+  "X-Api-Secret": CELLPAY_API_SECRET,
+};
 
-  const options: Parameters<typeof supabase.functions.invoke>[1] = {};
-  if (body) {
-    options.body = body;
-  } else {
-    options.method = "GET";
+const request = async <T = unknown>(
+  endpoint: string,
+  options?: { method?: string; body?: unknown }
+): Promise<T> => {
+  const { method = "GET", body } = options ?? {};
+
+  const headers: Record<string, string> = body
+    ? { ...baseHeaders, "Content-Type": "application/json" }
+    : { ...baseHeaders };
+
+  const res = await fetch(`${CELLPAY_BASE}${endpoint}`, {
+    method,
+    headers,
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`CellPay API error ${res.status}: ${text.slice(0, 200)}`);
   }
 
-  const { data, error } = await supabase.functions.invoke(url, options);
-
-  if (error) throw error;
-  return data;
+  return res.json();
 };
 
 /** List all carriers */
-export const listCarriers = () => invoke({ action: "list-carriers" });
+export const listCarriers = () => request("/carriers");
 
 /** Get carrier details + plans by slug */
 export const viewCarrier = (slug: string, refill?: boolean) =>
-  invoke({ action: "view-carrier", slug, ...(refill ? { refill: "1" } : {}) });
+  request(`/carriers/view/${slug}${refill ? "?refill=1" : ""}`);
 
 /** Verify a phone number for a carrier */
 export const verifyPhone = (
@@ -31,11 +46,14 @@ export const verifyPhone = (
   planId?: string,
   amount?: number
 ) =>
-  invoke({ action: "verify-phone", slug }, {
-    phone_number: phoneNumber,
-    confirm_phone_number: phoneNumber,
-    ...(planId ? { plan_id: planId } : {}),
-    ...(amount ? { amount } : {}),
+  request(`/carriers/verify-phone/${slug}`, {
+    method: "POST",
+    body: {
+      phone_number: phoneNumber,
+      confirm_phone_number: phoneNumber,
+      ...(planId ? { plan_id: planId } : {}),
+      ...(amount ? { amount } : {}),
+    },
   });
 
 /** Checkout / process payment */
@@ -73,4 +91,4 @@ export interface CheckoutPayload {
 }
 
 export const checkout = (payload: CheckoutPayload) =>
-  invoke({ action: "checkout" }, payload);
+  request("/checkout/transaction", { method: "POST", body: payload });
