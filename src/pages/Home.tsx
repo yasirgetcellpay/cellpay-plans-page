@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
 import cricketLogo from "@/assets/cricket-logo.webp";
