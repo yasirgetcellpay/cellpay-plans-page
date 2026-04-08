@@ -27,7 +27,7 @@ const formatPhone = (value: string): string => {
 };
 
 const H2O = () => {
-  const { plans } = useCarrierData("h2o-wireless", staticPlans);
+  const { plans, loading } = useCarrierData("h2o-wireless", staticPlans);
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
@@ -58,7 +58,7 @@ const H2O = () => {
           <p className="text-[10px] sm:text-xs text-muted-foreground">Enter the phone number you want to recharge</p>
         </div>
       </div>
-      <PlanGrid plans={plans} brandColor={brandColor} />
+      <PlanGrid plans={plans} loading={loading} brandColor={brandColor} />
       <PaymentBar />
       <footer className="bg-cellpay-dark text-muted-foreground py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
