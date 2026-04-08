@@ -205,14 +205,9 @@ Deno.serve(async (req) => {
 
     let data: unknown;
     try {
-      data = await response.json();
+      data = JSON.parse(responseText);
     } catch {
       console.warn("JSON parse failed, serving fallback");
-      return serveFallback(action, url);
-    }
-
-    if (!response.ok) {
-      console.warn(`Upstream error ${response.status}, serving fallback`);
       return serveFallback(action, url);
     }
 
