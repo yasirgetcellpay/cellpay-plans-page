@@ -277,6 +277,50 @@ const Checkout = () => {
               </section>
             )}
 
+            {paymentMethod === "plaid" && (
+              <section className="bg-gray-100 rounded-lg p-6 space-y-5">
+                <div className="bg-white rounded-lg p-4">
+                  <div className="relative mb-4">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+                    <input
+                      type="text"
+                      placeholder="Search for your bank"
+                      className="w-full h-11 pl-10 pr-3 rounded-lg border border-gray-300 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 gap-3">
+                    {[
+                      { name: "Chase", logo: "🏦" },
+                      { name: "Bank of America", logo: "🏛️" },
+                      { name: "Wells Fargo", logo: "🐎" },
+                      { name: "Citibank", logo: "🏢" },
+                      { name: "US Bank", logo: "🇺🇸" },
+                      { name: "Capital One", logo: "💳" },
+                      { name: "PNC", logo: "🔶" },
+                      { name: "USAA", logo: "⭐" },
+                      { name: "TD Bank", logo: "🟩" },
+                      { name: "Regions", logo: "🔺" },
+                      { name: "Navy Federal", logo: "⚓" },
+                      { name: "Huntington", logo: "🌿" },
+                    ].map((bank) => (
+                      <button
+                        key={bank.name}
+                        type="button"
+                        className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg border border-gray-200 hover:border-gray-400 hover:shadow-sm transition-all bg-white text-center min-h-[72px]"
+                      >
+                        <span className="text-2xl">{bank.logo}</span>
+                        <span className="text-[11px] font-medium text-gray-700 leading-tight">{bank.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                    <span className="text-[10px] text-gray-400 font-medium tracking-wide">🔒 PLAID</span>
+                    <a href="#" className="text-[11px] text-gray-500 hover:text-gray-700">What is Plaid?</a>
+                  </div>
+                </div>
+              </section>
+            )}
+
             {paymentMethod === "paypal" && (
               <section className="bg-gray-100 rounded-lg p-6 space-y-5">
                 <button className="w-full h-14 rounded-lg font-bold text-lg" style={{ backgroundColor: "#FFC439", color: "#003087" }}>
