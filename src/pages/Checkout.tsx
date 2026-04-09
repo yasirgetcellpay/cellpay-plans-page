@@ -85,7 +85,12 @@ const Checkout = () => {
   // PayPal integration
   const [paypalClientId, setPaypalClientId] = useState<string | null>(null);
   const [paypalLoading, setPaypalLoading] = useState(false);
-  const [paypalErrorDialog, setPaypalErrorDialog] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+
+  // Shared error dialog for PayPal & Plaid
+  const [errorDialog, setErrorDialog] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: "", message: "" });
+
+  // Plaid auto-checkout processing
+  const [plaidProcessing, setPlaidProcessing] = useState(false);
 
   // Fetch PayPal client ID when PayPal is selected
   useEffect(() => {
@@ -159,17 +164,68 @@ const Checkout = () => {
     }
   };
 
-  const onPlaidSuccess = useCallback((publicToken: string, metadata: any) => {
+  // We store a ref to buildPayload so the Plaid callback can use it
+  const buildPayloadRef = useRef<(() => import("@/services/apiWrapper").CheckoutPayload) | null>(null);
+
+  const onPlaidSuccess = useCallback(async (publicToken: string, metadata: any) => {
+    const bankName = metadata?.institution?.name || "Bank account";
     setPlaidPublicToken(publicToken);
-    setPlaidBankName(metadata?.institution?.name || "Bank account");
+    setPlaidBankName(bankName);
     setPlaidConnecting(false);
-    toast.success(`Connected to ${metadata?.institution?.name || "your bank"}!`);
-  }, []);
+    toast.success(`Connected to ${bankName}! Processing payment...`);
+
+    // Auto-call transaction API after successful Plaid connection
+    setPlaidProcessing(true);
+    try {
+      const payload = buildPayloadRef.current?.();
+      if (!payload) throw new Error("Could not build checkout payload");
+      // Override with fresh public token
+      payload.plaid_token = publicToken;
+      payload.payment_method = "plaid";
+      const result = await processCheckout(payload);
+
+      if (result?.success) {
+        toast.success("Order placed successfully via Pay by Bank!");
+      } else {
+        setErrorDialog({
+          open: true,
+          title: "Payment Failed",
+          message: "Bank connection was successful but the order could not be completed. Please try again or contact support.",
+        });
+      }
+    } catch (err) {
+      console.error("Plaid checkout error:", err);
+      setErrorDialog({
+        open: true,
+        title: "Payment Error",
+        message: "An unexpected error occurred while processing your bank payment. Please try again.",
+      });
+    } finally {
+      setPlaidProcessing(false);
+    }
+  }, [processCheckout]);
 
   const { open: openPlaid, ready: plaidLinkReady } = usePlaidLink({
     token: plaidSelectedToken,
     onSuccess: onPlaidSuccess,
-    onExit: () => setPlaidConnecting(false),
+    onExit: (_err, metadata) => {
+      setPlaidConnecting(false);
+      // Show error dialog if user didn't voluntarily close
+      if (_err) {
+        console.error("Plaid Link error:", _err);
+        setErrorDialog({
+          open: true,
+          title: "Bank Connection Failed",
+          message: _err.display_message || _err.error_message || "Could not connect to your bank. Please try again or choose a different payment method.",
+        });
+      } else if (metadata?.status === "requires_credentials" || metadata?.status === "institution_not_found") {
+        setErrorDialog({
+          open: true,
+          title: "Connection Issue",
+          message: "We couldn't verify your bank credentials. Please try again.",
+        });
+      }
+    },
   });
 
   // Auto-open when token is ready for selected bank
@@ -178,6 +234,9 @@ const Checkout = () => {
       openPlaid();
     }
   }, [plaidSelectedToken, plaidLinkReady, openPlaid]);
+
+
+
 
 
   if (!state) {
@@ -330,6 +389,8 @@ const Checkout = () => {
         return { ...base, payment_method: "cardpayment" };
     }
   };
+  // Keep ref in sync so Plaid callback can access latest buildPayload
+  buildPayloadRef.current = buildPayload;
 
   const handleSubmit = async () => {
     if (!isFormValid) {
@@ -513,16 +574,26 @@ const Checkout = () => {
 
                 {plaidBankName ? (
                   <div className="text-center space-y-3 py-4">
-                    <div className="text-green-600 text-4xl">✓</div>
-                    <p className="text-lg font-bold text-gray-800">Connected to {plaidBankName}</p>
-                    <p className="text-sm text-gray-500">Your bank account is linked and ready for payment.</p>
-                    <button
-                      type="button"
-                      onClick={() => { setPlaidPublicToken(null); setPlaidBankName(null); setPlaidSelectedToken(null); }}
-                      className="text-sm text-red-500 underline hover:text-red-700"
-                    >
-                      Change bank
-                    </button>
+                    {plaidProcessing ? (
+                      <>
+                        <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />
+                        <p className="text-lg font-bold text-gray-800">Processing payment...</p>
+                        <p className="text-sm text-gray-500">Connected to {plaidBankName}. Please wait.</p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-green-600 text-4xl">✓</div>
+                        <p className="text-lg font-bold text-gray-800">Connected to {plaidBankName}</p>
+                        <p className="text-sm text-gray-500">Your bank account is linked and ready for payment.</p>
+                        <button
+                          type="button"
+                          onClick={() => { setPlaidPublicToken(null); setPlaidBankName(null); setPlaidSelectedToken(null); }}
+                          className="text-sm text-red-500 underline hover:text-red-700"
+                        >
+                          Change bank
+                        </button>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <>
@@ -621,22 +692,25 @@ const Checkout = () => {
                         if (result?.success) {
                           toast.success("Order placed successfully via PayPal!");
                         } else {
-                          setPaypalErrorDialog({
+                          setErrorDialog({
                             open: true,
+                            title: "Payment Issue",
                             message: "Payment was approved by PayPal but the order could not be completed. Please contact support.",
                           });
                         }
                       }}
                       onCancel={() => {
-                        setPaypalErrorDialog({
+                        setErrorDialog({
                           open: true,
+                          title: "Payment Cancelled",
                           message: "You cancelled the PayPal payment. No charges were made.",
                         });
                       }}
                       onError={(err) => {
                         console.error("PayPal error:", err);
-                        setPaypalErrorDialog({
+                        setErrorDialog({
                           open: true,
+                          title: "PayPal Error",
                           message: "An error occurred with PayPal. Please try again or choose a different payment method.",
                         });
                       }}
@@ -745,17 +819,17 @@ const Checkout = () => {
       <footer className="bg-gray-900 text-gray-400 py-6 text-center text-xs">
         <p>© 2026 All rights reserved.</p>
       </footer>
-      {/* PayPal Error/Cancel Dialog */}
-      <Dialog open={paypalErrorDialog.open} onOpenChange={(open) => setPaypalErrorDialog((prev) => ({ ...prev, open }))}>
+      {/* Error/Cancel Dialog (shared for PayPal & Plaid) */}
+      <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog((prev) => ({ ...prev, open }))}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-red-600">Payment Issue</DialogTitle>
-            <DialogDescription>{paypalErrorDialog.message}</DialogDescription>
+            <DialogTitle className="text-red-600">{errorDialog.title || "Payment Issue"}</DialogTitle>
+            <DialogDescription>{errorDialog.message}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end mt-4">
             <button
               type="button"
-              onClick={() => setPaypalErrorDialog({ open: false, message: "" })}
+              onClick={() => setErrorDialog({ open: false, title: "", message: "" })}
               className="px-4 py-2 rounded text-sm font-medium text-white"
               style={{ backgroundColor: ACCENT_RED }}
             >
