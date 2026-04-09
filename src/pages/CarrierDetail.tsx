@@ -1,11 +1,13 @@
 import { useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Phone, DollarSign, Loader2, Plus, Minus } from "lucide-react";
-import { useCarrierData, type CarrierPlan } from "@/hooks/use-carrier-data";
+import { useCarrierData } from "@/hooks/use-carrier-data";
+import { getCarrierBrandColor } from "@/lib/carrier-colors";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
 
 const LOGO_BASE = "https://www.cellpay.us/webp/v4/home";
+const NAV_GREEN = "hsl(160, 40%, 25%)";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -14,8 +16,6 @@ const formatPhone = (value: string): string => {
   if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 };
-
-const BRAND_GREEN = "hsl(160, 40%, 25%)";
 
 const CarrierDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -31,6 +31,7 @@ const CarrierDetail = () => {
   const carrierName = String(data?.carrier?.title || data?.carrier?.name || slug || "");
   const carrierSlug = data?.carrier?.slug || slug || "";
   const logoUrl = `${LOGO_BASE}/${carrierSlug}.webp`;
+  const brandColor = getCarrierBrandColor(carrierSlug);
 
   const rangeMin = range?.rangeMin ?? 5;
   const rangeMax = range?.rangeMax ?? 300;
@@ -38,6 +39,7 @@ const CarrierDetail = () => {
 
   const h1 = seoCarrier?.recommended?.h1 ?? `${carrierName} Recharge`;
   const h2 = seoCarrier?.recommended?.h2 ?? `Mobile Bill Pay and Prepaid Plan Refill Payments`;
+  const supportText = (seoCarrier?.support_text as Record<string, string>)?.option1;
   const faqs = seoCarrier?.faqs ?? [];
 
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,7 +69,7 @@ const CarrierDetail = () => {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin" style={{ color: BRAND_GREEN }} />
+          <Loader2 className="h-8 w-8 animate-spin" style={{ color: brandColor }} />
           <p className="text-sm text-gray-500">Loading carrier...</p>
         </div>
       </div>
@@ -76,8 +78,8 @@ const CarrierDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans antialiased flex flex-col">
-      {/* Top nav bar */}
-      <nav className="sticky top-0 z-50 text-white" style={{ backgroundColor: BRAND_GREEN }}>
+      {/* Top nav bar - always green */}
+      <nav className="sticky top-0 z-50 text-white" style={{ backgroundColor: NAV_GREEN }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
           <Link to="/" className="text-xl font-bold tracking-tight">
             cellpay<span className="align-super text-[10px]">®</span>
@@ -90,8 +92,8 @@ const CarrierDetail = () => {
         </div>
       </nav>
 
-      {/* Green hero with logo + title */}
-      <section className="py-10 sm:py-14 text-center text-white" style={{ backgroundColor: BRAND_GREEN }}>
+      {/* Hero with carrier brand color */}
+      <section className="py-10 sm:py-14 text-center text-white" style={{ backgroundColor: NAV_GREEN }}>
         <div className="max-w-3xl mx-auto px-4 flex flex-col items-center gap-4">
           <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center p-3">
             <img
@@ -110,7 +112,9 @@ const CarrierDetail = () => {
               }}
             />
           </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold">{h1} - Fast Prepaid Refill</h1>
+          <h1 className="text-xl sm:text-2xl font-extrabold">
+            {carrierName} Recharge - Fast Prepaid Refill
+          </h1>
         </div>
       </section>
 
@@ -142,7 +146,7 @@ const CarrierDetail = () => {
               onChange={handlePhoneChange}
               placeholder="(XXX) XXX-XXXX"
               className="w-full h-14 pl-12 pr-4 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent"
-              style={{ "--tw-ring-color": BRAND_GREEN } as React.CSSProperties}
+              style={{ "--tw-ring-color": brandColor } as React.CSSProperties}
             />
           </div>
 
@@ -150,7 +154,7 @@ const CarrierDetail = () => {
           {isRangeBased && (
             <>
               <label className="block text-sm font-bold text-gray-900 mb-2">
-                Select Amount
+                Recharge Amount
               </label>
               <div className="relative mb-6">
                 <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -161,7 +165,7 @@ const CarrierDetail = () => {
                   onChange={handleAmountChange}
                   placeholder={`Enter an amount between ${rangeMin} - ${rangeMax}`}
                   className="w-full h-14 pl-12 pr-4 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent"
-                  style={{ "--tw-ring-color": BRAND_GREEN } as React.CSSProperties}
+                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties}
                 />
               </div>
             </>
@@ -172,7 +176,7 @@ const CarrierDetail = () => {
             <div className="mb-6">
               <PlanGrid
                 plans={plans}
-                brandColor={BRAND_GREEN}
+                brandColor={brandColor}
                 selectedPlanId={selectedPlanId || undefined}
                 onSelect={(plan) => {
                   setAmount(plan.price.replace("$", ""));
@@ -190,7 +194,7 @@ const CarrierDetail = () => {
                 checked={confirmed}
                 onChange={(e) => setConfirmed(e.target.checked)}
                 className="mt-0.5 h-4 w-4 rounded"
-                style={{ accentColor: BRAND_GREEN }}
+                style={{ accentColor: brandColor }}
               />
               <span className="text-xs text-gray-500 leading-relaxed">
                 I have confirmed that I entered the correct phone number. I understand that this sale is final.
@@ -202,7 +206,7 @@ const CarrierDetail = () => {
                 checked={agreedTerms}
                 onChange={(e) => setAgreedTerms(e.target.checked)}
                 className="mt-0.5 h-4 w-4 rounded"
-                style={{ accentColor: BRAND_GREEN }}
+                style={{ accentColor: brandColor }}
               />
               <span className="text-xs text-gray-500 leading-relaxed">
                 Agree with {carrierName} Product Policies and Sales.
@@ -210,13 +214,13 @@ const CarrierDetail = () => {
             </label>
           </div>
 
-          {/* Pay button */}
+          {/* Pay button - uses carrier brand color */}
           <div className="flex justify-center">
             <button
               type="button"
               disabled={!isValid}
-              className="h-12 px-20 rounded-full text-white font-bold text-base uppercase tracking-wide transition-all active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
-              style={{ backgroundColor: BRAND_GREEN }}
+              className="h-14 px-20 rounded-full text-white font-bold text-lg uppercase tracking-wide transition-all active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
+              style={{ backgroundColor: brandColor }}
             >
               PAY NOW
             </button>
@@ -227,29 +231,45 @@ const CarrierDetail = () => {
         </div>
       </main>
 
-      {/* FAQs */}
+      {/* Support text */}
+      {supportText && (
+        <section className="max-w-3xl mx-auto px-4 pb-8">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <p className="text-sm text-gray-600 leading-relaxed">{supportText}</p>
+          </div>
+        </section>
+      )}
+
+      {/* FAQs - matching cellpay.us design */}
       {faqs.length > 0 && (
         <section className="max-w-3xl mx-auto px-4 pb-12">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-center mb-6" style={{ color: BRAND_GREEN }}>
+          <h2
+            className="text-2xl sm:text-3xl font-extrabold text-center mb-8"
+            style={{ color: brandColor }}
+          >
             FAQs
           </h2>
-          <div className="divide-y divide-gray-200 border-t border-b border-gray-200 bg-white rounded-lg overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-200">
             {faqs.map((faq, i) => (
               <div key={i}>
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between py-4 px-4 text-left text-sm sm:text-base font-medium text-gray-800 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between py-5 px-6 text-left text-sm sm:text-base font-semibold text-gray-800 hover:bg-gray-50 transition-colors"
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 >
-                  <span>{faq.question}</span>
-                  {openFaq === i ? (
-                    <Minus className="h-5 w-5 shrink-0" style={{ color: BRAND_GREEN }} />
-                  ) : (
-                    <Plus className="h-5 w-5 shrink-0" style={{ color: BRAND_GREEN }} />
-                  )}
+                  <span className="pr-4">{faq.question}</span>
+                  <span
+                    className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white text-lg font-bold transition-transform"
+                    style={{
+                      backgroundColor: brandColor,
+                      transform: openFaq === i ? "rotate(45deg)" : "rotate(0deg)",
+                    }}
+                  >
+                    +
+                  </span>
                 </button>
                 {openFaq === i && (
-                  <div className="px-4 pb-4 text-sm text-gray-500 leading-relaxed">
+                  <div className="px-6 pb-5 text-sm text-gray-500 leading-relaxed border-t border-gray-100 pt-4">
                     {faq.answer}
                   </div>
                 )}
