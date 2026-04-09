@@ -92,13 +92,6 @@ const Checkout = () => {
     }
   }, [paymentMethod]);
 
-  // Auto-open Plaid Link when ready
-  useEffect(() => {
-    if (paymentMethod === "plaid" && plaidLinkReady && plaidLinkToken && !plaidPublicToken) {
-      openPlaidRef.current?.();
-    }
-  }, [paymentMethod, plaidLinkReady, plaidLinkToken, plaidPublicToken]);
-
   const onPlaidSuccess = useCallback((publicToken: string, metadata: any) => {
     setPlaidPublicToken(publicToken);
     setPlaidBankName(metadata?.institution?.name || "Bank account");
@@ -110,11 +103,12 @@ const Checkout = () => {
     onSuccess: onPlaidSuccess,
   });
 
-  // Store openPlaid in a ref to use in effect without dependency loop
-  const openPlaidRef = useRef<(() => void) | null>(null);
+  // Auto-open Plaid Link when ready
   useEffect(() => {
-    openPlaidRef.current = openPlaid;
-  }, [openPlaid]);
+    if (paymentMethod === "plaid" && plaidLinkReady && plaidLinkToken && !plaidPublicToken) {
+      openPlaid();
+    }
+  }, [paymentMethod, plaidLinkReady, plaidLinkToken, plaidPublicToken, openPlaid]);
 
   if (!state) {
     return (
