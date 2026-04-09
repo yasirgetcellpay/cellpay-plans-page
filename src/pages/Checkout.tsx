@@ -82,6 +82,11 @@ const Checkout = () => {
   const [plaidSelectedToken, setPlaidSelectedToken] = useState<string | null>(null);
   const [plaidConnecting, setPlaidConnecting] = useState(false);
 
+  // PayPal integration
+  const [paypalClientId, setPaypalClientId] = useState<string | null>(null);
+  const [paypalLoading, setPaypalLoading] = useState(false);
+  const [paypalErrorDialog, setPaypalErrorDialog] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+
   // Fetch initial bank list
   useEffect(() => {
     if (paymentMethod === "plaid" && plaidInstitutions.length === 0) {
