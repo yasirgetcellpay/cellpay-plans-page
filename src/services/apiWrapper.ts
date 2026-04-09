@@ -240,7 +240,7 @@ export const fetchCheckoutClientConfig = <T = unknown>() =>
 export const createPlaidLinkToken = <T = unknown>(body: Record<string, unknown>) =>
   apiRequest<T>("plaid-link-token", {}, { method: "POST", body });
 
-export const exchangePlaidToken = <T = unknown>(body: { public_token: string }) =>
+export const exchangePlaidToken = <T = unknown>(body: { public_token: string; metadata?: Record<string, unknown>; connected_account?: string; [key: string]: unknown }) =>
   apiRequest<T>("plaid-exchange-token", {}, { method: "POST", body });
 
 export const createPaypalOrder = <T = unknown>(body: Record<string, unknown>) =>
