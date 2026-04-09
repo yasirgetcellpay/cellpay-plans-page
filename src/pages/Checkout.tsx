@@ -282,10 +282,23 @@ const Checkout = () => {
     }
     setPlaidProcessing(true);
     try {
-      // Get link token from backend
+      // Try CellPay backend first, fall back to our own Plaid edge function
+      let linkToken: string | null = null;
+
       const linkResult = await createPlaidLinkToken<any>({});
       const linkData = linkResult.data?.data ?? linkResult.data;
-      const linkToken = linkData?.link_token;
+      linkToken = linkData?.link_token || null;
+
+      // Fallback: use our own Plaid edge function if upstream fails
+      if (!linkToken) {
+        console.warn("CellPay plaid-link-token failed, falling back to own edge function");
+        const { supabase } = await import("@/integrations/supabase/client");
+        const { data: fallbackData } = await supabase.functions.invoke("plaid-link-token", {
+          body: { user_id: "checkout-user" },
+        });
+        linkToken = fallbackData?.link_token || null;
+      }
+
       if (!linkToken) throw new Error("Could not get Plaid link token");
 
       const handler = (window as any).Plaid.create({
