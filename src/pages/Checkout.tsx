@@ -87,6 +87,20 @@ const Checkout = () => {
   const [paypalLoading, setPaypalLoading] = useState(false);
   const [paypalErrorDialog, setPaypalErrorDialog] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
 
+  // Fetch PayPal client ID when PayPal is selected
+  useEffect(() => {
+    if (paymentMethod === "paypal" && !paypalClientId) {
+      setPaypalLoading(true);
+      supabase.functions.invoke("paypal-config")
+        .then(({ data }) => {
+          if (data?.clientId) setPaypalClientId(data.clientId);
+          else console.error("PayPal client ID not returned");
+        })
+        .catch(console.error)
+        .finally(() => setPaypalLoading(false));
+    }
+  }, [paymentMethod]);
+
   // Fetch initial bank list
   useEffect(() => {
     if (paymentMethod === "plaid" && plaidInstitutions.length === 0) {
