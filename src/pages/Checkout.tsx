@@ -64,50 +64,92 @@ const Checkout = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [savePayment, setSavePayment] = useState(false);
 
-  // Plaid Link integration
-  const [plaidLinkToken, setPlaidLinkToken] = useState<string | null>(null);
+  // Plaid integration
   const [plaidPublicToken, setPlaidPublicToken] = useState<string | null>(null);
   const [plaidBankName, setPlaidBankName] = useState<string | null>(null);
+  const [plaidInstitutions, setPlaidInstitutions] = useState<any[]>([]);
+  const [plaidSearchQuery, setPlaidSearchQuery] = useState("");
+  const [plaidLoadingInstitutions, setPlaidLoadingInstitutions] = useState(false);
+  const [plaidSelectedToken, setPlaidSelectedToken] = useState<string | null>(null);
+  const [plaidConnecting, setPlaidConnecting] = useState(false);
 
-  // Fetch link token when plaid selected
+  // Fetch initial bank list
   useEffect(() => {
-    if (paymentMethod === "plaid" && !plaidLinkToken) {
-      const fetchToken = async () => {
-        try {
-          const { data, error } = await supabase.functions.invoke("plaid-link-token", {
-            body: { user_id: "checkout-user" },
-          });
-          if (error) throw error;
-          if (data?.link_token) {
-            setPlaidLinkToken(data.link_token);
-          } else {
-            toast.error("Failed to initialize bank connection.");
-          }
-        } catch (err) {
-          console.error("Plaid token error:", err);
-          toast.error("Could not connect to bank service.");
-        }
-      };
-      fetchToken();
+    if (paymentMethod === "plaid" && plaidInstitutions.length === 0) {
+      setPlaidLoadingInstitutions(true);
+      supabase.functions.invoke("plaid-link-token", {
+        body: { action: "institutions_get", count: 16 },
+      }).then(({ data }) => {
+        if (data?.institutions) setPlaidInstitutions(data.institutions);
+      }).catch(console.error).finally(() => setPlaidLoadingInstitutions(false));
     }
-  }, [paymentMethod, plaidLinkToken]);
+  }, [paymentMethod]);
+
+  // Search institutions with debounce
+  useEffect(() => {
+    if (paymentMethod !== "plaid") return;
+    if (!plaidSearchQuery.trim()) {
+      // Re-fetch default list when search cleared
+      supabase.functions.invoke("plaid-link-token", {
+        body: { action: "institutions_get", count: 16 },
+      }).then(({ data }) => {
+        if (data?.institutions) setPlaidInstitutions(data.institutions);
+      });
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setPlaidLoadingInstitutions(true);
+      try {
+        const { data } = await supabase.functions.invoke("plaid-link-token", {
+          body: { action: "institutions_search", query: plaidSearchQuery },
+        });
+        if (data?.institutions) setPlaidInstitutions(data.institutions);
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        setPlaidLoadingInstitutions(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [plaidSearchQuery, paymentMethod]);
+
+  // When user clicks a bank, create a token for that institution and open Plaid Link
+  const handleBankClick = async (institutionId: string) => {
+    setPlaidConnecting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("plaid-link-token", {
+        body: { user_id: "checkout-user", institution_id: institutionId },
+      });
+      if (error) throw error;
+      if (data?.link_token) {
+        setPlaidSelectedToken(data.link_token);
+      }
+    } catch (err) {
+      console.error("Plaid token error:", err);
+      toast.error("Could not connect to this bank.");
+      setPlaidConnecting(false);
+    }
+  };
 
   const onPlaidSuccess = useCallback((publicToken: string, metadata: any) => {
     setPlaidPublicToken(publicToken);
     setPlaidBankName(metadata?.institution?.name || "Bank account");
+    setPlaidConnecting(false);
     toast.success(`Connected to ${metadata?.institution?.name || "your bank"}!`);
   }, []);
 
   const { open: openPlaid, ready: plaidLinkReady } = usePlaidLink({
-    token: plaidLinkToken,
+    token: plaidSelectedToken,
     onSuccess: onPlaidSuccess,
+    onExit: () => setPlaidConnecting(false),
   });
-  // Auto-open Plaid Link when ready (shows Plaid's own bank list)
+
+  // Auto-open when token is ready for selected bank
   useEffect(() => {
-    if (paymentMethod === "plaid" && plaidLinkReady && plaidLinkToken && !plaidPublicToken) {
+    if (plaidSelectedToken && plaidLinkReady) {
       openPlaid();
     }
-  }, [paymentMethod, plaidLinkReady, plaidLinkToken, plaidPublicToken, openPlaid]);
+  }, [plaidSelectedToken, plaidLinkReady, openPlaid]);
 
 
   if (!state) {
