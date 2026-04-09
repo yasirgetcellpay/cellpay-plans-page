@@ -280,6 +280,15 @@ const Checkout = () => {
       toast.error("Plaid is not loaded yet. Please wait.");
       return;
     }
+    if (!form.email || !isValidEmail) {
+      setTouched((prev) => ({ ...prev, email: true }));
+      toast.error("Please enter a valid email address before connecting your bank.");
+      return;
+    }
+    if (!form.firstName || !form.lastName) {
+      toast.error("Please enter your first and last name in the contact section.");
+      return;
+    }
     setPlaidProcessing(true);
     try {
       // Try CellPay backend first, fall back to our own Plaid edge function
