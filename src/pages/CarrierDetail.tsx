@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Phone, DollarSign, Loader2, ChevronDown, Plus, Minus } from "lucide-react";
+import { Phone, DollarSign, Loader2, Plus, Minus } from "lucide-react";
 import { useCarrierData, type CarrierPlan } from "@/hooks/use-carrier-data";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
@@ -14,6 +14,8 @@ const formatPhone = (value: string): string => {
   if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 };
+
+const BRAND_GREEN = "hsl(160, 40%, 25%)";
 
 const CarrierDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -35,7 +37,7 @@ const CarrierDetail = () => {
   const isRangeBased = !!range?.rangePlan;
 
   const h1 = seoCarrier?.recommended?.h1 ?? `${carrierName} Recharge`;
-  const h2 = seoCarrier?.recommended?.h2 ?? `Mobile & Bill Pay and Prepaid Plan Refill Payments`;
+  const h2 = seoCarrier?.recommended?.h2 ?? `Mobile Bill Pay and Prepaid Plan Refill Payments`;
   const faqs = seoCarrier?.faqs ?? [];
 
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,39 +65,39 @@ const CarrierDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading carrier...</p>
+          <Loader2 className="h-8 w-8 animate-spin" style={{ color: BRAND_GREEN }} />
+          <p className="text-sm text-gray-500">Loading carrier...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
+    <div className="min-h-screen bg-gray-100 font-sans antialiased flex flex-col">
       {/* Top nav bar */}
-      <nav className="sticky top-0 z-50 bg-[hsl(160,40%,25%)] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-12">
-          <Link to="/" className="text-lg font-bold tracking-tight">
+      <nav className="sticky top-0 z-50 text-white" style={{ backgroundColor: BRAND_GREEN }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
+          <Link to="/" className="text-xl font-bold tracking-tight">
             cellpay<span className="align-super text-[10px]">®</span>
           </Link>
           <div className="hidden sm:flex items-center gap-6 text-sm font-medium">
             <Link to="/" className="hover:underline">Domestic Payments</Link>
-            <span className="opacity-60 cursor-default">Bill Payments</span>
-            <span className="opacity-60 cursor-default">International Topups</span>
+            <span className="opacity-70 cursor-default">Bill Payments</span>
+            <span className="opacity-70 cursor-default">International Topups</span>
           </div>
         </div>
       </nav>
 
-      {/* Orange hero with logo + title */}
-      <section className="bg-gradient-to-b from-orange-500 to-orange-400 py-8 sm:py-12 text-center text-white">
-        <div className="max-w-3xl mx-auto px-4 flex flex-col items-center gap-3">
-          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-xl shadow-lg flex items-center justify-center p-2">
+      {/* Green hero with logo + title */}
+      <section className="py-10 sm:py-14 text-center text-white" style={{ backgroundColor: BRAND_GREEN }}>
+        <div className="max-w-3xl mx-auto px-4 flex flex-col items-center gap-4">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center p-3">
             <img
               src={logoUrl}
               alt={carrierName}
-              className="max-h-16 sm:max-h-20 max-w-full object-contain"
+              className="max-h-20 sm:max-h-24 max-w-full object-contain"
               onError={(e) => {
                 e.currentTarget.style.display = "none";
                 const parent = e.currentTarget.parentElement;
@@ -108,93 +110,69 @@ const CarrierDetail = () => {
               }}
             />
           </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold">{h1}</h1>
+          <h1 className="text-xl sm:text-2xl font-extrabold">{h1} - Fast Prepaid Refill</h1>
         </div>
       </section>
 
       {/* Form card */}
-      <main className="flex-1 -mt-4 relative z-10 px-4 pb-8">
-        <div className="max-w-2xl mx-auto bg-white rounded-xl border border-gray-200 shadow-xl p-6 sm:p-8">
+      <main className="flex-1 relative z-10 px-4 py-8">
+        <div className="max-w-3xl mx-auto bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8">
           {/* Carrier info row */}
-          <div className="flex items-center gap-4 mb-6 p-4 border border-orange-200 rounded-lg bg-orange-50/30">
-            <div className="w-16 h-16 border border-orange-300 rounded-lg flex items-center justify-center p-1.5 bg-white shrink-0">
+          <div className="flex items-center gap-5 mb-8 p-5 border border-gray-200 rounded-lg">
+            <div className="w-20 h-20 border border-gray-200 rounded-lg flex items-center justify-center p-2 bg-white shrink-0">
               <img
                 src={logoUrl}
                 alt={carrierName}
-                className="max-h-12 max-w-full object-contain"
+                className="max-h-16 max-w-full object-contain"
                 onError={(e) => { e.currentTarget.style.display = "none"; }}
               />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-gray-900">{carrierName} Bill Pay</h2>
-              <p className="text-sm text-gray-500">{h2}</p>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">{carrierName} Recharge</h2>
+              <p className="text-sm text-gray-500 mt-0.5">{carrierName} {h2}</p>
             </div>
           </div>
 
           {/* Phone input */}
-          <div className="relative mb-5">
-            <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <div className="relative mb-6">
+            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="tel"
               value={phone}
               onChange={handlePhoneChange}
               placeholder="(XXX) XXX-XXXX"
-              className="w-full h-12 pl-12 pr-4 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+              className="w-full h-14 pl-12 pr-4 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent"
+              style={{ "--tw-ring-color": BRAND_GREEN } as React.CSSProperties}
             />
           </div>
 
-          {/* Amount */}
+          {/* Range-based amount input */}
           {isRangeBased && (
             <>
               <label className="block text-sm font-bold text-gray-900 mb-2">
-                Recharge Amount
+                Select Amount
               </label>
-              <div className="relative mb-5">
-                <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <div className="relative mb-6">
+                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
                   inputMode="numeric"
                   value={amount}
                   onChange={handleAmountChange}
                   placeholder={`Enter an amount between ${rangeMin} - ${rangeMax}`}
-                  className="w-full h-12 pl-12 pr-4 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                  className="w-full h-14 pl-12 pr-4 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": BRAND_GREEN } as React.CSSProperties}
                 />
               </div>
             </>
           )}
-
-          {/* Checkboxes */}
-          <div className="space-y-3 mb-6">
-            <label className="flex items-start gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={confirmed}
-                onChange={(e) => setConfirmed(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded accent-orange-500"
-              />
-              <span className="text-xs text-gray-500 leading-relaxed">
-                I have confirmed that I entered the correct phone number. I understand that this sale is final.
-              </span>
-            </label>
-            <label className="flex items-start gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={agreedTerms}
-                onChange={(e) => setAgreedTerms(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded accent-orange-500"
-              />
-              <span className="text-xs text-gray-500 leading-relaxed">
-                Agree with {carrierName} Product Policies and Sales.
-              </span>
-            </label>
-          </div>
 
           {/* Plan grid (plan-based carriers only) */}
           {!isRangeBased && plans.length > 0 && (
             <div className="mb-6">
               <PlanGrid
                 plans={plans}
-                brandColor="hsl(134, 40%, 40%)"
+                brandColor={BRAND_GREEN}
                 selectedPlanId={selectedPlanId || undefined}
                 onSelect={(plan) => {
                   setAmount(plan.price.replace("$", ""));
@@ -204,12 +182,41 @@ const CarrierDetail = () => {
             </div>
           )}
 
+          {/* Checkboxes */}
+          <div className="space-y-3 mb-6">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={confirmed}
+                onChange={(e) => setConfirmed(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded"
+                style={{ accentColor: BRAND_GREEN }}
+              />
+              <span className="text-xs text-gray-500 leading-relaxed">
+                I have confirmed that I entered the correct phone number. I understand that this sale is final.
+              </span>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreedTerms}
+                onChange={(e) => setAgreedTerms(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded"
+                style={{ accentColor: BRAND_GREEN }}
+              />
+              <span className="text-xs text-gray-500 leading-relaxed">
+                Agree with {carrierName} Product Policies and Sales.
+              </span>
+            </label>
+          </div>
+
           {/* Pay button */}
           <div className="flex justify-center">
             <button
               type="button"
               disabled={!isValid}
-              className="h-12 px-16 rounded-full bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-base uppercase tracking-wide transition-colors active:scale-[0.97]"
+              className="h-12 px-20 rounded-full text-white font-bold text-base uppercase tracking-wide transition-all active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
+              style={{ backgroundColor: BRAND_GREEN }}
             >
               PAY NOW
             </button>
@@ -222,27 +229,27 @@ const CarrierDetail = () => {
 
       {/* FAQs */}
       {faqs.length > 0 && (
-        <section className="max-w-2xl mx-auto px-4 pb-12">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-center mb-6 text-orange-500">
+        <section className="max-w-3xl mx-auto px-4 pb-12">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-center mb-6" style={{ color: BRAND_GREEN }}>
             FAQs
           </h2>
-          <div className="divide-y divide-gray-200 border-t border-b border-gray-200">
+          <div className="divide-y divide-gray-200 border-t border-b border-gray-200 bg-white rounded-lg overflow-hidden">
             {faqs.map((faq, i) => (
               <div key={i}>
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between py-4 px-1 text-left text-sm sm:text-base font-medium text-gray-800 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between py-4 px-4 text-left text-sm sm:text-base font-medium text-gray-800 hover:bg-gray-50 transition-colors"
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 >
                   <span>{faq.question}</span>
                   {openFaq === i ? (
-                    <Minus className="h-5 w-5 text-orange-500 shrink-0" />
+                    <Minus className="h-5 w-5 shrink-0" style={{ color: BRAND_GREEN }} />
                   ) : (
-                    <Plus className="h-5 w-5 text-orange-500 shrink-0" />
+                    <Plus className="h-5 w-5 shrink-0" style={{ color: BRAND_GREEN }} />
                   )}
                 </button>
                 {openFaq === i && (
-                  <div className="px-1 pb-4 text-sm text-gray-500 leading-relaxed">
+                  <div className="px-4 pb-4 text-sm text-gray-500 leading-relaxed">
                     {faq.answer}
                   </div>
                 )}
