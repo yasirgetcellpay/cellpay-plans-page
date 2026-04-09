@@ -130,9 +130,7 @@ const Home = () => {
               { step: 4, label: "Pay", icon: "https://www.cellpay.us/webp/v4/home/easy-steps-icon4.webp" },
             ].map((s) => (
               <div key={s.step} className="flex flex-col items-center text-center gap-3">
-                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-[6px] border-destructive/30 bg-destructive flex items-center justify-center">
-                  <img src={s.icon} alt={s.label} className="w-14 h-14 sm:w-16 sm:h-16 object-contain brightness-0 invert" />
-                </div>
+                <img src={s.icon} alt={s.label} className="w-28 h-28 sm:w-32 sm:h-32 object-contain" />
                 <span className="text-xs text-muted-foreground font-medium mt-2">Step {s.step}</span>
                 <span className="text-base sm:text-lg font-bold text-foreground">{s.label}</span>
               </div>
