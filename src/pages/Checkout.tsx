@@ -509,8 +509,10 @@ const Checkout = () => {
                         onChange={(e) => setPlaidSearchQuery(e.target.value)}
                         className="w-full h-12 pl-10 pr-3 rounded-lg border border-gray-300 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
                       />
-                    </div>
-
+                </div>
+                {(touched.expMonth || touched.expYear) && form.expMonth && form.expYear && !isExpValid && (
+                  <p className="text-xs text-red-500 mt-1">Card is expired.</p>
+                )}
                     {/* Bank grid */}
                     {plaidLoadingInstitutions ? (
                       <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-400">
