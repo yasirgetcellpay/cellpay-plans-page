@@ -58,17 +58,11 @@ Deno.serve(async (req) => {
     const upstreamResponse = await fetch(upstreamUrl, {
       method: req.method,
       headers: {
-        "Content-Type": "application/json",
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-        Accept: "application/json, text/plain, */*",
-        "Accept-Language": "en-US,en;q=0.9",
-        Referer: "https://yasircell.cellpay.us/",
-        Origin: "https://yasircell.cellpay.us",
+        "Accept": "application/json",
         "X-Api-Key": CELLPAY_API_KEY,
         "X-Api-Secret": CELLPAY_API_SECRET,
       },
-      ...(body ? { body } : {}),
+      ...(body ? { body, headers: { "Content-Type": "application/json", "Accept": "application/json", "X-Api-Key": CELLPAY_API_KEY, "X-Api-Secret": CELLPAY_API_SECRET } } : {}),
     });
 
     const responseText = await upstreamResponse.text();
