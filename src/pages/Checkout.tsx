@@ -743,6 +743,25 @@ const Checkout = () => {
       <footer className="bg-gray-900 text-gray-400 py-6 text-center text-xs">
         <p>© 2026 All rights reserved.</p>
       </footer>
+      {/* PayPal Error/Cancel Dialog */}
+      <Dialog open={paypalErrorDialog.open} onOpenChange={(open) => setPaypalErrorDialog((prev) => ({ ...prev, open }))}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Payment Issue</DialogTitle>
+            <DialogDescription>{paypalErrorDialog.message}</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end mt-4">
+            <button
+              type="button"
+              onClick={() => setPaypalErrorDialog({ open: false, message: "" })}
+              className="px-4 py-2 rounded text-sm font-medium text-white"
+              style={{ backgroundColor: ACCENT_RED }}
+            >
+              Close
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
