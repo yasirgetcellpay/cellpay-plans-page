@@ -99,7 +99,17 @@ Deno.serve(async (req) => {
     const contentType = upstreamResponse.headers.get("content-type") ?? "";
     console.log(`[cellpay-proxy] upstream status=${upstreamResponse.status} len=${responseText.length} ct=${contentType}`);
 
-    if (!upstreamResponse.ok || !contentType.includes("application/json")) {
+    // Try to parse as JSON even if content-type is text/html (some endpoints return JSON with wrong content-type)
+    let isJson = contentType.includes("application/json");
+    let parsedJson: unknown = null;
+    if (!isJson && responseText.trimStart().startsWith("{")) {
+      try {
+        parsedJson = JSON.parse(responseText);
+        isJson = true;
+      } catch { /* not JSON */ }
+    }
+
+    if (!upstreamResponse.ok || !isJson) {
       console.error(`[cellpay-proxy] Upstream error: status=${upstreamResponse.status}, body=${responseText.slice(0, 500)}`);
       return jsonRes({
         success: false,
@@ -114,8 +124,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Return upstream JSON directly
-    return new Response(responseText, {
+    // If we already parsed it (text/html with JSON body), wrap it; otherwise return raw
+    const jsonBody = parsedJson ? JSON.stringify(parsedJson) : responseText;
+    return new Response(jsonBody, {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
