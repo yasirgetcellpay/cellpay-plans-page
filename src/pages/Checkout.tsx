@@ -63,6 +63,7 @@ const Checkout = () => {
   });
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [savePayment, setSavePayment] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   // Plaid integration
   const [plaidPublicToken, setPlaidPublicToken] = useState<string | null>(null);
@@ -167,9 +168,59 @@ const Checkout = () => {
   const total = amount + PROCESSING_FEE;
   const pmLabel = getPaymentMethodLabel(paymentMethod).toLowerCase();
 
-  const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  // --- Formatting helpers ---
+  const formatCardNumber = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 16);
+    return digits.replace(/(.{4})/g, "$1 ").trim();
   };
+
+  const formatZip = (val: string) => val.replace(/\D/g, "").slice(0, 5);
+  const formatCvv = (val: string) => val.replace(/\D/g, "").slice(0, 4);
+  const formatPhone = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 10);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  };
+
+  const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    let value = e.target.value;
+    if (field === "ccNumber") value = formatCardNumber(value);
+    else if (field === "zip") value = formatZip(value);
+    else if (field === "cvv") value = formatCvv(value);
+    else if (field === "billingPhone") value = formatPhone(value);
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleBlur = (field: string) => () => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  // --- Validation ---
+  const ccDigits = form.ccNumber.replace(/\s/g, "");
+  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
+  const isCardLengthValid = ccDigits.length >= 13 && ccDigits.length <= 16;
+  const isLuhnValid = (() => {
+    if (ccDigits.length < 13) return false;
+    let sum = 0;
+    for (let i = 0; i < ccDigits.length; i++) {
+      let d = parseInt(ccDigits[ccDigits.length - 1 - i], 10);
+      if (i % 2 === 1) { d *= 2; if (d > 9) d -= 9; }
+      sum += d;
+    }
+    return sum % 10 === 0;
+  })();
+  const isCardValid = isCardLengthValid && isLuhnValid;
+  const isCvvValid = form.cvv.length >= 3 && form.cvv.length <= 4;
+  const isExpValid = !!(form.expMonth && form.expYear) && (() => {
+    const now = new Date();
+    const expDate = new Date(parseInt(form.expYear), parseInt(form.expMonth), 0);
+    return expDate >= new Date(now.getFullYear(), now.getMonth(), 1);
+  })();
+  const isZipValid = form.zip.length === 5;
+
+  const fieldError = (field: string, valid: boolean, msg: string) =>
+    touched[field] && !valid ? <p className="text-xs text-red-500 mt-1">{msg}</p> : null;
 
   const needsBillingForm = paymentMethod === "cardpayment";
   const needsPlaidConnection = paymentMethod === "plaid";
