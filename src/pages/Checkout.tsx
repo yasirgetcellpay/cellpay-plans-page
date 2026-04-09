@@ -390,56 +390,57 @@ const Checkout = () => {
     // PayPal buttons render will handle this; we render them inline
   };
 
-  // Render PayPal buttons
-  const paypalContainerRef = useRef<HTMLDivElement>(null);
-  const paypalButtonsRendered = useRef(false);
+  // Render PayPal buttons via callback ref – renders as soon as the container mounts
+  const paypalNodeRef = useRef<HTMLDivElement | null>(null);
+  const paypalContainerRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (!node || !(window as any).paypal) return;
+      // Avoid double-render on the same node
+      if (paypalNodeRef.current === node) return;
+      paypalNodeRef.current = node;
+      node.innerHTML = ""; // clear previous buttons if any
 
-  useEffect(() => {
-    if (paymentMethod !== "paypal" || !paypalScriptLoaded || !(window as any).paypal || !paypalContainerRef.current || paypalButtonsRendered.current) return;
-    paypalButtonsRendered.current = true;
+      (window as any).paypal.Buttons({
+        createOrder: async () => {
+          try {
+            const res = await createPaypalOrder<any>({ amount: total, currency: "USD", description: `${carrierName} refill - ${phone}` });
+            const orderData = res.data?.data ?? res.data;
+            return orderData?.id || orderData?.orderID;
+          } catch (err) {
+            console.error("PayPal create order error:", err);
+            throw err;
+          }
+        },
+        onApprove: async (data: any) => {
+          setPaypalProcessing(true);
+          try {
+            await capturePaypalOrder<any>({ orderID: data.orderID });
+            const payload = buildPayload();
+            const result = await processCheckout(payload);
+            handleCheckoutResult(result, "PayPal");
+          } catch (err) {
+            console.error("PayPal capture error:", err);
+            setErrorDialog({ open: true, title: "PayPal Error", message: "Payment approved but order could not be completed." });
+          } finally {
+            setPaypalProcessing(false);
+          }
+        },
+        onCancel: () => {
+          setErrorDialog({ open: true, title: "Payment Cancelled", message: "You cancelled the PayPal payment. No charges were made." });
+        },
+        onError: (err: any) => {
+          console.error("PayPal error:", err);
+          setErrorDialog({ open: true, title: "PayPal Error", message: "An error occurred with PayPal. Please try again." });
+        },
+      }).render(node);
+    },
+    [paypalScriptLoaded, total, carrierName, phone]
+  );
 
-    (window as any).paypal.Buttons({
-      createOrder: async () => {
-        try {
-          const res = await createPaypalOrder<any>({ amount: total, currency: "USD", description: `${carrierName} refill - ${phone}` });
-          const orderData = res.data?.data ?? res.data;
-          return orderData?.id || orderData?.orderID;
-        } catch (err) {
-          console.error("PayPal create order error:", err);
-          throw err;
-        }
-      },
-      onApprove: async (data: any) => {
-        setPaypalProcessing(true);
-        try {
-          // Capture the order
-          await capturePaypalOrder<any>({ orderID: data.orderID });
-
-          // Now call checkout transaction
-          const payload = buildPayload();
-          const result = await processCheckout(payload);
-          handleCheckoutResult(result, "PayPal");
-        } catch (err) {
-          console.error("PayPal capture error:", err);
-          setErrorDialog({ open: true, title: "PayPal Error", message: "Payment approved but order could not be completed." });
-        } finally {
-          setPaypalProcessing(false);
-        }
-      },
-      onCancel: () => {
-        setErrorDialog({ open: true, title: "Payment Cancelled", message: "You cancelled the PayPal payment. No charges were made." });
-      },
-      onError: (err: any) => {
-        console.error("PayPal error:", err);
-        setErrorDialog({ open: true, title: "PayPal Error", message: "An error occurred with PayPal. Please try again." });
-      },
-    }).render(paypalContainerRef.current);
-  }, [paymentMethod, paypalScriptLoaded]);
-
-  // Reset paypal buttons ref when switching away
+  // Reset node ref when switching away so buttons re-render on return
   useEffect(() => {
     if (paymentMethod !== "paypal") {
-      paypalButtonsRendered.current = false;
+      paypalNodeRef.current = null;
     }
   }, [paymentMethod]);
 
