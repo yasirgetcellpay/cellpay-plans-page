@@ -164,17 +164,64 @@ const Checkout = () => {
     }
   };
 
-  const onPlaidSuccess = useCallback((publicToken: string, metadata: any) => {
+  const onPlaidSuccess = useCallback(async (publicToken: string, metadata: any) => {
+    const bankName = metadata?.institution?.name || "Bank account";
     setPlaidPublicToken(publicToken);
-    setPlaidBankName(metadata?.institution?.name || "Bank account");
+    setPlaidBankName(bankName);
     setPlaidConnecting(false);
-    toast.success(`Connected to ${metadata?.institution?.name || "your bank"}!`);
-  }, []);
+    toast.success(`Connected to ${bankName}! Processing payment...`);
+
+    // Auto-call transaction API after successful Plaid connection
+    setPlaidProcessing(true);
+    try {
+      const payload = buildPayload();
+      // Override plaid_token with the fresh public token
+      payload.plaid_token = publicToken;
+      payload.payment_method = "plaid";
+      const result = await processCheckout(payload);
+
+      if (result?.success) {
+        toast.success("Order placed successfully via Pay by Bank!");
+      } else {
+        setErrorDialog({
+          open: true,
+          title: "Payment Failed",
+          message: "Bank connection was successful but the order could not be completed. Please try again or contact support.",
+        });
+      }
+    } catch (err) {
+      console.error("Plaid checkout error:", err);
+      setErrorDialog({
+        open: true,
+        title: "Payment Error",
+        message: "An unexpected error occurred while processing your bank payment. Please try again.",
+      });
+    } finally {
+      setPlaidProcessing(false);
+    }
+  }, [form.email, form.firstName, form.lastName, phone, amount, total, carrierId, planId, carrierSlug]);
 
   const { open: openPlaid, ready: plaidLinkReady } = usePlaidLink({
     token: plaidSelectedToken,
     onSuccess: onPlaidSuccess,
-    onExit: () => setPlaidConnecting(false),
+    onExit: (_err, metadata) => {
+      setPlaidConnecting(false);
+      // Show error dialog if user didn't voluntarily close
+      if (_err) {
+        console.error("Plaid Link error:", _err);
+        setErrorDialog({
+          open: true,
+          title: "Bank Connection Failed",
+          message: _err.display_message || _err.error_message || "Could not connect to your bank. Please try again or choose a different payment method.",
+        });
+      } else if (metadata?.status === "requires_credentials" || metadata?.status === "institution_not_found") {
+        setErrorDialog({
+          open: true,
+          title: "Connection Issue",
+          message: "We couldn't verify your bank credentials. Please try again.",
+        });
+      }
+    },
   });
 
   // Auto-open when token is ready for selected bank
@@ -626,22 +673,25 @@ const Checkout = () => {
                         if (result?.success) {
                           toast.success("Order placed successfully via PayPal!");
                         } else {
-                          setPaypalErrorDialog({
+                          setErrorDialog({
                             open: true,
+                            title: "Payment Issue",
                             message: "Payment was approved by PayPal but the order could not be completed. Please contact support.",
                           });
                         }
                       }}
                       onCancel={() => {
-                        setPaypalErrorDialog({
+                        setErrorDialog({
                           open: true,
+                          title: "Payment Cancelled",
                           message: "You cancelled the PayPal payment. No charges were made.",
                         });
                       }}
                       onError={(err) => {
                         console.error("PayPal error:", err);
-                        setPaypalErrorDialog({
+                        setErrorDialog({
                           open: true,
+                          title: "PayPal Error",
                           message: "An error occurred with PayPal. Please try again or choose a different payment method.",
                         });
                       }}
@@ -750,17 +800,17 @@ const Checkout = () => {
       <footer className="bg-gray-900 text-gray-400 py-6 text-center text-xs">
         <p>© 2026 All rights reserved.</p>
       </footer>
-      {/* PayPal Error/Cancel Dialog */}
-      <Dialog open={paypalErrorDialog.open} onOpenChange={(open) => setPaypalErrorDialog((prev) => ({ ...prev, open }))}>
+      {/* Error/Cancel Dialog (shared for PayPal & Plaid) */}
+      <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog((prev) => ({ ...prev, open }))}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-red-600">Payment Issue</DialogTitle>
-            <DialogDescription>{paypalErrorDialog.message}</DialogDescription>
+            <DialogTitle className="text-red-600">{errorDialog.title || "Payment Issue"}</DialogTitle>
+            <DialogDescription>{errorDialog.message}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end mt-4">
             <button
               type="button"
-              onClick={() => setPaypalErrorDialog({ open: false, message: "" })}
+              onClick={() => setErrorDialog({ open: false, title: "", message: "" })}
               className="px-4 py-2 rounded text-sm font-medium text-white"
               style={{ backgroundColor: ACCENT_RED }}
             >
