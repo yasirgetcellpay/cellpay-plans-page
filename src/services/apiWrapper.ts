@@ -45,7 +45,7 @@ const getFailurePayload = (value: unknown): ProxyFailurePayload | null => {
     return null;
   }
 
-  return value as ProxyFailurePayload;
+  return value as unknown as ProxyFailurePayload;
 };
 
 const getErrorMessage = (payload: ProxyFailurePayload, fallback: string) => {
