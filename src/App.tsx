@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
+import CarrierList from "./pages/CarrierList";
 import CarrierDetail from "./pages/CarrierDetail";
 import NotFound from "./pages/NotFound";
 
@@ -7,6 +8,7 @@ const App = () => (
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/carriers" element={<CarrierList />} />
       <Route path="/:slug" element={<CarrierDetail />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

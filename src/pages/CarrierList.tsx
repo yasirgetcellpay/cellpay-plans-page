@@ -3,28 +3,29 @@ import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { fetchCarriers, type Carrier } from "@/services/apiWrapper";
 
-type ApiCarrier = Carrier;
-
-const Home = () => {
-  const [carriers, setCarriers] = useState<ApiCarrier[]>([]);
+const CarrierList = () => {
+  const [carriers, setCarriers] = useState<Carrier[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
+      setLoading(true);
+      setError(null);
       const result = await fetchCarriers();
       if (cancelled) return;
+
       if (result.success && result.data) {
         const raw = result.data;
         const list = Array.isArray(raw)
           ? raw
-          : (raw as { carriers?: ApiCarrier[]; data?: ApiCarrier[] }).carriers ??
-            (raw as { data?: ApiCarrier[] }).data ??
+          : (raw as { carriers?: Carrier[]; data?: Carrier[] }).carriers ??
+            (raw as { data?: Carrier[] }).data ??
             [];
         setCarriers(list.filter((c) => c.active !== false));
       } else {
-        setError(result.error || "Failed to load carriers");
+        setError(result.error || "Failed to load carriers.");
       }
       setLoading(false);
     };
@@ -34,7 +35,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
-      {/* Header */}
       <header className="bg-cellpay-dark py-6 text-center">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-primary-foreground tracking-tight">
           Prepaid Phone Refill
@@ -42,7 +42,6 @@ const Home = () => {
         <p className="text-sm text-muted-foreground mt-1">Select your carrier to get started</p>
       </header>
 
-      {/* Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         {loading && (
           <div className="flex flex-col items-center gap-3">
@@ -52,10 +51,22 @@ const Home = () => {
         )}
 
         {error && !loading && (
-          <p className="text-sm text-destructive">{error}</p>
+          <div className="text-center space-y-2">
+            <p className="text-sm text-destructive">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="text-xs text-primary underline hover:no-underline"
+            >
+              Retry
+            </button>
+          </div>
         )}
 
-        {!loading && !error && (
+        {!loading && !error && carriers.length === 0 && (
+          <p className="text-sm text-muted-foreground">No carriers found.</p>
+        )}
+
+        {!loading && !error && carriers.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 max-w-4xl w-full">
             {carriers.map((carrier) => {
               const slug = carrier.slug || "";
@@ -91,7 +102,6 @@ const Home = () => {
         )}
       </main>
 
-      {/* Footer */}
       <footer className="bg-cellpay-dark text-muted-foreground py-6 text-center text-xs">
         <p>© 2026 All rights reserved.</p>
         <p className="text-[10px] opacity-50 mt-2 max-w-2xl mx-auto px-4">
@@ -102,4 +112,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default CarrierList;
