@@ -133,12 +133,8 @@ const Checkout = () => {
     onSuccess: onPlaidSuccess,
   });
 
-  // Auto-open Plaid Link when ready
-  useEffect(() => {
-    if (paymentMethod === "plaid" && plaidLinkReady && plaidLinkToken && !plaidPublicToken) {
-      openPlaid();
-    }
-  }, [paymentMethod, plaidLinkReady, plaidLinkToken, plaidPublicToken, openPlaid]);
+
+
 
   if (!state) {
     return (
