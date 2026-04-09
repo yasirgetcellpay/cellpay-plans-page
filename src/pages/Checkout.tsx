@@ -458,14 +458,14 @@ const Checkout = () => {
                 <div className="grid grid-cols-3 gap-4 mt-4">
                   <div>
                     <label className={labelClass}>Expiration Month*</label>
-                    <select value={form.expMonth} onChange={handleChange("expMonth")} className={selectClass}>
+                    <select value={form.expMonth} onChange={(e) => { handleChange("expMonth")(e); setTouched(p => ({...p, expMonth: true})); }} className={selectClass}>
                       <option value="">Month</option>
                       {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((m) => <option key={m} value={m}>{m}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className={labelClass}>Expiration Year *</label>
-                    <select value={form.expYear} onChange={handleChange("expYear")} className={selectClass}>
+                    <select value={form.expYear} onChange={(e) => { handleChange("expYear")(e); setTouched(p => ({...p, expYear: true})); }} className={selectClass}>
                       <option value="">Year</option>
                       {Array.from({ length: 10 }, (_, i) => String(2025 + i)).map((y) => <option key={y} value={y}>{y}</option>)}
                     </select>
