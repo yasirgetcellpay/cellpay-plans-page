@@ -237,8 +237,6 @@ const Checkout = () => {
 
 
 
-  // Keep ref in sync so Plaid callback can access latest buildPayload
-  buildPayloadRef.current = buildPayload;
 
 
   if (!state) {
