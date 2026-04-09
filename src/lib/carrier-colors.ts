@@ -1,60 +1,48 @@
-// Carrier brand color mapping
-// Maps carrier slugs to their brand colors for dynamic theming
+// Carrier brand color mapping using actual API slugs
 
 const CARRIER_COLORS: Record<string, string> = {
-  // Orange carriers
-  "boost": "#F7941D",
-  "boost-mobile": "#F7941D",
-  // Blue carriers
+  // AT&T
   "topup-at": "#009FDB",
-  "at-t-prepaid": "#009FDB",
-  "att": "#009FDB",
+  "topup-af": "#009FDB",
+  // Boost Mobile
+  "boost": "#F7941D",
+  // Cricket Wireless
+  "topup-crc": "#00843D",
+  // H2O Wireless
   "h2o": "#0072CE",
-  "h2o-wireless": "#0072CE",
-  "cricket": "#00843D",
-  "cricket-wireless": "#00843D",
-  // Green carriers
+  // Lyca Mobile
   "lyca": "#2E7D32",
-  "lycamobile": "#2E7D32",
-  "mint": "#00B140",
-  "mint-mobile": "#00B140",
-  "simple-mobile": "#48A23F",
-  // Magenta/Pink carriers
-  "tmobile": "#E20074",
-  "t-mobile": "#E20074",
-  "metro": "#6A2382",
-  "metro-by-t-mobile": "#6A2382",
-  // Red carriers
-  "verizon": "#CD040B",
-  "page-plus": "#CD040B",
-  "straight-talk": "#CD040B",
-  "tracfone": "#E4002B",
+  // Metro PCS
+  "metropcs": "#6A2382",
+  // NET10
   "net10": "#E94E0F",
-  // Purple carriers
-  "ultra": "#5B2D8E",
+  // Page Plus
+  "pageplus": "#CD040B",
+  "pageplusadd": "#CD040B",
+  // Red Pocket Mobile
+  "red-pocket-mobile": "#E4002B",
+  // Simple Mobile
+  "s1": "#48A23F",
+  // T-Mobile
+  "tmobile": "#E20074",
+  // Total Wireless
+  "total-wireless": "#E4002B",
+  // Tracfone
+  "tracfone": "#E4002B",
+  // Ultra Mobile
   "ultra-mobile": "#5B2D8E",
-  // Other
-  "gophone": "#FF6900",
-  "liberty": "#0033A0",
-  "good2go": "#F7941D",
-  "telcel": "#003DA5",
-  "claro": "#DA291C",
+  // US Cellular
+  "us-cellular": "#003DA5",
+  // Verizon
+  "verizon": "#CD040B",
+  "verizon-wireless-flexi": "#CD040B",
+  // XBOX
+  "xbox": "#107C10",
 };
 
-// Default green used when no specific brand color is found
 const DEFAULT_BRAND_COLOR = "#3B7A57";
 
 export const getCarrierBrandColor = (slug: string): string => {
   if (!slug) return DEFAULT_BRAND_COLOR;
-  const normalized = slug.toLowerCase().trim();
-  
-  // Direct match
-  if (CARRIER_COLORS[normalized]) return CARRIER_COLORS[normalized];
-  
-  // Partial match
-  for (const [key, color] of Object.entries(CARRIER_COLORS)) {
-    if (normalized.includes(key) || key.includes(normalized)) return color;
-  }
-  
-  return DEFAULT_BRAND_COLOR;
+  return CARRIER_COLORS[slug.toLowerCase().trim()] ?? DEFAULT_BRAND_COLOR;
 };
