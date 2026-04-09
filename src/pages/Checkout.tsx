@@ -164,6 +164,9 @@ const Checkout = () => {
     }
   };
 
+  // We store a ref to buildPayload so the Plaid callback can use it
+  const buildPayloadRef = useRef<(() => import("@/services/apiWrapper").CheckoutPayload) | null>(null);
+
   const onPlaidSuccess = useCallback(async (publicToken: string, metadata: any) => {
     const bankName = metadata?.institution?.name || "Bank account";
     setPlaidPublicToken(publicToken);
@@ -174,8 +177,9 @@ const Checkout = () => {
     // Auto-call transaction API after successful Plaid connection
     setPlaidProcessing(true);
     try {
-      const payload = buildPayload();
-      // Override plaid_token with the fresh public token
+      const payload = buildPayloadRef.current?.();
+      if (!payload) throw new Error("Could not build checkout payload");
+      // Override with fresh public token
       payload.plaid_token = publicToken;
       payload.payment_method = "plaid";
       const result = await processCheckout(payload);
@@ -199,7 +203,7 @@ const Checkout = () => {
     } finally {
       setPlaidProcessing(false);
     }
-  }, [form.email, form.firstName, form.lastName, phone, amount, total, carrierId, planId, carrierSlug]);
+  }, [processCheckout]);
 
   const { open: openPlaid, ready: plaidLinkReady } = usePlaidLink({
     token: plaidSelectedToken,
