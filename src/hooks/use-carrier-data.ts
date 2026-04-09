@@ -12,6 +12,7 @@ export interface RangeConfig {
   rangePlan: true;
   rangeMin: number;
   rangeMax: number;
+  planId: string;
 }
 
 export interface CarrierData {
@@ -34,7 +35,9 @@ export interface CarrierData {
   [key: string]: unknown;
 }
 
-const isRangeBased = (plans: unknown): plans is { rangePlan: boolean; carrier: { rangeMin: number; rangeMax: number } } =>
+const isRangeBased = (
+  plans: unknown,
+): plans is { rangePlan: boolean; carrier: { rangeMin: number; rangeMax: number; rangePlan?: string | number } } =>
   typeof plans === "object" &&
   plans !== null &&
   "rangePlan" in plans &&
@@ -81,8 +84,6 @@ export const useCarrierData = (slug: string, staticPlans: CarrierPlan[] = []) =>
           return;
         }
 
-        // Unwrap potential double nesting: API returns { data: { carrier, carrier_plans } }
-        // and apiRequest wraps that again as result.data
         const carrierData: CarrierData =
           (result.data as Record<string, unknown>)?.data &&
           typeof (result.data as Record<string, unknown>).data === "object"
@@ -93,10 +94,14 @@ export const useCarrierData = (slug: string, staticPlans: CarrierPlan[] = []) =>
 
         const apiPlans = carrierData.carrier_plans;
 
-        // Range-based carrier (e.g. Boost Mobile — no fixed plans, user picks amount)
         if (isRangeBased(apiPlans)) {
-          const { rangeMin, rangeMax } = apiPlans.carrier;
-          setRange({ rangePlan: true, rangeMin, rangeMax });
+          const { rangeMin, rangeMax, rangePlan } = apiPlans.carrier;
+          setRange({
+            rangePlan: true,
+            rangeMin,
+            rangeMax,
+            planId: String(rangePlan || ""),
+          });
           setPlans(staticPlans);
           return;
         }

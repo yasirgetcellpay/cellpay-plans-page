@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useCheckout } from "@/hooks/use-checkout";
 import { useCheckoutConfig } from "@/hooks/use-checkout-config";
+import { useCarrierData } from "@/hooks/use-carrier-data";
 import {
   exchangePlaidToken,
   createPaypalOrder,
@@ -58,6 +59,7 @@ const Checkout = () => {
   const state = location.state as CheckoutState | null;
   const { processCheckout, processing } = useCheckout();
   const { config, loading: configLoading } = useCheckoutConfig();
+  const { range: carrierRange } = useCarrierData(state?.carrierSlug || "", []);
 
   const [paymentMethod, setPaymentMethod] = useState<string>("cardpayment");
   const [form, setForm] = useState({
@@ -134,6 +136,8 @@ const Checkout = () => {
 
   const { phone, amount, planId, carrierId, carrierName, carrierSlug } = state;
   const total = amount + PROCESSING_FEE;
+  const resolvedPlanId = planId || carrierRange?.planId || "";
+  const hasResolvedPlanId = !!resolvedPlanId;
   const pmLabel = getPaymentMethodLabel(paymentMethod).toLowerCase();
 
   // --- Formatting ---
@@ -189,6 +193,7 @@ const Checkout = () => {
 
   const needsBillingForm = paymentMethod === "cardpayment";
   const isFormValid =
+    hasResolvedPlanId &&
     form.email && isValidEmail && agreeTerms &&
     (needsBillingForm
       ? form.firstName && form.lastName && form.billingPhone && form.address && form.city && form.stateProvince && isZipValid && isCardValid && isExpValid && isCvvValid
@@ -208,7 +213,7 @@ const Checkout = () => {
     total,
     phone_number: phone,
     carrierId,
-    plan_id: planId,
+    plan_id: resolvedPlanId,
     slug: carrierSlug,
     payment: {
       firstName: form.firstName || "Customer",
@@ -328,7 +333,7 @@ const Checkout = () => {
                 metadata: metadata || {},
                 connected_account: metadata?.institution?.institution_id || "",
                 carrierId,
-                plan_id: planId,
+                plan_id: resolvedPlanId,
                 phone_number: phone,
               });
               const exchangeData = exchangeResult.data?.data ?? exchangeResult.data;
@@ -406,7 +411,7 @@ const Checkout = () => {
       (window as any).paypal.Buttons({
         createOrder: async () => {
           try {
-            const res = await createPaypalOrder<any>({ amount: total, currency: "USD", carrierId, plan_id: planId, phone_number: phone, description: `${carrierName} refill - ${phone}` });
+            const res = await createPaypalOrder<any>({ amount: total, currency: "USD", carrierId, plan_id: resolvedPlanId, phone_number: phone, description: `${carrierName} refill - ${phone}` });
             const orderData = res.data?.data ?? res.data;
             return orderData?.id || orderData?.orderID;
           } catch (err) {
@@ -437,7 +442,7 @@ const Checkout = () => {
         },
       }).render(node);
     },
-    [paypalScriptLoaded, total, carrierId, planId, carrierName, phone]
+    [paypalScriptLoaded, total, carrierId, resolvedPlanId, carrierName, phone]
   );
 
   // Reset node ref when switching away so buttons re-render on return
@@ -820,7 +825,7 @@ const Checkout = () => {
                       <button
                         type="button"
                         onClick={handlePlaidConnect}
-                        disabled={plaidProcessing || !plaidScriptLoaded}
+                        disabled={plaidProcessing || !plaidScriptLoaded || !resolvedPlanId}
                         className="h-12 px-8 rounded text-white font-bold text-sm transition-all disabled:opacity-40 flex items-center gap-2 mx-auto"
                         style={{ backgroundColor: "#0a85ea" }}
                       >
