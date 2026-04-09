@@ -56,8 +56,8 @@ const CarrierDetail = () => {
   const amountNum = amount ? parseInt(amount, 10) : 0;
   const isValid =
     phoneDigits.length === 10 &&
-    amountNum >= rangeMin &&
-    amountNum <= rangeMax &&
+    amountNum > 0 &&
+    (!isRangeBased || (amountNum >= rangeMin && amountNum <= rangeMax)) &&
     confirmed &&
     agreedTerms;
 
