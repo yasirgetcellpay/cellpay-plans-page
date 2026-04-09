@@ -64,6 +64,45 @@ const Checkout = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [savePayment, setSavePayment] = useState(false);
 
+  // Plaid Link integration
+  const [plaidLinkToken, setPlaidLinkToken] = useState<string | null>(null);
+  const [plaidReady, setPlaidReady] = useState(false);
+  const [plaidPublicToken, setPlaidPublicToken] = useState<string | null>(null);
+  const [plaidBankName, setPlaidBankName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (paymentMethod === "plaid") {
+      const fetchToken = async () => {
+        try {
+          const { data, error } = await supabase.functions.invoke("plaid-link-token", {
+            body: { user_id: "checkout-user" },
+          });
+          if (error) throw error;
+          if (data?.link_token) {
+            setPlaidLinkToken(data.link_token);
+          } else {
+            toast.error("Failed to initialize bank connection.");
+          }
+        } catch (err) {
+          console.error("Plaid token error:", err);
+          toast.error("Could not connect to bank service.");
+        }
+      };
+      fetchToken();
+    }
+  }, [paymentMethod]);
+
+  const onPlaidSuccess = useCallback((publicToken: string, metadata: any) => {
+    setPlaidPublicToken(publicToken);
+    setPlaidBankName(metadata?.institution?.name || "Bank account");
+    toast.success(`Connected to ${metadata?.institution?.name || "your bank"}!`);
+  }, []);
+
+  const { open: openPlaid, ready: plaidLinkReady } = usePlaidLink({
+    token: plaidLinkToken,
+    onSuccess: onPlaidSuccess,
+  });
+
   if (!state) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
