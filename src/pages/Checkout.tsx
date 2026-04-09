@@ -306,7 +306,9 @@ const Checkout = () => {
 
   const handleSubmit = async () => {
     if (!isFormValid) {
-      toast.error("Please fill all required fields.");
+      // Touch all fields to show errors
+      setTouched({ email: true, ccNumber: true, cvv: true, zip: true, expMonth: true, expYear: true });
+      toast.error("Please fix the errors in the form.");
       return;
     }
 
