@@ -44,11 +44,10 @@ const isPlanArray = (plans: unknown): plans is Array<Record<string, unknown>> =>
   Array.isArray(plans) && plans.length > 0;
 
 /**
- * Fetches carrier data from the CellPay API (client-side).
- * Falls back to provided staticPlans if the API fails.
+ * Fetches carrier data from the CellPay API wrapper.
  * Handles both plan-based and range-based carriers.
  */
-export const useCarrierData = (slug: string, staticPlans: CarrierPlan[]) => {
+export const useCarrierData = (slug: string, staticPlans: CarrierPlan[] = []) => {
   const [data, setData] = useState<CarrierData | null>(null);
   const [plans, setPlans] = useState<CarrierPlan[]>(staticPlans);
   const [loading, setLoading] = useState(true);
@@ -59,16 +58,30 @@ export const useCarrierData = (slug: string, staticPlans: CarrierPlan[]) => {
     let cancelled = false;
 
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      setRange(null);
+
       try {
-        const result = (await viewCarrier(slug)) as { success?: boolean; data?: CarrierData };
-
-        if (cancelled) return;
-
-        const carrierData = result?.data ?? (result as unknown as CarrierData);
-        if (!carrierData) {
+        if (!slug) {
+          setData(null);
+          setPlans(staticPlans);
           setError("Carrier data unavailable");
           return;
         }
+
+        const result = await viewCarrier<CarrierData>(slug);
+
+        if (cancelled) return;
+
+        if (!result.success || !result.data) {
+          setData(null);
+          setPlans(staticPlans);
+          setError(result.error || "Carrier data unavailable");
+          return;
+        }
+
+        const carrierData = result.data;
 
         setData(carrierData);
 
@@ -78,11 +91,10 @@ export const useCarrierData = (slug: string, staticPlans: CarrierPlan[]) => {
         if (isRangeBased(apiPlans)) {
           const { rangeMin, rangeMax } = apiPlans.carrier;
           setRange({ rangePlan: true, rangeMin, rangeMax });
-          // Keep static plans as quick-select options
+          setPlans(staticPlans);
           return;
         }
 
-        // Plan-based carrier — parse plans from API
         if (isPlanArray(apiPlans)) {
           const parsed: CarrierPlan[] = apiPlans.map((p) => ({
             price: `$${p.price || p.amount || "0"}`,
@@ -90,10 +102,13 @@ export const useCarrierData = (slug: string, staticPlans: CarrierPlan[]) => {
             plan_id: String(p.plan_id || p.id || ""),
           }));
           setPlans(parsed);
+          return;
         }
       } catch (err) {
         if (!cancelled) {
-          console.warn(`CellPay fetch failed for ${slug}, using static plans:`, err);
+          console.warn(`CellPay fetch failed for ${slug}:`, err);
+          setData(null);
+          setPlans(staticPlans);
           setError(err instanceof Error ? err.message : "Unknown error");
         }
       } finally {
