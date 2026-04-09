@@ -79,7 +79,7 @@ const CarrierDetail = () => {
   return (
     <div className="min-h-screen bg-gray-100 font-sans antialiased flex flex-col">
       {/* Top nav bar - always green */}
-      <nav className="sticky top-0 z-50 text-white" style={{ backgroundColor: NAV_GREEN }}>
+      <nav className="sticky top-0 z-50 text-white" style={{ backgroundColor: brandColor }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
           <Link to="/" className="text-xl font-bold tracking-tight">
             cellpay<span className="align-super text-[10px]">®</span>
@@ -93,7 +93,7 @@ const CarrierDetail = () => {
       </nav>
 
       {/* Hero with carrier brand color */}
-      <section className="py-10 sm:py-14 text-center text-white" style={{ backgroundColor: NAV_GREEN }}>
+      <section className="pb-20 pt-10 sm:pt-14 text-center text-white" style={{ backgroundColor: brandColor }}>
         <div className="max-w-3xl mx-auto px-4 flex flex-col items-center gap-4">
           <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center p-3">
             <img
@@ -118,8 +118,8 @@ const CarrierDetail = () => {
         </div>
       </section>
 
-      {/* Form card */}
-      <main className="flex-1 relative z-10 px-4 py-8">
+      {/* Form card - overlaps hero */}
+      <main className="flex-1 relative z-10 px-4 -mt-14 pb-8">
         <div className="max-w-3xl mx-auto bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8">
           {/* Carrier info row */}
           <div className="flex items-center gap-5 mb-8 p-5 border border-gray-200 rounded-lg">
