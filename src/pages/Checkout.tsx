@@ -434,7 +434,7 @@ const Checkout = () => {
         },
       }).render(node);
     },
-    [paypalScriptLoaded, total, carrierName, phone]
+    [paypalScriptLoaded, total, carrierId, planId, carrierName, phone]
   );
 
   // Reset node ref when switching away so buttons re-render on return
