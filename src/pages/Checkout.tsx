@@ -69,28 +69,58 @@ const Checkout = () => {
   const [plaidReady, setPlaidReady] = useState(false);
   const [plaidPublicToken, setPlaidPublicToken] = useState<string | null>(null);
   const [plaidBankName, setPlaidBankName] = useState<string | null>(null);
+  const [plaidInstitutions, setPlaidInstitutions] = useState<any[]>([]);
+  const [plaidSearchQuery, setPlaidSearchQuery] = useState("");
+  const [plaidLoadingInstitutions, setPlaidLoadingInstitutions] = useState(false);
 
+  // Fetch link token + initial institutions when plaid selected
   useEffect(() => {
     if (paymentMethod === "plaid") {
-      const fetchToken = async () => {
+      const init = async () => {
         try {
-          const { data, error } = await supabase.functions.invoke("plaid-link-token", {
-            body: { user_id: "checkout-user" },
-          });
-          if (error) throw error;
-          if (data?.link_token) {
-            setPlaidLinkToken(data.link_token);
-          } else {
-            toast.error("Failed to initialize bank connection.");
+          // Fetch link token and institutions in parallel
+          const [tokenRes, instRes] = await Promise.all([
+            supabase.functions.invoke("plaid-link-token", {
+              body: { user_id: "checkout-user" },
+            }),
+            supabase.functions.invoke("plaid-link-token", {
+              body: { action: "institutions_get", count: 16 },
+            }),
+          ]);
+          if (tokenRes.error) throw tokenRes.error;
+          if (tokenRes.data?.link_token) {
+            setPlaidLinkToken(tokenRes.data.link_token);
+          }
+          if (instRes.data?.institutions) {
+            setPlaidInstitutions(instRes.data.institutions);
           }
         } catch (err) {
-          console.error("Plaid token error:", err);
+          console.error("Plaid init error:", err);
           toast.error("Could not connect to bank service.");
         }
       };
-      fetchToken();
+      init();
     }
   }, [paymentMethod]);
+
+  // Search institutions
+  useEffect(() => {
+    if (paymentMethod !== "plaid" || !plaidSearchQuery.trim()) return;
+    const timer = setTimeout(async () => {
+      setPlaidLoadingInstitutions(true);
+      try {
+        const { data } = await supabase.functions.invoke("plaid-link-token", {
+          body: { action: "institutions_search", query: plaidSearchQuery },
+        });
+        if (data?.institutions) setPlaidInstitutions(data.institutions);
+      } catch (err) {
+        console.error("Institution search error:", err);
+      } finally {
+        setPlaidLoadingInstitutions(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [plaidSearchQuery, paymentMethod]);
 
   const onPlaidSuccess = useCallback((publicToken: string, metadata: any) => {
     setPlaidPublicToken(publicToken);
@@ -103,12 +133,8 @@ const Checkout = () => {
     onSuccess: onPlaidSuccess,
   });
 
-  // Auto-open Plaid Link when ready
-  useEffect(() => {
-    if (paymentMethod === "plaid" && plaidLinkReady && plaidLinkToken && !plaidPublicToken) {
-      openPlaid();
-    }
-  }, [paymentMethod, plaidLinkReady, plaidLinkToken, plaidPublicToken, openPlaid]);
+
+
 
   if (!state) {
     return (
@@ -348,41 +374,41 @@ const Checkout = () => {
                         <input
                           type="text"
                           placeholder="Search for your bank"
-                          onFocus={() => { if (plaidLinkReady && plaidLinkToken) openPlaid(); }}
-                          readOnly
-                          className="w-full h-11 pl-10 pr-3 rounded-lg border border-gray-300 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400 cursor-pointer"
+                          value={plaidSearchQuery}
+                          onChange={(e) => setPlaidSearchQuery(e.target.value)}
+                          className="w-full h-11 pl-10 pr-3 rounded-lg border border-gray-300 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400"
                         />
                       </div>
-                      <div className="grid grid-cols-4 gap-3">
-                        {[
-                          { name: "Chase", logo: "🏦" },
-                          { name: "Bank of America", logo: "🏛️" },
-                          { name: "Wells Fargo", logo: "🐎" },
-                          { name: "Citibank", logo: "🏢" },
-                          { name: "US Bank", logo: "🇺🇸" },
-                          { name: "Capital One", logo: "💳" },
-                          { name: "PNC", logo: "🔶" },
-                          { name: "USAA", logo: "⭐" },
-                          { name: "TD Bank", logo: "🟩" },
-                          { name: "Regions", logo: "🔺" },
-                          { name: "Navy Federal", logo: "⚓" },
-                          { name: "Huntington", logo: "🌿" },
-                          { name: "Charles Schwab", logo: "💰" },
-                          { name: "Citizens", logo: "🏦" },
-                          { name: "Betterment", logo: "📈" },
-                          { name: "Amex", logo: "💎" },
-                        ].map((bank) => (
-                          <button
-                            key={bank.name}
-                            type="button"
-                            onClick={() => { if (plaidLinkReady && plaidLinkToken) openPlaid(); }}
-                            className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg border border-gray-200 hover:border-gray-400 hover:shadow-sm transition-all bg-white text-center min-h-[72px] cursor-pointer"
-                          >
-                            <span className="text-2xl">{bank.logo}</span>
-                            <span className="text-[11px] font-medium text-gray-700 leading-tight">{bank.name}</span>
-                          </button>
-                        ))}
-                      </div>
+                      {plaidLoadingInstitutions ? (
+                        <div className="flex items-center justify-center gap-2 py-8 text-sm text-gray-400">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Searching banks...
+                        </div>
+                      ) : plaidInstitutions.length > 0 ? (
+                        <div className="grid grid-cols-4 gap-3">
+                          {plaidInstitutions.map((inst: any) => (
+                            <button
+                              key={inst.institution_id}
+                              type="button"
+                              onClick={() => { if (plaidLinkReady && plaidLinkToken) openPlaid(); }}
+                              className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg border border-gray-200 hover:border-gray-400 hover:shadow-sm transition-all bg-white text-center min-h-[72px] cursor-pointer"
+                            >
+                              {inst.logo ? (
+                                <img
+                                  src={`data:image/png;base64,${inst.logo}`}
+                                  alt={inst.name}
+                                  className="h-8 w-8 object-contain"
+                                />
+                              ) : (
+                                <span className="text-2xl">🏦</span>
+                              )}
+                              <span className="text-[11px] font-medium text-gray-700 leading-tight line-clamp-2">{inst.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-center text-sm text-gray-400 py-6">No banks found</p>
+                      )}
                       {(!plaidLinkReady || !plaidLinkToken) && (
                         <div className="flex items-center justify-center gap-2 mt-4 text-sm text-gray-400">
                           <Loader2 className="h-4 w-4 animate-spin" />
