@@ -63,6 +63,7 @@ const Checkout = () => {
   });
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [savePayment, setSavePayment] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   // Plaid integration
   const [plaidPublicToken, setPlaidPublicToken] = useState<string | null>(null);
@@ -167,17 +168,67 @@ const Checkout = () => {
   const total = amount + PROCESSING_FEE;
   const pmLabel = getPaymentMethodLabel(paymentMethod).toLowerCase();
 
-  const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  // --- Formatting helpers ---
+  const formatCardNumber = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 16);
+    return digits.replace(/(.{4})/g, "$1 ").trim();
   };
+
+  const formatZip = (val: string) => val.replace(/\D/g, "").slice(0, 5);
+  const formatCvv = (val: string) => val.replace(/\D/g, "").slice(0, 4);
+  const formatPhone = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 10);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  };
+
+  const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    let value = e.target.value;
+    if (field === "ccNumber") value = formatCardNumber(value);
+    else if (field === "zip") value = formatZip(value);
+    else if (field === "cvv") value = formatCvv(value);
+    else if (field === "billingPhone") value = formatPhone(value);
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleBlur = (field: string) => () => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  // --- Validation ---
+  const ccDigits = form.ccNumber.replace(/\s/g, "");
+  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
+  const isCardLengthValid = ccDigits.length >= 13 && ccDigits.length <= 16;
+  const isLuhnValid = (() => {
+    if (ccDigits.length < 13) return false;
+    let sum = 0;
+    for (let i = 0; i < ccDigits.length; i++) {
+      let d = parseInt(ccDigits[ccDigits.length - 1 - i], 10);
+      if (i % 2 === 1) { d *= 2; if (d > 9) d -= 9; }
+      sum += d;
+    }
+    return sum % 10 === 0;
+  })();
+  const isCardValid = isCardLengthValid && isLuhnValid;
+  const isCvvValid = form.cvv.length >= 3 && form.cvv.length <= 4;
+  const isExpValid = !!(form.expMonth && form.expYear) && (() => {
+    const now = new Date();
+    const expDate = new Date(parseInt(form.expYear), parseInt(form.expMonth), 0);
+    return expDate >= new Date(now.getFullYear(), now.getMonth(), 1);
+  })();
+  const isZipValid = form.zip.length === 5;
+
+  const fieldError = (field: string, valid: boolean, msg: string) =>
+    touched[field] && !valid ? <p className="text-xs text-red-500 mt-1">{msg}</p> : null;
 
   const needsBillingForm = paymentMethod === "cardpayment";
   const needsPlaidConnection = paymentMethod === "plaid";
   const isFormValid =
-    form.email &&
+    form.email && isValidEmail &&
     agreeTerms &&
     (needsBillingForm
-      ? form.firstName && form.lastName && form.billingPhone && form.address && form.city && form.stateProvince && form.zip && form.ccNumber && form.expMonth && form.expYear && form.cvv
+      ? form.firstName && form.lastName && form.billingPhone && form.address && form.city && form.stateProvince && isZipValid && isCardValid && isExpValid && isCvvValid
       : needsPlaidConnection
         ? !!plaidPublicToken
         : true);
@@ -255,7 +306,9 @@ const Checkout = () => {
 
   const handleSubmit = async () => {
     if (!isFormValid) {
-      toast.error("Please fill all required fields.");
+      // Touch all fields to show errors
+      setTouched({ email: true, ccNumber: true, cvv: true, zip: true, expMonth: true, expYear: true });
+      toast.error("Please fix the errors in the form.");
       return;
     }
 
@@ -310,7 +363,8 @@ const Checkout = () => {
             <section className="bg-white rounded border border-gray-200 p-5">
               <h2 className="text-sm font-bold text-gray-800 mb-4">Contact</h2>
               <label className={labelClass}>Email *</label>
-              <input type="email" value={form.email} onChange={handleChange("email")} placeholder="Enter Your Email..." className={inputClass} />
+              <input type="email" value={form.email} onChange={handleChange("email")} onBlur={handleBlur("email")} placeholder="Enter Your Email..." className={`${inputClass} ${touched.email && !isValidEmail ? "border-red-400 ring-1 ring-red-400" : ""}`} />
+              {fieldError("email", isValidEmail, "Please enter a valid email address.")}
               <label className="flex items-center gap-2 mt-3 text-xs text-gray-500 cursor-pointer">
                 <input type="checkbox" className="h-3.5 w-3.5 rounded border-gray-300" />
                 I am paying for someone else's account
@@ -391,31 +445,35 @@ const Checkout = () => {
                   </div>
                   <div>
                     <label className={labelClass}>ZIP *</label>
-                    <input type="text" value={form.zip} onChange={handleChange("zip")} placeholder="Enter Your ZIP..." className={inputClass} />
+                    <input type="text" value={form.zip} onChange={handleChange("zip")} onBlur={handleBlur("zip")} placeholder="Enter Your ZIP..." className={`${inputClass} ${touched.zip && !isZipValid ? "border-red-400 ring-1 ring-red-400" : ""}`} />
+                    {fieldError("zip", isZipValid, "ZIP must be 5 digits.")}
                   </div>
                 </div>
                 <div className="mt-4">
                   <label className={labelClass}>Credit Card Number *</label>
-                  <input type="text" value={form.ccNumber} onChange={handleChange("ccNumber")} placeholder="Enter Your Card Number..." className={inputClass} />
+                  <input type="text" value={form.ccNumber} onChange={handleChange("ccNumber")} onBlur={handleBlur("ccNumber")} placeholder="Enter Your Card Number..." className={`${inputClass} ${touched.ccNumber && !isCardValid ? "border-red-400 ring-1 ring-red-400" : ""}`} />
+                  {touched.ccNumber && ccDigits.length > 0 && !isCardLengthValid && <p className="text-xs text-red-500 mt-1">Card number must be 13–16 digits.</p>}
+                  {touched.ccNumber && isCardLengthValid && !isLuhnValid && <p className="text-xs text-red-500 mt-1">Invalid card number.</p>}
                 </div>
                 <div className="grid grid-cols-3 gap-4 mt-4">
                   <div>
                     <label className={labelClass}>Expiration Month*</label>
-                    <select value={form.expMonth} onChange={handleChange("expMonth")} className={selectClass}>
+                    <select value={form.expMonth} onChange={(e) => { handleChange("expMonth")(e); setTouched(p => ({...p, expMonth: true})); }} className={selectClass}>
                       <option value="">Month</option>
                       {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((m) => <option key={m} value={m}>{m}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className={labelClass}>Expiration Year *</label>
-                    <select value={form.expYear} onChange={handleChange("expYear")} className={selectClass}>
+                    <select value={form.expYear} onChange={(e) => { handleChange("expYear")(e); setTouched(p => ({...p, expYear: true})); }} className={selectClass}>
                       <option value="">Year</option>
                       {Array.from({ length: 10 }, (_, i) => String(2025 + i)).map((y) => <option key={y} value={y}>{y}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className={labelClass}>CVV Code *</label>
-                    <input type="text" value={form.cvv} onChange={handleChange("cvv")} placeholder="CVV..." maxLength={4} className={inputClass} />
+                    <input type="text" value={form.cvv} onChange={handleChange("cvv")} onBlur={handleBlur("cvv")} placeholder="CVV..." maxLength={4} className={`${inputClass} ${touched.cvv && !isCvvValid ? "border-red-400 ring-1 ring-red-400" : ""}`} />
+                    {fieldError("cvv", isCvvValid, "CVV must be 3 or 4 digits.")}
                   </div>
                 </div>
               </section>
@@ -451,8 +509,10 @@ const Checkout = () => {
                         onChange={(e) => setPlaidSearchQuery(e.target.value)}
                         className="w-full h-12 pl-10 pr-3 rounded-lg border border-gray-300 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
                       />
-                    </div>
-
+                </div>
+                {(touched.expMonth || touched.expYear) && form.expMonth && form.expYear && !isExpValid && (
+                  <p className="text-xs text-red-500 mt-1">Card is expired.</p>
+                )}
                     {/* Bank grid */}
                     {plaidLoadingInstitutions ? (
                       <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-400">
