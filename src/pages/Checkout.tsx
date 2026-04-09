@@ -208,7 +208,7 @@ const Checkout = () => {
     total,
     phone_number: phone,
     carrierId,
-    plan_id: planId,
+    ...(planId ? { plan_id: planId } : {}),
     slug: carrierSlug,
     payment: {
       firstName: form.firstName || "Customer",
@@ -328,7 +328,7 @@ const Checkout = () => {
                 metadata: metadata || {},
                 connected_account: metadata?.institution?.institution_id || "",
                 carrierId,
-                plan_id: planId,
+                ...(planId ? { plan_id: planId } : {}),
                 phone_number: phone,
               });
               const exchangeData = exchangeResult.data?.data ?? exchangeResult.data;
@@ -406,7 +406,7 @@ const Checkout = () => {
       (window as any).paypal.Buttons({
         createOrder: async () => {
           try {
-            const res = await createPaypalOrder<any>({ amount: total, currency: "USD", carrierId, plan_id: planId, phone_number: phone, description: `${carrierName} refill - ${phone}` });
+            const res = await createPaypalOrder<any>({ amount: total, currency: "USD", carrierId, ...(planId ? { plan_id: planId } : {}), phone_number: phone, description: `${carrierName} refill - ${phone}` });
             const orderData = res.data?.data ?? res.data;
             return orderData?.id || orderData?.orderID;
           } catch (err) {

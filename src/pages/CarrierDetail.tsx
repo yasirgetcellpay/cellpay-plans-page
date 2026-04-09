@@ -235,7 +235,7 @@ const CarrierDetail = () => {
                     state: {
                       phone: phoneDigits,
                       amount: amountNum,
-                      planId: selectedPlanId || "",
+                      planId: selectedPlanId || range?.planId || "",
                       carrierId: data?.carrier?.id || 0,
                       carrierName,
                       carrierSlug,
