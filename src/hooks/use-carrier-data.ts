@@ -81,7 +81,13 @@ export const useCarrierData = (slug: string, staticPlans: CarrierPlan[] = []) =>
           return;
         }
 
-        const carrierData = result.data;
+        // Unwrap potential double nesting: API returns { data: { carrier, carrier_plans } }
+        // and apiRequest wraps that again as result.data
+        const carrierData: CarrierData =
+          (result.data as Record<string, unknown>)?.data &&
+          typeof (result.data as Record<string, unknown>).data === "object"
+            ? ((result.data as Record<string, unknown>).data as CarrierData)
+            : (result.data as CarrierData);
 
         setData(carrierData);
 
