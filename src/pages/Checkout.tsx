@@ -113,12 +113,12 @@ const Checkout = () => {
     return () => clearTimeout(timer);
   }, [plaidSearchQuery, paymentMethod]);
 
-  // When user clicks a bank, create a token for that institution and open Plaid Link
-  const handleBankClick = async (institutionId: string) => {
+  // When user clicks a bank, create a generic link token (no institution_id) and open Plaid Link
+  const handleBankClick = async (_institutionId: string) => {
     setPlaidConnecting(true);
     try {
       const { data, error } = await supabase.functions.invoke("plaid-link-token", {
-        body: { user_id: "checkout-user", institution_id: institutionId },
+        body: { user_id: "checkout-user" },
       });
       if (error) throw error;
       if (data?.link_token) {
