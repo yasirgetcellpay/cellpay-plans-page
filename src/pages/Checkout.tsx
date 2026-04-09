@@ -327,6 +327,9 @@ const Checkout = () => {
                 public_token: publicToken,
                 metadata: metadata || {},
                 connected_account: metadata?.institution?.institution_id || "",
+                carrierId,
+                plan_id: planId,
+                phone_number: phone,
               });
               const exchangeData = exchangeResult.data?.data ?? exchangeResult.data;
               const accessToken = exchangeData?.access_token;
