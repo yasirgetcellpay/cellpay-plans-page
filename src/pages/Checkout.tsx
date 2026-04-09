@@ -172,12 +172,15 @@ const Checkout = () => {
   };
 
   const needsBillingForm = paymentMethod === "cardpayment";
+  const needsPlaidConnection = paymentMethod === "plaid";
   const isFormValid =
     form.email &&
     agreeTerms &&
     (needsBillingForm
       ? form.firstName && form.lastName && form.billingPhone && form.address && form.city && form.stateProvince && form.zip && form.ccNumber && form.expMonth && form.expYear && form.cvv
-      : true);
+      : needsPlaidConnection
+        ? !!plaidPublicToken
+        : true);
 
   const detectCardType = (num: string): string => {
     const d = num.replace(/\D/g, "");
