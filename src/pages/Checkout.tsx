@@ -102,8 +102,12 @@ const Checkout = () => {
     token: plaidLinkToken,
     onSuccess: onPlaidSuccess,
   });
-
-
+  // Auto-open Plaid Link when ready (shows Plaid's own bank list)
+  useEffect(() => {
+    if (paymentMethod === "plaid" && plaidLinkReady && plaidLinkToken && !plaidPublicToken) {
+      openPlaid();
+    }
+  }, [paymentMethod, plaidLinkReady, plaidLinkToken, plaidPublicToken, openPlaid]);
 
 
   if (!state) {
