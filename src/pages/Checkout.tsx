@@ -282,10 +282,23 @@ const Checkout = () => {
     }
     setPlaidProcessing(true);
     try {
-      // Get link token from backend
+      // Try CellPay backend first, fall back to our own Plaid edge function
+      let linkToken: string | null = null;
+
       const linkResult = await createPlaidLinkToken<any>({});
       const linkData = linkResult.data?.data ?? linkResult.data;
-      const linkToken = linkData?.link_token;
+      linkToken = linkData?.link_token || null;
+
+      // Fallback: use our own Plaid edge function if upstream fails
+      if (!linkToken) {
+        console.warn("CellPay plaid-link-token failed, falling back to own edge function");
+        const { supabase } = await import("@/integrations/supabase/client");
+        const { data: fallbackData } = await supabase.functions.invoke("plaid-link-token", {
+          body: { user_id: "checkout-user" },
+        });
+        linkToken = fallbackData?.link_token || null;
+      }
+
       if (!linkToken) throw new Error("Could not get Plaid link token");
 
       const handler = (window as any).Plaid.create({
@@ -296,21 +309,30 @@ const Checkout = () => {
           toast.info(`Connected to ${bankName}. Exchanging token...`);
 
           try {
-            // Exchange public_token for access_token
-            const exchangeResult = await exchangePlaidToken<any>({
-              public_token: publicToken,
-              metadata: metadata || {},
-              connected_account: metadata?.institution?.institution_id || "",
-            });
-            const exchangeData = exchangeResult.data?.data ?? exchangeResult.data;
-            const accessToken = exchangeData?.access_token;
-            if (!accessToken) throw new Error("Token exchange failed");
+            // Exchange public_token for access_token via CellPay API
+            let tokenForCheckout = publicToken;
+            try {
+              const exchangeResult = await exchangePlaidToken<any>({
+                public_token: publicToken,
+                metadata: metadata || {},
+                connected_account: metadata?.institution?.institution_id || "",
+              });
+              const exchangeData = exchangeResult.data?.data ?? exchangeResult.data;
+              const accessToken = exchangeData?.access_token;
+              if (accessToken) {
+                tokenForCheckout = accessToken;
+              } else {
+                console.warn("Token exchange didn't return access_token, using public_token for checkout");
+              }
+            } catch (exchangeErr) {
+              console.warn("Token exchange failed, using public_token for checkout:", exchangeErr);
+            }
 
-            setPlaidAccessToken(accessToken);
+            setPlaidAccessToken(tokenForCheckout);
 
             // Auto-checkout
             const payload = buildPayload();
-            payload.plaid_token = accessToken;
+            payload.plaid_token = tokenForCheckout;
             payload.payment_method = "plaid";
             const result = await processCheckout(payload);
             handleCheckoutResult(result, "Pay by Bank");
