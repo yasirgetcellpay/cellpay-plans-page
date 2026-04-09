@@ -680,19 +680,21 @@ const Checkout = () => {
               </div>
             </section>
 
-            {/* Submit */}
-            <div className="flex justify-center pb-4">
-              <button
-                type="button"
-                disabled={!isFormValid || processing}
-                onClick={handleSubmit}
-                className="h-12 px-10 rounded text-white font-bold text-sm uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2"
-                style={{ backgroundColor: ACCENT_RED }}
-              >
-                {processing && <Loader2 className="h-4 w-4 animate-spin" />}
-                PLACE ORDER NOW
-              </button>
-            </div>
+            {/* Submit - hidden for PayPal since PayPal buttons handle it */}
+            {paymentMethod !== "paypal" && (
+              <div className="flex justify-center pb-4">
+                <button
+                  type="button"
+                  disabled={!isFormValid || processing}
+                  onClick={handleSubmit}
+                  className="h-12 px-10 rounded text-white font-bold text-sm uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2"
+                  style={{ backgroundColor: ACCENT_RED }}
+                >
+                  {processing && <Loader2 className="h-4 w-4 animate-spin" />}
+                  PLACE ORDER NOW
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Right column - Order Summary (sticky) */}
