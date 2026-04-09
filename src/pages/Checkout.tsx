@@ -361,7 +361,8 @@ const Checkout = () => {
             <section className="bg-white rounded border border-gray-200 p-5">
               <h2 className="text-sm font-bold text-gray-800 mb-4">Contact</h2>
               <label className={labelClass}>Email *</label>
-              <input type="email" value={form.email} onChange={handleChange("email")} placeholder="Enter Your Email..." className={inputClass} />
+              <input type="email" value={form.email} onChange={handleChange("email")} onBlur={handleBlur("email")} placeholder="Enter Your Email..." className={`${inputClass} ${touched.email && !isValidEmail ? "border-red-400 ring-1 ring-red-400" : ""}`} />
+              {fieldError("email", isValidEmail, "Please enter a valid email address.")}
               <label className="flex items-center gap-2 mt-3 text-xs text-gray-500 cursor-pointer">
                 <input type="checkbox" className="h-3.5 w-3.5 rounded border-gray-300" />
                 I am paying for someone else's account
@@ -442,12 +443,15 @@ const Checkout = () => {
                   </div>
                   <div>
                     <label className={labelClass}>ZIP *</label>
-                    <input type="text" value={form.zip} onChange={handleChange("zip")} placeholder="Enter Your ZIP..." className={inputClass} />
+                    <input type="text" value={form.zip} onChange={handleChange("zip")} onBlur={handleBlur("zip")} placeholder="Enter Your ZIP..." className={`${inputClass} ${touched.zip && !isZipValid ? "border-red-400 ring-1 ring-red-400" : ""}`} />
+                    {fieldError("zip", isZipValid, "ZIP must be 5 digits.")}
                   </div>
                 </div>
                 <div className="mt-4">
                   <label className={labelClass}>Credit Card Number *</label>
-                  <input type="text" value={form.ccNumber} onChange={handleChange("ccNumber")} placeholder="Enter Your Card Number..." className={inputClass} />
+                  <input type="text" value={form.ccNumber} onChange={handleChange("ccNumber")} onBlur={handleBlur("ccNumber")} placeholder="Enter Your Card Number..." className={`${inputClass} ${touched.ccNumber && !isCardValid ? "border-red-400 ring-1 ring-red-400" : ""}`} />
+                  {touched.ccNumber && ccDigits.length > 0 && !isCardLengthValid && <p className="text-xs text-red-500 mt-1">Card number must be 13–16 digits.</p>}
+                  {touched.ccNumber && isCardLengthValid && !isLuhnValid && <p className="text-xs text-red-500 mt-1">Invalid card number.</p>}
                 </div>
                 <div className="grid grid-cols-3 gap-4 mt-4">
                   <div>
@@ -466,7 +470,8 @@ const Checkout = () => {
                   </div>
                   <div>
                     <label className={labelClass}>CVV Code *</label>
-                    <input type="text" value={form.cvv} onChange={handleChange("cvv")} placeholder="CVV..." maxLength={4} className={inputClass} />
+                    <input type="text" value={form.cvv} onChange={handleChange("cvv")} onBlur={handleBlur("cvv")} placeholder="CVV..." maxLength={4} className={`${inputClass} ${touched.cvv && !isCvvValid ? "border-red-400 ring-1 ring-red-400" : ""}`} />
+                    {fieldError("cvv", isCvvValid, "CVV must be 3 or 4 digits.")}
                   </div>
                 </div>
               </section>
