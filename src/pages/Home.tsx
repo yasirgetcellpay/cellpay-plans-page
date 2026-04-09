@@ -16,12 +16,19 @@ const Home = () => {
       const result = await fetchCarriers();
       if (cancelled) return;
       if (result.success && result.data) {
-        const raw = result.data;
-        const list = Array.isArray(raw)
-          ? raw
-          : (raw as { carriers?: ApiCarrier[]; data?: ApiCarrier[] }).carriers ??
-            (raw as { data?: ApiCarrier[] }).data ??
-            [];
+        const raw = result.data as unknown;
+        // API may return: [] | { carriers: [] } | { data: { carriers: [] } } | { data: [] }
+        const extract = (v: unknown): ApiCarrier[] => {
+          if (Array.isArray(v)) return v;
+          if (typeof v === "object" && v !== null) {
+            const obj = v as Record<string, unknown>;
+            if (Array.isArray(obj.carriers)) return obj.carriers;
+            if (Array.isArray(obj.data)) return obj.data;
+            if (typeof obj.data === "object" && obj.data !== null) return extract(obj.data);
+          }
+          return [];
+        };
+        const list = extract(raw);
         setCarriers(list.filter((c) => c.active !== false));
       } else {
         setError(result.error || "Failed to load carriers");
