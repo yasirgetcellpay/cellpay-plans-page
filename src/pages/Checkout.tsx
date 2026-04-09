@@ -658,6 +658,16 @@ const Checkout = () => {
               {/* Contact */}
               <section className="bg-white rounded border border-gray-200 p-5">
                 <h2 className="text-sm font-bold text-gray-800 mb-4">Contact</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className={labelClass}>First Name *</label>
+                    <input type="text" value={form.firstName} onChange={handleChange("firstName")} placeholder="First Name..." className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Last Name *</label>
+                    <input type="text" value={form.lastName} onChange={handleChange("lastName")} placeholder="Last Name..." className={inputClass} />
+                  </div>
+                </div>
                 <label className={labelClass}>Email *</label>
                 <input type="email" value={form.email} onChange={handleChange("email")} onBlur={handleBlur("email")} placeholder="Enter Your Email..." className={`${inputClass} ${touched.email && !isValidEmail ? "border-red-400 ring-1 ring-red-400" : ""}`} />
                 {fieldError("email", isValidEmail, "Please enter a valid email address.")}
