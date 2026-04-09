@@ -64,50 +64,92 @@ const Checkout = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [savePayment, setSavePayment] = useState(false);
 
-  // Plaid Link integration
-  const [plaidLinkToken, setPlaidLinkToken] = useState<string | null>(null);
+  // Plaid integration
   const [plaidPublicToken, setPlaidPublicToken] = useState<string | null>(null);
   const [plaidBankName, setPlaidBankName] = useState<string | null>(null);
+  const [plaidInstitutions, setPlaidInstitutions] = useState<any[]>([]);
+  const [plaidSearchQuery, setPlaidSearchQuery] = useState("");
+  const [plaidLoadingInstitutions, setPlaidLoadingInstitutions] = useState(false);
+  const [plaidSelectedToken, setPlaidSelectedToken] = useState<string | null>(null);
+  const [plaidConnecting, setPlaidConnecting] = useState(false);
 
-  // Fetch link token when plaid selected
+  // Fetch initial bank list
   useEffect(() => {
-    if (paymentMethod === "plaid" && !plaidLinkToken) {
-      const fetchToken = async () => {
-        try {
-          const { data, error } = await supabase.functions.invoke("plaid-link-token", {
-            body: { user_id: "checkout-user" },
-          });
-          if (error) throw error;
-          if (data?.link_token) {
-            setPlaidLinkToken(data.link_token);
-          } else {
-            toast.error("Failed to initialize bank connection.");
-          }
-        } catch (err) {
-          console.error("Plaid token error:", err);
-          toast.error("Could not connect to bank service.");
-        }
-      };
-      fetchToken();
+    if (paymentMethod === "plaid" && plaidInstitutions.length === 0) {
+      setPlaidLoadingInstitutions(true);
+      supabase.functions.invoke("plaid-link-token", {
+        body: { action: "institutions_get", count: 16 },
+      }).then(({ data }) => {
+        if (data?.institutions) setPlaidInstitutions(data.institutions);
+      }).catch(console.error).finally(() => setPlaidLoadingInstitutions(false));
     }
-  }, [paymentMethod, plaidLinkToken]);
+  }, [paymentMethod]);
+
+  // Search institutions with debounce
+  useEffect(() => {
+    if (paymentMethod !== "plaid") return;
+    if (!plaidSearchQuery.trim()) {
+      // Re-fetch default list when search cleared
+      supabase.functions.invoke("plaid-link-token", {
+        body: { action: "institutions_get", count: 16 },
+      }).then(({ data }) => {
+        if (data?.institutions) setPlaidInstitutions(data.institutions);
+      });
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setPlaidLoadingInstitutions(true);
+      try {
+        const { data } = await supabase.functions.invoke("plaid-link-token", {
+          body: { action: "institutions_search", query: plaidSearchQuery },
+        });
+        if (data?.institutions) setPlaidInstitutions(data.institutions);
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        setPlaidLoadingInstitutions(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [plaidSearchQuery, paymentMethod]);
+
+  // When user clicks a bank, create a token for that institution and open Plaid Link
+  const handleBankClick = async (institutionId: string) => {
+    setPlaidConnecting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("plaid-link-token", {
+        body: { user_id: "checkout-user", institution_id: institutionId },
+      });
+      if (error) throw error;
+      if (data?.link_token) {
+        setPlaidSelectedToken(data.link_token);
+      }
+    } catch (err) {
+      console.error("Plaid token error:", err);
+      toast.error("Could not connect to this bank.");
+      setPlaidConnecting(false);
+    }
+  };
 
   const onPlaidSuccess = useCallback((publicToken: string, metadata: any) => {
     setPlaidPublicToken(publicToken);
     setPlaidBankName(metadata?.institution?.name || "Bank account");
+    setPlaidConnecting(false);
     toast.success(`Connected to ${metadata?.institution?.name || "your bank"}!`);
   }, []);
 
   const { open: openPlaid, ready: plaidLinkReady } = usePlaidLink({
-    token: plaidLinkToken,
+    token: plaidSelectedToken,
     onSuccess: onPlaidSuccess,
+    onExit: () => setPlaidConnecting(false),
   });
-  // Auto-open Plaid Link when ready (shows Plaid's own bank list)
+
+  // Auto-open when token is ready for selected bank
   useEffect(() => {
-    if (paymentMethod === "plaid" && plaidLinkReady && plaidLinkToken && !plaidPublicToken) {
+    if (plaidSelectedToken && plaidLinkReady) {
       openPlaid();
     }
-  }, [paymentMethod, plaidLinkReady, plaidLinkToken, plaidPublicToken, openPlaid]);
+  }, [plaidSelectedToken, plaidLinkReady, openPlaid]);
 
 
   if (!state) {
@@ -326,47 +368,81 @@ const Checkout = () => {
             )}
 
             {paymentMethod === "plaid" && (
-              <section className="bg-gray-100 rounded-lg p-6 space-y-5">
-                <div className="bg-white rounded-lg p-4">
-                  {plaidBankName ? (
-                    <div className="text-center space-y-3 py-4">
-                      <div className="text-green-600 text-4xl">✓</div>
-                      <p className="text-lg font-bold text-gray-800">Connected to {plaidBankName}</p>
-                      <p className="text-sm text-gray-500">Your bank account is linked and ready for payment.</p>
-                      <button
-                        type="button"
-                        onClick={() => { setPlaidPublicToken(null); setPlaidBankName(null); openPlaid(); }}
-                        className="text-sm text-red-500 underline hover:text-red-700"
-                      >
-                        Change bank
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="text-center space-y-4 py-6">
-                      {(!plaidLinkReady || !plaidLinkToken) ? (
-                        <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Connecting to Plaid...
-                        </div>
-                      ) : (
-                        <>
-                          <p className="text-sm text-gray-500">The Plaid window should have opened automatically.</p>
-                          <button
-                            type="button"
-                            onClick={() => openPlaid()}
-                            className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white"
-                            style={{ backgroundColor: ACCENT_RED }}
-                          >
-                            Open Bank Selection
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-                    <span className="text-[10px] text-gray-400 font-medium tracking-wide">🔒 PLAID</span>
-                    <a href="https://plaid.com" target="_blank" rel="noopener noreferrer" className="text-[11px] text-gray-500 hover:text-gray-700">What is Plaid?</a>
+              <section className="bg-white rounded border border-gray-200 p-5">
+                <h2 className="text-sm font-bold text-gray-800 mb-1">Select your institution</h2>
+                <p className="text-xs text-gray-400 mb-4">Powered by Plaid</p>
+
+                {plaidBankName ? (
+                  <div className="text-center space-y-3 py-4">
+                    <div className="text-green-600 text-4xl">✓</div>
+                    <p className="text-lg font-bold text-gray-800">Connected to {plaidBankName}</p>
+                    <p className="text-sm text-gray-500">Your bank account is linked and ready for payment.</p>
+                    <button
+                      type="button"
+                      onClick={() => { setPlaidPublicToken(null); setPlaidBankName(null); setPlaidSelectedToken(null); }}
+                      className="text-sm text-red-500 underline hover:text-red-700"
+                    >
+                      Change bank
+                    </button>
                   </div>
+                ) : (
+                  <>
+                    {/* Search */}
+                    <div className="relative mb-4">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+                      <input
+                        type="text"
+                        placeholder="Search"
+                        value={plaidSearchQuery}
+                        onChange={(e) => setPlaidSearchQuery(e.target.value)}
+                        className="w-full h-12 pl-10 pr-3 rounded-lg border border-gray-300 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      />
+                    </div>
+
+                    {/* Bank grid */}
+                    {plaidLoadingInstitutions ? (
+                      <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-400">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Loading banks...
+                      </div>
+                    ) : plaidInstitutions.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-1">
+                        {plaidInstitutions.map((inst: any) => (
+                          <button
+                            key={inst.institution_id}
+                            type="button"
+                            disabled={plaidConnecting}
+                            onClick={() => handleBankClick(inst.institution_id)}
+                            className="flex items-center justify-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-gray-400 hover:shadow-sm transition-all bg-white min-h-[80px] cursor-pointer disabled:opacity-50"
+                          >
+                            {inst.logo ? (
+                              <img
+                                src={`data:image/png;base64,${inst.logo}`}
+                                alt={inst.name}
+                                className="h-10 w-auto max-w-[120px] object-contain"
+                              />
+                            ) : (
+                              <span className="text-sm font-semibold text-gray-700">{inst.name}</span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-center text-sm text-gray-400 py-8">No banks found</p>
+                    )}
+
+                    {plaidConnecting && (
+                      <div className="flex items-center justify-center gap-2 mt-4 text-sm text-gray-500">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Connecting to your bank...
+                      </div>
+                    )}
+                  </>
+                )}
+
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                  <span className="text-[10px] text-gray-400 font-medium tracking-wide">🔒 PLAID</span>
+                  <a href="https://plaid.com" target="_blank" rel="noopener noreferrer" className="text-[11px] text-gray-500 hover:text-gray-700">What is Plaid?</a>
                 </div>
               </section>
             )}

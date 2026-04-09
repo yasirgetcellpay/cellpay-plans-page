@@ -83,20 +83,27 @@ Deno.serve(async (req) => {
       );
     }
 
-    // --- Default: create link token ---
+    // --- Default: create link token (optionally with institution_id) ---
     const clientUserId = body.user_id || "default-user";
+    const linkBody: any = {
+      client_id: PLAID_CLIENT_ID,
+      secret: PLAID_SECRET,
+      user: { client_user_id: clientUserId },
+      client_name: "CellPay",
+      products: ["auth"],
+      country_codes: ["US"],
+      language: "en",
+    };
+
+    // If institution_id provided, skip institution selection in Plaid Link
+    if (body.institution_id) {
+      linkBody.institution_id = body.institution_id;
+    }
+
     const response = await fetch(`https://${PLAID_ENV}.plaid.com/link/token/create`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        client_id: PLAID_CLIENT_ID,
-        secret: PLAID_SECRET,
-        user: { client_user_id: clientUserId },
-        client_name: "CellPay",
-        products: ["auth"],
-        country_codes: ["US"],
-        language: "en",
-      }),
+      body: JSON.stringify(linkBody),
     });
 
     const data = await response.json();
