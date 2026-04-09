@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { usePlaidLink } from "react-plaid-link";
 import { useCheckout } from "@/hooks/use-checkout";
 import { PaymentBar } from "@/components/PaymentBar";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CheckoutState {
   phone: string;
