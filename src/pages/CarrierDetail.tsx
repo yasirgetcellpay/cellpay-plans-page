@@ -20,7 +20,9 @@ const formatPhone = (value: string): string => {
 
 const CarrierDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const { plans, loading, range, seoCarrier, data } = useCarrierData(slug || "", []);
+  const { verify, verifying } = usePhoneVerification();
 
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
@@ -219,11 +221,33 @@ const CarrierDetail = () => {
           <div className="flex justify-center">
             <button
               type="button"
-              disabled={!isValid}
-              className="h-14 px-20 rounded-full text-white font-bold text-lg uppercase tracking-wide transition-all active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
+              disabled={!isValid || verifying}
+              onClick={async () => {
+                const phoneDigits = phone.replace(/\D/g, "");
+                const result = await verify(
+                  carrierSlug,
+                  phoneDigits,
+                  selectedPlanId || undefined,
+                  amountNum
+                );
+                if (result?.success !== false) {
+                  navigate("/checkout", {
+                    state: {
+                      phone: phoneDigits,
+                      amount: amountNum,
+                      planId: selectedPlanId || "",
+                      carrierId: data?.carrier?.id || 0,
+                      carrierName,
+                      carrierSlug,
+                    },
+                  });
+                }
+              }}
+              className="h-14 px-20 rounded-full text-white font-bold text-lg uppercase tracking-wide transition-all active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2"
               style={{ backgroundColor: brandColor }}
             >
-              PAY NOW
+              {verifying && <Loader2 className="h-5 w-5 animate-spin" />}
+              {verifying ? "VERIFYING..." : "PAY NOW"}
             </button>
           </div>
           <p className="text-center text-xs text-gray-400 mt-3">
