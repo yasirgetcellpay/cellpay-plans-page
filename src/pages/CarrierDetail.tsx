@@ -21,6 +21,7 @@ const CarrierDetail = () => {
 
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -55,8 +56,8 @@ const CarrierDetail = () => {
   const amountNum = amount ? parseInt(amount, 10) : 0;
   const isValid =
     phoneDigits.length === 10 &&
-    amountNum >= rangeMin &&
-    amountNum <= rangeMax &&
+    amountNum > 0 &&
+    (!isRangeBased || (amountNum >= rangeMin && amountNum <= rangeMax)) &&
     confirmed &&
     agreedTerms;
 
@@ -188,6 +189,21 @@ const CarrierDetail = () => {
             </label>
           </div>
 
+          {/* Plan grid (plan-based carriers only) */}
+          {!isRangeBased && plans.length > 0 && (
+            <div className="mb-6">
+              <PlanGrid
+                plans={plans}
+                brandColor="hsl(134, 40%, 40%)"
+                selectedPlanId={selectedPlanId || undefined}
+                onSelect={(plan) => {
+                  setAmount(plan.price.replace("$", ""));
+                  setSelectedPlanId(plan.plan_id || null);
+                }}
+              />
+            </div>
+          )}
+
           {/* Pay button */}
           <div className="flex justify-center">
             <button
@@ -203,17 +219,6 @@ const CarrierDetail = () => {
           </p>
         </div>
       </main>
-
-      {/* Plan grid (plan-based carriers only) */}
-      {!isRangeBased && plans.length > 0 && (
-        <div className="max-w-2xl mx-auto px-4 pb-8">
-          <PlanGrid
-            plans={plans}
-            brandColor="hsl(27, 100%, 50%)"
-            onSelect={(plan) => setAmount(plan.price.replace("$", ""))}
-          />
-        </div>
-      )}
 
       {/* FAQs */}
       {faqs.length > 0 && (
