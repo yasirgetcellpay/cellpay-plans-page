@@ -6,17 +6,6 @@ const corsHeaders = {
 };
 
 const API_BASE = "https://yasircell.cellpay.us/api";
-const API_DOMAIN = new URL(API_BASE).hostname;
-
-interface ProxyDiagnostics {
-  domain: string;
-  requested_url?: string;
-  final_url?: string;
-  error_stage: string;
-  html_length?: number;
-  processing_time_ms: number;
-  upstream_status?: number;
-}
 
 const jsonRes = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -24,31 +13,11 @@ const jsonRes = (data: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-const proxyError = (
-  error: string,
-  diagnostics: ProxyDiagnostics,
-  status?: number,
-) =>
-  jsonRes(
-    {
-      success: false,
-      data: null,
-      error,
-      ...(typeof status === "number" ? { status } : {}),
-      diagnostics,
-    },
-    200,
-  );
-
-const isCloudflareChallenge = (status: number, responseText: string) =>
-  status === 403 || /attention required|cloudflare|bot fight mode|browser integrity check/i.test(responseText);
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const startedAt = Date.now();
   const CELLPAY_API_KEY = Deno.env.get("CELLPAY_API_KEY") ?? "local-test-api-key";
   const CELLPAY_API_SECRET = Deno.env.get("CELLPAY_API_SECRET") ?? "local-test-api-secret";
 
@@ -84,12 +53,17 @@ Deno.serve(async (req) => {
     }
 
     const body = req.method !== "GET" ? await req.text() : undefined;
-    console.log("Fetching:", req.method, upstreamUrl);
+    console.log(`[cellpay-proxy] ${req.method} ${upstreamUrl}`);
 
+    // Use browser-like headers to avoid Cloudflare bot detection
     const upstreamHeaders: HeadersInit = {
-      "Accept": "*/*",
+      "Accept": "application/json, text/plain, */*",
+      "Accept-Language": "en-US,en;q=0.9",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
       "X-Api-Key": CELLPAY_API_KEY,
       "X-Api-Secret": CELLPAY_API_SECRET,
+      "Referer": "https://yasircell.cellpay.us/",
+      "Origin": "https://yasircell.cellpay.us",
       ...(body ? { "Content-Type": "application/json" } : {}),
     };
 
@@ -97,50 +71,38 @@ Deno.serve(async (req) => {
       method: req.method,
       headers: upstreamHeaders,
       ...(body ? { body } : {}),
+      redirect: "follow",
     });
 
     const responseText = await upstreamResponse.text();
     const contentType = upstreamResponse.headers.get("content-type") ?? "";
-    console.log(`Upstream: status=${upstreamResponse.status}, len=${responseText.length}`);
+    console.log(`[cellpay-proxy] upstream status=${upstreamResponse.status} len=${responseText.length} ct=${contentType}`);
 
     if (!upstreamResponse.ok || !contentType.includes("application/json")) {
-      const blockedByCloudflare = isCloudflareChallenge(upstreamResponse.status, responseText);
-      const error = blockedByCloudflare
-        ? "Upstream blocked by Cloudflare"
-        : `Upstream request failed with status ${upstreamResponse.status}`;
-
-      if (blockedByCloudflare) {
-        console.warn("Cloudflare blocked the request");
-      }
-
-      return proxyError(
-        error,
-        {
-          domain: API_DOMAIN,
-          requested_url: upstreamUrl,
-          final_url: upstreamResponse.url,
-          error_stage: blockedByCloudflare ? "upstream_blocked" : "upstream_error",
-          html_length: responseText.length,
-          processing_time_ms: Date.now() - startedAt,
+      console.error(`[cellpay-proxy] Upstream error: status=${upstreamResponse.status}, body=${responseText.slice(0, 500)}`);
+      return jsonRes({
+        success: false,
+        data: null,
+        error: `Upstream request failed (status ${upstreamResponse.status})`,
+        diagnostics: {
           upstream_status: upstreamResponse.status,
+          content_type: contentType,
+          body_preview: responseText.slice(0, 300),
+          is_cloudflare: /cloudflare|attention required/i.test(responseText),
         },
-        upstreamResponse.status,
-      );
+      });
     }
 
+    // Return upstream JSON directly
     return new Response(responseText, {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err: unknown) {
-    console.error("Proxy error:", err instanceof Error ? err.message : err);
-    return proxyError(
-      err instanceof Error ? err.message : "Proxy error",
-      {
-        domain: API_DOMAIN,
-        error_stage: "proxy_exception",
-        processing_time_ms: Date.now() - startedAt,
-      },
-    );
+    console.error("[cellpay-proxy] Exception:", err);
+    return jsonRes({
+      success: false,
+      error: err instanceof Error ? err.message : "Proxy error",
+    });
   }
 });
