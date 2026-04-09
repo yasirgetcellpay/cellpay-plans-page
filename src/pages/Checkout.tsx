@@ -155,7 +155,7 @@ const Checkout = () => {
 
       {/* Main content */}
       <main className="flex-1 max-w-6xl mx-auto px-4 py-8 w-full">
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col md:flex-row gap-8">
           {/* Left column - Form */}
           <div className="flex-1 min-w-0 space-y-6">
             {/* Contact */}
@@ -314,7 +314,7 @@ const Checkout = () => {
           </div>
 
           {/* Right column - Order Summary (sticky) */}
-          <div className="w-full lg:w-[320px] shrink-0">
+          <div className="w-full md:w-[340px] shrink-0 order-first md:order-last">
             <div className="bg-white rounded border border-gray-200 sticky top-16">
               {/* Header */}
               <div className="px-5 py-3 border-b border-gray-200">
