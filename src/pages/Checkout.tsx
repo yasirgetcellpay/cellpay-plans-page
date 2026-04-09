@@ -2,10 +2,18 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { usePlaidLink } from "react-plaid-link";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { useCheckout } from "@/hooks/use-checkout";
 import { PaymentBar } from "@/components/PaymentBar";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 interface CheckoutState {
   phone: string;
@@ -73,6 +81,25 @@ const Checkout = () => {
   const [plaidLoadingInstitutions, setPlaidLoadingInstitutions] = useState(false);
   const [plaidSelectedToken, setPlaidSelectedToken] = useState<string | null>(null);
   const [plaidConnecting, setPlaidConnecting] = useState(false);
+
+  // PayPal integration
+  const [paypalClientId, setPaypalClientId] = useState<string | null>(null);
+  const [paypalLoading, setPaypalLoading] = useState(false);
+  const [paypalErrorDialog, setPaypalErrorDialog] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+
+  // Fetch PayPal client ID when PayPal is selected
+  useEffect(() => {
+    if (paymentMethod === "paypal" && !paypalClientId) {
+      setPaypalLoading(true);
+      supabase.functions.invoke("paypal-config")
+        .then(({ data }) => {
+          if (data?.clientId) setPaypalClientId(data.clientId);
+          else console.error("PayPal client ID not returned");
+        })
+        .catch(console.error)
+        .finally(() => setPaypalLoading(false));
+    }
+  }, [paymentMethod]);
 
   // Fetch initial bank list
   useEffect(() => {
@@ -563,9 +590,61 @@ const Checkout = () => {
 
             {paymentMethod === "paypal" && (
               <section className="bg-gray-100 rounded-lg p-6 space-y-5">
-                <button className="w-full h-14 rounded-lg font-bold text-lg" style={{ backgroundColor: "#FFC439", color: "#003087" }}>
-                  PayPal
-                </button>
+                {paypalLoading ? (
+                  <div className="flex items-center justify-center gap-2 py-8 text-sm text-gray-400">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Loading PayPal...
+                  </div>
+                ) : paypalClientId ? (
+                  <PayPalScriptProvider options={{ clientId: paypalClientId, currency: "USD" }}>
+                    <PayPalButtons
+                      style={{ layout: "vertical", shape: "rect", label: "paypal" }}
+                      createOrder={(_data, actions) => {
+                        return actions.order.create({
+                          intent: "CAPTURE",
+                          purchase_units: [
+                            {
+                              amount: {
+                                currency_code: "USD",
+                                value: total.toFixed(2),
+                              },
+                              description: `${carrierName} refill - ${phone}`,
+                            },
+                          ],
+                        });
+                      }}
+                      onApprove={async (_data, _actions) => {
+                        // PayPal payment approved - now call our transaction API
+                        const payload = buildPayload();
+                        const result = await processCheckout(payload);
+
+                        if (result?.success) {
+                          toast.success("Order placed successfully via PayPal!");
+                        } else {
+                          setPaypalErrorDialog({
+                            open: true,
+                            message: "Payment was approved by PayPal but the order could not be completed. Please contact support.",
+                          });
+                        }
+                      }}
+                      onCancel={() => {
+                        setPaypalErrorDialog({
+                          open: true,
+                          message: "You cancelled the PayPal payment. No charges were made.",
+                        });
+                      }}
+                      onError={(err) => {
+                        console.error("PayPal error:", err);
+                        setPaypalErrorDialog({
+                          open: true,
+                          message: "An error occurred with PayPal. Please try again or choose a different payment method.",
+                        });
+                      }}
+                    />
+                  </PayPalScriptProvider>
+                ) : (
+                  <p className="text-sm text-red-500 text-center py-4">PayPal is not available at the moment. Please try another payment method.</p>
+                )}
                 <div>
                   <h3 className="text-base font-bold text-gray-800 mb-2">Service Agreement</h3>
                   <p className="text-sm text-gray-500">
@@ -601,19 +680,21 @@ const Checkout = () => {
               </div>
             </section>
 
-            {/* Submit */}
-            <div className="flex justify-center pb-4">
-              <button
-                type="button"
-                disabled={!isFormValid || processing}
-                onClick={handleSubmit}
-                className="h-12 px-10 rounded text-white font-bold text-sm uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2"
-                style={{ backgroundColor: ACCENT_RED }}
-              >
-                {processing && <Loader2 className="h-4 w-4 animate-spin" />}
-                PLACE ORDER NOW
-              </button>
-            </div>
+            {/* Submit - hidden for PayPal since PayPal buttons handle it */}
+            {paymentMethod !== "paypal" && (
+              <div className="flex justify-center pb-4">
+                <button
+                  type="button"
+                  disabled={!isFormValid || processing}
+                  onClick={handleSubmit}
+                  className="h-12 px-10 rounded text-white font-bold text-sm uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2"
+                  style={{ backgroundColor: ACCENT_RED }}
+                >
+                  {processing && <Loader2 className="h-4 w-4 animate-spin" />}
+                  PLACE ORDER NOW
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Right column - Order Summary (sticky) */}
@@ -664,6 +745,25 @@ const Checkout = () => {
       <footer className="bg-gray-900 text-gray-400 py-6 text-center text-xs">
         <p>© 2026 All rights reserved.</p>
       </footer>
+      {/* PayPal Error/Cancel Dialog */}
+      <Dialog open={paypalErrorDialog.open} onOpenChange={(open) => setPaypalErrorDialog((prev) => ({ ...prev, open }))}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Payment Issue</DialogTitle>
+            <DialogDescription>{paypalErrorDialog.message}</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end mt-4">
+            <button
+              type="button"
+              onClick={() => setPaypalErrorDialog({ open: false, message: "" })}
+              className="px-4 py-2 rounded text-sm font-medium text-white"
+              style={{ backgroundColor: ACCENT_RED }}
+            >
+              Close
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
