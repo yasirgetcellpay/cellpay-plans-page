@@ -149,8 +149,10 @@ const Checkout = () => {
       </nav>
 
       {/* Red checkout banner */}
-      <div className="text-white py-5 text-center" style={{ backgroundColor: ACCENT_RED }}>
-        <h1 className="text-2xl font-extrabold tracking-wide">Checkout</h1>
+      <div className="text-white py-5" style={{ backgroundColor: ACCENT_RED }}>
+        <div className="max-w-6xl mx-auto px-4">
+          <h1 className="text-2xl font-extrabold tracking-wide">Checkout</h1>
+        </div>
       </div>
 
       {/* Main content */}
