@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Phone, DollarSign, Loader2, Plus, Minus } from "lucide-react";
 import { useCarrierData } from "@/hooks/use-carrier-data";
+import { usePhoneVerification } from "@/hooks/use-phone-verification";
 import { getCarrierBrandColor } from "@/lib/carrier-colors";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
