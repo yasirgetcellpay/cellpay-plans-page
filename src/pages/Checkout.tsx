@@ -260,16 +260,18 @@ const Checkout = () => {
 
   // --- Handle successful checkout result ---
   const handleCheckoutResult = (result: any, methodName: string) => {
-    if (result?.data?.HostedURL) {
-      window.location.href = result.data.HostedURL;
-    } else if (result?.success || result?.data?.status) {
-      const txId = result?.data?.transactionId || "";
+    const data = result?.data?.data ?? result?.data;
+    if (data?.HostedURL) {
+      window.location.href = data.HostedURL;
+    } else if (result?.success && data?.status !== false) {
+      const txId = data?.transactionId || "";
       setSuccessDialog({ open: true, transactionId: txId });
     } else {
+      const apiMsg = data?.msg || data?.message || result?.error || "";
       setErrorDialog({
         open: true,
         title: "Payment Failed",
-        message: `${methodName} payment could not be completed. Please try again or contact support.`,
+        message: apiMsg || `${methodName} payment could not be completed. Please try again or contact support.`,
       });
     }
   };
@@ -278,6 +280,15 @@ const Checkout = () => {
   const handlePlaidConnect = async () => {
     if (!(window as any).Plaid) {
       toast.error("Plaid is not loaded yet. Please wait.");
+      return;
+    }
+    if (!form.email || !isValidEmail) {
+      setTouched((prev) => ({ ...prev, email: true }));
+      toast.error("Please enter a valid email address before connecting your bank.");
+      return;
+    }
+    if (!form.firstName || !form.lastName) {
+      toast.error("Please enter your first and last name in the contact section.");
       return;
     }
     setPlaidProcessing(true);
@@ -647,6 +658,16 @@ const Checkout = () => {
               {/* Contact */}
               <section className="bg-white rounded border border-gray-200 p-5">
                 <h2 className="text-sm font-bold text-gray-800 mb-4">Contact</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className={labelClass}>First Name *</label>
+                    <input type="text" value={form.firstName} onChange={handleChange("firstName")} placeholder="First Name..." className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Last Name *</label>
+                    <input type="text" value={form.lastName} onChange={handleChange("lastName")} placeholder="Last Name..." className={inputClass} />
+                  </div>
+                </div>
                 <label className={labelClass}>Email *</label>
                 <input type="email" value={form.email} onChange={handleChange("email")} onBlur={handleBlur("email")} placeholder="Enter Your Email..." className={`${inputClass} ${touched.email && !isValidEmail ? "border-red-400 ring-1 ring-red-400" : ""}`} />
                 {fieldError("email", isValidEmail, "Please enter a valid email address.")}
