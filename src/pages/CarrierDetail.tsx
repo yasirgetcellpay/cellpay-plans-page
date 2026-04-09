@@ -1,9 +1,11 @@
 import { useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Phone, DollarSign, Loader2, ChevronDown, ArrowLeft } from "lucide-react";
+import { Phone, DollarSign, Loader2, ChevronDown, Plus, Minus } from "lucide-react";
 import { useCarrierData, type CarrierPlan } from "@/hooks/use-carrier-data";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+
+const LOGO_BASE = "https://www.cellpay.us/webp/v4/home";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -24,14 +26,15 @@ const CarrierDetail = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const carrierName = String(data?.carrier?.title || data?.carrier?.name || slug || "");
-  const brandColor = "hsl(27, 100%, 50%)"; // Default orange, could be dynamic
+  const carrierSlug = data?.carrier?.slug || slug || "";
+  const logoUrl = `${LOGO_BASE}/${carrierSlug}.webp`;
 
   const rangeMin = range?.rangeMin ?? 5;
   const rangeMax = range?.rangeMax ?? 300;
   const isRangeBased = !!range?.rangePlan;
 
-  const h1 = seoCarrier?.recommended?.h1 ?? `${carrierName} Bill Pay`;
-  const h2 = seoCarrier?.recommended?.h2;
+  const h1 = seoCarrier?.recommended?.h1 ?? `${carrierName} Recharge`;
+  const h2 = seoCarrier?.recommended?.h2 ?? `Mobile & Bill Pay and Prepaid Plan Refill Payments`;
   const faqs = seoCarrier?.faqs ?? [];
 
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,114 +72,144 @@ const CarrierDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background font-sans antialiased">
-      {/* Top nav */}
-      <nav className="sticky top-0 z-50 bg-card border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-14">
-          <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" />
-            All Carriers
+    <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
+      {/* Top nav bar */}
+      <nav className="sticky top-0 z-50 bg-[hsl(160,40%,25%)] text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-12">
+          <Link to="/" className="text-lg font-bold tracking-tight">
+            cellpay<span className="align-super text-[10px]">®</span>
           </Link>
+          <div className="hidden sm:flex items-center gap-6 text-sm font-medium">
+            <Link to="/" className="hover:underline">Domestic Payments</Link>
+            <span className="opacity-60 cursor-default">Bill Payments</span>
+            <span className="opacity-60 cursor-default">International Topups</span>
+          </div>
         </div>
       </nav>
 
-      {/* Hero card */}
-      <section className="max-w-3xl mx-auto px-4 pt-6 pb-2">
-        <div className="bg-card rounded-xl border border-border shadow-lg p-6 flex items-center gap-6">
-          <div className="shrink-0">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg border border-border flex items-center justify-center bg-background p-2">
-              <span className="text-lg font-bold text-foreground text-center leading-tight">{carrierName}</span>
-            </div>
+      {/* Orange hero with logo + title */}
+      <section className="bg-gradient-to-b from-orange-500 to-orange-400 py-8 sm:py-12 text-center text-white">
+        <div className="max-w-3xl mx-auto px-4 flex flex-col items-center gap-3">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-xl shadow-lg flex items-center justify-center p-2">
+            <img
+              src={logoUrl}
+              alt={carrierName}
+              className="max-h-16 sm:max-h-20 max-w-full object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+                const parent = e.currentTarget.parentElement;
+                if (parent && !parent.querySelector("span")) {
+                  const span = document.createElement("span");
+                  span.className = "text-sm font-bold text-gray-700 text-center";
+                  span.textContent = carrierName;
+                  parent.appendChild(span);
+                }
+              }}
+            />
           </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground">{h1}</h1>
-            {h2 && <p className="text-sm text-muted-foreground mt-1">{h2}</p>}
-          </div>
+          <h1 className="text-xl sm:text-2xl font-extrabold">{h1}</h1>
         </div>
       </section>
 
-      {/* Form */}
-      <section className="max-w-3xl mx-auto px-4 pt-4 pb-4">
-        <div className="bg-card rounded-xl border border-border shadow-lg p-6">
+      {/* Form card */}
+      <main className="flex-1 -mt-4 relative z-10 px-4 pb-8">
+        <div className="max-w-2xl mx-auto bg-white rounded-xl border border-gray-200 shadow-xl p-6 sm:p-8">
+          {/* Carrier info row */}
+          <div className="flex items-center gap-4 mb-6 p-4 border border-orange-200 rounded-lg bg-orange-50/30">
+            <div className="w-16 h-16 border border-orange-300 rounded-lg flex items-center justify-center p-1.5 bg-white shrink-0">
+              <img
+                src={logoUrl}
+                alt={carrierName}
+                className="max-h-12 max-w-full object-contain"
+                onError={(e) => { e.currentTarget.style.display = "none"; }}
+              />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">{carrierName} Bill Pay</h2>
+              <p className="text-sm text-gray-500">{h2}</p>
+            </div>
+          </div>
+
           {/* Phone input */}
-          <div className="relative mb-4">
-            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <div className="relative mb-5">
+            <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="tel"
               value={phone}
               onChange={handlePhoneChange}
               placeholder="(XXX) XXX-XXXX"
-              className="w-full h-12 pl-11 pr-4 rounded-lg border border-input bg-background text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full h-12 pl-12 pr-4 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
             />
           </div>
 
           {/* Amount */}
-          <label className="block text-sm font-bold text-foreground mb-2">
-            Recharge Amount
-          </label>
-          <div className="relative mb-2">
-            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <input
-              type="text"
-              inputMode="numeric"
-              value={amount}
-              onChange={handleAmountChange}
-              placeholder={`Enter an amount between ${rangeMin} - ${rangeMax}`}
-              className="w-full h-12 pl-11 pr-4 rounded-lg border border-input bg-background text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            />
-          </div>
-          {!isRangeBased && plans.length > 0 && (
-            <p className="text-xs text-muted-foreground mb-2">Or select a plan below</p>
+          {isRangeBased && (
+            <>
+              <label className="block text-sm font-bold text-gray-900 mb-2">
+                Recharge Amount
+              </label>
+              <div className="relative mb-5">
+                <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={amount}
+                  onChange={handleAmountChange}
+                  placeholder={`Enter an amount between ${rangeMin} - ${rangeMax}`}
+                  className="w-full h-12 pl-12 pr-4 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                />
+              </div>
+            </>
           )}
 
           {/* Checkboxes */}
-          <div className="mt-4 space-y-3">
-            <label className="flex items-start gap-2 cursor-pointer">
+          <div className="space-y-3 mb-6">
+            <label className="flex items-start gap-2.5 cursor-pointer">
               <input
                 type="checkbox"
                 checked={confirmed}
                 onChange={(e) => setConfirmed(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded accent-primary"
+                className="mt-0.5 h-4 w-4 rounded accent-orange-500"
               />
-              <span className="text-xs text-muted-foreground leading-relaxed">
+              <span className="text-xs text-gray-500 leading-relaxed">
                 I have confirmed that I entered the correct phone number. I understand that this sale is final.
               </span>
             </label>
-            <label className="flex items-start gap-2 cursor-pointer">
+            <label className="flex items-start gap-2.5 cursor-pointer">
               <input
                 type="checkbox"
                 checked={agreedTerms}
                 onChange={(e) => setAgreedTerms(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded accent-primary"
+                className="mt-0.5 h-4 w-4 rounded accent-orange-500"
               />
-              <span className="text-xs text-muted-foreground leading-relaxed">
+              <span className="text-xs text-gray-500 leading-relaxed">
                 Agree with {carrierName} Product Policies and Sales.
               </span>
             </label>
           </div>
 
           {/* Pay button */}
-          <div className="flex justify-center mt-6">
+          <div className="flex justify-center">
             <button
               type="button"
               disabled={!isValid}
-              className="h-12 px-14 rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-colors active:scale-[0.97]"
+              className="h-12 px-16 rounded-full bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-base uppercase tracking-wide transition-colors active:scale-[0.97]"
             >
               PAY NOW
             </button>
           </div>
-          <p className="text-center text-xs text-muted-foreground mt-3">
+          <p className="text-center text-xs text-gray-400 mt-3">
             Secure payment. Instant refill sent directly to your phone.
           </p>
         </div>
-      </section>
+      </main>
 
       {/* Plan grid (plan-based carriers only) */}
       {!isRangeBased && plans.length > 0 && (
-        <div className="max-w-3xl mx-auto px-4 pb-4">
+        <div className="max-w-2xl mx-auto px-4 pb-8">
           <PlanGrid
             plans={plans}
-            brandColor={brandColor}
+            brandColor="hsl(27, 100%, 50%)"
             onSelect={(plan) => setAmount(plan.price.replace("$", ""))}
           />
         </div>
@@ -184,25 +217,27 @@ const CarrierDetail = () => {
 
       {/* FAQs */}
       {faqs.length > 0 && (
-        <section className="max-w-3xl mx-auto px-4 pb-10">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-center mb-6 text-primary">
+        <section className="max-w-2xl mx-auto px-4 pb-12">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-center mb-6 text-orange-500">
             FAQs
           </h2>
-          <div className="divide-y divide-border border-t border-b border-border">
+          <div className="divide-y divide-gray-200 border-t border-b border-gray-200">
             {faqs.map((faq, i) => (
               <div key={i}>
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between py-4 px-2 text-left text-sm sm:text-base font-medium text-foreground hover:bg-muted/50 transition-colors"
+                  className="w-full flex items-center justify-between py-4 px-1 text-left text-sm sm:text-base font-medium text-gray-800 hover:bg-gray-50 transition-colors"
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 >
                   <span>{faq.question}</span>
-                  <ChevronDown
-                    className={`h-5 w-5 text-muted-foreground shrink-0 transition-transform ${openFaq === i ? "rotate-180" : ""}`}
-                  />
+                  {openFaq === i ? (
+                    <Minus className="h-5 w-5 text-orange-500 shrink-0" />
+                  ) : (
+                    <Plus className="h-5 w-5 text-orange-500 shrink-0" />
+                  )}
                 </button>
                 {openFaq === i && (
-                  <div className="px-2 pb-4 text-sm text-muted-foreground leading-relaxed">
+                  <div className="px-1 pb-4 text-sm text-gray-500 leading-relaxed">
                     {faq.answer}
                   </div>
                 )}
@@ -214,13 +249,11 @@ const CarrierDetail = () => {
 
       <PaymentBar />
 
-      <footer className="bg-cellpay-dark text-muted-foreground py-8">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-xs">© 2026 All rights reserved.</p>
-          <p className="text-[10px] opacity-50 mt-2">
-            All carrier names and trademarks are property of their respective owners.
-          </p>
-        </div>
+      <footer className="bg-gray-900 text-gray-400 py-6 text-center text-xs">
+        <p>© 2026 All rights reserved.</p>
+        <p className="text-[10px] opacity-50 mt-2">
+          All carrier names and trademarks are property of their respective owners.
+        </p>
       </footer>
     </div>
   );
