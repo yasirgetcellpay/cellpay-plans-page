@@ -225,10 +225,10 @@ const Checkout = () => {
   const needsBillingForm = paymentMethod === "cardpayment";
   const needsPlaidConnection = paymentMethod === "plaid";
   const isFormValid =
-    form.email &&
+    form.email && isValidEmail &&
     agreeTerms &&
     (needsBillingForm
-      ? form.firstName && form.lastName && form.billingPhone && form.address && form.city && form.stateProvince && form.zip && form.ccNumber && form.expMonth && form.expYear && form.cvv
+      ? form.firstName && form.lastName && form.billingPhone && form.address && form.city && form.stateProvince && isZipValid && isCardValid && isExpValid && isCvvValid
       : needsPlaidConnection
         ? !!plaidPublicToken
         : true);
