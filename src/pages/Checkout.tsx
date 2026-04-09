@@ -172,21 +172,27 @@ const Checkout = () => {
   };
 
   const needsBillingForm = paymentMethod === "cardpayment";
+  const needsPlaidConnection = paymentMethod === "plaid";
   const isFormValid =
     form.email &&
     agreeTerms &&
     (needsBillingForm
       ? form.firstName && form.lastName && form.billingPhone && form.address && form.city && form.stateProvince && form.zip && form.ccNumber && form.expMonth && form.expYear && form.cvv
-      : true);
+      : needsPlaidConnection
+        ? !!plaidPublicToken
+        : true);
 
-  const handleSubmit = async () => {
-    if (!isFormValid) {
-      toast.error("Please fill all required fields.");
-      return;
-    }
+  const detectCardType = (num: string): string => {
+    const d = num.replace(/\D/g, "");
+    if (/^4/.test(d)) return "visa";
+    if (/^5[1-5]/.test(d) || /^2[2-7]/.test(d)) return "mastercard";
+    if (/^3[47]/.test(d)) return "amex";
+    if (/^6(?:011|5)/.test(d)) return "discover";
+    return "visa";
+  };
 
-    const result = await processCheckout({
-      payment_method: paymentMethod as "cardpayment",
+  const buildPayload = (): import("@/services/apiWrapper").CheckoutPayload => {
+    const base = {
       amount,
       total,
       phone_number: phone,
@@ -197,21 +203,69 @@ const Checkout = () => {
         firstName: form.firstName,
         lastName: form.lastName,
         email: form.email,
-        address: form.address,
-        city: form.city,
-        zip: form.zip,
-        cc_type: "visa",
-        cc_number: form.ccNumber,
-        cc_exp_month: form.expMonth,
-        cc_exp_year: form.expYear,
-        cvv_number: form.cvv,
       },
-      billing: {
-        bill_email: form.email,
-        country_id: "US",
-        region_name: form.stateProvince,
-      },
-    });
+    };
+
+    switch (paymentMethod) {
+      case "cardpayment":
+        return {
+          ...base,
+          payment_method: "cardpayment",
+          payment: {
+            ...base.payment,
+            address: form.address,
+            city: form.city,
+            zip: form.zip,
+            cc_type: detectCardType(form.ccNumber),
+            cc_number: form.ccNumber.replace(/\s/g, ""),
+            cc_exp_month: form.expMonth,
+            cc_exp_year: form.expYear,
+            cvv_number: form.cvv,
+          },
+          billing: {
+            bill_email: form.email,
+            country_id: "US",
+            region_name: form.stateProvince,
+          },
+        };
+
+      case "plaid":
+        return {
+          ...base,
+          payment_method: "plaid",
+          ...(plaidPublicToken ? { plaid_token: plaidPublicToken } : {}),
+        };
+
+      case "paypal":
+        return { ...base, payment_method: "paypal" };
+
+      case "googlepay":
+        return { ...base, payment_method: "googlepay", google_pay_token: "" };
+
+      case "applepay":
+        return { ...base, payment_method: "pockyt" };
+
+      case "klarna":
+        return { ...base, payment_method: "klarna" as any };
+
+      default:
+        return { ...base, payment_method: "cardpayment" };
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!isFormValid) {
+      toast.error("Please fill all required fields.");
+      return;
+    }
+
+    if (paymentMethod === "plaid" && !plaidPublicToken) {
+      toast.error("Please connect your bank account first.");
+      return;
+    }
+
+    const payload = buildPayload();
+    const result = await processCheckout(payload);
 
     if (result?.success) {
       toast.success("Order placed successfully!");
