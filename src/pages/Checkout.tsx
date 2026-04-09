@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { usePlaidLink } from "react-plaid-link";
@@ -102,6 +102,13 @@ const Checkout = () => {
     token: plaidLinkToken,
     onSuccess: onPlaidSuccess,
   });
+
+  // Auto-open Plaid Link when ready
+  useEffect(() => {
+    if (paymentMethod === "plaid" && plaidLinkReady && plaidLinkToken && !plaidPublicToken) {
+      openPlaid();
+    }
+  }, [paymentMethod, plaidLinkReady, plaidLinkToken, plaidPublicToken, openPlaid]);
 
   if (!state) {
     return (
@@ -320,10 +327,10 @@ const Checkout = () => {
 
             {paymentMethod === "plaid" && (
               <section className="bg-gray-100 rounded-lg p-6 space-y-5">
-                <div className="bg-white rounded-lg p-6 text-center space-y-4">
+                <div className="bg-white rounded-lg p-4">
                   {plaidBankName ? (
-                    <>
-                      <div className="text-green-600 text-4xl mb-2">✓</div>
+                    <div className="text-center space-y-3 py-4">
+                      <div className="text-green-600 text-4xl">✓</div>
                       <p className="text-lg font-bold text-gray-800">Connected to {plaidBankName}</p>
                       <p className="text-sm text-gray-500">Your bank account is linked and ready for payment.</p>
                       <button
@@ -333,25 +340,58 @@ const Checkout = () => {
                       >
                         Change bank
                       </button>
-                    </>
+                    </div>
                   ) : (
                     <>
-                      <div className="text-4xl mb-2">🏦</div>
-                      <p className="text-lg font-bold text-gray-800">Pay by Bank</p>
-                      <p className="text-sm text-gray-500">Instant Login, No Manual Entry — powered by Plaid</p>
-                      <button
-                        type="button"
-                        disabled={!plaidLinkReady || !plaidLinkToken}
-                        onClick={() => openPlaid()}
-                        className="mx-auto h-12 px-8 rounded-lg text-white font-bold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2"
-                        style={{ backgroundColor: "#e53e3e" }}
-                      >
-                        {(!plaidLinkReady || !plaidLinkToken) && <Loader2 className="h-4 w-4 animate-spin" />}
-                        Connect Your Bank
-                      </button>
+                      <div className="relative mb-4">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+                        <input
+                          type="text"
+                          placeholder="Search for your bank"
+                          onFocus={() => { if (plaidLinkReady && plaidLinkToken) openPlaid(); }}
+                          readOnly
+                          className="w-full h-11 pl-10 pr-3 rounded-lg border border-gray-300 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400 cursor-pointer"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 gap-3">
+                        {[
+                          { name: "Chase", logo: "🏦" },
+                          { name: "Bank of America", logo: "🏛️" },
+                          { name: "Wells Fargo", logo: "🐎" },
+                          { name: "Citibank", logo: "🏢" },
+                          { name: "US Bank", logo: "🇺🇸" },
+                          { name: "Capital One", logo: "💳" },
+                          { name: "PNC", logo: "🔶" },
+                          { name: "USAA", logo: "⭐" },
+                          { name: "TD Bank", logo: "🟩" },
+                          { name: "Regions", logo: "🔺" },
+                          { name: "Navy Federal", logo: "⚓" },
+                          { name: "Huntington", logo: "🌿" },
+                          { name: "Charles Schwab", logo: "💰" },
+                          { name: "Citizens", logo: "🏦" },
+                          { name: "Betterment", logo: "📈" },
+                          { name: "Amex", logo: "💎" },
+                        ].map((bank) => (
+                          <button
+                            key={bank.name}
+                            type="button"
+                            onClick={() => { if (plaidLinkReady && plaidLinkToken) openPlaid(); }}
+                            className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg border border-gray-200 hover:border-gray-400 hover:shadow-sm transition-all bg-white text-center min-h-[72px] cursor-pointer"
+                          >
+                            <span className="text-2xl">{bank.logo}</span>
+                            <span className="text-[11px] font-medium text-gray-700 leading-tight">{bank.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                      {(!plaidLinkReady || !plaidLinkToken) && (
+                        <div className="flex items-center justify-center gap-2 mt-4 text-sm text-gray-400">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Loading bank connections...
+                        </div>
+                      )}
                     </>
                   )}
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
                     <span className="text-[10px] text-gray-400 font-medium tracking-wide">🔒 PLAID</span>
                     <a href="https://plaid.com" target="_blank" rel="noopener noreferrer" className="text-[11px] text-gray-500 hover:text-gray-700">What is Plaid?</a>
                   </div>
