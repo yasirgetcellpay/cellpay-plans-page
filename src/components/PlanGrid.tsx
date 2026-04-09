@@ -33,7 +33,7 @@ export const PlanGrid = ({ plans, brandColor = "hsl(134, 40%, 40%)", onSelect, l
               className={`border rounded-lg overflow-hidden text-left transition-all hover:shadow-md ${
                 isSelected ? "ring-2 ring-offset-1" : ""
               }`}
-              style={isSelected ? { borderColor: brandColor, ringColor: brandColor } : {}}
+              style={isSelected ? { borderColor: brandColor, outlineColor: brandColor } : {}}
             >
               <div
                 className="px-2 py-1.5 sm:py-2 text-center text-white font-extrabold text-sm sm:text-base"
