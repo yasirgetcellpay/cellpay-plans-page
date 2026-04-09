@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { processCheckout as processCheckoutRequest, type CheckoutPayload } from "@/services/apiWrapper";
 import { toast } from "sonner";
-import type { CheckoutPayload } from "@/lib/cellpay-api";
 
 interface CheckoutResult {
   success: boolean;
@@ -19,21 +18,22 @@ export const useCheckout = () => {
   const processCheckout = async (payload: CheckoutPayload): Promise<CheckoutResult> => {
     setProcessing(true);
     try {
-      const { data, error } = await supabase.functions.invoke(
-        "cellpay-proxy?action=checkout",
-        { body: payload }
-      );
+      const result = await processCheckoutRequest<CheckoutResult>(payload);
 
-      if (error) throw error;
-
-      const result = data as CheckoutResult;
-      if (result?.data?.HostedURL) {
-        window.location.href = result.data.HostedURL;
-      } else if (result?.data?.transactionId) {
-        toast.success(`Payment successful! Transaction: ${result.data.transactionId}`);
+      if (!result.success || !result.data) {
+        toast.error(result.error || "Payment failed. Please try again.");
+        return { success: false };
       }
 
-      return result;
+      const checkoutResult = result.data;
+
+      if (checkoutResult?.data?.HostedURL) {
+        window.location.href = checkoutResult.data.HostedURL;
+      } else if (checkoutResult?.data?.transactionId) {
+        toast.success(`Payment successful! Transaction: ${checkoutResult.data.transactionId}`);
+      }
+
+      return checkoutResult;
     } catch (err) {
       console.error("Checkout failed:", err);
       toast.error("Payment failed. Please try again.");

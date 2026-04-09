@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { verifyPhone as verifyPhoneRequest } from "@/services/apiWrapper";
 import { toast } from "sonner";
 
 interface VerifyResult {
-  success: boolean;
+  success?: boolean;
   message?: string;
 }
 
@@ -14,27 +14,31 @@ export const usePhoneVerification = () => {
   const verify = async (slug: string, phoneNumber: string, planId?: string, amount?: number) => {
     setVerifying(true);
     setVerified(null);
+
     try {
-      const { data, error } = await supabase.functions.invoke(
-        `cellpay-proxy?action=verify-phone&slug=${encodeURIComponent(slug)}`,
-        {
-          body: {
-            phone_number: phoneNumber,
-            confirm_phone_number: phoneNumber,
-            ...(planId ? { plan_id: planId } : {}),
-            ...(amount ? { amount } : {}),
-          },
-        }
+      const result = await verifyPhoneRequest<VerifyResult>(
+        slug,
+        phoneNumber,
+        planId,
+        amount,
       );
 
-      if (error) throw error;
-
-      const result = data as VerifyResult;
-      setVerified(result.success !== false);
-      if (result.message) {
-        toast[result.success !== false ? "success" : "error"](result.message);
+      if (!result.success || !result.data) {
+        const message = result.error || "Phone verification failed. Please try again.";
+        toast.error(message);
+        setVerified(false);
+        return { success: false, message };
       }
-      return result;
+
+      const payload = result.data;
+      const isSuccess = payload.success !== false;
+      setVerified(isSuccess);
+
+      if (payload.message) {
+        toast[isSuccess ? "success" : "error"](payload.message);
+      }
+
+      return payload;
     } catch (err) {
       console.error("Phone verification failed:", err);
       toast.error("Phone verification failed. Please try again.");

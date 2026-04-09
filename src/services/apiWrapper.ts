@@ -1,10 +1,64 @@
 const PROXY_BASE = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/cellpay-proxy`;
 
-interface ApiResponse<T> {
+export interface ApiDiagnostics {
+  domain?: string;
+  requested_url?: string;
+  final_url?: string;
+  error_stage?: string;
+  html_length?: number;
+  processing_time_ms?: number;
+  upstream_status?: number;
+}
+
+export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error: string | null;
+  diagnostics?: ApiDiagnostics;
+  status?: number;
 }
+
+interface ProxyFailurePayload {
+  success: false;
+  data?: unknown;
+  error?: string;
+  message?: string;
+  diagnostics?: ApiDiagnostics;
+  status?: number;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const parseJsonSafely = (value: string): unknown => {
+  if (!value) return undefined;
+
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return undefined;
+  }
+};
+
+const getFailurePayload = (value: unknown): ProxyFailurePayload | null => {
+  if (!isRecord(value) || value.success !== false) {
+    return null;
+  }
+
+  return value as unknown as ProxyFailurePayload;
+};
+
+const getErrorMessage = (payload: ProxyFailurePayload, fallback: string) => {
+  if (typeof payload.error === "string" && payload.error.trim()) {
+    return payload.error;
+  }
+
+  if (typeof payload.message === "string" && payload.message.trim()) {
+    return payload.message;
+  }
+
+  return fallback;
+};
 
 const apiRequest = async <T = unknown>(
   action: string,
@@ -37,6 +91,10 @@ const apiRequest = async <T = unknown>(
 
     clearTimeout(timeoutId);
 
+    const responseText = await res.text().catch(() => "");
+    const parsedBody = parseJsonSafely(responseText);
+    const failurePayload = getFailurePayload(parsedBody);
+
     if (res.status === 401) {
       return { success: false, error: "Unauthorized: Invalid API keys.", data: undefined };
     }
@@ -44,12 +102,53 @@ const apiRequest = async <T = unknown>(
       return { success: false, error: "Forbidden: Access denied.", data: undefined };
     }
     if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      return { success: false, error: `HTTP error ${res.status}: ${text.slice(0, 200)}`, data: undefined };
+      if (failurePayload) {
+        return {
+          success: false,
+          error: getErrorMessage(failurePayload, `HTTP error ${res.status}.`),
+          data: undefined,
+          diagnostics: failurePayload.diagnostics,
+          status: failurePayload.status ?? res.status,
+        };
+      }
+
+      if (isRecord(parsedBody) && typeof parsedBody.error === "string") {
+        return {
+          success: false,
+          error: parsedBody.error,
+          data: undefined,
+          status: res.status,
+        };
+      }
+
+      return {
+        success: false,
+        error: responseText ? `HTTP error ${res.status}: ${responseText.slice(0, 200)}` : `HTTP error ${res.status}.`,
+        data: undefined,
+        status: res.status,
+      };
     }
 
-    const data = await res.json();
-    return { success: true, data: data as T, error: null };
+    if (failurePayload) {
+      return {
+        success: false,
+        error: getErrorMessage(failurePayload, "Request failed."),
+        data: undefined,
+        diagnostics: failurePayload.diagnostics,
+        status: failurePayload.status ?? res.status,
+      };
+    }
+
+    if (typeof parsedBody === "undefined") {
+      return {
+        success: false,
+        error: "Invalid response from server.",
+        data: undefined,
+        status: res.status,
+      };
+    }
+
+    return { success: true, data: parsedBody as T, error: null, status: res.status };
   } catch (err: unknown) {
     clearTimeout(timeoutId);
     if (err instanceof DOMException && err.name === "AbortError") {
@@ -74,14 +173,47 @@ export interface Carrier {
   [key: string]: unknown;
 }
 
+export interface CheckoutPayload {
+  payment_method: "cardpayment" | "paypal" | "applepay" | "googlepay" | "plaid" | "pockyt";
+  amount: number;
+  total: number;
+  phone_number: string;
+  carrierId: number;
+  plan_id: string;
+  slug?: string;
+  payment: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    address?: string;
+    city?: string;
+    zip?: string;
+    cc_type?: string;
+    cc_number?: string;
+    cc_exp_month?: string;
+    cc_exp_year?: string;
+    cvv_number?: string;
+  };
+  billing?: {
+    bill_email: string;
+    country_id: string;
+    region_id?: string;
+    region_name?: string;
+  };
+  apple_pay_token?: string;
+  google_pay_token?: string;
+  plaid_token?: string;
+  plaid_id?: string;
+}
+
 export const fetchCarriers = () =>
   apiRequest<{ carriers?: Carrier[]; data?: Carrier[] } | Carrier[]>("list-carriers");
 
-export const fetchCarrierBySlug = (slug: string, refill?: boolean) =>
-  apiRequest("view-carrier", { slug, ...(refill ? { refill: "1" } : {}) });
+export const fetchCarrierBySlug = <T = unknown>(slug: string, refill?: boolean) =>
+  apiRequest<T>("view-carrier", { slug, ...(refill ? { refill: "1" } : {}) });
 
-export const verifyPhone = (slug: string, phoneNumber: string, planId?: string, amount?: number) =>
-  apiRequest("verify-phone", { slug }, {
+export const verifyPhone = <T = unknown>(slug: string, phoneNumber: string, planId?: string, amount?: number) =>
+  apiRequest<T>("verify-phone", { slug }, {
     method: "POST",
     body: {
       phone_number: phoneNumber,
@@ -91,5 +223,5 @@ export const verifyPhone = (slug: string, phoneNumber: string, planId?: string, 
     },
   });
 
-export const processCheckout = (payload: unknown) =>
-  apiRequest("checkout", {}, { method: "POST", body: payload });
+export const processCheckout = <T = unknown>(payload: CheckoutPayload) =>
+  apiRequest<T>("checkout", {}, { method: "POST", body: payload });
