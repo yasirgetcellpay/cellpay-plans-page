@@ -389,6 +389,8 @@ const Checkout = () => {
         return { ...base, payment_method: "cardpayment" };
     }
   };
+  // Keep ref in sync so Plaid callback can access latest buildPayload
+  buildPayloadRef.current = buildPayload;
 
   const handleSubmit = async () => {
     if (!isFormValid) {
