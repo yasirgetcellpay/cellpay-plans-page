@@ -85,7 +85,12 @@ const Checkout = () => {
   // PayPal integration
   const [paypalClientId, setPaypalClientId] = useState<string | null>(null);
   const [paypalLoading, setPaypalLoading] = useState(false);
-  const [paypalErrorDialog, setPaypalErrorDialog] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+
+  // Shared error dialog for PayPal & Plaid
+  const [errorDialog, setErrorDialog] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: "", message: "" });
+
+  // Plaid auto-checkout processing
+  const [plaidProcessing, setPlaidProcessing] = useState(false);
 
   // Fetch PayPal client ID when PayPal is selected
   useEffect(() => {
