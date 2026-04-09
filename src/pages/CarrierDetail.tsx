@@ -28,7 +28,7 @@ const CarrierDetail = () => {
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const carrierName = String(data?.carrier?.title || data?.carrier?.name || slug || "");
+  const carrierName = String(data?.carrier?.name || data?.carrier?.title || slug || "");
   const carrierSlug = data?.carrier?.slug || slug || "";
   const logoUrl = `${LOGO_BASE}/${carrierSlug}.webp`;
   const brandColor = getCarrierBrandColor(carrierSlug);
