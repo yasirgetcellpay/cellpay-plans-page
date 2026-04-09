@@ -1,18 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { listCarriers } from "@/lib/cellpay-api";
+import { fetchCarriers, type Carrier } from "@/services/apiWrapper";
 
-interface ApiCarrier {
-  id?: number;
-  name?: string;
-  slug?: string;
-  title?: string;
-  logo?: string;
-  image?: string;
-  active?: boolean;
-  [key: string]: unknown;
-}
+type ApiCarrier = Carrier;
 
 const Home = () => {
   const [carriers, setCarriers] = useState<ApiCarrier[]>([]);
@@ -21,23 +12,23 @@ const Home = () => {
 
   useEffect(() => {
     let cancelled = false;
-    const fetch = async () => {
-      try {
-        const result = (await listCarriers()) as { success?: boolean; data?: ApiCarrier[] } | ApiCarrier[];
-        if (cancelled) return;
-        const list = Array.isArray(result) ? result : (result as { data?: ApiCarrier[] }).data;
-        if (Array.isArray(list)) {
-          setCarriers(list.filter((c) => c.active !== false));
-        } else {
-          setError("Unexpected API response");
-        }
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load carriers");
-      } finally {
-        if (!cancelled) setLoading(false);
+    const load = async () => {
+      const result = await fetchCarriers();
+      if (cancelled) return;
+      if (result.success && result.data) {
+        const raw = result.data;
+        const list = Array.isArray(raw)
+          ? raw
+          : (raw as { carriers?: ApiCarrier[]; data?: ApiCarrier[] }).carriers ??
+            (raw as { data?: ApiCarrier[] }).data ??
+            [];
+        setCarriers(list.filter((c) => c.active !== false));
+      } else {
+        setError(result.error || "Failed to load carriers");
       }
+      setLoading(false);
     };
-    fetch();
+    load();
     return () => { cancelled = true; };
   }, []);
 
