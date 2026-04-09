@@ -590,9 +590,61 @@ const Checkout = () => {
 
             {paymentMethod === "paypal" && (
               <section className="bg-gray-100 rounded-lg p-6 space-y-5">
-                <button className="w-full h-14 rounded-lg font-bold text-lg" style={{ backgroundColor: "#FFC439", color: "#003087" }}>
-                  PayPal
-                </button>
+                {paypalLoading ? (
+                  <div className="flex items-center justify-center gap-2 py-8 text-sm text-gray-400">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Loading PayPal...
+                  </div>
+                ) : paypalClientId ? (
+                  <PayPalScriptProvider options={{ clientId: paypalClientId, currency: "USD" }}>
+                    <PayPalButtons
+                      style={{ layout: "vertical", shape: "rect", label: "paypal" }}
+                      createOrder={(_data, actions) => {
+                        return actions.order.create({
+                          intent: "CAPTURE",
+                          purchase_units: [
+                            {
+                              amount: {
+                                currency_code: "USD",
+                                value: total.toFixed(2),
+                              },
+                              description: `${carrierName} refill - ${phone}`,
+                            },
+                          ],
+                        });
+                      }}
+                      onApprove={async (_data, _actions) => {
+                        // PayPal payment approved - now call our transaction API
+                        const payload = buildPayload();
+                        const result = await processCheckout(payload);
+
+                        if (result?.success) {
+                          toast.success("Order placed successfully via PayPal!");
+                        } else {
+                          setPaypalErrorDialog({
+                            open: true,
+                            message: "Payment was approved by PayPal but the order could not be completed. Please contact support.",
+                          });
+                        }
+                      }}
+                      onCancel={() => {
+                        setPaypalErrorDialog({
+                          open: true,
+                          message: "You cancelled the PayPal payment. No charges were made.",
+                        });
+                      }}
+                      onError={(err) => {
+                        console.error("PayPal error:", err);
+                        setPaypalErrorDialog({
+                          open: true,
+                          message: "An error occurred with PayPal. Please try again or choose a different payment method.",
+                        });
+                      }}
+                    />
+                  </PayPalScriptProvider>
+                ) : (
+                  <p className="text-sm text-red-500 text-center py-4">PayPal is not available at the moment. Please try another payment method.</p>
+                )}
                 <div>
                   <h3 className="text-base font-bold text-gray-800 mb-2">Service Agreement</h3>
                   <p className="text-sm text-gray-500">
