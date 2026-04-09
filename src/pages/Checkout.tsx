@@ -66,61 +66,31 @@ const Checkout = () => {
 
   // Plaid Link integration
   const [plaidLinkToken, setPlaidLinkToken] = useState<string | null>(null);
-  const [plaidReady, setPlaidReady] = useState(false);
   const [plaidPublicToken, setPlaidPublicToken] = useState<string | null>(null);
   const [plaidBankName, setPlaidBankName] = useState<string | null>(null);
-  const [plaidInstitutions, setPlaidInstitutions] = useState<any[]>([]);
-  const [plaidSearchQuery, setPlaidSearchQuery] = useState("");
-  const [plaidLoadingInstitutions, setPlaidLoadingInstitutions] = useState(false);
 
-  // Fetch link token + initial institutions when plaid selected
+  // Fetch link token when plaid selected
   useEffect(() => {
-    if (paymentMethod === "plaid") {
-      const init = async () => {
+    if (paymentMethod === "plaid" && !plaidLinkToken) {
+      const fetchToken = async () => {
         try {
-          // Fetch link token and institutions in parallel
-          const [tokenRes, instRes] = await Promise.all([
-            supabase.functions.invoke("plaid-link-token", {
-              body: { user_id: "checkout-user" },
-            }),
-            supabase.functions.invoke("plaid-link-token", {
-              body: { action: "institutions_get", count: 16 },
-            }),
-          ]);
-          if (tokenRes.error) throw tokenRes.error;
-          if (tokenRes.data?.link_token) {
-            setPlaidLinkToken(tokenRes.data.link_token);
-          }
-          if (instRes.data?.institutions) {
-            setPlaidInstitutions(instRes.data.institutions);
+          const { data, error } = await supabase.functions.invoke("plaid-link-token", {
+            body: { user_id: "checkout-user" },
+          });
+          if (error) throw error;
+          if (data?.link_token) {
+            setPlaidLinkToken(data.link_token);
+          } else {
+            toast.error("Failed to initialize bank connection.");
           }
         } catch (err) {
-          console.error("Plaid init error:", err);
+          console.error("Plaid token error:", err);
           toast.error("Could not connect to bank service.");
         }
       };
-      init();
+      fetchToken();
     }
-  }, [paymentMethod]);
-
-  // Search institutions
-  useEffect(() => {
-    if (paymentMethod !== "plaid" || !plaidSearchQuery.trim()) return;
-    const timer = setTimeout(async () => {
-      setPlaidLoadingInstitutions(true);
-      try {
-        const { data } = await supabase.functions.invoke("plaid-link-token", {
-          body: { action: "institutions_search", query: plaidSearchQuery },
-        });
-        if (data?.institutions) setPlaidInstitutions(data.institutions);
-      } catch (err) {
-        console.error("Institution search error:", err);
-      } finally {
-        setPlaidLoadingInstitutions(false);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [plaidSearchQuery, paymentMethod]);
+  }, [paymentMethod, plaidLinkToken]);
 
   const onPlaidSuccess = useCallback((publicToken: string, metadata: any) => {
     setPlaidPublicToken(publicToken);
