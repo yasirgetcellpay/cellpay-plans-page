@@ -25,6 +25,19 @@ const PROCESSING_FEE = 5.99;
 const NAV_COLOR = "#2d3748";
 const ACCENT_RED = "#e53e3e";
 
+const paymentMethods = [
+  { id: "cardpayment", label: "Credit Card", icon: "💳" },
+  { id: "plaid", label: "Pay by Bank", subtitle: "Instant Login, No Manual Entry", icon: "⚙️" },
+  { id: "paypal", label: "Paypal", icon: "🅿️" },
+  { id: "googlepay", label: "Google Pay", icon: "G" },
+  { id: "applepay", label: "Cash App Pay", icon: "💲" },
+  { id: "klarna", label: "Klarna", subtitle: "(Buy now, pay later)", icon: "K" },
+];
+
+const getPaymentMethodLabel = (id: string) => {
+  return paymentMethods.find((pm) => pm.id === id)?.label || "credit card";
+};
+
 const Checkout = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -62,22 +75,19 @@ const Checkout = () => {
 
   const { phone, amount, planId, carrierId, carrierName, carrierSlug } = state;
   const total = amount + PROCESSING_FEE;
+  const pmLabel = getPaymentMethodLabel(paymentMethod).toLowerCase();
 
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
+  const needsBillingForm = paymentMethod === "cardpayment";
   const isFormValid =
     form.email &&
-    form.firstName &&
-    form.lastName &&
-    form.billingPhone &&
-    form.address &&
-    form.city &&
-    form.stateProvince &&
-    form.zip &&
     agreeTerms &&
-    (paymentMethod !== "cardpayment" || (form.ccNumber && form.expMonth && form.expYear && form.cvv));
+    (needsBillingForm
+      ? form.firstName && form.lastName && form.billingPhone && form.address && form.city && form.stateProvince && form.zip && form.ccNumber && form.expMonth && form.expYear && form.cvv
+      : true);
 
   const handleSubmit = async () => {
     if (!isFormValid) {
@@ -117,14 +127,6 @@ const Checkout = () => {
       toast.success("Order placed successfully!");
     }
   };
-
-  const paymentMethods = [
-    { id: "cardpayment", label: "Credit Card", icon: "💳" },
-    { id: "plaid", label: "Pay by Bank", icon: "🏦" },
-    { id: "paypal", label: "Paypal", icon: "🅿️" },
-    { id: "googlepay", label: "Google Pay", icon: "G" },
-    { id: "applepay", label: "Cash App Pay", icon: "💲" },
-  ];
 
   const inputClass = "w-full h-11 px-3 rounded border border-gray-300 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent";
   const selectClass = "w-full h-11 px-3 rounded border border-gray-300 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent";
@@ -174,7 +176,7 @@ const Checkout = () => {
             {/* Payment Options */}
             <section className="bg-white rounded border border-gray-200 p-5">
               <h2 className="text-sm font-bold text-gray-800 mb-4">Payment Options</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {paymentMethods.map((pm) => {
                   const isActive = paymentMethod === pm.id;
                   return (
@@ -182,121 +184,136 @@ const Checkout = () => {
                       key={pm.id}
                       type="button"
                       onClick={() => setPaymentMethod(pm.id)}
-                      className={`flex flex-col items-center justify-center gap-1 py-3 px-2 rounded border-2 text-xs font-medium transition-all ${
+                      className={`flex items-center gap-3 py-4 px-4 rounded-lg border-2 text-sm font-medium transition-all text-left ${
                         isActive
-                          ? "border-green-600 bg-green-50 text-green-700"
-                          : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                          ? "border-red-500 bg-white text-red-600"
+                          : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                       }`}
                     >
-                      <span className="text-lg leading-none">{pm.icon}</span>
-                      <span className="text-[11px]">{pm.label}</span>
+                      <span className="text-2xl leading-none shrink-0">{pm.icon}</span>
+                      <div>
+                        <span className="text-sm font-medium">{pm.label}</span>
+                        {pm.subtitle && (
+                          <span className="block text-[10px] text-gray-400 mt-0.5">{pm.subtitle}</span>
+                        )}
+                      </div>
                     </button>
                   );
                 })}
               </div>
             </section>
 
-            {/* Billing Details */}
-            <section className="bg-white rounded border border-gray-200 p-5">
-              <h2 className="text-sm font-bold text-gray-800 mb-4">Billing Details</h2>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>First Name *</label>
-                  <input type="text" value={form.firstName} onChange={handleChange("firstName")} placeholder="Enter Your First Name..." className={inputClass} />
-                </div>
-                <div>
-                  <label className={labelClass}>Last Name *</label>
-                  <input type="text" value={form.lastName} onChange={handleChange("lastName")} placeholder="Enter Your Last Name..." className={inputClass} />
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <label className={labelClass}>Bill Payer's Phone Number *</label>
-                <input type="tel" value={form.billingPhone} onChange={handleChange("billingPhone")} placeholder="Enter Phone Number..." className={inputClass} />
-              </div>
-
-              <div className="mt-4">
-                <label className={labelClass}>Street Address *</label>
-                <input type="text" value={form.address} onChange={handleChange("address")} placeholder="Enter Street Address..." className={inputClass} />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                <div>
-                  <label className={labelClass}>City *</label>
-                  <input type="text" value={form.city} onChange={handleChange("city")} placeholder="Enter City..." className={inputClass} />
-                </div>
-                <div>
-                  <label className={labelClass}>State/Province *</label>
-                  <select value={form.stateProvince} onChange={handleChange("stateProvince")} className={selectClass}>
-                    <option value="">Select One</option>
-                    {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                <div>
-                  <label className={labelClass}>Country *</label>
-                  <select className={selectClass} disabled>
-                    <option>United States</option>
-                  </select>
-                </div>
-                <div>
-                  <label className={labelClass}>ZIP *</label>
-                  <input type="text" value={form.zip} onChange={handleChange("zip")} placeholder="Enter Your ZIP..." className={inputClass} />
-                </div>
-              </div>
-
-              {/* Credit card fields */}
-              {paymentMethod === "cardpayment" && (
-                <>
-                  <div className="mt-4">
-                    <label className={labelClass}>Credit Card Number *</label>
-                    <input type="text" value={form.ccNumber} onChange={handleChange("ccNumber")} placeholder="Enter Your Card Number..." className={inputClass} />
+            {/* Dynamic content based on payment method */}
+            {paymentMethod === "cardpayment" && (
+              <section className="bg-white rounded border border-gray-200 p-5">
+                <h2 className="text-sm font-bold text-gray-800 mb-4">Billing Details</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>First Name *</label>
+                    <input type="text" value={form.firstName} onChange={handleChange("firstName")} placeholder="Enter Your First Name..." className={inputClass} />
                   </div>
-                  <div className="grid grid-cols-3 gap-4 mt-4">
-                    <div>
-                      <label className={labelClass}>Expiration Month*</label>
-                      <select value={form.expMonth} onChange={handleChange("expMonth")} className={selectClass}>
-                        <option value="">Month</option>
-                        {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((m) => <option key={m} value={m}>{m}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className={labelClass}>Expiration Year *</label>
-                      <select value={form.expYear} onChange={handleChange("expYear")} className={selectClass}>
-                        <option value="">Year</option>
-                        {Array.from({ length: 10 }, (_, i) => String(2025 + i)).map((y) => <option key={y} value={y}>{y}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className={labelClass}>CVV Code *</label>
-                      <input type="text" value={form.cvv} onChange={handleChange("cvv")} placeholder="CVV..." maxLength={4} className={inputClass} />
-                    </div>
+                  <div>
+                    <label className={labelClass}>Last Name *</label>
+                    <input type="text" value={form.lastName} onChange={handleChange("lastName")} placeholder="Enter Your Last Name..." className={inputClass} />
                   </div>
-                </>
-              )}
-            </section>
+                </div>
+                <div className="mt-4">
+                  <label className={labelClass}>Bill Payer's Phone Number *</label>
+                  <input type="tel" value={form.billingPhone} onChange={handleChange("billingPhone")} placeholder="Enter Phone Number..." className={inputClass} />
+                </div>
+                <div className="mt-4">
+                  <label className={labelClass}>Street Address *</label>
+                  <input type="text" value={form.address} onChange={handleChange("address")} placeholder="Enter Street Address..." className={inputClass} />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className={labelClass}>City *</label>
+                    <input type="text" value={form.city} onChange={handleChange("city")} placeholder="Enter City..." className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>State/Province *</label>
+                    <select value={form.stateProvince} onChange={handleChange("stateProvince")} className={selectClass}>
+                      <option value="">Select One</option>
+                      {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className={labelClass}>Country *</label>
+                    <select className={selectClass} disabled>
+                      <option>United States</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>ZIP *</label>
+                    <input type="text" value={form.zip} onChange={handleChange("zip")} placeholder="Enter Your ZIP..." className={inputClass} />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <label className={labelClass}>Credit Card Number *</label>
+                  <input type="text" value={form.ccNumber} onChange={handleChange("ccNumber")} placeholder="Enter Your Card Number..." className={inputClass} />
+                </div>
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <label className={labelClass}>Expiration Month*</label>
+                    <select value={form.expMonth} onChange={handleChange("expMonth")} className={selectClass}>
+                      <option value="">Month</option>
+                      {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((m) => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Expiration Year *</label>
+                    <select value={form.expYear} onChange={handleChange("expYear")} className={selectClass}>
+                      <option value="">Year</option>
+                      {Array.from({ length: 10 }, (_, i) => String(2025 + i)).map((y) => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>CVV Code *</label>
+                    <input type="text" value={form.cvv} onChange={handleChange("cvv")} placeholder="CVV..." maxLength={4} className={inputClass} />
+                  </div>
+                </div>
+              </section>
+            )}
 
-            {/* Terms */}
+            {paymentMethod === "paypal" && (
+              <section className="bg-gray-100 rounded-lg p-6 space-y-5">
+                <button className="w-full h-14 rounded-lg font-bold text-lg" style={{ backgroundColor: "#FFC439", color: "#003087" }}>
+                  PayPal
+                </button>
+                <div>
+                  <h3 className="text-base font-bold text-gray-800 mb-2">Service Agreement</h3>
+                  <p className="text-sm text-gray-500">
+                    Service provided by cellpay not associated with any carrier, by agreeing with this you are authorizing us to make payment behalf of you to carrier
+                  </p>
+                </div>
+              </section>
+            )}
+
+            {/* Terms & Conditions */}
             <section className="bg-white rounded border border-gray-200 p-5">
               <h2 className="text-sm font-bold text-gray-800 mb-3">Terms & Conditions</h2>
               <p className="text-xs text-gray-500 mb-1">
-                I hereby authorize charges totaling <b>${total.toFixed(2)}</b> via my credit card.
+                I hereby authorize charges totaling <b>${total.toFixed(2)}</b> via my {pmLabel}.
               </p>
               <p className="text-xs text-gray-500 mb-4">
-                I understand that charge on my credit card is not refundable under any circumstances.
+                I understand that charge on my {pmLabel} is not refundable under any circumstances.
               </p>
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
                   <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_RED }} />
-                  I agree to <span className="underline text-blue-600">Terms and Conditions</span>
+                  {paymentMethod === "paypal"
+                    ? <span>I agree to <span className="underline text-blue-600">term & condition</span> and <span className="underline text-blue-600">service agreement</span></span>
+                    : <span>I agree to <span className="underline text-blue-600">Terms and Conditions</span></span>
+                  }
                 </label>
-                <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                  <input type="checkbox" checked={savePayment} onChange={(e) => setSavePayment(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_RED }} />
-                  Save payment information for next time
-                </label>
+                {paymentMethod === "cardpayment" && (
+                  <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                    <input type="checkbox" checked={savePayment} onChange={(e) => setSavePayment(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_RED }} />
+                    Save payment information for next time
+                  </label>
+                )}
               </div>
             </section>
 
@@ -318,12 +335,9 @@ const Checkout = () => {
           {/* Right column - Order Summary (sticky) */}
           <div className="w-full md:w-[340px] shrink-0 order-first md:order-last">
             <div className="bg-white rounded border border-gray-200 sticky top-16">
-              {/* Header */}
               <div className="px-5 py-3 border-b border-gray-200">
                 <h2 className="text-sm font-bold text-gray-800">Order Summary</h2>
               </div>
-
-              {/* Line items */}
               <div className="divide-y divide-gray-100">
                 <div className="flex justify-between px-5 py-3 text-sm">
                   <span className="text-gray-500">Mobile No.</span>
@@ -350,8 +364,6 @@ const Checkout = () => {
                   <span className="font-semibold text-gray-800">$0.00</span>
                 </div>
               </div>
-
-              {/* Total */}
               <div
                 className="mx-4 mb-4 mt-2 rounded-lg px-5 py-4 flex justify-between items-center text-white"
                 style={{ backgroundColor: ACCENT_RED }}
