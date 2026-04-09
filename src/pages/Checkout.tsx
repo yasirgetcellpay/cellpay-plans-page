@@ -403,7 +403,7 @@ const Checkout = () => {
       (window as any).paypal.Buttons({
         createOrder: async () => {
           try {
-            const res = await createPaypalOrder<any>({ amount: total, currency: "USD", description: `${carrierName} refill - ${phone}` });
+            const res = await createPaypalOrder<any>({ amount: total, currency: "USD", carrierId, plan_id: planId, phone_number: phone, description: `${carrierName} refill - ${phone}` });
             const orderData = res.data?.data ?? res.data;
             return orderData?.id || orderData?.orderID;
           } catch (err) {
