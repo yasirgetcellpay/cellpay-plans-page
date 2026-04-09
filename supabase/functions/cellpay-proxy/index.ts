@@ -48,6 +48,27 @@ Deno.serve(async (req) => {
       case "checkout":
         upstreamUrl = `${API_BASE}/checkout/transaction`;
         break;
+      case "checkout-client-config":
+        upstreamUrl = `${API_BASE}/payments/checkout-client-config`;
+        break;
+      case "plaid-link-token":
+        upstreamUrl = `${API_BASE}/payments/plaid/link-token`;
+        break;
+      case "plaid-exchange-token":
+        upstreamUrl = `${API_BASE}/payments/plaid/exchange-token`;
+        break;
+      case "paypal-create-order":
+        upstreamUrl = `${API_BASE}/payments/paypal/create-order`;
+        break;
+      case "paypal-capture-order":
+        upstreamUrl = `${API_BASE}/payments/paypal/capture-order`;
+        break;
+      case "apple-pay-session":
+        upstreamUrl = `${API_BASE}/payments/apple-pay/session`;
+        break;
+      case "klarna-session":
+        upstreamUrl = `${API_BASE}/payments/klarna/session`;
+        break;
       default:
         return jsonRes({ success: false, error: "Invalid action" }, 400);
     }
