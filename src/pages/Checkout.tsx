@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useCheckout } from "@/hooks/use-checkout";
 import { useCheckoutConfig } from "@/hooks/use-checkout-config";
+import { useCarrierData } from "@/hooks/use-carrier-data";
 import {
   exchangePlaidToken,
   createPaypalOrder,
@@ -58,6 +59,7 @@ const Checkout = () => {
   const state = location.state as CheckoutState | null;
   const { processCheckout, processing } = useCheckout();
   const { config, loading: configLoading } = useCheckoutConfig();
+  const { range: carrierRange } = useCarrierData(state?.carrierSlug || "", []);
 
   const [paymentMethod, setPaymentMethod] = useState<string>("cardpayment");
   const [form, setForm] = useState({
