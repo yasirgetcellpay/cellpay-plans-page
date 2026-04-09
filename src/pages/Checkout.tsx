@@ -260,16 +260,18 @@ const Checkout = () => {
 
   // --- Handle successful checkout result ---
   const handleCheckoutResult = (result: any, methodName: string) => {
-    if (result?.data?.HostedURL) {
-      window.location.href = result.data.HostedURL;
-    } else if (result?.success || result?.data?.status) {
-      const txId = result?.data?.transactionId || "";
+    const data = result?.data?.data ?? result?.data;
+    if (data?.HostedURL) {
+      window.location.href = data.HostedURL;
+    } else if (result?.success && data?.status !== false) {
+      const txId = data?.transactionId || "";
       setSuccessDialog({ open: true, transactionId: txId });
     } else {
+      const apiMsg = data?.msg || data?.message || result?.error || "";
       setErrorDialog({
         open: true,
         title: "Payment Failed",
-        message: `${methodName} payment could not be completed. Please try again or contact support.`,
+        message: apiMsg || `${methodName} payment could not be completed. Please try again or contact support.`,
       });
     }
   };
