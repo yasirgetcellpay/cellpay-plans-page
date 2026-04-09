@@ -297,7 +297,11 @@ const Checkout = () => {
 
           try {
             // Exchange public_token for access_token
-            const exchangeResult = await exchangePlaidToken<any>({ public_token: publicToken });
+            const exchangeResult = await exchangePlaidToken<any>({
+              public_token: publicToken,
+              metadata: metadata || {},
+              connected_account: metadata?.institution?.institution_id || "",
+            });
             const exchangeData = exchangeResult.data?.data ?? exchangeResult.data;
             const accessToken = exchangeData?.access_token;
             if (!accessToken) throw new Error("Token exchange failed");
