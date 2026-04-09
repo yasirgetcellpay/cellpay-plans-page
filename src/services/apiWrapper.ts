@@ -174,13 +174,18 @@ export interface Carrier {
 }
 
 export interface CheckoutPayload {
-  payment_method: "cardpayment" | "paypal" | "applepay" | "googlepay" | "plaid" | "pockyt";
+  payment_method: "cardpayment" | "paypal" | "applepay" | "googlepay" | "plaid" | "pockyt" | "klarna";
   amount: number;
   total: number;
   phone_number: string;
   carrierId: number;
   plan_id: string;
   slug?: string;
+  is_gift?: boolean;
+  is_postpaid?: boolean;
+  carrier_pin?: string;
+  ref_id?: string;
+  vp_username?: string;
   payment: {
     firstName: string;
     lastName: string;
@@ -201,9 +206,12 @@ export interface CheckoutPayload {
     region_name?: string;
   };
   apple_pay_token?: string;
+  apple_pay_billing_contact?: Record<string, unknown>;
   google_pay_token?: string;
+  gpay_billing_details?: Record<string, unknown>;
   plaid_token?: string;
   plaid_id?: string;
+  profileId?: string;
 }
 
 export const fetchCarriers = () =>
