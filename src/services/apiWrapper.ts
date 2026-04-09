@@ -233,3 +233,24 @@ export const verifyPhone = <T = unknown>(slug: string, phoneNumber: string, plan
 
 export const processCheckout = <T = unknown>(payload: CheckoutPayload) =>
   apiRequest<T>("checkout", {}, { method: "POST", body: payload });
+
+export const fetchCheckoutClientConfig = <T = unknown>() =>
+  apiRequest<T>("checkout-client-config");
+
+export const createPlaidLinkToken = <T = unknown>(body: Record<string, unknown>) =>
+  apiRequest<T>("plaid-link-token", {}, { method: "POST", body });
+
+export const exchangePlaidToken = <T = unknown>(body: { public_token: string }) =>
+  apiRequest<T>("plaid-exchange-token", {}, { method: "POST", body });
+
+export const createPaypalOrder = <T = unknown>(body: Record<string, unknown>) =>
+  apiRequest<T>("paypal-create-order", {}, { method: "POST", body });
+
+export const capturePaypalOrder = <T = unknown>(body: Record<string, unknown>) =>
+  apiRequest<T>("paypal-capture-order", {}, { method: "POST", body });
+
+export const createApplePaySession = <T = unknown>(body: Record<string, unknown>) =>
+  apiRequest<T>("apple-pay-session", {}, { method: "POST", body });
+
+export const createKlarnaSession = <T = unknown>(body: Record<string, unknown>) =>
+  apiRequest<T>("klarna-session", {}, { method: "POST", body });
