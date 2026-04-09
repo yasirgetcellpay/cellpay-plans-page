@@ -574,16 +574,26 @@ const Checkout = () => {
 
                 {plaidBankName ? (
                   <div className="text-center space-y-3 py-4">
-                    <div className="text-green-600 text-4xl">✓</div>
-                    <p className="text-lg font-bold text-gray-800">Connected to {plaidBankName}</p>
-                    <p className="text-sm text-gray-500">Your bank account is linked and ready for payment.</p>
-                    <button
-                      type="button"
-                      onClick={() => { setPlaidPublicToken(null); setPlaidBankName(null); setPlaidSelectedToken(null); }}
-                      className="text-sm text-red-500 underline hover:text-red-700"
-                    >
-                      Change bank
-                    </button>
+                    {plaidProcessing ? (
+                      <>
+                        <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />
+                        <p className="text-lg font-bold text-gray-800">Processing payment...</p>
+                        <p className="text-sm text-gray-500">Connected to {plaidBankName}. Please wait.</p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-green-600 text-4xl">✓</div>
+                        <p className="text-lg font-bold text-gray-800">Connected to {plaidBankName}</p>
+                        <p className="text-sm text-gray-500">Your bank account is linked and ready for payment.</p>
+                        <button
+                          type="button"
+                          onClick={() => { setPlaidPublicToken(null); setPlaidBankName(null); setPlaidSelectedToken(null); }}
+                          className="text-sm text-red-500 underline hover:text-red-700"
+                        >
+                          Change bank
+                        </button>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <>
