@@ -12,6 +12,7 @@ import {
   createPaypalOrder,
   capturePaypalOrder,
   createPlaidLinkToken,
+  createKlarnaSession,
 } from "@/services/apiWrapper";
 import { PaymentBar } from "@/components/PaymentBar";
 import { toast } from "sonner";
@@ -91,8 +92,15 @@ const Checkout = () => {
   const [gpayReady, setGpayReady] = useState(false);
   const [gpayScriptLoaded, setGpayScriptLoaded] = useState(false);
 
-  // Generic processing for apple/klarna/pockyt
+  // Generic processing for apple/pockyt
   const [methodProcessing, setMethodProcessing] = useState(false);
+
+  // Klarna state
+  const [klarnaScriptLoaded, setKlarnaScriptLoaded] = useState(false);
+  const [klarnaClientToken, setKlarnaClientToken] = useState<string | null>(null);
+  const [klarnaSessionId, setKlarnaSessionId] = useState<string | null>(null);
+  const [klarnaWidgetLoaded, setKlarnaWidgetLoaded] = useState(false);
+  const [klarnaProcessing, setKlarnaProcessing] = useState(false);
 
   // Error dialog
   const [errorDialog, setErrorDialog] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: "", message: "" });
