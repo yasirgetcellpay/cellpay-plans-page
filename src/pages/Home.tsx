@@ -58,28 +58,31 @@ const Home = () => {
           </Link>
           <div className="flex items-center gap-4">
             {isAuthenticated ? (
-              <button
-                onClick={logout}
-                className="text-sm font-medium text-destructive hover:underline"
-              >
-                Log Out
-              </button>
-            ) : (
               <>
+                <span className="text-sm text-muted-foreground">
+                  {user?.first_name || user?.email}
+                </span>
                 <button
-                  onClick={() => setAuthMode("login")}
-                  className="text-sm font-medium text-foreground hover:underline"
+                  onClick={logout}
+                  className="text-sm font-medium text-destructive hover:underline"
                 >
-                  Log In
+                  Log Out
                 </button>
-                <a
-                  href="#carriers"
-                  className="px-5 py-2 rounded text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors"
-                >
-                  Recharge Now
-                </a>
               </>
+            ) : (
+              <button
+                onClick={() => setAuthMode("login")}
+                className="text-sm font-medium text-foreground hover:underline"
+              >
+                Log In
+              </button>
             )}
+            <a
+              href="#carriers"
+              className="px-5 py-2 rounded text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors"
+            >
+              Recharge Now
+            </a>
           </div>
         </div>
       </nav>
