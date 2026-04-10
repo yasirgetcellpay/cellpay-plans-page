@@ -69,6 +69,12 @@ Deno.serve(async (req) => {
       case "klarna-session":
         upstreamUrl = `${API_BASE}/payments/klarna/session`;
         break;
+      case "user-login":
+        upstreamUrl = `${API_BASE}/users/login`;
+        break;
+      case "user-register":
+        upstreamUrl = `${API_BASE}/users/register`;
+        break;
       default:
         return jsonRes({ success: false, error: "Invalid action" }, 400);
     }
