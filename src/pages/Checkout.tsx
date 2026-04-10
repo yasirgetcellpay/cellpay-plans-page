@@ -101,6 +101,7 @@ const Checkout = () => {
   const [klarnaSessionId, setKlarnaSessionId] = useState<string | null>(null);
   const [klarnaWidgetLoaded, setKlarnaWidgetLoaded] = useState(false);
   const [klarnaProcessing, setKlarnaProcessing] = useState(false);
+  const [klarnaError, setKlarnaError] = useState<string | null>(null);
 
   // Error dialog
   const [errorDialog, setErrorDialog] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: "", message: "" });
@@ -188,38 +189,43 @@ const Checkout = () => {
   }, [paymentMethod, klarnaScriptLoaded, config]);
 
   // Create Klarna session when selected and SDK loaded
-  useEffect(() => {
-    if (paymentMethod !== "klarna" || !klarnaScriptLoaded || klarnaClientToken) return;
-    if (!state) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const totalAmt = state.total ?? (state.amount + (state.fee ?? 5.99) + (state.tax ?? 0));
-        const sessionRes = await createKlarnaSession<any>({
-          amount: totalAmt,
-          phone_number: state.phone,
-          carrierId: state.carrierId,
-          plan_id: state.planId,
-        });
-        if (cancelled) return;
-        const sessionData = sessionRes.data?.data ?? sessionRes.data;
-        const clientToken = sessionData?.client_token;
-        if (clientToken) {
-          setKlarnaClientToken(clientToken);
-          setKlarnaSessionId(sessionData?.session_id || null);
-        } else {
-          console.error("Klarna session: no client_token", sessionRes);
-          toast.error(sessionData?.msg || "Could not initialize Klarna. Try another payment method.");
-        }
-      } catch (err) {
-        if (!cancelled) {
-          console.error("Klarna session error:", err);
-          toast.error("Could not initialize Klarna. Try another payment method.");
-        }
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [paymentMethod, klarnaScriptLoaded, klarnaClientToken, state]);
+   useEffect(() => {
+     if (paymentMethod !== "klarna" || !klarnaScriptLoaded || klarnaClientToken) return;
+     if (!state) return;
+     setKlarnaError(null);
+     let cancelled = false;
+     (async () => {
+       try {
+         const totalAmt = state.total ?? (state.amount + (state.fee ?? 5.99) + (state.tax ?? 0));
+         const sessionRes = await createKlarnaSession<any>({
+           amount: totalAmt,
+           phone_number: state.phone,
+           carrierId: state.carrierId,
+           plan_id: state.planId,
+         });
+         if (cancelled) return;
+         const sessionData = sessionRes.data?.data ?? sessionRes.data;
+         const clientToken = sessionData?.client_token;
+         if (clientToken) {
+           setKlarnaClientToken(clientToken);
+           setKlarnaSessionId(sessionData?.session_id || null);
+         } else {
+           const errMsg = sessionData?.msg || sessionRes.error || "Could not initialize Klarna. Try another payment method.";
+           console.error("Klarna session: no client_token", sessionRes);
+           setKlarnaError(errMsg);
+           toast.error(errMsg);
+         }
+       } catch (err) {
+         if (!cancelled) {
+           console.error("Klarna session error:", err);
+           const errMsg = "Could not initialize Klarna. Try another payment method.";
+           setKlarnaError(errMsg);
+           toast.error(errMsg);
+         }
+       }
+     })();
+     return () => { cancelled = true; };
+   }, [paymentMethod, klarnaScriptLoaded, klarnaClientToken, state]);
 
   // Initialize Klarna widget
   useEffect(() => {
@@ -256,6 +262,7 @@ const Checkout = () => {
       setKlarnaClientToken(null);
       setKlarnaSessionId(null);
       setKlarnaWidgetLoaded(false);
+      setKlarnaError(null);
     }
   }, [paymentMethod]);
 
@@ -1070,11 +1077,24 @@ const Checkout = () => {
                 <section className="bg-white rounded border border-gray-200 p-5">
                   <h2 className="text-sm font-bold text-gray-800 mb-1">Klarna Payment</h2>
                   <p className="text-xs text-gray-400 mb-4">Buy now, pay later</p>
-                  {!klarnaClientToken && (
-                    <div className="flex items-center justify-center py-8 text-gray-400 gap-2">
-                      <Loader2 className="h-5 w-5 animate-spin" /> Initializing Klarna...
-                    </div>
-                  )}
+                   {!klarnaClientToken && !klarnaError && (
+                     <div className="flex items-center justify-center py-8 text-gray-400 gap-2">
+                       <Loader2 className="h-5 w-5 animate-spin" /> Initializing Klarna...
+                     </div>
+                   )}
+                   {klarnaError && (
+                     <div className="bg-red-50 border border-red-200 rounded p-4 text-sm text-red-700">
+                       <p className="font-medium mb-1">Klarna is currently unavailable</p>
+                       <p className="text-xs text-red-500">{klarnaError}</p>
+                       <button
+                         type="button"
+                         className="mt-2 text-xs underline text-red-600 hover:text-red-800"
+                         onClick={() => { setKlarnaError(null); setKlarnaClientToken(null); }}
+                       >
+                         Retry
+                       </button>
+                     </div>
+                   )}
                   <div id="klarna-payments-container" className="min-h-[60px]" />
                   {klarnaProcessing && (
                     <div className="flex items-center justify-center py-4 text-gray-500 gap-2">
