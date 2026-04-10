@@ -404,7 +404,7 @@ const Checkout = () => {
       case "applepay":
         return { ...base, payment_method: "applepay" };
       case "pockyt":
-        return { ...base, payment_method: "pockyt" };
+        return { ...base, payment_method: "pockyt", checkout_version: "5.0" } as any;
       case "klarna":
         return {
           ...base,
