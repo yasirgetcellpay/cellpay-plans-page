@@ -774,13 +774,8 @@ const Checkout = () => {
         async (res: any) => {
           try {
             if (res.approved && res.authorization_token) {
-              // Build checkout payload with Klarna authorization token
               const payload = buildPayload();
-              payload.payment_method = "klarna" as any;
-              (payload as any).klarna_token = res.authorization_token;
-              if (klarnaSessionId) {
-                (payload as any).klarna_session_id = klarnaSessionId;
-              }
+              (payload as any).klarna_auth_token = res.authorization_token;
               const result = await processCheckout(payload);
               handleCheckoutResult(result, "Klarna");
             } else if (res.show_form) {
