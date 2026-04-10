@@ -434,68 +434,60 @@ const Checkout = () => {
     }
   };
 
-  // --- PAYPAL handler ---
-  const handlePaypalPayment = async () => {
+  // --- PAYPAL checkout handler (triggered by Place Order Now) ---
+  const handlePaypalCheckout = async () => {
     if (!(window as any).paypal) {
-      toast.error("PayPal SDK not loaded yet.");
+      toast.error("PayPal SDK not loaded yet. Please wait.");
       return;
     }
-    // PayPal buttons render will handle this; we render them inline
-  };
+    setPaypalProcessing(true);
+    try {
+      // Create order
+      const res = await createPaypalOrder<any>({ amount: total, currency: "USD", carrierId, plan_id: resolvedPlanId, phone_number: phone, description: `${carrierName} refill - ${phone}` });
+      const orderData = res.data?.data ?? res.data;
+      const orderId = orderData?.id || orderData?.orderID;
+      if (!orderId) throw new Error("Could not create PayPal order.");
 
-  // Render PayPal buttons via callback ref – renders as soon as the container mounts
-  const paypalNodeRef = useRef<HTMLDivElement | null>(null);
-  const paypalContainerRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (!node || !(window as any).paypal) return;
-      // Avoid double-render on the same node
-      if (paypalNodeRef.current === node) return;
-      paypalNodeRef.current = node;
-      node.innerHTML = ""; // clear previous buttons if any
+      // Redirect to PayPal approval URL if available, otherwise use SDK popup
+      const approvalUrl = orderData?.links?.find((l: any) => l.rel === "approve")?.href;
+      if (approvalUrl) {
+        window.location.href = approvalUrl;
+        return;
+      }
 
-      (window as any).paypal.Buttons({
-        createOrder: async () => {
-          try {
-            const res = await createPaypalOrder<any>({ amount: total, currency: "USD", carrierId, plan_id: resolvedPlanId, phone_number: phone, description: `${carrierName} refill - ${phone}` });
-            const orderData = res.data?.data ?? res.data;
-            return orderData?.id || orderData?.orderID;
-          } catch (err) {
-            console.error("PayPal create order error:", err);
-            throw err;
-          }
-        },
-        onApprove: async (data: any) => {
-          setPaypalProcessing(true);
-          try {
-            await capturePaypalOrder<any>({ orderID: data.orderID });
-            const payload = buildPayload();
-            const result = await processCheckout(payload);
-            handleCheckoutResult(result, "PayPal");
-          } catch (err) {
-            console.error("PayPal capture error:", err);
-            setErrorDialog({ open: true, title: "PayPal Error", message: "Payment approved but order could not be completed." });
-          } finally {
-            setPaypalProcessing(false);
-          }
-        },
-        onCancel: () => {
-          setErrorDialog({ open: true, title: "Payment Cancelled", message: "You cancelled the PayPal payment. No charges were made." });
-        },
-        onError: (err: any) => {
-          console.error("PayPal error:", err);
-          setErrorDialog({ open: true, title: "PayPal Error", message: "An error occurred with PayPal. Please try again." });
-        },
-      }).render(node);
-    },
-    [paypalScriptLoaded, total, carrierId, resolvedPlanId, carrierName, phone]
-  );
-
-  // Reset node ref when switching away so buttons re-render on return
-  useEffect(() => {
-    if (paymentMethod !== "paypal") {
-      paypalNodeRef.current = null;
+      // Fallback: use PayPal SDK buttons popup
+      const paypal = (window as any).paypal;
+      await new Promise<void>((resolve, reject) => {
+        const tempDiv = document.createElement("div");
+        tempDiv.style.display = "none";
+        document.body.appendChild(tempDiv);
+        paypal.Buttons({
+          createOrder: () => orderId,
+          onApprove: async (data: any) => {
+            try {
+              await capturePaypalOrder<any>({ orderID: data.orderID });
+              const payload = buildPayload();
+              const result = await processCheckout(payload);
+              handleCheckoutResult(result, "PayPal");
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          },
+          onCancel: () => {
+            setErrorDialog({ open: true, title: "Payment Cancelled", message: "You cancelled the PayPal payment." });
+            resolve();
+          },
+          onError: (err: any) => reject(err),
+        }).render(tempDiv);
+      });
+    } catch (err) {
+      console.error("PayPal error:", err);
+      setErrorDialog({ open: true, title: "PayPal Error", message: "Could not process PayPal payment. Please try again." });
+    } finally {
+      setPaypalProcessing(false);
     }
-  }, [paymentMethod]);
+  };
 
   // --- GOOGLE PAY handler ---
   const handleGooglePay = async () => {
