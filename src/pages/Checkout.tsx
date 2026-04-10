@@ -448,23 +448,52 @@ const Checkout = () => {
       const orderId = orderData?.id || orderData?.orderID;
       if (!orderId) throw new Error("Could not create PayPal order.");
 
-      // Check for approval URL from API response
+      // Build PayPal approval URL
       const approvalUrl = orderData?.links?.find((l: any) => l.rel === "approve")?.href;
-      if (approvalUrl) {
-        window.location.href = approvalUrl;
-        return;
-      }
-
-      // Construct PayPal approval URL from order ID
       const paypalEnv = (config?.paypal as any)?.environment || "sandbox";
       const paypalBase = paypalEnv === "sandbox"
         ? "https://www.sandbox.paypal.com"
         : "https://www.paypal.com";
-      window.location.href = `${paypalBase}/checkoutnow?token=${orderId}`;
+      const checkoutUrl = approvalUrl || `${paypalBase}/checkoutnow?token=${orderId}`;
+
+      // Open in popup window
+      const width = 500;
+      const height = 650;
+      const left = Math.round(window.screenX + (window.outerWidth - width) / 2);
+      const top = Math.round(window.screenY + (window.outerHeight - height) / 2);
+      const popup = window.open(
+        checkoutUrl,
+        "PayPalCheckout",
+        `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
+      );
+
+      if (!popup || popup.closed) {
+        toast.error("Popup blocked. Please allow popups for this site and try again.");
+        return;
+      }
+
+      // Poll for popup close to detect completion/cancellation
+      const pollTimer = setInterval(async () => {
+        if (!popup || popup.closed) {
+          clearInterval(pollTimer);
+          // After popup closes, attempt to capture the order and complete checkout
+          try {
+            await capturePaypalOrder<any>({ orderID: orderId });
+            const payload = buildPayload();
+            const result = await processCheckout(payload);
+            handleCheckoutResult(result, "PayPal");
+          } catch (captureErr) {
+            console.warn("PayPal capture after popup close:", captureErr);
+            // User may have cancelled — show neutral message
+            setErrorDialog({ open: true, title: "PayPal", message: "PayPal payment was not completed. Please try again if needed." });
+          } finally {
+            setPaypalProcessing(false);
+          }
+        }
+      }, 500);
     } catch (err) {
       console.error("PayPal error:", err);
       setErrorDialog({ open: true, title: "PayPal Error", message: "Could not process PayPal payment. Please try again." });
-    } finally {
       setPaypalProcessing(false);
     }
   };
