@@ -24,7 +24,7 @@ const CarrierDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { plans, loading, range, seoCarrier, data } = useCarrierData(slug || "", []);
-  const { verify, verifying } = usePhoneVerification();
+  const [validating, setValidating] = useState(false);
 
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
@@ -223,33 +223,50 @@ const CarrierDetail = () => {
           <div className="flex justify-center">
             <button
               type="button"
-              disabled={!isValid || verifying}
+              disabled={!isValid || validating}
               onClick={async () => {
-                const phoneDigits = phone.replace(/\D/g, "");
-                const result = await verify(
-                  carrierSlug,
-                  phoneDigits,
-                  selectedPlanId || undefined,
-                  amountNum
-                );
-                if (result?.success !== false) {
+                setValidating(true);
+                try {
+                  const phoneDigits = phone.replace(/\D/g, "");
+                  const resolvedPlanId = selectedPlanId || range?.planId || "";
+
+                  const validateRes = await validatePlan(
+                    carrierSlug,
+                    phoneDigits,
+                    resolvedPlanId
+                  );
+
+                  if (!validateRes.success || !validateRes.data) {
+                    toast.error(validateRes.error || "Validation failed. Please try again.");
+                    return;
+                  }
+
+                  const pricing = (validateRes.data as any)?.data ?? validateRes.data;
+
                   navigate("/checkout", {
                     state: {
                       phone: phoneDigits,
-                      amount: amountNum,
-                      planId: selectedPlanId || range?.planId || "",
-                      carrierId: data?.carrier?.id || 0,
+                      amount: pricing.amount ?? amountNum,
+                      fee: pricing.fee ?? 0,
+                      tax: pricing.tax ?? 0,
+                      total: pricing.total ?? (amountNum + (pricing.fee ?? 0)),
+                      planId: resolvedPlanId,
+                      carrierId: pricing.carrierId ?? pricing.carrier_id ?? data?.carrier?.id ?? 0,
                       carrierName,
                       carrierSlug,
                     },
                   });
+                } catch {
+                  toast.error("Something went wrong. Please try again.");
+                } finally {
+                  setValidating(false);
                 }
               }}
               className="h-14 px-20 rounded-full text-white font-bold text-lg uppercase tracking-wide transition-all active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2"
               style={{ backgroundColor: brandColor }}
             >
-              {verifying && <Loader2 className="h-5 w-5 animate-spin" />}
-              {verifying ? "VERIFYING..." : "PAY NOW"}
+              {validating && <Loader2 className="h-5 w-5 animate-spin" />}
+              {validating ? "VERIFYING..." : "PAY NOW"}
             </button>
           </div>
           <p className="text-center text-xs text-gray-400 mt-3">
