@@ -94,6 +94,12 @@ Deno.serve(async (req) => {
       ...(body ? { "Content-Type": "application/json" } : {}),
     };
 
+    // Forward bearer token if present
+    const authHeader = req.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      (upstreamHeaders as Record<string, string>)["Authorization"] = authHeader;
+    }
+
     const upstreamResponse = await fetch(upstreamUrl, {
       method: req.method,
       headers: upstreamHeaders,
