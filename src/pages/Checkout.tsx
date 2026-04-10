@@ -92,6 +92,8 @@ const Checkout = () => {
 
   // Google Pay state
   const [gpayProcessing, setGpayProcessing] = useState(false);
+  const [gpayReady, setGpayReady] = useState(false);
+  const [gpayScriptLoaded, setGpayScriptLoaded] = useState(false);
 
   // Generic processing for apple/klarna/pockyt
   const [methodProcessing, setMethodProcessing] = useState(false);
