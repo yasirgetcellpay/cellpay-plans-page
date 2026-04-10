@@ -1,16 +1,14 @@
 import { useState, useCallback } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Phone, DollarSign, Loader2 } from "lucide-react";
 import { useCarrierData } from "@/hooks/use-carrier-data";
 import { validatePlan } from "@/services/apiWrapper";
 import { getCarrierBrandColor } from "@/lib/carrier-colors";
+import { Navbar } from "@/components/Navbar";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
 import { Footer } from "@/components/Footer";
-import { useAuth } from "@/contexts/AuthContext";
-import { AuthDialogs } from "@/components/AuthDialogs";
 import { toast } from "sonner";
-import cellpayLogo from "@/assets/cellpay-logo.webp";
 
 const LOGO_BASE = "https://www.cellpay.us/webp/v4/home";
 
