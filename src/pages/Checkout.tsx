@@ -850,95 +850,27 @@ const Checkout = () => {
                 </section>
               )}
 
-              {/* PLAID */}
-              {paymentMethod === "plaid" && (
+              {/* PLAID — only show connected state */}
+              {paymentMethod === "plaid" && plaidBankName && (
                 <section className="bg-white rounded border border-gray-200 p-5">
                   <h2 className="text-sm font-bold text-gray-800 mb-1">Pay by Bank</h2>
                   <p className="text-xs text-gray-400 mb-4">Powered by Plaid</p>
-                  {plaidBankName ? (
-                    <div className="text-center space-y-3 py-4">
-                      {plaidProcessing ? (
-                        <>
-                          <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />
-                          <p className="text-lg font-bold text-gray-800">Processing payment...</p>
-                          <p className="text-sm text-gray-500">Connected to {plaidBankName}. Please wait.</p>
-                        </>
-                      ) : (
-                        <>
-                          <div className="text-green-600 text-4xl">✓</div>
-                          <p className="text-lg font-bold text-gray-800">Connected to {plaidBankName}</p>
-                          <p className="text-sm text-gray-500">Your bank account is linked.</p>
-                          <button type="button" onClick={() => { setPlaidAccessToken(null); setPlaidBankName(null); }} className="text-sm text-red-500 underline hover:text-red-700">Change bank</button>
-                        </>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <div className="text-5xl mb-3">🏦</div>
-                      <p className="text-sm text-gray-600">Click <b>PLACE ORDER NOW</b> below to securely connect your bank account via Plaid.</p>
-                      {!plaidScriptLoaded && (
-                        <div className="flex items-center justify-center gap-2 mt-3 text-sm text-gray-400">
-                          <Loader2 className="h-4 w-4 animate-spin" /> Loading Plaid...
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-                    <span className="text-[10px] text-gray-400 font-medium tracking-wide">🔒 PLAID</span>
-                    <a href="https://plaid.com" target="_blank" rel="noopener noreferrer" className="text-[11px] text-gray-500 hover:text-gray-700">What is Plaid?</a>
+                  <div className="text-center space-y-3 py-4">
+                    {plaidProcessing ? (
+                      <>
+                        <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />
+                        <p className="text-lg font-bold text-gray-800">Processing payment...</p>
+                        <p className="text-sm text-gray-500">Connected to {plaidBankName}. Please wait.</p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-green-600 text-4xl">✓</div>
+                        <p className="text-lg font-bold text-gray-800">Connected to {plaidBankName}</p>
+                        <p className="text-sm text-gray-500">Your bank account is linked.</p>
+                        <button type="button" onClick={() => { setPlaidAccessToken(null); setPlaidBankName(null); }} className="text-sm text-red-500 underline hover:text-red-700">Change bank</button>
+                      </>
+                    )}
                   </div>
-                </section>
-              )}
-
-              {/* PAYPAL */}
-              {paymentMethod === "paypal" && (
-                <section className="bg-white rounded border border-gray-200 p-5 text-center">
-                  <h2 className="text-sm font-bold text-gray-800 mb-2">PayPal</h2>
-                  {!config?.paypal?.clientId ? (
-                    <p className="text-sm text-red-500 py-4">PayPal is not available. Please try another method.</p>
-                  ) : (
-                    <p className="text-sm text-gray-500 py-2">You will be redirected to PayPal to complete payment.</p>
-                  )}
-                </section>
-              )}
-
-              {/* GOOGLE PAY */}
-              {paymentMethod === "googlepay" && (
-                <section className="bg-white rounded border border-gray-200 p-5 text-center">
-                  <h2 className="text-sm font-bold text-gray-800 mb-2">Google Pay</h2>
-                  {!gpayScriptLoaded ? (
-                    <div className="flex items-center justify-center gap-2 py-4 text-sm text-gray-400">
-                      <Loader2 className="h-5 w-5 animate-spin" /> Loading Google Pay...
-                    </div>
-                  ) : !gpayReady ? (
-                    <p className="text-sm text-gray-500 py-4">Google Pay is not available on this device/browser. Please try another method.</p>
-                  ) : (
-                    <p className="text-sm text-gray-500 py-2">Click <b>PLACE ORDER NOW</b> below to pay securely with Google Pay.</p>
-                  )}
-                </section>
-              )}
-
-              {/* APPLE PAY */}
-              {paymentMethod === "applepay" && (
-                <section className="bg-white rounded border border-gray-200 p-5 text-center">
-                  <h2 className="text-sm font-bold text-gray-800 mb-2"> Pay</h2>
-                  <p className="text-sm text-gray-500 py-2">Click <b>PLACE ORDER NOW</b> below to pay with  Pay.</p>
-                </section>
-              )}
-
-              {/* CASH APP PAY (Pockyt) */}
-              {paymentMethod === "pockyt" && (
-                <section className="bg-white rounded border border-gray-200 p-5 text-center">
-                  <h2 className="text-sm font-bold text-gray-800 mb-4">Cash App Pay</h2>
-                  <p className="text-sm text-gray-500 mb-4">You will be redirected to complete payment.</p>
-                </section>
-              )}
-
-              {/* KLARNA */}
-              {paymentMethod === "klarna" && (
-                <section className="bg-white rounded border border-gray-200 p-5 text-center">
-                  <h2 className="text-sm font-bold text-gray-800 mb-4">Klarna</h2>
-                  <p className="text-sm text-gray-500 mb-4">Buy now, pay later. You will be redirected to Klarna.</p>
                 </section>
               )}
 
