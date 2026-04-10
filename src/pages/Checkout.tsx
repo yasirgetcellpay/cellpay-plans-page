@@ -753,17 +753,62 @@ const Checkout = () => {
 
   // --- KLARNA handler ---
   const handleKlarna = async () => {
-    setMethodProcessing(true);
+    if (!(window as any).Klarna?.Payments) {
+      toast.error("Klarna is not loaded yet. Please wait.");
+      return;
+    }
+    setKlarnaProcessing(true);
     try {
-      const payload = buildPayload();
-      payload.payment_method = "klarna" as any;
-      const result = await processCheckout(payload);
-      handleCheckoutResult(result, "Klarna");
+      // Authorize via Klarna SDK
+      (window as any).Klarna.Payments.authorize(
+        { payment_method_category: "pay_later" },
+        {
+          billing_address: {
+            given_name: form.firstName,
+            family_name: form.lastName,
+            email: form.email,
+            phone: form.billingPhone.replace(/\D/g, ""),
+            street_address: form.address,
+            city: form.city,
+            region: form.stateProvince,
+            postal_code: form.zip,
+            country: "US",
+          },
+        },
+        async (res: any) => {
+          try {
+            if (res.approved && res.authorization_token) {
+              // Build checkout payload with Klarna authorization token
+              const payload = buildPayload();
+              payload.payment_method = "klarna" as any;
+              (payload as any).klarna_token = res.authorization_token;
+              if (klarnaSessionId) {
+                (payload as any).klarna_session_id = klarnaSessionId;
+              }
+              const result = await processCheckout(payload);
+              handleCheckoutResult(result, "Klarna");
+            } else if (res.show_form) {
+              // User needs to complete more info in the widget
+              toast.info("Please complete the Klarna form above.");
+            } else {
+              setErrorDialog({
+                open: true,
+                title: "Payment Cancelled",
+                message: "Klarna payment was not approved. Please try again or use a different payment method.",
+              });
+            }
+          } catch (err) {
+            console.error("Klarna checkout error:", err);
+            setErrorDialog({ open: true, title: "Payment Error", message: "Klarna payment processing failed. Please try again." });
+          } finally {
+            setKlarnaProcessing(false);
+          }
+        }
+      );
     } catch (err) {
-      console.error("Klarna error:", err);
+      console.error("Klarna authorize error:", err);
       setErrorDialog({ open: true, title: "Payment Error", message: "Klarna payment failed. Please try again." });
-    } finally {
-      setMethodProcessing(false);
+      setKlarnaProcessing(false);
     }
   };
 
