@@ -45,6 +45,13 @@ Deno.serve(async (req) => {
         upstreamUrl = `${API_BASE}/carriers/verify-phone/${slug}`;
         break;
       }
+      case "validate": {
+        const slug = url.searchParams.get("slug");
+        if (!slug || !/^[a-z0-9-]+$/.test(slug))
+          return jsonRes({ success: false, error: "Invalid slug" }, 400);
+        upstreamUrl = `${API_BASE}/carriers/validate/${slug}`;
+        break;
+      }
       case "checkout":
         upstreamUrl = `${API_BASE}/checkout/transaction`;
         break;

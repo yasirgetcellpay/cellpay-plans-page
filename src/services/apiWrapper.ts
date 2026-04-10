@@ -238,6 +238,28 @@ export const verifyPhone = <T = unknown>(slug: string, phoneNumber: string, plan
     },
   });
 
+export interface ValidateResult {
+  success: boolean;
+  data?: {
+    amount: number;
+    fee: number;
+    tax: number;
+    total: number;
+    carrierId: number;
+    payment_method_surcharge: number;
+    carrier_id: number;
+  };
+}
+
+export const validatePlan = (slug: string, phoneNumber: string, planId: string) =>
+  apiRequest<ValidateResult>("validate", { slug }, {
+    method: "POST",
+    body: {
+      phone_number: phoneNumber,
+      plan_id: planId,
+    },
+  });
+
 export const processCheckout = <T = unknown>(payload: CheckoutPayload) =>
   apiRequest<T>("checkout", {}, { method: "POST", body: payload });
 
