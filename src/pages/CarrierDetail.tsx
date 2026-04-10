@@ -1,16 +1,14 @@
 import { useState, useCallback } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Phone, DollarSign, Loader2 } from "lucide-react";
 import { useCarrierData } from "@/hooks/use-carrier-data";
 import { validatePlan } from "@/services/apiWrapper";
 import { getCarrierBrandColor } from "@/lib/carrier-colors";
+import { Navbar } from "@/components/Navbar";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
 import { Footer } from "@/components/Footer";
-import { useAuth } from "@/contexts/AuthContext";
-import { AuthDialogs } from "@/components/AuthDialogs";
 import { toast } from "sonner";
-import cellpayLogo from "@/assets/cellpay-logo.webp";
 
 const LOGO_BASE = "https://www.cellpay.us/webp/v4/home";
 
@@ -26,8 +24,6 @@ const CarrierDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { plans, loading, range, seoCarrier, data } = useCarrierData(slug || "", []);
-  const { isAuthenticated, logout } = useAuth();
-  const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
   const [validating, setValidating] = useState(false);
 
   const [phone, setPhone] = useState("");
@@ -87,40 +83,7 @@ const CarrierDetail = () => {
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
-      {/* Per-carrier branded navbar — white bg, brand-color bottom border */}
-      <nav className="w-full bg-card" style={{ borderBottom: `4px solid ${brandColor}` }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <Link to="/" className="flex-shrink-0">
-            <img src={cellpayLogo} alt="CellPay" className="h-10" />
-          </Link>
-          <div className="flex items-center gap-4">
-            {isAuthenticated ? (
-              <button
-                onClick={logout}
-                className="text-sm font-medium text-destructive hover:underline"
-              >
-                Log Out
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={() => setAuthMode("login")}
-                  className="text-sm font-medium text-foreground hover:underline"
-                >
-                  Log In
-                </button>
-                <Link
-                  to="/"
-                  className="px-5 py-2 rounded text-sm font-bold text-primary-foreground transition-colors"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  Recharge Now
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero with carrier brand color */}
       <section className="pb-20 pt-8 sm:pt-12 text-center text-primary-foreground" style={{ backgroundColor: brandColor }}>
@@ -333,11 +296,6 @@ const CarrierDetail = () => {
       <PaymentBar />
       <Footer />
 
-      <AuthDialogs
-        mode={authMode}
-        onClose={() => setAuthMode(null)}
-        onSwitchMode={setAuthMode}
-      />
     </div>
   );
 };
