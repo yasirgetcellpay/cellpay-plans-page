@@ -50,6 +50,7 @@ const paymentMethods = [
   { id: "plaid", label: "Pay by Bank", subtitle: "Instant Login, No Manual Entry", icon: "⚙️" },
   { id: "paypal", label: "Paypal", icon: "🅿️" },
   { id: "googlepay", label: "Google Pay", icon: "G" },
+  { id: "applepay", label: "Apple Pay", icon: "🍎" },
   { id: "pockyt", label: "Cash App Pay", icon: "💲" },
   { id: "klarna", label: "Klarna", subtitle: "(Buy now, pay later)", icon: "K" },
 ];
@@ -402,7 +403,16 @@ const Checkout = () => {
       case "googlepay":
         return { ...base, payment_method: "googlepay" };
       case "applepay":
-        return { ...base, payment_method: "applepay" };
+        return {
+          ...base,
+          checkout_version: "5.0",
+          payment_method: "applepay",
+          payment: {
+            firstName: form.firstName || "Customer",
+            lastName: form.lastName || "",
+            email: form.email,
+          },
+        } as any;
       case "pockyt":
         return { ...base, payment_method: "pockyt", checkout_version: "5.0" } as any;
       case "klarna":
@@ -668,7 +678,7 @@ const Checkout = () => {
   // --- APPLE PAY handler ---
   const handleApplePay = async () => {
     if (!(window as any).ApplePaySession) {
-      setErrorDialog({ open: true, title: "Apple Pay Unavailable", message: "Apple Pay is not supported on this device/browser." });
+      setErrorDialog({ open: true, title: "Apple Pay Unavailable", message: "Apple Pay is not supported on this device/browser. Please use Safari on an Apple device." });
       return;
     }
 
@@ -679,6 +689,7 @@ const Checkout = () => {
         currencyCode: "USD",
         supportedNetworks: ["visa", "masterCard", "amex", "discover"],
         merchantCapabilities: ["supports3DS"],
+        requiredBillingContactFields: ["postalAddress", "name"],
         total: { label: "CellPay Refill", amount: total.toFixed(2) },
       };
       const session = new (window as any).ApplePaySession(3, request);
@@ -703,10 +714,28 @@ const Checkout = () => {
 
       session.onpaymentauthorized = async (event: any) => {
         try {
-          const token = JSON.stringify(event.payment.token);
+          const payment = event.payment;
+          // Base64 encode the payment token
+          const tokenStr = JSON.stringify(payment.token);
+          const applePayToken = btoa(tokenStr);
+
+          // Build billing contact string
+          const bc = payment.billingContact || {};
+          const billingContact = JSON.stringify({
+            addressLines: bc.addressLines || [],
+            locality: bc.locality || "",
+            postalCode: bc.postalCode || "",
+            countryCode: bc.countryCode || "US",
+            givenName: bc.givenName || form.firstName || "",
+            familyName: bc.familyName || form.lastName || "",
+            administrativeArea: bc.administrativeArea || "",
+          });
+
           const payload = buildPayload();
-          (payload as any).apple_pay_token = token;
+          (payload as any).apple_pay_token = applePayToken;
+          (payload as any).apple_pay_billing_contact = billingContact;
           payload.payment_method = "applepay";
+
           const result = await processCheckout(payload);
           const success = result?.success || result?.data?.status;
           session.completePayment(success ? (window as any).ApplePaySession.STATUS_SUCCESS : (window as any).ApplePaySession.STATUS_FAILURE);
