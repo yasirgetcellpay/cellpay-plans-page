@@ -71,7 +71,7 @@ export const Navbar = () => {
             <img
               src={simpleMobileLogo}
               alt="Simple Mobile"
-              className="w-[100px] sm:w-[130px] brightness-0 invert"
+              className="w-[100px] sm:w-[130px]"
             />
           </Link>
 
