@@ -49,7 +49,6 @@ const paymentMethods = [
   { id: "plaid", label: "Pay by Bank", subtitle: "Instant Login, No Manual Entry", icon: "⚙️" },
   { id: "paypal", label: "Paypal", icon: "🅿️" },
   { id: "googlepay", label: "Google Pay", icon: "G" },
-  { id: "applepay", label: " Pay", icon: "apple" },
   { id: "pockyt", label: "Cash App Pay", icon: "💲" },
   { id: "klarna", label: "Klarna", subtitle: "(Buy now, pay later)", icon: "K" },
 ];
