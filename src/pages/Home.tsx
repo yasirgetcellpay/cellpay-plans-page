@@ -37,7 +37,8 @@ const Home = () => {
           return [];
         };
         const list = extract(raw);
-        setCarriers(list.filter((c) => c.active !== false));
+        const GIFT_CARD_SLUGS = ["xbox"];
+        setCarriers(list.filter((c) => c.active !== false && !GIFT_CARD_SLUGS.includes(c.slug || "")));
       } else {
         setError(result.error || "Failed to load carriers");
       }
