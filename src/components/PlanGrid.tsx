@@ -22,7 +22,7 @@ export const PlanGrid = ({ plans, brandColor = "hsl(134, 40%, 40%)", onSelect, l
   return (
     <div>
       <p className="text-sm font-bold text-gray-900 mb-3">Select Amount</p>
-      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
         {plans.map((plan, i) => {
           const isSelected = selectedPlanId === plan.plan_id;
           return (
@@ -36,13 +36,13 @@ export const PlanGrid = ({ plans, brandColor = "hsl(134, 40%, 40%)", onSelect, l
               style={isSelected ? { borderColor: brandColor, outlineColor: brandColor } : {}}
             >
               <div
-                className="px-2 py-1.5 sm:py-2 text-center text-white font-extrabold text-sm sm:text-base"
+                className="px-3 py-2.5 sm:py-3 text-center text-white font-extrabold text-base sm:text-lg"
                 style={{ backgroundColor: brandColor }}
               >
                 {plan.price}
               </div>
-              <div className="px-1.5 py-1.5 sm:px-2 sm:py-2 min-h-[40px] sm:min-h-[56px] flex items-start">
-                <p className="text-[9px] sm:text-[11px] leading-tight text-gray-600 line-clamp-4">
+              <div className="px-2 py-2 sm:px-3 sm:py-3 min-h-[48px] sm:min-h-[64px] flex items-start">
+                <p className="text-[10px] sm:text-xs leading-tight text-gray-600 line-clamp-4">
                   {plan.highlight}
                 </p>
               </div>
