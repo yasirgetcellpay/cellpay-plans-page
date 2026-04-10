@@ -707,10 +707,10 @@ const Checkout = () => {
         </div>
       </nav>
 
-      {/* Banner */}
-      <div className="text-white py-5" style={{ backgroundColor: ACCENT_GREEN }}>
+      {/* Banner — same gradient as home page */}
+      <div className="bg-gradient-to-r from-plan-tier1 to-plan-tier2 py-5">
         <div className="max-w-6xl mx-auto px-4">
-          <h1 className="text-2xl font-extrabold tracking-wide">Checkout</h1>
+          <h1 className="text-2xl font-extrabold tracking-wide text-primary-foreground">Checkout</h1>
         </div>
       </div>
 
