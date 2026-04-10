@@ -1,4 +1,9 @@
-export const Footer = () => (
+interface FooterProps {
+  onLogin?: () => void;
+  onSignUp?: () => void;
+}
+
+export const Footer = ({ onLogin, onSignUp }: FooterProps) => (
   <footer className="bg-foreground text-background/60 py-8">
     <div className="max-w-5xl mx-auto px-4">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
