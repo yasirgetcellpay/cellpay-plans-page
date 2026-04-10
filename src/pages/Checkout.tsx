@@ -12,6 +12,7 @@ import {
   createPaypalOrder,
   capturePaypalOrder,
   createPlaidLinkToken,
+  createKlarnaSession,
 } from "@/services/apiWrapper";
 import { PaymentBar } from "@/components/PaymentBar";
 import { toast } from "sonner";
@@ -91,8 +92,15 @@ const Checkout = () => {
   const [gpayReady, setGpayReady] = useState(false);
   const [gpayScriptLoaded, setGpayScriptLoaded] = useState(false);
 
-  // Generic processing for apple/klarna/pockyt
+  // Generic processing for apple/pockyt
   const [methodProcessing, setMethodProcessing] = useState(false);
+
+  // Klarna state
+  const [klarnaScriptLoaded, setKlarnaScriptLoaded] = useState(false);
+  const [klarnaClientToken, setKlarnaClientToken] = useState<string | null>(null);
+  const [klarnaSessionId, setKlarnaSessionId] = useState<string | null>(null);
+  const [klarnaWidgetLoaded, setKlarnaWidgetLoaded] = useState(false);
+  const [klarnaProcessing, setKlarnaProcessing] = useState(false);
 
   // Error dialog
   const [errorDialog, setErrorDialog] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: "", message: "" });
@@ -160,6 +168,100 @@ const Checkout = () => {
     }).catch(() => setGpayReady(false));
   }, [gpayScriptLoaded, config]);
 
+  // Load Klarna Payments SDK
+  useEffect(() => {
+    if (paymentMethod !== "klarna" || klarnaScriptLoaded) return;
+    if (document.querySelector('script[src*="x.klarnacdn.net/kp/lib"]')) {
+      setKlarnaScriptLoaded(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://x.klarnacdn.net/kp/lib/v1/api.html";
+    script.async = true;
+    script.onload = () => setKlarnaScriptLoaded(true);
+    script.onerror = () => console.error("Failed to load Klarna SDK");
+    document.head.appendChild(script);
+  }, [paymentMethod, klarnaScriptLoaded]);
+
+  // Create Klarna session when selected and SDK loaded
+  useEffect(() => {
+    if (paymentMethod !== "klarna" || !klarnaScriptLoaded || klarnaClientToken) return;
+    if (!state) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const totalAmt = state.total ?? (state.amount + (state.fee ?? 5.99) + (state.tax ?? 0));
+        const sessionRes = await createKlarnaSession<any>({
+          amount: Math.round(totalAmt * 100),
+          currency: "USD",
+          locale: "en-US",
+          order_lines: [{
+            name: `${state.carrierName} Refill`,
+            quantity: 1,
+            unit_price: Math.round(state.amount * 100),
+            total_amount: Math.round(totalAmt * 100),
+          }],
+          phone_number: state.phone,
+          carrierId: state.carrierId,
+          plan_id: state.planId,
+        });
+        if (cancelled) return;
+        const sessionData = sessionRes.data?.data ?? sessionRes.data;
+        const clientToken = sessionData?.client_token;
+        if (clientToken) {
+          setKlarnaClientToken(clientToken);
+          setKlarnaSessionId(sessionData?.session_id || null);
+        } else {
+          console.error("Klarna session: no client_token", sessionRes);
+          toast.error("Could not initialize Klarna. Try another payment method.");
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Klarna session error:", err);
+          toast.error("Could not initialize Klarna. Try another payment method.");
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [paymentMethod, klarnaScriptLoaded, klarnaClientToken, state]);
+
+  // Initialize Klarna widget
+  useEffect(() => {
+    if (paymentMethod !== "klarna" || !klarnaScriptLoaded || !klarnaClientToken) return;
+    if (!(window as any).Klarna?.Payments) return;
+    try {
+      (window as any).Klarna.Payments.init({ client_token: klarnaClientToken });
+      const timer = setTimeout(() => {
+        const container = document.getElementById("klarna-payments-container");
+        if (!container) return;
+        (window as any).Klarna.Payments.load(
+          { container: "#klarna-payments-container", payment_method_category: "pay_later" },
+          (res: any) => {
+            if (res.show_form) {
+              setKlarnaWidgetLoaded(true);
+            } else {
+              (window as any).Klarna.Payments.load(
+                { container: "#klarna-payments-container", payment_method_category: "pay_over_time" },
+                (res2: any) => { if (res2.show_form) setKlarnaWidgetLoaded(true); }
+              );
+            }
+          }
+        );
+      }, 300);
+      return () => clearTimeout(timer);
+    } catch (err) {
+      console.error("Klarna init error:", err);
+    }
+  }, [paymentMethod, klarnaScriptLoaded, klarnaClientToken]);
+
+  // Reset Klarna state when switching away
+  useEffect(() => {
+    if (paymentMethod !== "klarna") {
+      setKlarnaClientToken(null);
+      setKlarnaSessionId(null);
+      setKlarnaWidgetLoaded(false);
+    }
+  }, [paymentMethod]);
 
   if (!state) {
     return (
@@ -651,17 +753,62 @@ const Checkout = () => {
 
   // --- KLARNA handler ---
   const handleKlarna = async () => {
-    setMethodProcessing(true);
+    if (!(window as any).Klarna?.Payments) {
+      toast.error("Klarna is not loaded yet. Please wait.");
+      return;
+    }
+    setKlarnaProcessing(true);
     try {
-      const payload = buildPayload();
-      payload.payment_method = "klarna" as any;
-      const result = await processCheckout(payload);
-      handleCheckoutResult(result, "Klarna");
+      // Authorize via Klarna SDK
+      (window as any).Klarna.Payments.authorize(
+        { payment_method_category: "pay_later" },
+        {
+          billing_address: {
+            given_name: form.firstName,
+            family_name: form.lastName,
+            email: form.email,
+            phone: form.billingPhone.replace(/\D/g, ""),
+            street_address: form.address,
+            city: form.city,
+            region: form.stateProvince,
+            postal_code: form.zip,
+            country: "US",
+          },
+        },
+        async (res: any) => {
+          try {
+            if (res.approved && res.authorization_token) {
+              // Build checkout payload with Klarna authorization token
+              const payload = buildPayload();
+              payload.payment_method = "klarna" as any;
+              (payload as any).klarna_token = res.authorization_token;
+              if (klarnaSessionId) {
+                (payload as any).klarna_session_id = klarnaSessionId;
+              }
+              const result = await processCheckout(payload);
+              handleCheckoutResult(result, "Klarna");
+            } else if (res.show_form) {
+              // User needs to complete more info in the widget
+              toast.info("Please complete the Klarna form above.");
+            } else {
+              setErrorDialog({
+                open: true,
+                title: "Payment Cancelled",
+                message: "Klarna payment was not approved. Please try again or use a different payment method.",
+              });
+            }
+          } catch (err) {
+            console.error("Klarna checkout error:", err);
+            setErrorDialog({ open: true, title: "Payment Error", message: "Klarna payment processing failed. Please try again." });
+          } finally {
+            setKlarnaProcessing(false);
+          }
+        }
+      );
     } catch (err) {
-      console.error("Klarna error:", err);
+      console.error("Klarna authorize error:", err);
       setErrorDialog({ open: true, title: "Payment Error", message: "Klarna payment failed. Please try again." });
-    } finally {
-      setMethodProcessing(false);
+      setKlarnaProcessing(false);
     }
   };
 
@@ -695,7 +842,7 @@ const Checkout = () => {
     }
   };
 
-  const anyProcessing = processing || plaidProcessing || paypalProcessing || gpayProcessing || methodProcessing;
+  const anyProcessing = processing || plaidProcessing || paypalProcessing || gpayProcessing || methodProcessing || klarnaProcessing;
 
   const inputClass = "w-full h-11 px-3 rounded border border-gray-300 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent";
   const selectClass = "w-full h-11 px-3 rounded border border-gray-300 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent";
@@ -919,6 +1066,25 @@ const Checkout = () => {
                       {fieldError("zip", isZipValid, "ZIP must be 5 digits.")}
                     </div>
                   </div>
+                </section>
+              )}
+
+              {/* KLARNA WIDGET */}
+              {paymentMethod === "klarna" && (
+                <section className="bg-white rounded border border-gray-200 p-5">
+                  <h2 className="text-sm font-bold text-gray-800 mb-1">Klarna Payment</h2>
+                  <p className="text-xs text-gray-400 mb-4">Buy now, pay later</p>
+                  {!klarnaClientToken && (
+                    <div className="flex items-center justify-center py-8 text-gray-400 gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin" /> Initializing Klarna...
+                    </div>
+                  )}
+                  <div id="klarna-payments-container" className="min-h-[60px]" />
+                  {klarnaProcessing && (
+                    <div className="flex items-center justify-center py-4 text-gray-500 gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin" /> Processing Klarna payment...
+                    </div>
+                  )}
                 </section>
               )}
 
