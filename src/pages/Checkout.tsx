@@ -44,7 +44,8 @@ const US_STATES = [
 
 const DEFAULT_PROCESSING_FEE = 5.99;
 const NAV_COLOR = "#2d3748";
-const ACCENT_RED = "#e53e3e";
+const ACCENT_GREEN = "hsl(101, 67%, 44%)";
+const ACCENT_GREEN_HOVER = "hsl(101, 67%, 38%)";
 
 const paymentMethods = [
   { id: "cardpayment", label: "Credit Card", icon: "💳" },
@@ -91,6 +92,8 @@ const Checkout = () => {
 
   // Google Pay state
   const [gpayProcessing, setGpayProcessing] = useState(false);
+  const [gpayReady, setGpayReady] = useState(false);
+  const [gpayScriptLoaded, setGpayScriptLoaded] = useState(false);
 
   // Generic processing for apple/klarna/pockyt
   const [methodProcessing, setMethodProcessing] = useState(false);
@@ -131,7 +134,37 @@ const Checkout = () => {
     document.head.appendChild(script);
   }, [paymentMethod, config, paypalScriptLoaded]);
 
-  if (!state) {
+  // Load Google Pay SDK dynamically
+  useEffect(() => {
+    if (paymentMethod !== "googlepay" || gpayScriptLoaded) return;
+    if ((window as any).google?.payments?.api?.PaymentsClient) {
+      setGpayScriptLoaded(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://pay.google.com/gp/p/js/pay.js";
+    script.onload = () => setGpayScriptLoaded(true);
+    document.head.appendChild(script);
+  }, [paymentMethod, gpayScriptLoaded]);
+
+  // Check Google Pay readiness
+  useEffect(() => {
+    if (!gpayScriptLoaded || !(window as any).google?.payments?.api?.PaymentsClient) return;
+    const env = config?.googlePay?.environment || "TEST";
+    const client = new (window as any).google.payments.api.PaymentsClient({ environment: env });
+    client.isReadyToPay({
+      apiVersion: 2,
+      apiVersionMinor: 0,
+      allowedPaymentMethods: [{
+        type: "CARD",
+        parameters: { allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"], allowedCardNetworks: ["VISA", "MASTERCARD", "AMEX", "DISCOVER"] },
+      }],
+    }).then((res: any) => {
+      setGpayReady(!!res.result);
+    }).catch(() => setGpayReady(false));
+  }, [gpayScriptLoaded, config]);
+
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
@@ -638,8 +671,8 @@ const Checkout = () => {
 
   const anyProcessing = processing || plaidProcessing || paypalProcessing || gpayProcessing || methodProcessing;
 
-  const inputClass = "w-full h-11 px-3 rounded border border-gray-300 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent";
-  const selectClass = "w-full h-11 px-3 rounded border border-gray-300 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent";
+  const inputClass = "w-full h-11 px-3 rounded border border-gray-300 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent";
+  const selectClass = "w-full h-11 px-3 rounded border border-gray-300 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   return (
@@ -664,7 +697,7 @@ const Checkout = () => {
       </nav>
 
       {/* Banner */}
-      <div className="text-white py-5" style={{ backgroundColor: ACCENT_RED }}>
+      <div className="text-white py-5" style={{ backgroundColor: ACCENT_GREEN }}>
         <div className="max-w-6xl mx-auto px-4">
           <h1 className="text-2xl font-extrabold tracking-wide">Checkout</h1>
         </div>
@@ -715,7 +748,7 @@ const Checkout = () => {
                         type="button"
                         onClick={() => setPaymentMethod(pm.id)}
                         className={`flex items-center gap-3 py-4 px-4 rounded-lg border-2 text-sm font-medium transition-all text-left ${
-                          isActive ? "border-red-500 bg-white text-red-600" : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
+                          isActive ? "border-primary bg-primary/5 text-primary" : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                         }`}
                       >
                         {pm.icon === "apple" ? (
@@ -888,16 +921,35 @@ const Checkout = () => {
               {paymentMethod === "googlepay" && (
                 <section className="bg-white rounded border border-gray-200 p-5 text-center">
                   <h2 className="text-sm font-bold text-gray-800 mb-4">Google Pay</h2>
-                  <p className="text-sm text-gray-500 mb-4">Click below to pay with Google Pay.</p>
-                  <button
-                    type="button"
-                    onClick={handleGooglePay}
-                    disabled={gpayProcessing}
-                    className="h-12 px-8 rounded bg-black text-white font-bold text-sm transition-all disabled:opacity-40 flex items-center gap-2 mx-auto"
-                  >
-                    {gpayProcessing && <Loader2 className="h-4 w-4 animate-spin" />}
-                    Pay with Google Pay
-                  </button>
+                  {!gpayScriptLoaded ? (
+                    <div className="flex items-center justify-center gap-2 py-8 text-sm text-gray-400">
+                      <Loader2 className="h-5 w-5 animate-spin" /> Loading Google Pay...
+                    </div>
+                  ) : !gpayReady ? (
+                    <p className="text-sm text-gray-500 py-4">Google Pay is not available on this device/browser. Please try another method.</p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-gray-500 mb-4">Click below to pay securely with Google Pay.</p>
+                      <button
+                        type="button"
+                        onClick={handleGooglePay}
+                        disabled={gpayProcessing}
+                        className="h-12 px-8 rounded-full bg-black text-white font-bold text-sm transition-all disabled:opacity-40 flex items-center gap-3 mx-auto hover:bg-gray-800"
+                      >
+                        {gpayProcessing ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                          </svg>
+                        )}
+                        Pay with Google Pay
+                      </button>
+                    </>
+                  )}
                 </section>
               )}
 
@@ -942,12 +994,12 @@ const Checkout = () => {
                 <p className="text-xs text-gray-500 mb-4">I understand that charge on my {pmLabel} is not refundable under any circumstances.</p>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                    <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_RED }} />
+                    <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_GREEN }} />
                     <span>I agree to <span className="underline text-blue-600">Terms and Conditions</span></span>
                   </label>
                   {paymentMethod === "cardpayment" && (
                     <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                      <input type="checkbox" checked={savePayment} onChange={(e) => setSavePayment(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_RED }} />
+                      <input type="checkbox" checked={savePayment} onChange={(e) => setSavePayment(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_GREEN }} />
                       Save payment information for next time
                     </label>
                   )}
@@ -962,7 +1014,7 @@ const Checkout = () => {
                     disabled={!isFormValid || anyProcessing}
                     onClick={handleSubmit}
                     className="h-12 px-10 rounded text-white font-bold text-sm uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2"
-                    style={{ backgroundColor: ACCENT_RED }}
+                    style={{ backgroundColor: ACCENT_GREEN }}
                   >
                     {anyProcessing && <Loader2 className="h-4 w-4 animate-spin" />}
                     PLACE ORDER NOW
@@ -999,7 +1051,7 @@ const Checkout = () => {
                     <span className="font-semibold text-gray-800">${totalTax.toFixed(2)}</span>
                   </div>
                 </div>
-                <div className="mx-4 mb-4 mt-2 rounded-lg px-5 py-4 flex justify-between items-center text-white" style={{ backgroundColor: ACCENT_RED }}>
+                <div className="mx-4 mb-4 mt-2 rounded-lg px-5 py-4 flex justify-between items-center text-white" style={{ backgroundColor: ACCENT_GREEN }}>
                   <span className="text-sm font-bold">Total Charges</span>
                   <span className="text-xl font-extrabold">${total.toFixed(2)}</span>
                 </div>
@@ -1022,7 +1074,7 @@ const Checkout = () => {
             <DialogDescription>{errorDialog.message}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end mt-4">
-            <button type="button" onClick={() => setErrorDialog({ open: false, title: "", message: "" })} className="px-4 py-2 rounded text-sm font-medium text-white" style={{ backgroundColor: ACCENT_RED }}>Close</button>
+            <button type="button" onClick={() => setErrorDialog({ open: false, title: "", message: "" })} className="px-4 py-2 rounded text-sm font-medium text-white" style={{ backgroundColor: ACCENT_GREEN }}>Close</button>
           </div>
         </DialogContent>
       </Dialog>
