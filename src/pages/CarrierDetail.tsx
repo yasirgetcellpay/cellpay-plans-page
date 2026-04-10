@@ -24,8 +24,6 @@ const CarrierDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { plans, loading, range, seoCarrier, data } = useCarrierData(slug || "", []);
-  const { isAuthenticated, logout } = useAuth();
-  const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
   const [validating, setValidating] = useState(false);
 
   const [phone, setPhone] = useState("");
