@@ -168,6 +168,100 @@ const Checkout = () => {
     }).catch(() => setGpayReady(false));
   }, [gpayScriptLoaded, config]);
 
+  // Load Klarna Payments SDK
+  useEffect(() => {
+    if (paymentMethod !== "klarna" || klarnaScriptLoaded) return;
+    if (document.querySelector('script[src*="x.klarnacdn.net/kp/lib"]')) {
+      setKlarnaScriptLoaded(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://x.klarnacdn.net/kp/lib/v1/api.html";
+    script.async = true;
+    script.onload = () => setKlarnaScriptLoaded(true);
+    script.onerror = () => console.error("Failed to load Klarna SDK");
+    document.head.appendChild(script);
+  }, [paymentMethod, klarnaScriptLoaded]);
+
+  // Create Klarna session when selected and SDK loaded
+  useEffect(() => {
+    if (paymentMethod !== "klarna" || !klarnaScriptLoaded || klarnaClientToken) return;
+    if (!state) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const totalAmt = state.total ?? (state.amount + (state.fee ?? 5.99) + (state.tax ?? 0));
+        const sessionRes = await createKlarnaSession<any>({
+          amount: Math.round(totalAmt * 100),
+          currency: "USD",
+          locale: "en-US",
+          order_lines: [{
+            name: `${state.carrierName} Refill`,
+            quantity: 1,
+            unit_price: Math.round(state.amount * 100),
+            total_amount: Math.round(totalAmt * 100),
+          }],
+          phone_number: state.phone,
+          carrierId: state.carrierId,
+          plan_id: state.planId,
+        });
+        if (cancelled) return;
+        const sessionData = sessionRes.data?.data ?? sessionRes.data;
+        const clientToken = sessionData?.client_token;
+        if (clientToken) {
+          setKlarnaClientToken(clientToken);
+          setKlarnaSessionId(sessionData?.session_id || null);
+        } else {
+          console.error("Klarna session: no client_token", sessionRes);
+          toast.error("Could not initialize Klarna. Try another payment method.");
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Klarna session error:", err);
+          toast.error("Could not initialize Klarna. Try another payment method.");
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [paymentMethod, klarnaScriptLoaded, klarnaClientToken, state]);
+
+  // Initialize Klarna widget
+  useEffect(() => {
+    if (paymentMethod !== "klarna" || !klarnaScriptLoaded || !klarnaClientToken) return;
+    if (!(window as any).Klarna?.Payments) return;
+    try {
+      (window as any).Klarna.Payments.init({ client_token: klarnaClientToken });
+      const timer = setTimeout(() => {
+        const container = document.getElementById("klarna-payments-container");
+        if (!container) return;
+        (window as any).Klarna.Payments.load(
+          { container: "#klarna-payments-container", payment_method_category: "pay_later" },
+          (res: any) => {
+            if (res.show_form) {
+              setKlarnaWidgetLoaded(true);
+            } else {
+              (window as any).Klarna.Payments.load(
+                { container: "#klarna-payments-container", payment_method_category: "pay_over_time" },
+                (res2: any) => { if (res2.show_form) setKlarnaWidgetLoaded(true); }
+              );
+            }
+          }
+        );
+      }, 300);
+      return () => clearTimeout(timer);
+    } catch (err) {
+      console.error("Klarna init error:", err);
+    }
+  }, [paymentMethod, klarnaScriptLoaded, klarnaClientToken]);
+
+  // Reset Klarna state when switching away
+  useEffect(() => {
+    if (paymentMethod !== "klarna") {
+      setKlarnaClientToken(null);
+      setKlarnaSessionId(null);
+      setKlarnaWidgetLoaded(false);
+    }
+  }, [paymentMethod]);
 
   if (!state) {
     return (
