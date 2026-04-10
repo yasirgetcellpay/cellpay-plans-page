@@ -982,11 +982,11 @@ const Checkout = () => {
                   </div>
                   <div className="flex justify-between px-5 py-3 text-sm">
                     <span className="text-gray-500">Processing Fee</span>
-                    <span className="font-semibold text-gray-800">${PROCESSING_FEE.toFixed(2)}</span>
+                    <span className="font-semibold text-gray-800">${processingFee.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between px-5 py-3 text-sm">
                     <span className="text-gray-500">Sale Tax</span>
-                    <span className="font-semibold text-gray-800">$0.00</span>
+                    <span className="font-semibold text-gray-800">${totalTax.toFixed(2)}</span>
                   </div>
                 </div>
                 <div className="mx-4 mb-4 mt-2 rounded-lg px-5 py-4 flex justify-between items-center text-white" style={{ backgroundColor: ACCENT_RED }}>
