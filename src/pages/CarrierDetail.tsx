@@ -3,9 +3,11 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Phone, DollarSign, Loader2, Plus, Minus } from "lucide-react";
 import { useCarrierData } from "@/hooks/use-carrier-data";
 import { usePhoneVerification } from "@/hooks/use-phone-verification";
+import { validatePlan } from "@/services/apiWrapper";
 import { getCarrierBrandColor } from "@/lib/carrier-colors";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { toast } from "sonner";
 
 const LOGO_BASE = "https://www.cellpay.us/webp/v4/home";
 const NAV_GREEN = "hsl(160, 40%, 25%)";
