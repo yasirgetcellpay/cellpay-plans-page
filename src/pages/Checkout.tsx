@@ -914,7 +914,7 @@ const Checkout = () => {
     <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
       {/* Simple navbar — white bg, green bottom border */}
       <nav className="w-full bg-card border-b-4 border-primary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto pl-4 sm:pl-6 lg:pl-8 pr-2 sm:pr-3 lg:pr-4 flex items-center justify-between h-16">
           <Link to="/" className="flex-shrink-0">
             <img src={cellpayLogo} alt="CellPay" className="h-10" />
           </Link>
