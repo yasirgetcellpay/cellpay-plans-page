@@ -408,21 +408,14 @@ const Checkout = () => {
       case "klarna":
         return {
           ...base,
-          payment_method: "klarna" as any,
+          checkout_version: "5.0",
+          payment_method: "klarna",
           payment: {
-            ...base.payment,
             firstName: form.firstName,
             lastName: form.lastName,
-            address: form.address,
-            city: form.city,
-            zip: form.zip,
+            email: form.email,
           },
-          billing: {
-            bill_email: form.email,
-            country_id: "US",
-            region: form.stateProvince,
-          },
-        };
+        } as any;
       default:
         return { ...base, payment_method: "cardpayment" };
     }
