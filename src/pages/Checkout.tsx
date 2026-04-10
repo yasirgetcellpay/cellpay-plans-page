@@ -237,7 +237,7 @@ const Checkout = () => {
     form.email && isValidEmail && agreeTerms &&
     (needsBillingForm
       ? form.firstName && form.lastName && form.billingPhone && form.address && form.city && form.stateProvince && isZipValid && isCardValid && isExpValid && isCvvValid
-      : paymentMethod === "plaid" ? !!plaidAccessToken : true);
+      : true);
 
   const detectCardType = (num: string): string => {
     const d = num.replace(/\D/g, "");
