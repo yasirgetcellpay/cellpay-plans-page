@@ -160,7 +160,7 @@ const Home = () => {
       </main>
 
       <PaymentBar />
-      <Footer />
+      <Footer onLogin={() => setAuthMode("login")} onSignUp={() => setAuthMode("register")} />
 
       <AuthDialogs
         mode={authMode}
