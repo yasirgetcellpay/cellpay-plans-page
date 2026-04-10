@@ -110,7 +110,7 @@ export const useCarrierData = (slug: string, staticPlans: CarrierPlan[] = []) =>
           const parsed: CarrierPlan[] = apiPlans.map((p) => ({
             price: `$${p.price || p.amount || "0"}`,
             highlight: (p.title || p.highlight || p.description || "Prepaid Refill") as string,
-            plan_id: String(p.plan_id || p.id || ""),
+            plan_id: String(p.plan_id || p.planId || p.id || p.ID || ""),
           }));
           setPlans(parsed);
           return;
