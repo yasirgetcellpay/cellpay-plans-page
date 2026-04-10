@@ -19,9 +19,9 @@ export const Footer = ({ onLogin, onSignUp }: FooterProps) => (
         <div>
           <h4 className="text-background font-bold text-sm mb-3 uppercase tracking-wider">My Account</h4>
           <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-background transition-colors">Log In</a></li>
-            <li><a href="#" className="hover:text-background transition-colors">Sign Up</a></li>
-            <li><a href="#" className="hover:text-background transition-colors">Recharge Now</a></li>
+            <li><button onClick={onLogin} className="hover:text-background transition-colors">Log In</button></li>
+            <li><button onClick={onSignUp} className="hover:text-background transition-colors">Sign Up</button></li>
+            <li><a href="#carriers" className="hover:text-background transition-colors">Recharge Now</a></li>
           </ul>
         </div>
         <div>
