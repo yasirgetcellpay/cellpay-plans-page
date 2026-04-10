@@ -456,7 +456,7 @@ const Checkout = () => {
       }
 
       // Construct PayPal approval URL from order ID
-      const paypalEnv = config?.paypal?.environment || "sandbox";
+      const paypalEnv = (config?.paypal as any)?.environment || "sandbox";
       const paypalBase = paypalEnv === "sandbox"
         ? "https://www.sandbox.paypal.com"
         : "https://www.paypal.com";
