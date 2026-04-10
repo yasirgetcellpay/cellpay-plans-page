@@ -91,7 +91,7 @@ const Home = () => {
       </section>
 
       {/* Carrier Grid */}
-      <main className="flex-1 px-4 py-10 sm:py-14">
+      <main id="carriers" className="flex-1 px-4 py-10 sm:py-14">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-lg font-semibold text-foreground mb-6 text-center">Choose a Carrier</h2>
 
