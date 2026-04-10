@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Navbar } from "@/components/Navbar";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { fetchCarriers, type Carrier } from "@/services/apiWrapper";
@@ -42,6 +43,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
+      <Navbar />
       {/* Hero Banner */}
       <section className="bg-gradient-to-r from-red-500 to-red-600 py-10 sm:py-16 text-center text-white">
         <div className="max-w-3xl mx-auto px-4">
