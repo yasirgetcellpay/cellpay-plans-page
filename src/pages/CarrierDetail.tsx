@@ -326,7 +326,16 @@ const CarrierDetail = () => {
       <PaymentBar />
       <Footer />
 
+      <AuthDialogs
+        mode={authMode}
+        onClose={() => setAuthMode(null)}
+        onSwitchMode={setAuthMode}
+      />
     </div>
+  );
+};
+
+export default CarrierDetail;
   );
 };
 
