@@ -748,7 +748,7 @@ const Checkout = () => {
                         type="button"
                         onClick={() => setPaymentMethod(pm.id)}
                         className={`flex items-center gap-3 py-4 px-4 rounded-lg border-2 text-sm font-medium transition-all text-left ${
-                          isActive ? "border-red-500 bg-white text-red-600" : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
+                          isActive ? "border-primary bg-primary/5 text-primary" : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                         }`}
                       >
                         {pm.icon === "apple" ? (
