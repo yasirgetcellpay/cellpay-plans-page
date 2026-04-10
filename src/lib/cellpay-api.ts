@@ -10,6 +10,8 @@ export {
   capturePaypalOrder,
   createApplePaySession,
   createKlarnaSession,
+  loginUser,
+  registerUser,
 } from "@/services/apiWrapper";
 
 export type {
@@ -17,4 +19,6 @@ export type {
   ApiResponse,
   Carrier,
   CheckoutPayload,
+  AuthUser,
+  AuthResponse,
 } from "@/services/apiWrapper";

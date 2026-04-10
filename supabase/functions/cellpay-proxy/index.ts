@@ -1,7 +1,7 @@
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, Authorization",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
 };
 
@@ -69,6 +69,12 @@ Deno.serve(async (req) => {
       case "klarna-session":
         upstreamUrl = `${API_BASE}/payments/klarna/session`;
         break;
+      case "user-login":
+        upstreamUrl = `${API_BASE}/users/login`;
+        break;
+      case "user-register":
+        upstreamUrl = `${API_BASE}/users/register`;
+        break;
       default:
         return jsonRes({ success: false, error: "Invalid action" }, 400);
     }
@@ -87,6 +93,12 @@ Deno.serve(async (req) => {
       "Origin": "https://yasircell.cellpay.us",
       ...(body ? { "Content-Type": "application/json" } : {}),
     };
+
+    // Forward bearer token if present
+    const authHeader = req.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      (upstreamHeaders as Record<string, string>)["Authorization"] = authHeader;
+    }
 
     const upstreamResponse = await fetch(upstreamUrl, {
       method: req.method,

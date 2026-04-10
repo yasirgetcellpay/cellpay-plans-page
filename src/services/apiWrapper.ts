@@ -79,12 +79,19 @@ const apiRequest = async <T = unknown>(
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    };
+
+    const authToken = typeof window !== "undefined" ? localStorage.getItem("cellpay_token") : null;
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
     const res = await fetch(url.toString(), {
       method: body ? "POST" : method,
-      headers: {
-        "Content-Type": "application/json",
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      },
+      headers,
       signal: controller.signal,
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
@@ -254,3 +261,30 @@ export const createApplePaySession = <T = unknown>(body: Record<string, unknown>
 
 export const createKlarnaSession = <T = unknown>(body: Record<string, unknown>) =>
   apiRequest<T>("klarna-session", {}, { method: "POST", body });
+
+export interface AuthUser {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  active: boolean;
+  role_id: number;
+  verified: boolean;
+  user_type: string;
+  [key: string]: unknown;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  data: {
+    token: string;
+    user: AuthUser;
+  };
+}
+
+export const loginUser = (email: string, password: string) =>
+  apiRequest<AuthResponse>("user-login", {}, { method: "POST", body: { email, password } });
+
+export const registerUser = (data: { email: string; password: string; first_name: string; last_name: string }) =>
+  apiRequest<AuthResponse>("user-register", {}, { method: "POST", body: data });
