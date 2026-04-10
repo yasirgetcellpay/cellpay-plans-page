@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { Navbar } from "@/components/Navbar";
 import { Phone, DollarSign, Loader2, Plus, Minus } from "lucide-react";
 import { useCarrierData } from "@/hooks/use-carrier-data";
 import { usePhoneVerification } from "@/hooks/use-phone-verification";
@@ -84,19 +85,7 @@ const CarrierDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans antialiased flex flex-col">
-      {/* Top nav bar - always green */}
-      <nav className="sticky top-0 z-50 text-white" style={{ backgroundColor: brandColor }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
-          <Link to="/" className="text-xl font-bold tracking-tight">
-            cellpay<span className="align-super text-[10px]">®</span>
-          </Link>
-          <div className="hidden sm:flex items-center gap-6 text-sm font-medium">
-            <Link to="/" className="hover:underline">Domestic Payments</Link>
-            <span className="opacity-70 cursor-default">Bill Payments</span>
-            <span className="opacity-70 cursor-default">International Topups</span>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero with carrier brand color */}
       <section className="pb-20 pt-10 sm:pt-14 text-center text-white" style={{ backgroundColor: brandColor }}>

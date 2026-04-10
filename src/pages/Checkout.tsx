@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
+import { Navbar } from "@/components/Navbar";
 import { Loader2 } from "lucide-react";
 import { useCheckout } from "@/hooks/use-checkout";
 import { useCheckoutConfig } from "@/hooks/use-checkout-config";
@@ -639,19 +640,7 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans antialiased flex flex-col">
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 text-white" style={{ backgroundColor: NAV_COLOR }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-12">
-          <Link to="/" className="text-lg font-bold tracking-tight">cellpay<span className="align-super text-[9px]">®</span></Link>
-          <div className="hidden sm:flex items-center gap-5 text-xs font-medium">
-            <Link to="/" className="hover:underline">Domestic Payments</Link>
-            <span className="opacity-70">Bill Payments</span>
-            <span className="opacity-70">International Topups</span>
-            <span className="opacity-70">SIM Cards</span>
-            <span className="opacity-70">Promotions</span>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Banner */}
       <div className="text-white py-5" style={{ backgroundColor: ACCENT_RED }}>
