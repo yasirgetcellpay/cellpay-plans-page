@@ -641,8 +641,25 @@ const Checkout = () => {
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans antialiased flex flex-col">
-      <Navbar />
+    <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
+      {/* Simple navbar — white bg, green bottom border */}
+      <nav className="w-full bg-card border-b-4 border-primary">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+          <Link to="/" className="flex-shrink-0">
+            <img src={cellpayLogo} alt="CellPay" className="h-10" />
+          </Link>
+          <div className="flex items-center gap-4">
+            {isAuthenticated ? (
+              <button onClick={logout} className="text-sm font-medium text-destructive hover:underline">Log Out</button>
+            ) : (
+              <>
+                <button onClick={() => setAuthMode("login")} className="text-sm font-medium text-foreground hover:underline">Log In</button>
+                <Link to="/" className="px-5 py-2 rounded text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors">Recharge Now</Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
 
       {/* Banner */}
       <div className="text-white py-5" style={{ backgroundColor: ACCENT_RED }}>
