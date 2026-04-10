@@ -887,27 +887,17 @@ const Checkout = () => {
 
               {/* PAYPAL */}
               {paymentMethod === "paypal" && (
-                <section className="bg-gray-100 rounded-lg p-6 space-y-5">
+                <section className="bg-white rounded border border-gray-200 p-5 text-center">
+                  <h2 className="text-sm font-bold text-gray-800 mb-2">PayPal</h2>
                   {!config?.paypal?.clientId ? (
-                    <p className="text-sm text-red-500 text-center py-4">PayPal is not available. Please try another method.</p>
+                    <p className="text-sm text-red-500 py-4">PayPal is not available. Please try another method.</p>
                   ) : !paypalScriptLoaded ? (
-                    <div className="flex items-center justify-center gap-2 py-8 text-sm text-gray-400">
+                    <div className="flex items-center justify-center gap-2 py-4 text-sm text-gray-400">
                       <Loader2 className="h-5 w-5 animate-spin" /> Loading PayPal...
                     </div>
                   ) : (
-                    <>
-                      {paypalProcessing && (
-                        <div className="flex items-center justify-center gap-2 py-4 text-sm text-gray-500">
-                          <Loader2 className="h-5 w-5 animate-spin" /> Processing PayPal payment...
-                        </div>
-                      )}
-                      <div ref={paypalContainerRef} />
-                    </>
+                    <p className="text-sm text-gray-500 py-2">You will be redirected to PayPal to complete payment.</p>
                   )}
-                  <div>
-                    <h3 className="text-base font-bold text-gray-800 mb-2">Service Agreement</h3>
-                    <p className="text-sm text-gray-500">Service provided by cellpay not associated with any carrier, by agreeing with this you are authorizing us to make payment behalf of you to carrier</p>
-                  </div>
                 </section>
               )}
 
