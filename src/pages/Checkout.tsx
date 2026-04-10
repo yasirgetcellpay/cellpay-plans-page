@@ -43,9 +43,6 @@ const US_STATES = [
 ];
 
 const DEFAULT_PROCESSING_FEE = 5.99;
-const NAV_COLOR = "#2d3748";
-const ACCENT_GREEN = "hsl(101, 67%, 44%)";
-const ACCENT_GREEN_HOVER = "hsl(101, 67%, 38%)";
 
 const paymentMethods = [
   { id: "cardpayment", label: "Credit Card", icon: "💳" },
