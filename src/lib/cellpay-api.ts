@@ -2,6 +2,7 @@ export {
   fetchCarriers as listCarriers,
   fetchCarrierBySlug as viewCarrier,
   verifyPhone,
+  validatePlan,
   processCheckout as checkout,
   fetchCheckoutClientConfig,
   createPlaidLinkToken,
@@ -21,4 +22,5 @@ export type {
   CheckoutPayload,
   AuthUser,
   AuthResponse,
+  ValidateResult,
 } from "@/services/apiWrapper";
