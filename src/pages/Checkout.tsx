@@ -942,7 +942,7 @@ const Checkout = () => {
                     <span className="font-semibold text-gray-800">${totalTax.toFixed(2)}</span>
                   </div>
                 </div>
-                <div className="mx-4 mb-4 mt-2 rounded-lg px-5 py-4 flex justify-between items-center text-white" style={{ backgroundColor: ACCENT_GREEN }}>
+                <div className="mx-4 mb-4 mt-2 rounded-lg px-5 py-4 flex justify-between items-center text-primary-foreground bg-gradient-to-r from-plan-tier1 to-plan-tier2">
                   <span className="text-sm font-bold">Total Charges</span>
                   <span className="text-xl font-extrabold">${total.toFixed(2)}</span>
                 </div>
