@@ -234,7 +234,8 @@ const CarrierDetail = () => {
                   const validateRes = await validatePlan(
                     carrierSlug,
                     phoneDigits,
-                    resolvedPlanId
+                    resolvedPlanId || undefined,
+                    amountNum || undefined
                   );
 
                   if (!validateRes.success || !validateRes.data) {
