@@ -134,7 +134,37 @@ const Checkout = () => {
     document.head.appendChild(script);
   }, [paymentMethod, config, paypalScriptLoaded]);
 
-  if (!state) {
+  // Load Google Pay SDK dynamically
+  useEffect(() => {
+    if (paymentMethod !== "googlepay" || gpayScriptLoaded) return;
+    if ((window as any).google?.payments?.api?.PaymentsClient) {
+      setGpayScriptLoaded(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://pay.google.com/gp/p/js/pay.js";
+    script.onload = () => setGpayScriptLoaded(true);
+    document.head.appendChild(script);
+  }, [paymentMethod, gpayScriptLoaded]);
+
+  // Check Google Pay readiness
+  useEffect(() => {
+    if (!gpayScriptLoaded || !(window as any).google?.payments?.api?.PaymentsClient) return;
+    const env = config?.googlePay?.environment || "TEST";
+    const client = new (window as any).google.payments.api.PaymentsClient({ environment: env });
+    client.isReadyToPay({
+      apiVersion: 2,
+      apiVersionMinor: 0,
+      allowedPaymentMethods: [{
+        type: "CARD",
+        parameters: { allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"], allowedCardNetworks: ["VISA", "MASTERCARD", "AMEX", "DISCOVER"] },
+      }],
+    }).then((res: any) => {
+      setGpayReady(!!res.result);
+    }).catch(() => setGpayReady(false));
+  }, [gpayScriptLoaded, config]);
+
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
