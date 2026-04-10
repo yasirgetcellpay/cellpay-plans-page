@@ -76,11 +76,39 @@ const CarrierDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin" style={{ color: brandColor }} />
-          <p className="text-sm text-muted-foreground">Loading carrier...</p>
-        </div>
+      <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
+        {/* Skeleton navbar */}
+        <nav className="w-full bg-card border-b-4 border-muted">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+            <div className="w-28 h-10 rounded bg-muted animate-pulse" />
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-4 rounded bg-muted animate-pulse" />
+              <div className="w-24 h-9 rounded bg-muted animate-pulse" />
+            </div>
+          </div>
+        </nav>
+
+        {/* Skeleton hero */}
+        <section className="pb-20 pt-8 sm:pt-12 bg-muted animate-pulse">
+          <div className="max-w-3xl mx-auto px-4 flex flex-col items-center gap-3">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 bg-card rounded-2xl shadow-lg" />
+            <div className="w-48 h-6 rounded bg-muted-foreground/20" />
+            <div className="w-64 h-4 rounded bg-muted-foreground/20" />
+          </div>
+        </section>
+
+        {/* Skeleton form card */}
+        <main className="flex-1 relative z-10 px-4 -mt-14 pb-8">
+          <div className="max-w-xl mx-auto bg-card rounded-xl border border-border shadow-sm p-6 sm:p-8 space-y-6">
+            <div className="w-28 h-4 rounded bg-muted animate-pulse" />
+            <div className="w-full h-14 rounded-lg bg-muted animate-pulse" />
+            <div className="w-32 h-4 rounded bg-muted animate-pulse" />
+            <div className="w-full h-14 rounded-lg bg-muted animate-pulse" />
+            <div className="flex justify-center">
+              <div className="w-48 h-14 rounded-full bg-muted animate-pulse" />
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
