@@ -96,9 +96,16 @@ const Home = () => {
           <h2 className="text-lg font-semibold text-foreground mb-6 text-center">Choose a Carrier</h2>
 
           {loading && (
-            <div className="flex flex-col items-center gap-3 py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Loading carriers...</p>
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
+              {Array.from({ length: 15 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex flex-col items-center justify-center bg-card rounded-lg border border-border p-4 h-28 sm:h-32 animate-pulse"
+                >
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-muted" />
+                  <div className="mt-2 w-16 h-3 rounded bg-muted" />
+                </div>
+              ))}
             </div>
           )}
 
