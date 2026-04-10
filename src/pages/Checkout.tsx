@@ -1161,7 +1161,7 @@ const Checkout = () => {
             </div>
 
             {/* Right — Order Summary */}
-            <div className="w-full md:w-[340px] shrink-0 order-first md:order-last">
+            <div className="w-full md:w-[420px] shrink-0 order-first md:order-last">
               <div className="bg-white rounded border border-gray-200 sticky top-16">
                 <div className="px-5 py-3 border-b border-gray-200">
                   <h2 className="text-sm font-bold text-gray-800">Order Summary</h2>
