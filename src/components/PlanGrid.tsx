@@ -22,7 +22,7 @@ export const PlanGrid = ({ plans, brandColor = "hsl(134, 40%, 40%)", onSelect, l
   return (
     <div>
       <p className="text-sm font-bold text-gray-900 mb-3">Select Amount</p>
-      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {plans.map((plan, i) => {
           const isSelected = selectedPlanId === plan.plan_id;
           return (
