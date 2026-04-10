@@ -110,7 +110,7 @@ const Checkout = () => {
 
   const [paymentMethod, setPaymentMethod] = useState<string>("cardpayment");
   const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const [form, setForm] = useState({
     email: "", firstName: "", lastName: "", billingPhone: "",
     address: "", city: "", stateProvince: "", zip: "",
@@ -920,13 +920,16 @@ const Checkout = () => {
           </Link>
           <div className="flex items-center gap-4">
             {isAuthenticated ? (
-              <button onClick={logout} className="text-sm font-medium text-destructive hover:underline">Log Out</button>
-            ) : (
               <>
-                <button onClick={() => setAuthMode("login")} className="text-sm font-medium text-foreground hover:underline">Log In</button>
-                <Link to="/" className="px-5 py-2 rounded text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors">Recharge Now</Link>
+                <span className="text-sm text-muted-foreground">
+                  {user?.first_name || user?.email}
+                </span>
+                <button onClick={logout} className="text-sm font-medium text-destructive hover:underline">Log Out</button>
               </>
+            ) : (
+              <button onClick={() => setAuthMode("login")} className="text-sm font-medium text-foreground hover:underline">Log In</button>
             )}
+            <Link to="/" className="px-5 py-2 rounded text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors">Recharge Now</Link>
           </div>
         </div>
       </nav>
