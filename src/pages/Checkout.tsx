@@ -671,8 +671,8 @@ const Checkout = () => {
 
   const anyProcessing = processing || plaidProcessing || paypalProcessing || gpayProcessing || methodProcessing;
 
-  const inputClass = "w-full h-11 px-3 rounded border border-gray-300 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent";
-  const selectClass = "w-full h-11 px-3 rounded border border-gray-300 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent";
+  const inputClass = "w-full h-11 px-3 rounded border border-gray-300 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent";
+  const selectClass = "w-full h-11 px-3 rounded border border-gray-300 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   return (
