@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Navbar } from "@/components/Navbar";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { AuthDialogs } from "@/components/AuthDialogs";
+import cellpayLogo from "@/assets/cellpay-logo.webp";
 import { useCheckout } from "@/hooks/use-checkout";
 import { useCheckoutConfig } from "@/hooks/use-checkout-config";
 import { useCarrierData } from "@/hooks/use-carrier-data";
@@ -66,6 +68,8 @@ const Checkout = () => {
   const { range: carrierRange } = useCarrierData(state?.carrierSlug || "", []);
 
   const [paymentMethod, setPaymentMethod] = useState<string>("cardpayment");
+  const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
+  const { isAuthenticated, logout } = useAuth();
   const [form, setForm] = useState({
     email: "", firstName: "", lastName: "", billingPhone: "",
     address: "", city: "", stateProvince: "", zip: "",
@@ -639,8 +643,25 @@ const Checkout = () => {
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans antialiased flex flex-col">
-      <Navbar />
+    <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
+      {/* Simple navbar — white bg, green bottom border */}
+      <nav className="w-full bg-card border-b-4 border-primary">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+          <Link to="/" className="flex-shrink-0">
+            <img src={cellpayLogo} alt="CellPay" className="h-10" />
+          </Link>
+          <div className="flex items-center gap-4">
+            {isAuthenticated ? (
+              <button onClick={logout} className="text-sm font-medium text-destructive hover:underline">Log Out</button>
+            ) : (
+              <>
+                <button onClick={() => setAuthMode("login")} className="text-sm font-medium text-foreground hover:underline">Log In</button>
+                <Link to="/" className="px-5 py-2 rounded text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors">Recharge Now</Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
 
       {/* Banner */}
       <div className="text-white py-5" style={{ backgroundColor: ACCENT_RED }}>
@@ -1023,6 +1044,8 @@ const Checkout = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AuthDialogs mode={authMode} onClose={() => setAuthMode(null)} onSwitchMode={setAuthMode} />
     </div>
   );
 };
