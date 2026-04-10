@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, User, Menu, X } from "lucide-react";
 import { AuthDialogs } from "@/components/AuthDialogs";
-import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
+import cellpayLogo from "@/assets/cellpay-logo.webp";
 
 const NAV_LINKS = [
   { label: "Domestic Payments", href: "/" },
@@ -64,14 +64,14 @@ export const Navbar = () => {
       </div>
 
       {/* Main navbar — dark teal like cellpay.us */}
-      <nav className="sticky top-0 z-50 shadow-sm" style={{ background: "hsl(168 40% 25%)" }}>
+      <nav className="sticky top-0 z-50 shadow-sm bg-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
             <img
-              src={simpleMobileLogo}
-              alt="Simple Mobile"
-              className="w-[100px] sm:w-[130px]"
+              src={cellpayLogo}
+              alt="CellPay"
+              className="h-8 sm:h-10"
             />
           </Link>
 
