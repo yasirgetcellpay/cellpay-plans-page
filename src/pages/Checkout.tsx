@@ -43,9 +43,6 @@ const US_STATES = [
 ];
 
 const DEFAULT_PROCESSING_FEE = 5.99;
-const NAV_COLOR = "#2d3748";
-const ACCENT_GREEN = "hsl(101, 67%, 44%)";
-const ACCENT_GREEN_HOVER = "hsl(101, 67%, 38%)";
 
 const paymentMethods = [
   { id: "cardpayment", label: "Credit Card", icon: "💳" },
@@ -707,10 +704,10 @@ const Checkout = () => {
         </div>
       </nav>
 
-      {/* Banner */}
-      <div className="text-white py-5" style={{ backgroundColor: ACCENT_GREEN }}>
+      {/* Banner — same gradient as home page */}
+      <div className="bg-gradient-to-r from-plan-tier1 to-plan-tier2 py-5">
         <div className="max-w-6xl mx-auto px-4">
-          <h1 className="text-2xl font-extrabold tracking-wide">Checkout</h1>
+          <h1 className="text-2xl font-extrabold tracking-wide text-primary-foreground">Checkout</h1>
         </div>
       </div>
 
@@ -942,7 +939,7 @@ const Checkout = () => {
                     <span className="font-semibold text-gray-800">${totalTax.toFixed(2)}</span>
                   </div>
                 </div>
-                <div className="mx-4 mb-4 mt-2 rounded-lg px-5 py-4 flex justify-between items-center text-white" style={{ backgroundColor: ACCENT_GREEN }}>
+                <div className="mx-4 mb-4 mt-2 rounded-lg px-5 py-4 flex justify-between items-center text-primary-foreground bg-gradient-to-r from-plan-tier1 to-plan-tier2">
                   <span className="text-sm font-bold">Total Charges</span>
                   <span className="text-xl font-extrabold">${total.toFixed(2)}</span>
                 </div>
@@ -965,7 +962,7 @@ const Checkout = () => {
             <DialogDescription>{errorDialog.message}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end mt-4">
-            <button type="button" onClick={() => setErrorDialog({ open: false, title: "", message: "" })} className="px-4 py-2 rounded text-sm font-medium text-white" style={{ backgroundColor: ACCENT_GREEN }}>Close</button>
+            <button type="button" onClick={() => setErrorDialog({ open: false, title: "", message: "" })} className="px-4 py-2 rounded text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90">Close</button>
           </div>
         </DialogContent>
       </Dialog>
