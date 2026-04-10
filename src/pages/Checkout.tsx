@@ -665,7 +665,7 @@ const Checkout = () => {
       </nav>
 
       {/* Banner */}
-      <div className="text-white py-5" style={{ backgroundColor: ACCENT_RED }}>
+      <div className="text-white py-5" style={{ backgroundColor: ACCENT_GREEN }}>
         <div className="max-w-6xl mx-auto px-4">
           <h1 className="text-2xl font-extrabold tracking-wide">Checkout</h1>
         </div>
@@ -943,12 +943,12 @@ const Checkout = () => {
                 <p className="text-xs text-gray-500 mb-4">I understand that charge on my {pmLabel} is not refundable under any circumstances.</p>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                    <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_RED }} />
+                    <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_GREEN }} />
                     <span>I agree to <span className="underline text-blue-600">Terms and Conditions</span></span>
                   </label>
                   {paymentMethod === "cardpayment" && (
                     <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                      <input type="checkbox" checked={savePayment} onChange={(e) => setSavePayment(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_RED }} />
+                      <input type="checkbox" checked={savePayment} onChange={(e) => setSavePayment(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_GREEN }} />
                       Save payment information for next time
                     </label>
                   )}
@@ -963,7 +963,7 @@ const Checkout = () => {
                     disabled={!isFormValid || anyProcessing}
                     onClick={handleSubmit}
                     className="h-12 px-10 rounded text-white font-bold text-sm uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2"
-                    style={{ backgroundColor: ACCENT_RED }}
+                    style={{ backgroundColor: ACCENT_GREEN }}
                   >
                     {anyProcessing && <Loader2 className="h-4 w-4 animate-spin" />}
                     PLACE ORDER NOW
@@ -1000,7 +1000,7 @@ const Checkout = () => {
                     <span className="font-semibold text-gray-800">${totalTax.toFixed(2)}</span>
                   </div>
                 </div>
-                <div className="mx-4 mb-4 mt-2 rounded-lg px-5 py-4 flex justify-between items-center text-white" style={{ backgroundColor: ACCENT_RED }}>
+                <div className="mx-4 mb-4 mt-2 rounded-lg px-5 py-4 flex justify-between items-center text-white" style={{ backgroundColor: ACCENT_GREEN }}>
                   <span className="text-sm font-bold">Total Charges</span>
                   <span className="text-xl font-extrabold">${total.toFixed(2)}</span>
                 </div>
@@ -1023,7 +1023,7 @@ const Checkout = () => {
             <DialogDescription>{errorDialog.message}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end mt-4">
-            <button type="button" onClick={() => setErrorDialog({ open: false, title: "", message: "" })} className="px-4 py-2 rounded text-sm font-medium text-white" style={{ backgroundColor: ACCENT_RED }}>Close</button>
+            <button type="button" onClick={() => setErrorDialog({ open: false, title: "", message: "" })} className="px-4 py-2 rounded text-sm font-medium text-white" style={{ backgroundColor: ACCENT_GREEN }}>Close</button>
           </div>
         </DialogContent>
       </Dialog>
