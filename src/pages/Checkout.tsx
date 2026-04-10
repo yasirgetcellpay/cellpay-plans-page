@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Navbar } from "@/components/Navbar";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { AuthDialogs } from "@/components/AuthDialogs";
+import cellpayLogo from "@/assets/cellpay-logo.webp";
 import { useCheckout } from "@/hooks/use-checkout";
 import { useCheckoutConfig } from "@/hooks/use-checkout-config";
 import { useCarrierData } from "@/hooks/use-carrier-data";
