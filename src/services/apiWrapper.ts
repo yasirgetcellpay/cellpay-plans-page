@@ -79,12 +79,19 @@ const apiRequest = async <T = unknown>(
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    };
+
+    const authToken = typeof window !== "undefined" ? localStorage.getItem("cellpay_token") : null;
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
     const res = await fetch(url.toString(), {
       method: body ? "POST" : method,
-      headers: {
-        "Content-Type": "application/json",
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      },
+      headers,
       signal: controller.signal,
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
