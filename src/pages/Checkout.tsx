@@ -1044,6 +1044,8 @@ const Checkout = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AuthDialogs mode={authMode} onClose={() => setAuthMode(null)} onSwitchMode={setAuthMode} />
     </div>
   );
 };
