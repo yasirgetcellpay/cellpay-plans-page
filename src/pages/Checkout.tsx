@@ -68,6 +68,8 @@ const Checkout = () => {
   const { range: carrierRange } = useCarrierData(state?.carrierSlug || "", []);
 
   const [paymentMethod, setPaymentMethod] = useState<string>("cardpayment");
+  const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
+  const { isAuthenticated, logout } = useAuth();
   const [form, setForm] = useState({
     email: "", firstName: "", lastName: "", billingPhone: "",
     address: "", city: "", stateProvince: "", zip: "",
