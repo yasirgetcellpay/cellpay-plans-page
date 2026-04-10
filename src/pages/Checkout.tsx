@@ -871,10 +871,6 @@ const Checkout = () => {
                   <h2 className="text-sm font-bold text-gray-800 mb-2">PayPal</h2>
                   {!config?.paypal?.clientId ? (
                     <p className="text-sm text-red-500 py-4">PayPal is not available. Please try another method.</p>
-                  ) : !paypalScriptLoaded ? (
-                    <div className="flex items-center justify-center gap-2 py-4 text-sm text-gray-400">
-                      <Loader2 className="h-5 w-5 animate-spin" /> Loading PayPal...
-                    </div>
                   ) : (
                     <p className="text-sm text-gray-500 py-2">You will be redirected to PayPal to complete payment.</p>
                   )}
