@@ -437,51 +437,30 @@ const Checkout = () => {
 
   // --- PAYPAL checkout handler (triggered by Place Order Now) ---
   const handlePaypalCheckout = async () => {
-    if (!(window as any).paypal) {
-      toast.error("PayPal SDK not loaded yet. Please wait.");
-      return;
-    }
     setPaypalProcessing(true);
     try {
-      // Create order
-      const res = await createPaypalOrder<any>({ amount: total, currency: "USD", carrierId, plan_id: resolvedPlanId, phone_number: phone, description: `${carrierName} refill - ${phone}` });
+      // Create order via our API
+      const res = await createPaypalOrder<any>({
+        amount: total, currency: "USD", carrierId, plan_id: resolvedPlanId,
+        phone_number: phone, description: `${carrierName} refill - ${phone}`,
+      });
       const orderData = res.data?.data ?? res.data;
       const orderId = orderData?.id || orderData?.orderID;
       if (!orderId) throw new Error("Could not create PayPal order.");
 
-      // Redirect to PayPal approval URL if available, otherwise use SDK popup
+      // Check for approval URL from API response
       const approvalUrl = orderData?.links?.find((l: any) => l.rel === "approve")?.href;
       if (approvalUrl) {
         window.location.href = approvalUrl;
         return;
       }
 
-      // Fallback: use PayPal SDK buttons popup
-      const paypal = (window as any).paypal;
-      await new Promise<void>((resolve, reject) => {
-        const tempDiv = document.createElement("div");
-        tempDiv.style.display = "none";
-        document.body.appendChild(tempDiv);
-        paypal.Buttons({
-          createOrder: () => orderId,
-          onApprove: async (data: any) => {
-            try {
-              await capturePaypalOrder<any>({ orderID: data.orderID });
-              const payload = buildPayload();
-              const result = await processCheckout(payload);
-              handleCheckoutResult(result, "PayPal");
-              resolve();
-            } catch (err) {
-              reject(err);
-            }
-          },
-          onCancel: () => {
-            setErrorDialog({ open: true, title: "Payment Cancelled", message: "You cancelled the PayPal payment." });
-            resolve();
-          },
-          onError: (err: any) => reject(err),
-        }).render(tempDiv);
-      });
+      // Construct PayPal approval URL from order ID
+      const paypalEnv = config?.paypal?.environment || "sandbox";
+      const paypalBase = paypalEnv === "sandbox"
+        ? "https://www.sandbox.paypal.com"
+        : "https://www.paypal.com";
+      window.location.href = `${paypalBase}/checkoutnow?token=${orderId}`;
     } catch (err) {
       console.error("PayPal error:", err);
       setErrorDialog({ open: true, title: "PayPal Error", message: "Could not process PayPal payment. Please try again." });
