@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -434,68 +434,60 @@ const Checkout = () => {
     }
   };
 
-  // --- PAYPAL handler ---
-  const handlePaypalPayment = async () => {
+  // --- PAYPAL checkout handler (triggered by Place Order Now) ---
+  const handlePaypalCheckout = async () => {
     if (!(window as any).paypal) {
-      toast.error("PayPal SDK not loaded yet.");
+      toast.error("PayPal SDK not loaded yet. Please wait.");
       return;
     }
-    // PayPal buttons render will handle this; we render them inline
-  };
+    setPaypalProcessing(true);
+    try {
+      // Create order
+      const res = await createPaypalOrder<any>({ amount: total, currency: "USD", carrierId, plan_id: resolvedPlanId, phone_number: phone, description: `${carrierName} refill - ${phone}` });
+      const orderData = res.data?.data ?? res.data;
+      const orderId = orderData?.id || orderData?.orderID;
+      if (!orderId) throw new Error("Could not create PayPal order.");
 
-  // Render PayPal buttons via callback ref – renders as soon as the container mounts
-  const paypalNodeRef = useRef<HTMLDivElement | null>(null);
-  const paypalContainerRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (!node || !(window as any).paypal) return;
-      // Avoid double-render on the same node
-      if (paypalNodeRef.current === node) return;
-      paypalNodeRef.current = node;
-      node.innerHTML = ""; // clear previous buttons if any
+      // Redirect to PayPal approval URL if available, otherwise use SDK popup
+      const approvalUrl = orderData?.links?.find((l: any) => l.rel === "approve")?.href;
+      if (approvalUrl) {
+        window.location.href = approvalUrl;
+        return;
+      }
 
-      (window as any).paypal.Buttons({
-        createOrder: async () => {
-          try {
-            const res = await createPaypalOrder<any>({ amount: total, currency: "USD", carrierId, plan_id: resolvedPlanId, phone_number: phone, description: `${carrierName} refill - ${phone}` });
-            const orderData = res.data?.data ?? res.data;
-            return orderData?.id || orderData?.orderID;
-          } catch (err) {
-            console.error("PayPal create order error:", err);
-            throw err;
-          }
-        },
-        onApprove: async (data: any) => {
-          setPaypalProcessing(true);
-          try {
-            await capturePaypalOrder<any>({ orderID: data.orderID });
-            const payload = buildPayload();
-            const result = await processCheckout(payload);
-            handleCheckoutResult(result, "PayPal");
-          } catch (err) {
-            console.error("PayPal capture error:", err);
-            setErrorDialog({ open: true, title: "PayPal Error", message: "Payment approved but order could not be completed." });
-          } finally {
-            setPaypalProcessing(false);
-          }
-        },
-        onCancel: () => {
-          setErrorDialog({ open: true, title: "Payment Cancelled", message: "You cancelled the PayPal payment. No charges were made." });
-        },
-        onError: (err: any) => {
-          console.error("PayPal error:", err);
-          setErrorDialog({ open: true, title: "PayPal Error", message: "An error occurred with PayPal. Please try again." });
-        },
-      }).render(node);
-    },
-    [paypalScriptLoaded, total, carrierId, resolvedPlanId, carrierName, phone]
-  );
-
-  // Reset node ref when switching away so buttons re-render on return
-  useEffect(() => {
-    if (paymentMethod !== "paypal") {
-      paypalNodeRef.current = null;
+      // Fallback: use PayPal SDK buttons popup
+      const paypal = (window as any).paypal;
+      await new Promise<void>((resolve, reject) => {
+        const tempDiv = document.createElement("div");
+        tempDiv.style.display = "none";
+        document.body.appendChild(tempDiv);
+        paypal.Buttons({
+          createOrder: () => orderId,
+          onApprove: async (data: any) => {
+            try {
+              await capturePaypalOrder<any>({ orderID: data.orderID });
+              const payload = buildPayload();
+              const result = await processCheckout(payload);
+              handleCheckoutResult(result, "PayPal");
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          },
+          onCancel: () => {
+            setErrorDialog({ open: true, title: "Payment Cancelled", message: "You cancelled the PayPal payment." });
+            resolve();
+          },
+          onError: (err: any) => reject(err),
+        }).render(tempDiv);
+      });
+    } catch (err) {
+      console.error("PayPal error:", err);
+      setErrorDialog({ open: true, title: "PayPal Error", message: "Could not process PayPal payment. Please try again." });
+    } finally {
+      setPaypalProcessing(false);
     }
-  }, [paymentMethod]);
+  };
 
   // --- GOOGLE PAY handler ---
   const handleGooglePay = async () => {
@@ -660,6 +652,8 @@ const Checkout = () => {
         return handlePockyt();
       case "klarna":
         return handleKlarna();
+      case "paypal":
+        return handlePaypalCheckout();
       case "cardpayment":
       default: {
         const payload = buildPayload();
@@ -893,27 +887,17 @@ const Checkout = () => {
 
               {/* PAYPAL */}
               {paymentMethod === "paypal" && (
-                <section className="bg-gray-100 rounded-lg p-6 space-y-5">
+                <section className="bg-white rounded border border-gray-200 p-5 text-center">
+                  <h2 className="text-sm font-bold text-gray-800 mb-2">PayPal</h2>
                   {!config?.paypal?.clientId ? (
-                    <p className="text-sm text-red-500 text-center py-4">PayPal is not available. Please try another method.</p>
+                    <p className="text-sm text-red-500 py-4">PayPal is not available. Please try another method.</p>
                   ) : !paypalScriptLoaded ? (
-                    <div className="flex items-center justify-center gap-2 py-8 text-sm text-gray-400">
+                    <div className="flex items-center justify-center gap-2 py-4 text-sm text-gray-400">
                       <Loader2 className="h-5 w-5 animate-spin" /> Loading PayPal...
                     </div>
                   ) : (
-                    <>
-                      {paypalProcessing && (
-                        <div className="flex items-center justify-center gap-2 py-4 text-sm text-gray-500">
-                          <Loader2 className="h-5 w-5 animate-spin" /> Processing PayPal payment...
-                        </div>
-                      )}
-                      <div ref={paypalContainerRef} />
-                    </>
+                    <p className="text-sm text-gray-500 py-2">You will be redirected to PayPal to complete payment.</p>
                   )}
-                  <div>
-                    <h3 className="text-base font-bold text-gray-800 mb-2">Service Agreement</h3>
-                    <p className="text-sm text-gray-500">Service provided by cellpay not associated with any carrier, by agreeing with this you are authorizing us to make payment behalf of you to carrier</p>
-                  </div>
                 </section>
               )}
 
@@ -987,40 +971,36 @@ const Checkout = () => {
                 </section>
               )}
 
-              {/* Terms */}
-              <section className="bg-white rounded border border-gray-200 p-5">
-                <h2 className="text-sm font-bold text-gray-800 mb-3">Terms & Conditions</h2>
-                <p className="text-xs text-gray-500 mb-1">I hereby authorize charges totaling <b>${total.toFixed(2)}</b> via my {pmLabel}.</p>
-                <p className="text-xs text-gray-500 mb-4">I understand that charge on my {pmLabel} is not refundable under any circumstances.</p>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                    <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_GREEN }} />
-                    <span>I agree to <span className="underline text-blue-600">Terms and Conditions</span></span>
+              {/* Terms & Place Order — unified for all methods */}
+              <section className="bg-gray-50 rounded-lg border border-gray-200 p-6">
+                <h2 className="text-lg font-bold text-gray-800 mb-4">Terms & Conditions</h2>
+                <p className="text-sm text-gray-600 mb-2">I hereby authorize charges totaling <b className="text-gray-900">${total.toFixed(2)}</b> via my {pmLabel}.</p>
+                <p className="text-sm text-gray-600 mb-6">I understand that charge on my {pmLabel} is not refundable under any circumstances.</p>
+                <div className="space-y-3 mb-6">
+                  <label className="flex items-center gap-3 text-sm text-gray-700 cursor-pointer">
+                    <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="h-5 w-5 rounded border-2 border-red-400" style={{ accentColor: "#e53e3e" }} />
+                    <span>I agree to <span className="underline text-blue-600 font-medium">Terms and Conditions</span></span>
                   </label>
                   {paymentMethod === "cardpayment" && (
-                    <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                      <input type="checkbox" checked={savePayment} onChange={(e) => setSavePayment(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_GREEN }} />
+                    <label className="flex items-center gap-3 text-sm text-gray-700 cursor-pointer">
+                      <input type="checkbox" checked={savePayment} onChange={(e) => setSavePayment(e.target.checked)} className="h-5 w-5 rounded border-2 border-gray-300" style={{ accentColor: "#e53e3e" }} />
                       Save payment information for next time
                     </label>
                   )}
                 </div>
-              </section>
-
-              {/* Submit — hidden for PayPal (buttons handle it) */}
-              {paymentMethod !== "paypal" && (
-                <div className="flex justify-center pb-4">
+                <div className="flex justify-center">
                   <button
                     type="button"
                     disabled={!isFormValid || anyProcessing}
                     onClick={handleSubmit}
-                    className="h-12 px-10 rounded text-white font-bold text-sm uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2"
-                    style={{ backgroundColor: ACCENT_GREEN }}
+                    className="h-14 px-12 rounded-lg text-white font-bold text-base uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2 shadow-lg"
+                    style={{ backgroundColor: "#e53e3e" }}
                   >
-                    {anyProcessing && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {anyProcessing && <Loader2 className="h-5 w-5 animate-spin" />}
                     PLACE ORDER NOW
                   </button>
                 </div>
-              )}
+              </section>
             </div>
 
             {/* Right — Order Summary */}
