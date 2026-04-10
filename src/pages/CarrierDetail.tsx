@@ -63,9 +63,10 @@ const CarrierDetail = () => {
 
   const phoneDigits = phone.replace(/\D/g, "");
   const amountNum = amount ? parseInt(amount, 10) : 0;
+  const hasPlanSelection = !isRangeBased && plans.length > 0;
   const isValid =
     phoneDigits.length === 10 &&
-    amountNum > 0 &&
+    (hasPlanSelection ? !!selectedPlanId : amountNum > 0) &&
     (!isRangeBased || (amountNum >= rangeMin && amountNum <= rangeMax)) &&
     confirmed &&
     agreedTerms;
@@ -155,8 +156,8 @@ const CarrierDetail = () => {
             />
           </div>
 
-          {/* Range-based amount input */}
-          {isRangeBased && (
+          {/* Range-based or no-plan amount input */}
+          {(isRangeBased || (!isRangeBased && plans.length === 0)) && (
             <>
               <label className="block text-sm font-bold text-gray-900 mb-2">
                 Recharge Amount
@@ -168,7 +169,7 @@ const CarrierDetail = () => {
                   inputMode="numeric"
                   value={amount}
                   onChange={handleAmountChange}
-                  placeholder={`Enter an amount between ${rangeMin} - ${rangeMax}`}
+                  placeholder={isRangeBased ? `Enter an amount between ${rangeMin} - ${rangeMax}` : "Enter recharge amount"}
                   className="w-full h-14 pl-12 pr-4 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties}
                 />
@@ -233,7 +234,8 @@ const CarrierDetail = () => {
                   const validateRes = await validatePlan(
                     carrierSlug,
                     phoneDigits,
-                    resolvedPlanId
+                    resolvedPlanId || undefined,
+                    amountNum || undefined
                   );
 
                   if (!validateRes.success || !validateRes.data) {
