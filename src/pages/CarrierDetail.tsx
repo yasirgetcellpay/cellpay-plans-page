@@ -25,8 +25,10 @@ const formatPhone = (value: string): string => {
 const CarrierDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
   const { plans, loading, range, seoCarrier, data } = useCarrierData(slug || "", []);
   const [validating, setValidating] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
 
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
