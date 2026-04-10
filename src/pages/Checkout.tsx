@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, CreditCard, Landmark } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthDialogs } from "@/components/AuthDialogs";
 import cellpayLogo from "@/assets/cellpay-logo.webp";
@@ -45,14 +45,56 @@ const US_STATES = [
 
 const DEFAULT_PROCESSING_FEE = 5.99;
 
+const PaymentIcon = ({ id, className }: { id: string; className?: string }) => {
+  const cls = className || "h-6 w-6 shrink-0";
+  switch (id) {
+    case "cardpayment":
+      return <CreditCard className={cls} />;
+    case "plaid":
+      return <Landmark className={cls} />;
+    case "paypal":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.63A.859.859 0 0 1 5.79 1.9h5.831c2.073 0 3.573.454 4.457 1.348.89.9 1.173 2.177.842 3.794l-.013.066v.6l.467.265a3.18 3.18 0 0 1 .948.768c.378.478.618 1.074.71 1.77.096.716.032 1.548-.19 2.47-.255 1.056-.667 1.975-1.224 2.73a5.244 5.244 0 0 1-1.834 1.69c-.703.4-1.504.68-2.384.829-.9.153-1.894.228-2.958.228H9.79a1.058 1.058 0 0 0-1.046.897l-.04.222-.672 4.26-.03.163a.106.106 0 0 1-.105.09H7.076z"/>
+        </svg>
+      );
+    case "googlepay":
+      return (
+        <svg className={cls} viewBox="0 0 24 24">
+          <path d="M12.24 10.285V14.4h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.345-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0c-6.635 0-12 5.365-12 12s5.365 12 12 12c6.926 0 11.52-4.869 11.52-11.726 0-.788-.085-1.39-.189-1.989H12.24z" fill="#4285F4"/>
+        </svg>
+      );
+    case "applepay":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+        </svg>
+      );
+    case "pockyt":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" fill="#00D632">
+          <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm.002 5.17a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5zM14.5 16.5h-5a.5.5 0 0 1 0-1h1.75v-4h-1.25a.5.5 0 0 1 0-1H12a.5.5 0 0 1 .5.5v4.5h2a.5.5 0 0 1 0 1z"/>
+        </svg>
+      );
+    case "klarna":
+      return (
+        <svg className={cls} viewBox="0 0 24 24" fill="#FFB3C7">
+          <path d="M4.592 2H2v20h2.592V2zm9.166 0c0 4.116-1.737 7.932-4.8 10.604L6.81 14.29 11.937 22h3.326l-4.93-7.397A16.015 16.015 0 0 0 15.758 2h-2zM19.5 18.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
+        </svg>
+      );
+    default:
+      return <CreditCard className={cls} />;
+  }
+};
+
 const paymentMethods = [
-  { id: "cardpayment", label: "Credit Card", icon: "💳" },
-  { id: "plaid", label: "Pay by Bank", subtitle: "Instant Login, No Manual Entry", icon: "⚙️" },
-  { id: "paypal", label: "Paypal", icon: "🅿️" },
-  { id: "googlepay", label: "Google Pay", icon: "G" },
-  { id: "applepay", label: "Apple Pay", icon: "🍎" },
-  { id: "pockyt", label: "Cash App Pay", icon: "💲" },
-  { id: "klarna", label: "Klarna", subtitle: "(Buy now, pay later)", icon: "K" },
+  { id: "cardpayment", label: "Credit Card" },
+  { id: "plaid", label: "Pay by Bank", subtitle: "Instant Login, No Manual Entry" },
+  { id: "paypal", label: "PayPal" },
+  { id: "googlepay", label: "Google Pay" },
+  { id: "applepay", label: "Apple Pay" },
+  { id: "pockyt", label: "Cash App Pay" },
+  { id: "klarna", label: "Klarna", subtitle: "(Buy now, pay later)" },
 ];
 
 const getPaymentMethodLabel = (id: string) =>
