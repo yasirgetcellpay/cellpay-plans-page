@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+
 import { fetchCarriers, type Carrier } from "@/services/apiWrapper";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthDialogs } from "@/components/AuthDialogs";
