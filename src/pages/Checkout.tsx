@@ -987,40 +987,36 @@ const Checkout = () => {
                 </section>
               )}
 
-              {/* Terms */}
-              <section className="bg-white rounded border border-gray-200 p-5">
-                <h2 className="text-sm font-bold text-gray-800 mb-3">Terms & Conditions</h2>
-                <p className="text-xs text-gray-500 mb-1">I hereby authorize charges totaling <b>${total.toFixed(2)}</b> via my {pmLabel}.</p>
-                <p className="text-xs text-gray-500 mb-4">I understand that charge on my {pmLabel} is not refundable under any circumstances.</p>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                    <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_GREEN }} />
-                    <span>I agree to <span className="underline text-blue-600">Terms and Conditions</span></span>
+              {/* Terms & Place Order — unified for all methods */}
+              <section className="bg-gray-50 rounded-lg border border-gray-200 p-6">
+                <h2 className="text-lg font-bold text-gray-800 mb-4">Terms & Conditions</h2>
+                <p className="text-sm text-gray-600 mb-2">I hereby authorize charges totaling <b className="text-gray-900">${total.toFixed(2)}</b> via my {pmLabel}.</p>
+                <p className="text-sm text-gray-600 mb-6">I understand that charge on my {pmLabel} is not refundable under any circumstances.</p>
+                <div className="space-y-3 mb-6">
+                  <label className="flex items-center gap-3 text-sm text-gray-700 cursor-pointer">
+                    <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="h-5 w-5 rounded border-2 border-red-400" style={{ accentColor: "#e53e3e" }} />
+                    <span>I agree to <span className="underline text-blue-600 font-medium">Terms and Conditions</span></span>
                   </label>
                   {paymentMethod === "cardpayment" && (
-                    <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                      <input type="checkbox" checked={savePayment} onChange={(e) => setSavePayment(e.target.checked)} className="h-4 w-4 rounded" style={{ accentColor: ACCENT_GREEN }} />
+                    <label className="flex items-center gap-3 text-sm text-gray-700 cursor-pointer">
+                      <input type="checkbox" checked={savePayment} onChange={(e) => setSavePayment(e.target.checked)} className="h-5 w-5 rounded border-2 border-gray-300" style={{ accentColor: "#e53e3e" }} />
                       Save payment information for next time
                     </label>
                   )}
                 </div>
-              </section>
-
-              {/* Submit — hidden for PayPal (buttons handle it) */}
-              {paymentMethod !== "paypal" && (
-                <div className="flex justify-center pb-4">
+                <div className="flex justify-center">
                   <button
                     type="button"
                     disabled={!isFormValid || anyProcessing}
                     onClick={handleSubmit}
-                    className="h-12 px-10 rounded text-white font-bold text-sm uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2"
-                    style={{ backgroundColor: ACCENT_GREEN }}
+                    className="h-14 px-12 rounded-lg text-white font-bold text-base uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 flex items-center gap-2 shadow-lg"
+                    style={{ backgroundColor: "#e53e3e" }}
                   >
-                    {anyProcessing && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {anyProcessing && <Loader2 className="h-5 w-5 animate-spin" />}
                     PLACE ORDER NOW
                   </button>
                 </div>
-              )}
+              </section>
             </div>
 
             {/* Right — Order Summary */}
