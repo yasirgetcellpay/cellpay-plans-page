@@ -209,6 +209,7 @@ export interface CheckoutPayload {
   billing?: {
     bill_email: string;
     country_id: string;
+    region?: string;
     region_id?: string;
     region_name?: string;
   };
