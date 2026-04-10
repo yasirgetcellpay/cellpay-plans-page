@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { Navbar } from "@/components/Navbar";
 import { Phone, DollarSign, Loader2, Plus, Minus } from "lucide-react";
 import { useCarrierData } from "@/hooks/use-carrier-data";
 import { usePhoneVerification } from "@/hooks/use-phone-verification";
