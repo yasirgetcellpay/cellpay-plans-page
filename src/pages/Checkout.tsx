@@ -476,16 +476,24 @@ const Checkout = () => {
       const pollTimer = setInterval(async () => {
         if (!popup || popup.closed) {
           clearInterval(pollTimer);
-          // After popup closes, attempt to capture the order and complete checkout
+          // After popup closes, attempt to capture the order
           try {
-            await capturePaypalOrder<any>({ orderID: orderId });
-            const payload = buildPayload();
-            const result = await processCheckout(payload);
-            handleCheckoutResult(result, "PayPal");
+            const captureRes = await capturePaypalOrder<any>({ orderID: orderId });
+            const captureData = captureRes.data?.data ?? captureRes.data;
+            const captureStatus = captureData?.status || captureData?.Status;
+
+            // Only proceed if capture was actually successful
+            if (captureRes.success && captureStatus && !["VOIDED", "CANCELLED", "CREATED"].includes(String(captureStatus).toUpperCase())) {
+              const payload = buildPayload();
+              const result = await processCheckout(payload);
+              handleCheckoutResult(result, "PayPal");
+            } else {
+              // Payment was not completed (cancelled or not approved)
+              setErrorDialog({ open: true, title: "Payment Cancelled", message: "PayPal payment was not completed. Please try again." });
+            }
           } catch (captureErr) {
             console.warn("PayPal capture after popup close:", captureErr);
-            // User may have cancelled — show neutral message
-            setErrorDialog({ open: true, title: "PayPal", message: "PayPal payment was not completed. Please try again if needed." });
+            setErrorDialog({ open: true, title: "Payment Cancelled", message: "PayPal payment was not completed. Please try again." });
           } finally {
             setPaypalProcessing(false);
           }
