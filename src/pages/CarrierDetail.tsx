@@ -99,7 +99,7 @@ const CarrierDetail = () => {
 
         {/* Skeleton form card */}
         <main className="flex-1 relative z-10 px-4 -mt-14 pb-8">
-          <div className="max-w-xl mx-auto bg-card rounded-xl border border-border shadow-sm p-6 sm:p-8 space-y-6">
+          <div className="max-w-3xl mx-auto bg-card rounded-xl border border-border shadow-sm p-6 sm:p-8 space-y-6">
             <div className="w-28 h-4 rounded bg-muted animate-pulse" />
             <div className="w-full h-14 rounded-lg bg-muted animate-pulse" />
             <div className="w-32 h-4 rounded bg-muted animate-pulse" />
@@ -172,7 +172,7 @@ const CarrierDetail = () => {
 
       {/* Form card — overlaps hero */}
       <main className="flex-1 relative z-10 px-4 -mt-14 pb-8">
-        <div className="max-w-xl mx-auto bg-card rounded-xl border border-border shadow-sm p-6 sm:p-8">
+        <div className="max-w-3xl mx-auto bg-card rounded-xl border border-border shadow-sm p-6 sm:p-8">
           {/* Phone input */}
           <label className="block text-sm font-bold text-foreground mb-2">Phone Number</label>
           <div className="relative mb-6">
