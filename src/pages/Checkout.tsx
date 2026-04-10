@@ -874,17 +874,13 @@ const Checkout = () => {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-sm text-gray-600 mb-4">Click below to securely connect your bank account via Plaid.</p>
-                      <button
-                        type="button"
-                        onClick={handlePlaidConnect}
-                        disabled={plaidProcessing || !plaidScriptLoaded || !resolvedPlanId}
-                        className="h-12 px-8 rounded text-white font-bold text-sm transition-all disabled:opacity-40 flex items-center gap-2 mx-auto"
-                        style={{ backgroundColor: "#0a85ea" }}
-                      >
-                        {plaidProcessing && <Loader2 className="h-4 w-4 animate-spin" />}
-                        {plaidScriptLoaded ? "Connect Your Bank" : "Loading Plaid..."}
-                      </button>
+                      <div className="text-5xl mb-3">🏦</div>
+                      <p className="text-sm text-gray-600">Click <b>PLACE ORDER NOW</b> below to securely connect your bank account via Plaid.</p>
+                      {!plaidScriptLoaded && (
+                        <div className="flex items-center justify-center gap-2 mt-3 text-sm text-gray-400">
+                          <Loader2 className="h-4 w-4 animate-spin" /> Loading Plaid...
+                        </div>
+                      )}
                     </div>
                   )}
                   <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
