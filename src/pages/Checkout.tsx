@@ -1069,6 +1069,25 @@ const Checkout = () => {
                 </section>
               )}
 
+              {/* KLARNA WIDGET */}
+              {paymentMethod === "klarna" && (
+                <section className="bg-white rounded border border-gray-200 p-5">
+                  <h2 className="text-sm font-bold text-gray-800 mb-1">Klarna Payment</h2>
+                  <p className="text-xs text-gray-400 mb-4">Buy now, pay later</p>
+                  {!klarnaClientToken && (
+                    <div className="flex items-center justify-center py-8 text-gray-400 gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin" /> Initializing Klarna...
+                    </div>
+                  )}
+                  <div id="klarna-payments-container" className="min-h-[60px]" />
+                  {klarnaProcessing && (
+                    <div className="flex items-center justify-center py-4 text-gray-500 gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin" /> Processing Klarna payment...
+                    </div>
+                  )}
+                </section>
+              )}
+
               {/* PLAID — only show connected state */}
               {paymentMethod === "plaid" && plaidBankName && (
                 <section className="bg-white rounded border border-gray-200 p-5">
