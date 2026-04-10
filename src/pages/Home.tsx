@@ -71,12 +71,12 @@ const Home = () => {
                 >
                   Log In
                 </button>
-                <button
-                  onClick={() => setAuthMode("register")}
+                <a
+                  href="#carriers"
                   className="px-5 py-2 rounded text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors"
                 >
                   Recharge Now
-                </button>
+                </a>
               </>
             )}
           </div>
