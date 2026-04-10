@@ -168,20 +168,24 @@ const Checkout = () => {
     }).catch(() => setGpayReady(false));
   }, [gpayScriptLoaded, config]);
 
-  // Load Klarna Payments SDK
+  // Load Klarna Payments SDK from config URL
   useEffect(() => {
     if (paymentMethod !== "klarna" || klarnaScriptLoaded) return;
-    if (document.querySelector('script[src*="x.klarnacdn.net/kp/lib"]')) {
+    const scriptUrl = (config?.klarna as any)?.paymentsScriptUrl || "https://x.klarnacdn.net/kp/lib/v1/api.js";
+    if (document.querySelector(`script[src="${scriptUrl}"]`)) {
       setKlarnaScriptLoaded(true);
       return;
     }
     const script = document.createElement("script");
-    script.src = "https://x.klarnacdn.net/kp/lib/v1/api.html";
+    script.src = scriptUrl;
     script.async = true;
     script.onload = () => setKlarnaScriptLoaded(true);
-    script.onerror = () => console.error("Failed to load Klarna SDK");
+    script.onerror = () => {
+      console.error("Failed to load Klarna SDK from", scriptUrl);
+      toast.error("Could not load Klarna. Try another payment method.");
+    };
     document.head.appendChild(script);
-  }, [paymentMethod, klarnaScriptLoaded]);
+  }, [paymentMethod, klarnaScriptLoaded, config]);
 
   // Create Klarna session when selected and SDK loaded
   useEffect(() => {
@@ -192,15 +196,7 @@ const Checkout = () => {
       try {
         const totalAmt = state.total ?? (state.amount + (state.fee ?? 5.99) + (state.tax ?? 0));
         const sessionRes = await createKlarnaSession<any>({
-          amount: Math.round(totalAmt * 100),
-          currency: "USD",
-          locale: "en-US",
-          order_lines: [{
-            name: `${state.carrierName} Refill`,
-            quantity: 1,
-            unit_price: Math.round(state.amount * 100),
-            total_amount: Math.round(totalAmt * 100),
-          }],
+          amount: totalAmt,
           phone_number: state.phone,
           carrierId: state.carrierId,
           plan_id: state.planId,
@@ -213,7 +209,7 @@ const Checkout = () => {
           setKlarnaSessionId(sessionData?.session_id || null);
         } else {
           console.error("Klarna session: no client_token", sessionRes);
-          toast.error("Could not initialize Klarna. Try another payment method.");
+          toast.error(sessionData?.msg || "Could not initialize Klarna. Try another payment method.");
         }
       } catch (err) {
         if (!cancelled) {
