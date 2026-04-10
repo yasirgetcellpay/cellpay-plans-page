@@ -87,7 +87,33 @@ const CarrierDetail = () => {
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
-      <Navbar />
+      {/* Per-carrier branded navbar */}
+      <nav className="w-full bg-card" style={{ borderBottom: `4px solid ${brandColor}` }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+          <Link to="/" className="flex-shrink-0">
+            <img src={cellpayLogo} alt="CellPay" className="h-10" />
+          </Link>
+          <div className="flex items-center gap-4">
+            {isAuthenticated ? (
+              <>
+                <span className="text-sm text-muted-foreground">{user?.first_name || user?.email}</span>
+                <button onClick={logout} className="text-sm font-medium text-destructive hover:text-destructive/80 transition-colors">
+                  Log Out
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => setAuthMode("login")} className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors">
+                  Log In
+                </button>
+                <Link to="/" className="px-5 py-2 rounded-md text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                  Recharge Now
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
 
       {/* Hero with carrier brand color */}
       <section className="pb-20 pt-8 sm:pt-12 text-center text-primary-foreground" style={{ backgroundColor: brandColor }}>
