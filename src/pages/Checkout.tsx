@@ -23,6 +23,9 @@ import {
 interface CheckoutState {
   phone: string;
   amount: number;
+  fee: number;
+  tax: number;
+  total: number;
   planId: string;
   carrierId: number;
   carrierName: string;
@@ -36,7 +39,7 @@ const US_STATES = [
   "VA","WA","WV","WI","WY","DC",
 ];
 
-const PROCESSING_FEE = 5.99;
+const DEFAULT_PROCESSING_FEE = 5.99;
 const NAV_COLOR = "#2d3748";
 const ACCENT_RED = "#e53e3e";
 
@@ -134,8 +137,10 @@ const Checkout = () => {
     );
   }
 
-  const { phone, amount, planId, carrierId, carrierName, carrierSlug } = state;
-  const total = amount + PROCESSING_FEE;
+  const { phone, amount, fee, tax, total: stateTotal, planId, carrierId, carrierName, carrierSlug } = state;
+  const processingFee = fee ?? DEFAULT_PROCESSING_FEE;
+  const totalTax = tax ?? 0;
+  const total = stateTotal ?? (amount + processingFee + totalTax);
   const resolvedPlanId = planId || carrierRange?.planId || "";
   const hasResolvedPlanId = !!resolvedPlanId;
   const pmLabel = getPaymentMethodLabel(paymentMethod).toLowerCase();
