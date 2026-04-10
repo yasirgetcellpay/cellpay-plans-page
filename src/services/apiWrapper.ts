@@ -251,12 +251,13 @@ export interface ValidateResult {
   };
 }
 
-export const validatePlan = (slug: string, phoneNumber: string, planId: string) =>
+export const validatePlan = (slug: string, phoneNumber: string, planId?: string, amount?: number) =>
   apiRequest<ValidateResult>("validate", { slug }, {
     method: "POST",
     body: {
       phone_number: phoneNumber,
-      plan_id: planId,
+      ...(planId ? { plan_id: planId } : {}),
+      ...(amount ? { amount: String(amount) } : {}),
     },
   });
 
