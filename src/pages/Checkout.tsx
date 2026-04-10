@@ -965,7 +965,7 @@ const Checkout = () => {
             <DialogDescription>{errorDialog.message}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end mt-4">
-            <button type="button" onClick={() => setErrorDialog({ open: false, title: "", message: "" })} className="px-4 py-2 rounded text-sm font-medium text-white" style={{ backgroundColor: ACCENT_GREEN }}>Close</button>
+            <button type="button" onClick={() => setErrorDialog({ open: false, title: "", message: "" })} className="px-4 py-2 rounded text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90">Close</button>
           </div>
         </DialogContent>
       </Dialog>
