@@ -232,12 +232,15 @@ const Checkout = () => {
     touched[field] && !valid ? <p className="text-xs text-red-500 mt-1">{msg}</p> : null;
 
   const needsBillingForm = paymentMethod === "cardpayment";
+  const needsKlarnaBilling = paymentMethod === "klarna";
   const isFormValid =
     hasResolvedPlanId &&
     form.email && isValidEmail && agreeTerms &&
     (needsBillingForm
       ? form.firstName && form.lastName && form.billingPhone && form.address && form.city && form.stateProvince && isZipValid && isCardValid && isExpValid && isCvvValid
-      : true);
+      : needsKlarnaBilling
+        ? form.firstName && form.lastName && form.billingPhone && form.address && form.city && form.stateProvince && isZipValid
+        : true);
 
   const detectCardType = (num: string): string => {
     const d = num.replace(/\D/g, "");
@@ -298,7 +301,23 @@ const Checkout = () => {
       case "pockyt":
         return { ...base, payment_method: "pockyt" };
       case "klarna":
-        return { ...base, payment_method: "klarna" as any };
+        return {
+          ...base,
+          payment_method: "klarna" as any,
+          payment: {
+            ...base.payment,
+            firstName: form.firstName,
+            lastName: form.lastName,
+            address: form.address,
+            city: form.city,
+            zip: form.zip,
+          },
+          billing: {
+            bill_email: form.email,
+            country_id: "US",
+            region: form.stateProvince,
+          },
+        };
       default:
         return { ...base, payment_method: "cardpayment" };
     }
@@ -851,6 +870,55 @@ const Checkout = () => {
                   {(touched.expMonth || touched.expYear) && form.expMonth && form.expYear && !isExpValid && (
                     <p className="text-xs text-red-500 mt-1">Card is expired.</p>
                   )}
+                </section>
+              )}
+
+              {/* KLARNA BILLING FORM */}
+              {paymentMethod === "klarna" && (
+                <section className="bg-white rounded border border-gray-200 p-5">
+                  <h2 className="text-sm font-bold text-gray-800 mb-4">Billing Details</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClass}>First Name *</label>
+                      <input type="text" value={form.firstName} onChange={handleChange("firstName")} placeholder="Enter Your First Name..." className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Last Name *</label>
+                      <input type="text" value={form.lastName} onChange={handleChange("lastName")} placeholder="Enter Your Last Name..." className={inputClass} />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className={labelClass}>Bill Payer's Phone Number *</label>
+                    <input type="tel" value={form.billingPhone} onChange={handleChange("billingPhone")} placeholder="Enter Phone Number..." className={inputClass} />
+                  </div>
+                  <div className="mt-4">
+                    <label className={labelClass}>Street Address *</label>
+                    <input type="text" value={form.address} onChange={handleChange("address")} placeholder="Enter Street Address..." className={inputClass} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className={labelClass}>City *</label>
+                      <input type="text" value={form.city} onChange={handleChange("city")} placeholder="Enter City..." className={inputClass} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>State/Province *</label>
+                      <select value={form.stateProvince} onChange={handleChange("stateProvince")} className={selectClass}>
+                        <option value="">Select One</option>
+                        {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className={labelClass}>Country *</label>
+                      <select className={selectClass} disabled><option>United States</option></select>
+                    </div>
+                    <div>
+                      <label className={labelClass}>ZIP *</label>
+                      <input type="text" value={form.zip} onChange={handleChange("zip")} onBlur={handleBlur("zip")} placeholder="Enter Your ZIP..." className={`${inputClass} ${touched.zip && !isZipValid ? "border-red-400 ring-1 ring-red-400" : ""}`} />
+                      {fieldError("zip", isZipValid, "ZIP must be 5 digits.")}
+                    </div>
+                  </div>
                 </section>
               )}
 
