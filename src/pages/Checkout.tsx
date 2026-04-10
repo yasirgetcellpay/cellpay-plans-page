@@ -215,6 +215,7 @@ const Checkout = () => {
     carrierId,
     plan_id: resolvedPlanId,
     slug: carrierSlug,
+    agree_desktop: true,
     payment: {
       firstName: form.firstName || "Customer",
       lastName: form.lastName || "",
