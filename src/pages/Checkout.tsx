@@ -660,6 +660,8 @@ const Checkout = () => {
         return handlePockyt();
       case "klarna":
         return handleKlarna();
+      case "paypal":
+        return handlePaypalCheckout();
       case "cardpayment":
       default: {
         const payload = buildPayload();
