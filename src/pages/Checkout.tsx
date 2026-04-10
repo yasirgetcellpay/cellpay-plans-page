@@ -254,7 +254,7 @@ const Checkout = () => {
           billing: {
             bill_email: form.email,
             country_id: "US",
-            region_name: form.stateProvince,
+            region: form.stateProvince,
           },
         };
       case "plaid":
