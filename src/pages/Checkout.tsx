@@ -101,6 +101,7 @@ const Checkout = () => {
   const [klarnaSessionId, setKlarnaSessionId] = useState<string | null>(null);
   const [klarnaWidgetLoaded, setKlarnaWidgetLoaded] = useState(false);
   const [klarnaProcessing, setKlarnaProcessing] = useState(false);
+  const [klarnaError, setKlarnaError] = useState<string | null>(null);
 
   // Error dialog
   const [errorDialog, setErrorDialog] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: "", message: "" });
