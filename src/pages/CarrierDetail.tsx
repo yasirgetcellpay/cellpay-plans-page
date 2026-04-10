@@ -336,7 +336,3 @@ const CarrierDetail = () => {
 };
 
 export default CarrierDetail;
-  );
-};
-
-export default CarrierDetail;
