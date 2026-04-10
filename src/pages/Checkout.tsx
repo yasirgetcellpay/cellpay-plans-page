@@ -335,6 +335,7 @@ const Checkout = () => {
                 carrierId,
                 plan_id: resolvedPlanId,
                 phone_number: phone,
+                amount: amount,
               });
               const exchangeData = exchangeResult.data?.data ?? exchangeResult.data;
               const accessToken = exchangeData?.access_token;
