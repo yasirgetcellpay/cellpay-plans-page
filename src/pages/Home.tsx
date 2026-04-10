@@ -16,7 +16,7 @@ const Home = () => {
   const [carriers, setCarriers] = useState<ApiCarrier[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
 
   useEffect(() => {
