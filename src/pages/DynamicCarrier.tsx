@@ -274,11 +274,12 @@ const DynamicCarrier = ({
             <PlanGrid
               plans={plans.map((p) => ({ price: p.price, highlight: p.highlight }))}
               brandColor={bc}
-              onSelect={handlePlanSelect}
+              onSelect={handlePlanPayNow}
             />
           )}
 
-          {/* Terms + Pay */}
+          {/* Terms + Pay (only for range-based carriers without fixed plans) */}
+          {(isRange || plans.length === 0) && (
           <div className="max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
             <p className="text-xs sm:text-sm font-bold text-foreground mb-2 mt-2">Important</p>
             <label className="flex items-start gap-2 mb-3 cursor-pointer">
