@@ -66,8 +66,13 @@ serve(async (req) => {
       data = { raw: rawText, parseError: true };
     }
 
-    return new Response(JSON.stringify(data), {
-      status: response.ok ? 200 : response.status,
+    // Always return 200 so supabase.functions.invoke doesn't throw
+    const wrapped = response.ok
+      ? { success: true, data }
+      : { success: false, error: (data as Record<string, unknown>)?.message || (data as Record<string, unknown>)?.error || "Request failed", data };
+
+    return new Response(JSON.stringify(wrapped), {
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
