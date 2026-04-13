@@ -499,7 +499,14 @@ const Checkout = () => {
     session.onvalidatemerchant = async (event) => {
       try {
         const merchantSession = await createApplePaySession({ validationURL: event.validationURL }) as Record<string, unknown>;
-        session.completeMerchantValidation(merchantSession.data || merchantSession);
+        // Unwrap double-nested
+        let sessionResult = merchantSession;
+        if (sessionResult.data && typeof sessionResult.data === "object") {
+          const inner = sessionResult.data as Record<string, unknown>;
+          if (inner.data && typeof inner.data === "object") sessionResult = inner.data as Record<string, unknown>;
+          else sessionResult = inner;
+        }
+        session.completeMerchantValidation(sessionResult);
       } catch {
         setErrorMsg("Apple Pay merchant validation failed");
         setSubmitting(false);
@@ -512,21 +519,42 @@ const Checkout = () => {
         const tokenData = (payment.token as Record<string, unknown>)?.paymentData;
         const billingContact = payment.billingContact;
 
-        const result = await submitTransaction({
-          ...basePayload(),
+        const raw = await submitTransaction({
+          checkout_version: "5.0",
           payment_method: "apple_pay",
+          amount: validation?.amount ?? Number(state.amount),
+          total: validation?.total ?? Number(state.amount),
+          phone_number: state.phone.replace(/\D/g, ""),
+          carrierId: validation?.carrier_id || validation?.carrierId,
+          plan_id: state.planId ? String(state.planId) : undefined,
+          agree_desktop: true,
+          payment: {
+            firstName: (billingContact as Record<string, unknown>)?.givenName || firstName.trim() || "Customer",
+            lastName: (billingContact as Record<string, unknown>)?.familyName || lastName.trim() || "User",
+            email: email.trim() || "customer@cellpay.us",
+          },
           apple_pay_token: btoa(JSON.stringify(tokenData)),
           apple_pay_billing_contact: JSON.stringify(billingContact),
-          checkout_version: "5.0",
         }) as Record<string, unknown>;
 
-        const status = String(result.status || "").toLowerCase();
-        if (status === "success" || status === "completed") {
+        // Unwrap
+        let result = raw;
+        if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+          const inner = result.data as Record<string, unknown>;
+          if (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data)) {
+            result = inner.data as Record<string, unknown>;
+          } else {
+            result = inner;
+          }
+        }
+
+        const isSuccess = result.status === true || result.status === "true" || String(result.status || "").toLowerCase() === "success" || String(result.status || "").toLowerCase() === "completed";
+        if (isSuccess) {
           session.completePayment({ status: session.STATUS_SUCCESS });
           setSuccessData(result);
         } else {
           session.completePayment({ status: session.STATUS_FAILURE });
-          setErrorMsg((result.msg as string) || "Apple Pay transaction failed");
+          setErrorMsg((result.msg as string) || (result.message as string) || "Apple Pay transaction failed");
         }
       } catch {
         session.completePayment({ status: session.STATUS_FAILURE });
