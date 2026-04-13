@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { useState, useCallback } from "react";
 import { Phone, DollarSign } from "lucide-react";
 import cricketLogo from "@/assets/cricket-logo.webp";
@@ -36,7 +37,8 @@ const Cricket = () => {
     <div className="min-h-screen bg-background font-sans antialiased">
       <nav className="sticky top-0 z-50 bg-card border-b-4 border-[hsl(82,60%,42%)] shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center h-14 sm:h-20 items-center">
+          <div className="relative flex justify-center h-14 sm:h-20 items-center">
+            <BackButton />
             <img src={cricketLogo} alt="Cricket Wireless" className="w-[100px] sm:w-[140px]" />
           </div>
         </div>
