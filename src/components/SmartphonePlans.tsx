@@ -107,17 +107,20 @@ export const SmartphonePlans = () => {
     },
   ];
 
+  const gridPlans = plans.slice(0, -2);
+  const lastTwo = plans.slice(-2);
+
   return (
     <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-2 sm:pt-10 pb-4">
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6">
-        {plans.slice(0, 4).map((p) => (
+        {gridPlans.map((p) => (
           <PlanCard key={p.name} {...p} />
         ))}
       </div>
-      <div className="flex justify-center mt-2 sm:mt-6 lg:justify-start">
-        <div className="w-[calc(50%-4px)] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
-          <PlanCard {...plans[4]} />
-        </div>
+      <div className="grid grid-cols-2 gap-2 sm:gap-6 mt-2 sm:mt-6 max-w-[calc(66.666%+8px)] lg:max-w-none lg:grid-cols-3">
+        {lastTwo.map((p) => (
+          <PlanCard key={p.name} {...p} />
+        ))}
       </div>
     </section>
   );
