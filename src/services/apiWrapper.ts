@@ -132,7 +132,7 @@ export async function validateRecharge(
 ): Promise<ValidationResult> {
   const payload: Record<string, unknown> = { phone_number: phoneNumber };
   if (planId) payload.plan_id = planId;
-  if (amount) payload.amount = amount;
+  if (amount !== undefined && amount !== null) payload.amount = amount;
 
   const raw = await callProxy({
     endpoint: `carriers/validate/${carrierSlug}`,
