@@ -725,8 +725,8 @@ const Checkout = () => {
             <div className="text-4xl mb-3">✅</div>
             <h3 className="text-xl font-bold text-foreground mb-2">Payment Successful!</h3>
             <p className="text-sm text-muted-foreground mb-1">Your {state.carrierName} recharge has been processed.</p>
-            {successData.transaction_id && (
-              <p className="text-xs text-muted-foreground">Transaction ID: <span className="font-mono font-bold">{String(successData.transaction_id)}</span></p>
+            {(successData.transaction_id || successData.transactionId || successData.hashid) && (
+              <p className="text-xs text-muted-foreground">Transaction ID: <span className="font-mono font-bold">{String(successData.transactionId || successData.transaction_id || successData.hashid)}</span></p>
             )}
             <button type="button" onClick={() => { setSuccessData(null); navigate("/"); }}
               className="mt-4 px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
