@@ -269,27 +269,55 @@ const Checkout = () => {
 
   // ─── PayPal ───
   const handlePayPal = async () => {
-    const orderData = await createPayPalOrder(basePayload()) as Record<string, unknown>;
-    const approvalUrl = (orderData.approval_url || orderData.approve_url) as string;
-    if (!approvalUrl) { setErrorMsg("Could not initiate PayPal payment"); return; }
+    const payload = {
+      checkout_version: "5.0",
+      payment_method: "paypal",
+      amount: validation?.amount ?? Number(state.amount),
+      total: validation?.total ?? Number(state.amount),
+      phone_number: state.phone.replace(/\D/g, ""),
+      carrierId: validation?.carrier_id || validation?.carrierId,
+      plan_id: state.planId ? String(state.planId) : undefined,
+      agree_desktop: true,
+      payment: {
+        firstName: firstName.trim() || "Customer",
+        lastName: lastName.trim() || "User",
+        email: email.trim() || "customer@cellpay.us",
+      },
+    };
 
-    const w = 500, h = 650;
-    const left = (screen.width - w) / 2, top = (screen.height - h) / 2;
-    const popup = window.open(approvalUrl, "PayPalPopup", `width=${w},height=${h},left=${left},top=${top}`);
+    const raw = await submitTransaction(payload) as Record<string, unknown>;
 
-    const poll = setInterval(async () => {
-      if (!popup || popup.closed) {
-        clearInterval(poll);
-        try {
-          const captureResult = await capturePayPalOrder({ order_id: orderData.order_id || orderData.id }) as Record<string, unknown>;
-          handleResult(captureResult);
-        } catch {
-          setErrorMsg("Payment was cancelled or failed");
-        }
-        setSubmitting(false);
+    // Unwrap proxy response
+    let result = raw;
+    if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+      const inner = result.data as Record<string, unknown>;
+      if (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data)) {
+        result = inner.data as Record<string, unknown>;
+      } else {
+        result = inner;
       }
-    }, 1000);
-    return; // keep submitting true until popup closes
+    }
+
+    // If the API returns a PayPal approval URL, open it in a popup
+    const approvalUrl = (result.approval_url || result.approve_url || result.redirect_url || result.paypal_url) as string;
+    if (approvalUrl) {
+      const w = 500, h = 650;
+      const left = (screen.width - w) / 2, top = (screen.height - h) / 2;
+      const popup = window.open(approvalUrl, "PayPalPopup", `width=${w},height=${h},left=${left},top=${top}`);
+
+      const poll = setInterval(async () => {
+        if (!popup || popup.closed) {
+          clearInterval(poll);
+          // After popup closes, check if transaction completed
+          toast({ title: "PayPal", description: "PayPal window closed. Check your order status." });
+          setSubmitting(false);
+        }
+      }, 1000);
+      return; // keep submitting true until popup closes
+    }
+
+    // If no redirect URL, treat as direct response
+    handleResult(raw);
   };
 
   // ─── Plaid (Pay by Bank) ───
