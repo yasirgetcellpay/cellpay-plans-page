@@ -38,7 +38,7 @@ serve(async (req) => {
       "X-Api-Key": apiKey,
       "X-Api-Secret": apiSecret,
       "Content-Type": "application/json",
-      "Accept": "application/json",
+      "Accept": "*/*",
     };
 
     if (bearerToken) {
