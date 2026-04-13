@@ -148,12 +148,15 @@ const Checkout = () => {
     })();
   }, []);
 
-  if (!state) return null;
+  const basePayload = useCallback((): Record<string, unknown> => ({
+    phone_number: state?.phone.replace(/\D/g, "") || "",
+    carrier_slug: state?.carrierSlug || "",
+    amount: state?.amount || "",
+    plan_id: state?.planId,
+    carrier_id: validation?.carrier_id || validation?.carrierId,
+  }), [state, validation]);
 
-  const brandColor = state.brandColor;
-  const total = validation?.total ?? Number(state.amount);
-  const fee = validation?.fee ?? 0;
-  const tax = validation?.tax ?? 0;
+  if (!state) return null;
 
   // Card helpers
   const formatCardNumber = (val: string) => {
@@ -273,7 +276,7 @@ const Checkout = () => {
     }
 
     const tokenResp = await createPlaidLinkToken(basePayload()) as Record<string, unknown>;
-    const linkToken = (tokenResp.link_token || (tokenResp as Record<string, unknown>).data?.link_token) as string;
+    const linkToken = (tokenResp.link_token || ((tokenResp as Record<string, unknown>).data as Record<string, unknown> | undefined)?.link_token) as string;
     if (!linkToken) { setErrorMsg("Could not create Plaid link"); return; }
 
     if (!window.Plaid) { setErrorMsg("Plaid SDK not available"); return; }
