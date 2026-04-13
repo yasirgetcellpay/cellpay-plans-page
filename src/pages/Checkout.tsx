@@ -454,10 +454,20 @@ const Checkout = () => {
 
     const tokenStr = (paymentData.paymentMethodData as Record<string, unknown>)?.tokenizationData as Record<string, unknown>;
     const result = await submitTransaction({
-      ...basePayload(),
-      payment_method: "google_pay",
-      google_pay_token: tokenStr?.token,
       checkout_version: "5.0",
+      payment_method: "googlepay",
+      amount: validation?.amount ?? Number(state.amount),
+      total: validation?.total ?? Number(state.amount),
+      phone_number: state.phone.replace(/\D/g, ""),
+      carrierId: validation?.carrier_id || validation?.carrierId,
+      plan_id: state.planId ? String(state.planId) : undefined,
+      agree_desktop: true,
+      payment: {
+        firstName: firstName.trim() || "Customer",
+        lastName: lastName.trim() || "User",
+        email: email.trim() || "customer@cellpay.us",
+      },
+      google_pay_token: tokenStr?.token,
     }) as Record<string, unknown>;
     handleResult(result);
   };
