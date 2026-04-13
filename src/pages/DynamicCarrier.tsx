@@ -274,9 +274,8 @@ const DynamicCarrier = ({
             <div className="flex justify-center">
               <button
                 type="button"
-                disabled={!isValid}
                 onClick={handlePay}
-                className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]"
+                className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]"
                 style={{ backgroundColor: bc }}
               >
                 PAY NOW
