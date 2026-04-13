@@ -906,6 +906,21 @@ const Checkout = () => {
             </div>
           )}
 
+          {/* PayPal Buttons container (rendered by SDK) */}
+          {paymentMethod === "paypal" && (
+            <div className="bg-card rounded-xl border border-border p-5 space-y-3">
+              <h2 className="font-bold text-foreground mb-1 text-sm">PayPal Checkout</h2>
+              {!paypalReady ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-sm text-muted-foreground">Loading PayPal...</span>
+                </div>
+              ) : (
+                <div ref={paypalContainerRef} id="paypal-button-container" />
+              )}
+            </div>
+          )}
+
           {/* Klarna container (hidden, used by SDK) */}
           <div ref={klarnaContainerRef} id="klarna-payments-container" className="hidden" />
 
