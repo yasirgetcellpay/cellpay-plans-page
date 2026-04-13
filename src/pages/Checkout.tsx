@@ -68,6 +68,18 @@ declare global {
         ) => void;
       };
     };
+    paypal?: {
+      Buttons: (config: {
+        createOrder: () => Promise<string>;
+        onApprove: (data: { orderID: string }) => Promise<void>;
+        onCancel?: () => void;
+        onError?: (err: unknown) => void;
+        style?: Record<string, unknown>;
+      }) => {
+        render: (container: string | HTMLElement) => Promise<void>;
+        close: () => void;
+      };
+    };
     CashApp?: {
       pay: (config: Record<string, unknown>) => Promise<{ token: string; cashtag: string }>;
     };
