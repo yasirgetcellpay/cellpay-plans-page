@@ -213,9 +213,20 @@ const Checkout = () => {
 
   const canSubmit = agreedTerms && !submitting && (paymentMethod === "card" ? isCardValid : true);
 
-  const handleResult = (result: Record<string, unknown>) => {
-    const status = (String(result.status || "")).toLowerCase();
-    if (status === "success" || status === "completed") {
+  const handleResult = (raw: Record<string, unknown>) => {
+    // Unwrap double-nested { data: { data: { status, message, transactionId } } }
+    let result = raw;
+    if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+      const inner = result.data as Record<string, unknown>;
+      if (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data)) {
+        result = inner.data as Record<string, unknown>;
+      } else {
+        result = inner;
+      }
+    }
+    const status = result.status;
+    const isSuccess = status === true || status === "true" || String(status || "").toLowerCase() === "success" || String(status || "").toLowerCase() === "completed";
+    if (isSuccess) {
       setSuccessData(result);
     } else {
       setErrorMsg((result.msg as string) || (result.message as string) || "Transaction failed");
@@ -714,8 +725,8 @@ const Checkout = () => {
             <div className="text-4xl mb-3">✅</div>
             <h3 className="text-xl font-bold text-foreground mb-2">Payment Successful!</h3>
             <p className="text-sm text-muted-foreground mb-1">Your {state.carrierName} recharge has been processed.</p>
-            {successData.transaction_id && (
-              <p className="text-xs text-muted-foreground">Transaction ID: <span className="font-mono font-bold">{String(successData.transaction_id)}</span></p>
+            {(successData.transaction_id || successData.transactionId || successData.hashid) && (
+              <p className="text-xs text-muted-foreground">Transaction ID: <span className="font-mono font-bold">{String(successData.transactionId || successData.transaction_id || successData.hashid)}</span></p>
             )}
             <button type="button" onClick={() => { setSuccessData(null); navigate("/"); }}
               className="mt-4 px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
