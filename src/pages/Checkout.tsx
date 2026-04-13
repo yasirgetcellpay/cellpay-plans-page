@@ -68,6 +68,18 @@ declare global {
         ) => void;
       };
     };
+    paypal?: {
+      Buttons: (config: {
+        createOrder: () => Promise<string>;
+        onApprove: (data: { orderID: string }) => Promise<void>;
+        onCancel?: () => void;
+        onError?: (err: unknown) => void;
+        style?: Record<string, unknown>;
+      }) => {
+        render: (container: string | HTMLElement) => Promise<void>;
+        close: () => void;
+      };
+    };
     CashApp?: {
       pay: (config: Record<string, unknown>) => Promise<{ token: string; cashtag: string }>;
     };
@@ -113,6 +125,8 @@ const Checkout = () => {
   // Checkout config from API (typed)
   const [checkoutConfig, setCheckoutConfig] = useState<Record<string, unknown> | null>(null);
   const [paypalReady, setPaypalReady] = useState(false);
+  const paypalContainerRef = useRef<HTMLDivElement>(null);
+  const paypalButtonsRef = useRef<{ close: () => void } | null>(null);
 
   // Success / error dialogs
   const [successData, setSuccessData] = useState<Record<string, unknown> | null>(null);
@@ -172,6 +186,108 @@ const Checkout = () => {
       .then(() => setPaypalReady(true))
       .catch(() => toast({ title: "Error", description: "Failed to load PayPal SDK", variant: "destructive" }));
   }, [checkoutConfig, paymentMethod]);
+
+  // Render PayPal Buttons when SDK is ready
+  useEffect(() => {
+    if (!paypalReady || paymentMethod !== "paypal" || !window.paypal || !paypalContainerRef.current) return;
+
+    // Clean up previous buttons
+    if (paypalButtonsRef.current) {
+      try { paypalButtonsRef.current.close(); } catch {}
+      paypalButtonsRef.current = null;
+    }
+    paypalContainerRef.current.innerHTML = "";
+
+    const buttons = window.paypal.Buttons({
+      style: {
+        layout: "vertical",
+        color: "gold",
+        shape: "rect",
+        label: "paypal",
+        height: 48,
+      },
+      createOrder: async () => {
+        const orderPayload = {
+          phone_number: state.phone.replace(/\D/g, ""),
+          carrierId: validation?.carrier_id || validation?.carrierId,
+          plan_id: state.planId ? String(state.planId) : undefined,
+          amount: validation?.amount ?? Number(state.amount),
+          total: validation?.total ?? Number(state.amount),
+        };
+
+        const orderRaw = await createPayPalOrder(orderPayload) as Record<string, unknown>;
+        // Unwrap double-nested
+        let orderResult = orderRaw;
+        if (orderResult.data && typeof orderResult.data === "object" && !Array.isArray(orderResult.data)) {
+          const inner = orderResult.data as Record<string, unknown>;
+          if (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data)) {
+            orderResult = inner.data as Record<string, unknown>;
+          } else {
+            orderResult = inner;
+          }
+        }
+
+        const orderId = (orderResult.order_id || orderResult.id || orderResult.orderId) as string;
+        if (!orderId) {
+          // Check if it's a direct success (dev/sandbox mode)
+          if (orderResult.status === true || orderResult.status === "true" || orderResult.status === "success" || orderResult.status === "completed") {
+            handleResult(orderRaw);
+            throw new Error("__DIRECT_SUCCESS__");
+          }
+          throw new Error("Could not create PayPal order");
+        }
+        return orderId;
+      },
+      onApprove: async (data: { orderID: string }) => {
+        setSubmitting(true);
+        try {
+          const captureRaw = await capturePayPalOrder({ order_id: data.orderID }) as Record<string, unknown>;
+          // Unwrap
+          let captureResult = captureRaw;
+          if (captureResult.data && typeof captureResult.data === "object" && !Array.isArray(captureResult.data)) {
+            const inner = captureResult.data as Record<string, unknown>;
+            if (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data)) {
+              captureResult = inner.data as Record<string, unknown>;
+            } else {
+              captureResult = inner;
+            }
+          }
+
+          const status = captureResult.status;
+          if (status === "VOIDED" || status === "CANCELLED" || status === "CREATED") {
+            setErrorMsg(`PayPal payment ${String(status).toLowerCase()}`);
+          } else {
+            handleResult(captureRaw);
+          }
+        } catch {
+          setErrorMsg("PayPal capture failed");
+        } finally {
+          setSubmitting(false);
+        }
+      },
+      onCancel: () => {
+        toast({ title: "PayPal", description: "Payment cancelled.", variant: "destructive" });
+      },
+      onError: (err: unknown) => {
+        const msg = err instanceof Error ? err.message : "";
+        if (msg === "__DIRECT_SUCCESS__") return; // handled in createOrder
+        console.error("PayPal error:", err);
+        setErrorMsg("PayPal payment failed");
+      },
+    });
+
+    buttons.render(paypalContainerRef.current).catch((err: unknown) => {
+      console.error("PayPal render error:", err);
+    });
+    paypalButtonsRef.current = buttons;
+
+    return () => {
+      if (paypalButtonsRef.current) {
+        try { paypalButtonsRef.current.close(); } catch {}
+        paypalButtonsRef.current = null;
+      }
+    };
+  }, [paypalReady, paymentMethod, validation]);
 
   const basePayload = useCallback((): Record<string, unknown> => ({
     phone_number: state?.phone.replace(/\D/g, "") || "",
@@ -288,64 +404,7 @@ const Checkout = () => {
     handleResult(result);
   };
 
-  // ─── PayPal (SDK-based create-order / capture-order) ───
-  const handlePayPal = async () => {
-    const orderPayload = {
-      phone_number: state.phone.replace(/\D/g, ""),
-      carrierId: validation?.carrier_id || validation?.carrierId,
-      plan_id: state.planId ? String(state.planId) : undefined,
-      amount: validation?.amount ?? Number(state.amount),
-      total: validation?.total ?? Number(state.amount),
-    };
-
-    const orderRaw = await createPayPalOrder(orderPayload) as Record<string, unknown>;
-    // Unwrap double-nested
-    let orderResult = orderRaw;
-    if (orderResult.data && typeof orderResult.data === "object" && !Array.isArray(orderResult.data)) {
-      const inner = orderResult.data as Record<string, unknown>;
-      if (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data)) {
-        orderResult = inner.data as Record<string, unknown>;
-      } else {
-        orderResult = inner;
-      }
-    }
-
-    const approvalUrl = (orderResult.approval_url || orderResult.approve_url || orderResult.redirect_url) as string;
-    const orderId = (orderResult.order_id || orderResult.id || orderResult.orderId) as string;
-
-    if (!approvalUrl) {
-      // If no approval URL but has status=true, it's a direct success (debug mode)
-      if (orderResult.status === true || orderResult.status === "true" || orderResult.status === "success" || orderResult.status === "completed") {
-        handleResult(orderRaw);
-        return;
-      }
-      setErrorMsg("Could not initiate PayPal payment");
-      return;
-    }
-
-    // Open PayPal approval in popup
-    const w = 500, h = 650;
-    const left = (screen.width - w) / 2, top = (screen.height - h) / 2;
-    const popup = window.open(approvalUrl, "PayPalPopup", `width=${w},height=${h},left=${left},top=${top}`);
-
-    const poll = setInterval(async () => {
-      if (!popup || popup.closed) {
-        clearInterval(poll);
-        if (orderId) {
-          try {
-            const captureRaw = await capturePayPalOrder({ order_id: orderId }) as Record<string, unknown>;
-            handleResult(captureRaw);
-          } catch {
-            setErrorMsg("PayPal capture failed");
-          }
-        } else {
-          toast({ title: "PayPal", description: "PayPal window closed." });
-        }
-        setSubmitting(false);
-      }
-    }, 1000);
-    return; // keep submitting true
-  };
+  // PayPal is now handled entirely by SDK Buttons rendered in the UI
 
   // ─── Plaid (Pay by Bank) ───
   const handlePlaid = async () => {
@@ -708,7 +767,7 @@ const Checkout = () => {
     try {
       switch (paymentMethod) {
         case "card": await handleCard(); break;
-        case "paypal": await handlePayPal(); return; // returns early, keeps submitting
+        case "paypal": return; // PayPal is handled by SDK Buttons in the UI
         case "plaid": await handlePlaid(); return;
         case "googlepay": await handleGooglePay(); break;
         case "applepay": await handleApplePay(); return;
@@ -847,6 +906,21 @@ const Checkout = () => {
             </div>
           )}
 
+          {/* PayPal Buttons container (rendered by SDK) */}
+          {paymentMethod === "paypal" && (
+            <div className="bg-card rounded-xl border border-border p-5 space-y-3">
+              <h2 className="font-bold text-foreground mb-1 text-sm">PayPal Checkout</h2>
+              {!paypalReady ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-sm text-muted-foreground">Loading PayPal...</span>
+                </div>
+              ) : (
+                <div ref={paypalContainerRef} id="paypal-button-container" />
+              )}
+            </div>
+          )}
+
           {/* Klarna container (hidden, used by SDK) */}
           <div ref={klarnaContainerRef} id="klarna-payments-container" className="hidden" />
 
@@ -864,16 +938,18 @@ const Checkout = () => {
               </span>
             </label>
 
-            <button
-              type="button"
-              disabled={!canSubmit}
-              onClick={handlePlaceOrder}
-              className="w-full h-[48px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base transition-all active:scale-[0.97] flex items-center justify-center gap-2"
-              style={{ backgroundColor: brandColor }}
-            >
-              {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-              {submitting ? "Processing..." : "PLACE ORDER NOW"}
-            </button>
+            {paymentMethod !== "paypal" && (
+              <button
+                type="button"
+                disabled={!canSubmit}
+                onClick={handlePlaceOrder}
+                className="w-full h-[48px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base transition-all active:scale-[0.97] flex items-center justify-center gap-2"
+                style={{ backgroundColor: brandColor }}
+              >
+                {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+                {submitting ? "Processing..." : "PLACE ORDER NOW"}
+              </button>
+            )}
 
             <p className="text-center text-[10px] text-muted-foreground">
               Secure payment powered by CellPay. Instant refill sent directly to your phone.
