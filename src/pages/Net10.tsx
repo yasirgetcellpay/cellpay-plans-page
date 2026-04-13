@@ -60,7 +60,7 @@ const Net10 = () => {
       </div>
       <PlanGrid plans={plans} brandColor={brandColor} />
       <PaymentBar />
-      <CarrierFooter brandColor={BRAND} carrierName="Net10 Wireless" />
+      <CarrierFooter brandColor={brandColor} carrierName="Net10 Wireless" />
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
 import { useState, useCallback } from "react";
 import { Phone } from "lucide-react";

@@ -73,7 +73,7 @@ const Lyca = () => {
       <PlanGrid plans={plans} brandColor={brandColor} />
 
       <PaymentBar />
-      <CarrierFooter brandColor={BRAND} carrierName="Lyca Mobile" />
+      <CarrierFooter brandColor={brandColor} carrierName="Lyca Mobile" />
     </div>
   );
 };

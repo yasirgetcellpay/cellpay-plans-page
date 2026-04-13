@@ -64,7 +64,7 @@ const UltraMobile = () => {
       </div>
       <PlanGrid plans={plans} brandColor={brandColor} />
       <PaymentBar />
-      <CarrierFooter brandColor={BRAND} carrierName="Ultra Mobile" />
+      <CarrierFooter brandColor={brandColor} carrierName="Ultra Mobile" />
     </div>
   );
 };

@@ -62,7 +62,7 @@ const PagePlus = () => {
       </div>
       <PlanGrid plans={plans} brandColor={brandColor} />
       <PaymentBar />
-      <CarrierFooter brandColor={BRAND} carrierName="PagePlus Cellular" />
+      <CarrierFooter brandColor={brandColor} carrierName="PagePlus Cellular" />
     </div>
   );
 };

@@ -61,7 +61,7 @@ const H2O = () => {
       </div>
       <PlanGrid plans={plans} brandColor={brandColor} />
       <PaymentBar />
-      <CarrierFooter brandColor={BRAND} carrierName="H2O Wireless" />
+      <CarrierFooter brandColor={brandColor} carrierName="H2O Wireless" />
     </div>
   );
 };

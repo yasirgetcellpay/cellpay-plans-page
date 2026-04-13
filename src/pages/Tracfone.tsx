@@ -62,7 +62,7 @@ const Tracfone = () => {
       </div>
       <PlanGrid plans={plans} brandColor={brandColor} />
       <PaymentBar />
-      <CarrierFooter brandColor={BRAND} carrierName="TracFone" />
+      <CarrierFooter brandColor={brandColor} carrierName="TracFone" />
     </div>
   );
 };
