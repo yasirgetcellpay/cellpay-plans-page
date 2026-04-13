@@ -767,7 +767,7 @@ const Checkout = () => {
     try {
       switch (paymentMethod) {
         case "card": await handleCard(); break;
-        case "paypal": await handlePayPal(); return; // returns early, keeps submitting
+        case "paypal": return; // PayPal is handled by SDK Buttons in the UI
         case "plaid": await handlePlaid(); return;
         case "googlepay": await handleGooglePay(); break;
         case "applepay": await handleApplePay(); return;
