@@ -66,6 +66,37 @@ export interface ValidationResult {
   [key: string]: unknown;
 }
 
+export interface CarrierViewData {
+  seo_carrier?: {
+    carrier?: string;
+    carrierId?: number;
+    recommended?: { h1?: string; h2?: string };
+    support_text?: { option1?: string };
+    faqs?: Array<{ question: string; answer: string }>;
+  };
+  carrier?: {
+    id: number;
+    name: string;
+    carrierId: number;
+    slug: string;
+    [key: string]: unknown;
+  };
+  carrier_plans?: {
+    rangePlan?: boolean | string;
+    plans?: Array<Record<string, unknown>>;
+    carrier?: {
+      ID?: number;
+      rangeMin?: number;
+      rangeMax?: number;
+      rangePlan?: string;
+      userMessage?: string;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
 export async function fetchCarriers(): Promise<Carrier[]> {
   const data = await callProxy({ endpoint: "carriers", method: "GET" });
   return extractArray(data, "carriers") as Carrier[];
