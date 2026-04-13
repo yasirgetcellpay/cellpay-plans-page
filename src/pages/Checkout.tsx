@@ -103,8 +103,12 @@ const Checkout = () => {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [cardZip, setCardZip] = useState("");
-  const [cardName, setCardName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [regionId, setRegionId] = useState("");
 
   // Checkout config from API
   const [checkoutConfig, setCheckoutConfig] = useState<Record<string, unknown> | null>(null);
