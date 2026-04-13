@@ -617,27 +617,57 @@ const Checkout = () => {
     });
   };
 
-  // ─── Cash App ───
+  // ─── Cash App (Pockyt) ───
   const handleCashApp = async () => {
-    // Cash App Pay via Pockyt integration
-    const result = await submitTransaction({
-      ...basePayload(),
-      payment_method: "cashapp",
+    const raw = await submitTransaction({
       checkout_version: "5.0",
+      payment_method: "pockyt",
+      amount: validation?.amount ?? Number(state.amount),
+      phone_number: state.phone.replace(/\D/g, ""),
+      carrierId: validation?.carrier_id || validation?.carrierId,
+      plan_id: state.planId ? String(state.planId) : undefined,
+      agree_desktop: true,
+      payment: {
+        firstName: firstName.trim() || "Customer",
+        lastName: lastName.trim() || "User",
+        email: email.trim() || "customer@cellpay.us",
+      },
     }) as Record<string, unknown>;
 
-    // The backend should return a redirect URL or process directly
-    const redirectUrl = (result.redirect_url || result.cashapp_url) as string;
-    if (redirectUrl) {
-      const w = 500, h = 650;
+    // Unwrap double-nested response
+    let result = raw;
+    if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+      const inner = result.data as Record<string, unknown>;
+      if (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data)) {
+        result = inner.data as Record<string, unknown>;
+      } else {
+        result = inner;
+      }
+    }
+
+    // Check for HostedURL redirect
+    const hostedUrl = (result.HostedURL || result.hostedUrl || result.hosted_url) as string;
+    const dataObj = result.data as Record<string, unknown> | undefined;
+    const nestedHostedUrl = hostedUrl || (dataObj?.HostedURL as string);
+
+    if (nestedHostedUrl) {
+      const w = 500, h = 700;
       const left = (screen.width - w) / 2, top = (screen.height - h) / 2;
-      const popup = window.open(redirectUrl, "CashAppPay", `width=${w},height=${h},left=${left},top=${top}`);
+      const popup = window.open(nestedHostedUrl, "CashAppPay", `width=${w},height=${h},left=${left},top=${top}`);
 
       const poll = setInterval(() => {
         if (!popup || popup.closed) {
           clearInterval(poll);
-          // Check transaction status
-          toast({ title: "Cash App Pay", description: "Please check your order status." });
+          toast({ title: "Cash App Pay", description: "Payment window closed. Check your order status." });
+          setSubmitting(false);
+        }
+      }, 1000);
+      return;
+    }
+
+    // Direct response
+    handleResult(raw);
+  };
           setSubmitting(false);
         }
       }, 1000);
