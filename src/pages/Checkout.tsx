@@ -938,16 +938,18 @@ const Checkout = () => {
               </span>
             </label>
 
-            <button
-              type="button"
-              disabled={!canSubmit}
-              onClick={handlePlaceOrder}
-              className="w-full h-[48px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base transition-all active:scale-[0.97] flex items-center justify-center gap-2"
-              style={{ backgroundColor: brandColor }}
-            >
-              {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-              {submitting ? "Processing..." : "PLACE ORDER NOW"}
-            </button>
+            {paymentMethod !== "paypal" && (
+              <button
+                type="button"
+                disabled={!canSubmit}
+                onClick={handlePlaceOrder}
+                className="w-full h-[48px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base transition-all active:scale-[0.97] flex items-center justify-center gap-2"
+                style={{ backgroundColor: brandColor }}
+              >
+                {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+                {submitting ? "Processing..." : "PLACE ORDER NOW"}
+              </button>
+            )}
 
             <p className="text-center text-[10px] text-muted-foreground">
               Secure payment powered by CellPay. Instant refill sent directly to your phone.
