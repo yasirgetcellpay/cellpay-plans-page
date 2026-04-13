@@ -119,6 +119,11 @@ const DynamicCarrier = ({
               setIsRange(true);
               setRangeMin(cp.carrier.rangeMin ?? 5);
               setRangeMax(cp.carrier.rangeMax ?? 300);
+              if (typeof cp.rangePlan === "string" && cp.rangePlan !== "") {
+                setRangePlanId(cp.rangePlan);
+              } else if (cp.carrier.rangePlan) {
+                setRangePlanId(String(cp.carrier.rangePlan));
+              }
             } else if (Array.isArray(cp.plans) && cp.plans.length > 0) {
               setIsRange(false);
               setPlans(normalizePlans(cp.plans));
