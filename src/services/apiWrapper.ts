@@ -66,9 +66,49 @@ export interface ValidationResult {
   [key: string]: unknown;
 }
 
+export interface CarrierViewData {
+  seo_carrier?: {
+    carrier?: string;
+    carrierId?: number;
+    recommended?: { h1?: string; h2?: string };
+    support_text?: { option1?: string };
+    faqs?: Array<{ question: string; answer: string }>;
+  };
+  carrier?: {
+    id: number;
+    name: string;
+    carrierId: number;
+    slug: string;
+    [key: string]: unknown;
+  };
+  carrier_plans?: {
+    rangePlan?: boolean | string;
+    plans?: Array<Record<string, unknown>>;
+    carrier?: {
+      ID?: number;
+      rangeMin?: number;
+      rangeMax?: number;
+      rangePlan?: string;
+      userMessage?: string;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
 export async function fetchCarriers(): Promise<Carrier[]> {
   const data = await callProxy({ endpoint: "carriers", method: "GET" });
   return extractArray(data, "carriers") as Carrier[];
+}
+
+export async function fetchCarrierView(slug: string): Promise<CarrierViewData> {
+  const raw = await callProxy({ endpoint: `carriers/view/${slug}`, method: "GET" });
+  const wrapper = raw as Record<string, unknown>;
+  if (wrapper.success === false) {
+    throw new Error((wrapper.error as string) || "Failed to load carrier");
+  }
+  return (wrapper.data || wrapper) as CarrierViewData;
 }
 
 export async function fetchPlans(carrierSlug: string): Promise<Plan[]> {
