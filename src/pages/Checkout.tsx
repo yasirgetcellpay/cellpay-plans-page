@@ -187,6 +187,108 @@ const Checkout = () => {
       .catch(() => toast({ title: "Error", description: "Failed to load PayPal SDK", variant: "destructive" }));
   }, [checkoutConfig, paymentMethod]);
 
+  // Render PayPal Buttons when SDK is ready
+  useEffect(() => {
+    if (!paypalReady || paymentMethod !== "paypal" || !window.paypal || !paypalContainerRef.current) return;
+
+    // Clean up previous buttons
+    if (paypalButtonsRef.current) {
+      try { paypalButtonsRef.current.close(); } catch {}
+      paypalButtonsRef.current = null;
+    }
+    paypalContainerRef.current.innerHTML = "";
+
+    const buttons = window.paypal.Buttons({
+      style: {
+        layout: "vertical",
+        color: "gold",
+        shape: "rect",
+        label: "paypal",
+        height: 48,
+      },
+      createOrder: async () => {
+        const orderPayload = {
+          phone_number: state.phone.replace(/\D/g, ""),
+          carrierId: validation?.carrier_id || validation?.carrierId,
+          plan_id: state.planId ? String(state.planId) : undefined,
+          amount: validation?.amount ?? Number(state.amount),
+          total: validation?.total ?? Number(state.amount),
+        };
+
+        const orderRaw = await createPayPalOrder(orderPayload) as Record<string, unknown>;
+        // Unwrap double-nested
+        let orderResult = orderRaw;
+        if (orderResult.data && typeof orderResult.data === "object" && !Array.isArray(orderResult.data)) {
+          const inner = orderResult.data as Record<string, unknown>;
+          if (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data)) {
+            orderResult = inner.data as Record<string, unknown>;
+          } else {
+            orderResult = inner;
+          }
+        }
+
+        const orderId = (orderResult.order_id || orderResult.id || orderResult.orderId) as string;
+        if (!orderId) {
+          // Check if it's a direct success (dev/sandbox mode)
+          if (orderResult.status === true || orderResult.status === "true" || orderResult.status === "success" || orderResult.status === "completed") {
+            handleResult(orderRaw);
+            throw new Error("__DIRECT_SUCCESS__");
+          }
+          throw new Error("Could not create PayPal order");
+        }
+        return orderId;
+      },
+      onApprove: async (data: { orderID: string }) => {
+        setSubmitting(true);
+        try {
+          const captureRaw = await capturePayPalOrder({ order_id: data.orderID }) as Record<string, unknown>;
+          // Unwrap
+          let captureResult = captureRaw;
+          if (captureResult.data && typeof captureResult.data === "object" && !Array.isArray(captureResult.data)) {
+            const inner = captureResult.data as Record<string, unknown>;
+            if (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data)) {
+              captureResult = inner.data as Record<string, unknown>;
+            } else {
+              captureResult = inner;
+            }
+          }
+
+          const status = captureResult.status;
+          if (status === "VOIDED" || status === "CANCELLED" || status === "CREATED") {
+            setErrorMsg(`PayPal payment ${String(status).toLowerCase()}`);
+          } else {
+            handleResult(captureRaw);
+          }
+        } catch {
+          setErrorMsg("PayPal capture failed");
+        } finally {
+          setSubmitting(false);
+        }
+      },
+      onCancel: () => {
+        toast({ title: "PayPal", description: "Payment cancelled.", variant: "destructive" });
+      },
+      onError: (err: unknown) => {
+        const msg = err instanceof Error ? err.message : "";
+        if (msg === "__DIRECT_SUCCESS__") return; // handled in createOrder
+        console.error("PayPal error:", err);
+        setErrorMsg("PayPal payment failed");
+      },
+    });
+
+    buttons.render(paypalContainerRef.current).catch((err: unknown) => {
+      console.error("PayPal render error:", err);
+    });
+    paypalButtonsRef.current = buttons;
+
+    return () => {
+      if (paypalButtonsRef.current) {
+        try { paypalButtonsRef.current.close(); } catch {}
+        paypalButtonsRef.current = null;
+      }
+    };
+  }, [paypalReady, paymentMethod, validation]);
+
   const basePayload = useCallback((): Record<string, unknown> => ({
     phone_number: state?.phone.replace(/\D/g, "") || "",
     carrier_slug: state?.carrierSlug || "",
