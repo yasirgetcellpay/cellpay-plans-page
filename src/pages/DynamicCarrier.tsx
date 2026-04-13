@@ -140,6 +140,28 @@ const DynamicCarrier = ({
     setAmount(plan.price.replace("$", ""));
   };
 
+  // Direct checkout from plan card "Pay Now" button
+  const handlePlanPayNow = (plan: { price: string; highlight: string }) => {
+    if (phoneDigits.length !== 10) {
+      toast({ title: "Phone number required", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
+      return;
+    }
+    const planAmount = Number(plan.price.replace("$", ""));
+    const selectedPlan = plans.find((p) => p.amount === planAmount);
+    navigate("/checkout", {
+      state: {
+        phone,
+        amount: planAmount,
+        carrierSlug,
+        carrierId,
+        carrierName,
+        brandColor,
+        planId: selectedPlan?.plan_id,
+        planName: selectedPlan?.name,
+      },
+    });
+  };
+
   const { toast } = useToast();
 
   const handlePay = () => {
@@ -252,11 +274,12 @@ const DynamicCarrier = ({
             <PlanGrid
               plans={plans.map((p) => ({ price: p.price, highlight: p.highlight }))}
               brandColor={bc}
-              onSelect={handlePlanSelect}
+              onSelect={handlePlanPayNow}
             />
           )}
 
-          {/* Terms + Pay */}
+          {/* Terms + Pay (only for range-based carriers without fixed plans) */}
+          {(isRange || plans.length === 0) && (
           <div className="max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
             <p className="text-xs sm:text-sm font-bold text-foreground mb-2 mt-2">Important</p>
             <label className="flex items-start gap-2 mb-3 cursor-pointer">
@@ -285,6 +308,7 @@ const DynamicCarrier = ({
               Secure payment. Instant refill sent directly to your phone.
             </p>
           </div>
+          )}
 
           {/* FAQs from API */}
           {faqs.length > 0 && (
