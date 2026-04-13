@@ -169,8 +169,13 @@ export async function submitTransaction(
 }
 
 export async function fetchCheckoutConfig(): Promise<Record<string, unknown>> {
-  const data = await callProxy({ endpoint: "checkout-client-config", method: "GET" });
-  return data as Record<string, unknown>;
+  const raw = await callProxy({ endpoint: "payments/checkout-client-config", method: "GET" });
+  const wrapper = raw as Record<string, unknown>;
+  let result = (wrapper.data || wrapper) as Record<string, unknown>;
+  if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+    result = result.data as Record<string, unknown>;
+  }
+  return result;
 }
 
 // Auth
@@ -192,28 +197,28 @@ export async function registerUser(email: string, password: string, name: string
 
 // PayPal
 export async function createPayPalOrder(payload: Record<string, unknown>): Promise<unknown> {
-  return callProxy({ endpoint: "checkout/paypal/create-order", method: "POST", payload });
+  return callProxy({ endpoint: "payments/paypal/create-order", method: "POST", payload });
 }
 
 export async function capturePayPalOrder(payload: Record<string, unknown>): Promise<unknown> {
-  return callProxy({ endpoint: "checkout/paypal/capture-order", method: "POST", payload });
+  return callProxy({ endpoint: "payments/paypal/capture-order", method: "POST", payload });
 }
 
 // Plaid
 export async function createPlaidLinkToken(payload: Record<string, unknown>): Promise<unknown> {
-  return callProxy({ endpoint: "checkout/plaid/create-link-token", method: "POST", payload });
+  return callProxy({ endpoint: "payments/plaid/link-token", method: "POST", payload });
 }
 
 export async function exchangePlaidToken(payload: Record<string, unknown>): Promise<unknown> {
-  return callProxy({ endpoint: "checkout/plaid/exchange-token", method: "POST", payload });
+  return callProxy({ endpoint: "payments/plaid/exchange-token", method: "POST", payload });
 }
 
 // Apple Pay session
 export async function createApplePaySession(payload: Record<string, unknown>): Promise<unknown> {
-  return callProxy({ endpoint: "checkout/applepay/session", method: "POST", payload });
+  return callProxy({ endpoint: "payments/apple-pay/session", method: "POST", payload });
 }
 
 // Klarna session
 export async function createKlarnaSession(payload: Record<string, unknown>): Promise<unknown> {
-  return callProxy({ endpoint: "checkout/klarna/session", method: "POST", payload });
+  return callProxy({ endpoint: "payments/klarna/session", method: "POST", payload });
 }
