@@ -108,7 +108,15 @@ export async function fetchCarrierView(slug: string): Promise<CarrierViewData> {
   if (wrapper.success === false) {
     throw new Error((wrapper.error as string) || "Failed to load carrier");
   }
-  return (wrapper.data || wrapper) as CarrierViewData;
+  // Handle double-nested { data: { data: { ... } } } structure
+  let result = (wrapper.data || wrapper) as Record<string, unknown>;
+  if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+    const inner = result.data as Record<string, unknown>;
+    if (inner.carrier || inner.carrier_plans || inner.seo_carrier) {
+      result = inner;
+    }
+  }
+  return result as CarrierViewData;
 }
 
 export async function fetchPlans(carrierSlug: string): Promise<Plan[]> {
