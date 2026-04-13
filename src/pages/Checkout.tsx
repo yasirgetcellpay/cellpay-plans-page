@@ -103,8 +103,12 @@ const Checkout = () => {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
   const [cardZip, setCardZip] = useState("");
-  const [cardName, setCardName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [regionId, setRegionId] = useState("");
 
   // Checkout config from API
   const [checkoutConfig, setCheckoutConfig] = useState<Record<string, unknown> | null>(null);
@@ -203,7 +207,8 @@ const Checkout = () => {
     Number(expiryDigits.slice(0, 2)) <= 12 &&
     cardCvv.length >= 3 &&
     cardZip.length >= 5 &&
-    cardName.trim().length > 0 &&
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
     email.includes("@");
 
   const canSubmit = agreedTerms && !submitting && (paymentMethod === "card" ? isCardValid : true);
@@ -220,19 +225,32 @@ const Checkout = () => {
   // ─── Credit Card ───
   const handleCard = async () => {
     const payload = {
-      ...basePayload(),
-      payment_method: "credit_card",
-      cc_number: cardDigits,
-      cc_exp_month: expiryDigits.slice(0, 2),
-      cc_exp_year: "20" + expiryDigits.slice(2),
-      cc_cvv: cardCvv,
-      cc_type: detectCardType(cardDigits),
-      bill_zip: cardZip,
-      bill_name: cardName,
-      bill_email: email,
-      country_id: "US",
-      region: cardZip,
       checkout_version: "5.0",
+      payment_method: "cardpayment",
+      amount: validation?.amount ?? Number(state.amount),
+      total: validation?.total ?? Number(state.amount),
+      phone_number: state.phone.replace(/\D/g, ""),
+      carrierId: validation?.carrier_id || validation?.carrierId || state.planId,
+      plan_id: state.planId ? String(state.planId) : undefined,
+      agree_desktop: true,
+      payment: {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        address: address.trim(),
+        city: city.trim(),
+        zip: cardZip,
+        cc_type: detectCardType(cardDigits),
+        cc_number: cardDigits,
+        cc_exp_month: expiryDigits.slice(0, 2),
+        cc_exp_year: "20" + expiryDigits.slice(2),
+        cvv_number: cardCvv,
+      },
+      billing: {
+        bill_email: email.trim(),
+        country_id: "US",
+        region_id: regionId || cardZip,
+      },
     };
     const result = await submitTransaction(payload) as Record<string, unknown>;
     handleResult(result);
@@ -615,23 +633,39 @@ const Checkout = () => {
               <h2 className="font-bold text-foreground mb-1 text-sm flex items-center gap-2">
                 <CreditCard className="h-4 w-4" /> Card Details
               </h2>
-              <input type="text" placeholder="Cardholder Name" value={cardName} onChange={(e) => setCardName(e.target.value)}
-                className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
-                style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+              <div className="grid grid-cols-2 gap-3">
+                <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)}
+                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+              </div>
               <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)}
                 className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                 style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-              <input type="text" placeholder="Card Number" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} maxLength={19}
+              <input type="text" placeholder="Street Address" value={address} onChange={(e) => setAddress(e.target.value)}
                 className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                 style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               <div className="grid grid-cols-3 gap-3">
+                <input type="text" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)}
+                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                <input type="text" placeholder="State" value={regionId} onChange={(e) => setRegionId(e.target.value.toUpperCase().slice(0, 2))} maxLength={2}
+                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                <input type="text" placeholder="ZIP" value={cardZip} onChange={(e) => setCardZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
+                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+              </div>
+              <input type="text" placeholder="Card Number" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} maxLength={19}
+                className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+              <div className="grid grid-cols-2 gap-3">
                 <input type="text" placeholder="MM/YY" value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} maxLength={5}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 <input type="text" placeholder="CVV" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} maxLength={4}
-                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
-                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                <input type="text" placeholder="ZIP" value={cardZip} onChange={(e) => setCardZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
