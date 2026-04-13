@@ -315,7 +315,7 @@ const Checkout = () => {
 
     if (!approvalUrl) {
       // If no approval URL but has status=true, it's a direct success (debug mode)
-      if (orderResult.status === true || orderResult.status === "true") {
+      if (orderResult.status === true || orderResult.status === "true" || orderResult.status === "success" || orderResult.status === "completed") {
         handleResult(orderRaw);
         return;
       }
