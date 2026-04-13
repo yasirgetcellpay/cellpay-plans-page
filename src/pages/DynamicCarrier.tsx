@@ -308,6 +308,7 @@ const DynamicCarrier = ({
               Secure payment. Instant refill sent directly to your phone.
             </p>
           </div>
+          )}
 
           {/* FAQs from API */}
           {faqs.length > 0 && (
