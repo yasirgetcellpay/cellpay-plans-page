@@ -207,7 +207,8 @@ const Checkout = () => {
     Number(expiryDigits.slice(0, 2)) <= 12 &&
     cardCvv.length >= 3 &&
     cardZip.length >= 5 &&
-    cardName.trim().length > 0 &&
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
     email.includes("@");
 
   const canSubmit = agreedTerms && !submitting && (paymentMethod === "card" ? isCardValid : true);
@@ -224,19 +225,32 @@ const Checkout = () => {
   // ─── Credit Card ───
   const handleCard = async () => {
     const payload = {
-      ...basePayload(),
-      payment_method: "credit_card",
-      cc_number: cardDigits,
-      cc_exp_month: expiryDigits.slice(0, 2),
-      cc_exp_year: "20" + expiryDigits.slice(2),
-      cc_cvv: cardCvv,
-      cc_type: detectCardType(cardDigits),
-      bill_zip: cardZip,
-      bill_name: cardName,
-      bill_email: email,
-      country_id: "US",
-      region: cardZip,
       checkout_version: "5.0",
+      payment_method: "cardpayment",
+      amount: validation?.amount ?? Number(state.amount),
+      total: validation?.total ?? Number(state.amount),
+      phone_number: state.phone.replace(/\D/g, ""),
+      carrierId: validation?.carrier_id || validation?.carrierId || state.planId,
+      plan_id: state.planId ? String(state.planId) : undefined,
+      agree_desktop: true,
+      payment: {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        address: address.trim(),
+        city: city.trim(),
+        zip: cardZip,
+        cc_type: detectCardType(cardDigits),
+        cc_number: cardDigits,
+        cc_exp_month: expiryDigits.slice(0, 2),
+        cc_exp_year: "20" + expiryDigits.slice(2),
+        cvv_number: cardCvv,
+      },
+      billing: {
+        bill_email: email.trim(),
+        country_id: "US",
+        region_id: regionId || cardZip,
+      },
     };
     const result = await submitTransaction(payload) as Record<string, unknown>;
     handleResult(result);
