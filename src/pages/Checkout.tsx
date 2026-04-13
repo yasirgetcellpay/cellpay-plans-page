@@ -668,13 +668,8 @@ const Checkout = () => {
     // Direct response
     handleResult(raw);
   };
-          setSubmitting(false);
-        }
-      }, 1000);
-      return;
-    }
-    handleResult(result);
-  };
+
+
 
   // ─── Main handler ───
   const handlePlaceOrder = async () => {
