@@ -2,6 +2,7 @@ import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
 import { useState, useCallback } from "react";
 import { Phone, DollarSign } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import uscellularLogo from "@/assets/uscellular-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 
@@ -14,6 +15,7 @@ const formatPhone = (value: string): string => {
 };
 
 const USCellular = () => {
+  const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);
@@ -80,7 +82,7 @@ const USCellular = () => {
           <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">Agree with US Cellular Product Policies and Sales.{" "}<a href="https://www.uscellular.com/terms" className="text-[hsl(220,80%,35%)] underline font-semibold">View More</a></span>
         </label>
         <div className="flex justify-center">
-          <button type="button" disabled={!isValid} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg bg-[hsl(220,80%,35%)] hover:bg-[hsl(220,80%,28%)] disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]">PAY NOW</button>
+          <button type="button" disabled={!isValid} onClick={() => navigate("/checkout", { state: { phone, amount, carrierSlug: "uscellular", carrierName: "US Cellular", brandColor: "hsl(220,80%,35%)" } })} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg bg-[hsl(220,80%,35%)] hover:bg-[hsl(220,80%,28%)] disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]">PAY NOW</button>
         </div>
         <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
       </div>

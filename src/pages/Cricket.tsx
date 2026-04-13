@@ -2,6 +2,7 @@ import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
 import { useState, useCallback } from "react";
 import { Phone, DollarSign } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import cricketLogo from "@/assets/cricket-logo.webp";
 import { PaymentBar } from "@/components/PaymentBar";
 
@@ -14,6 +15,7 @@ const formatPhone = (value: string): string => {
 };
 
 const Cricket = () => {
+  const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);
@@ -89,7 +91,7 @@ const Cricket = () => {
           </span>
         </label>
         <div className="flex justify-center">
-          <button type="button" disabled={!isValid} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg bg-[hsl(82,60%,42%)] hover:bg-[hsl(82,60%,36%)] disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]">PAY NOW</button>
+          <button type="button" disabled={!isValid} onClick={() => navigate("/checkout", { state: { phone, amount, carrierSlug: "cricket", carrierName: "Cricket Wireless", brandColor: "hsl(82,60%,42%)" } })} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg bg-[hsl(82,60%,42%)] hover:bg-[hsl(82,60%,36%)] disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]">PAY NOW</button>
         </div>
         <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
       </div>
