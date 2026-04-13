@@ -17,121 +17,68 @@ import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
 import uscellularLogo from "@/assets/uscellular-logo.png";
 
-/* ── slug → local logo map (fallback & override) ── */
+/* ── API slug → local logo ── */
 const localLogos: Record<string, string> = {
-  "simple-mobile": simpleMobileLogo,
-  simplemobile: simpleMobileLogo,
-  cricket: cricketLogo,
-  cricketwireless: cricketLogo,
-  metro: metroLogo,
-  metropcs: metroLogo,
-  "metro-pcs": metroLogo,
-  tmobile: tmobileLogo,
-  "t-mobile": tmobileLogo,
-  att: attLogo,
-  "att-prepaid": attLogo,
-  attprepaid: attLogo,
-  verizon: verizonLogo,
+  "topup-at": attLogo,
+  "topup-af": attLogo,
   boost: boostLogo,
-  boostmobile: boostLogo,
-  "boost-mobile": boostLogo,
-  "straight-talk": straightTalkLogo,
-  straighttalk: straightTalkLogo,
+  "topup-crc": cricketLogo,
   h2o: h2oLogo,
-  h2owireless: h2oLogo,
-  "h2o-wireless": h2oLogo,
   lyca: lycaLogo,
-  lycamobile: lycaLogo,
-  "lyca-mobile": lycaLogo,
+  metropcs: metroLogo,
   net10: net10Logo,
-  net10wireless: net10Logo,
-  "net10-wireless": net10Logo,
   pageplus: pageplusLogo,
-  "page-plus": pageplusLogo,
+  s1: simpleMobileLogo,
+  tmobile: tmobileLogo,
   tracfone: tracfoneLogo,
   "ultra-mobile": ultraLogo,
-  ultramobile: ultraLogo,
-  uscellular: uscellularLogo,
   "us-cellular": uscellularLogo,
+  verizon: verizonLogo,
 };
 
-/* ── slug → route path map ── */
+/* ── API slug → app route ── */
 const slugToPath: Record<string, string> = {
-  simplemobile: "/simple-mobile",
-  "simple-mobile": "/simple-mobile",
-  cricket: "/cricket",
-  cricketwireless: "/cricket",
-  metro: "/metro",
-  metropcs: "/metro",
-  "metro-pcs": "/metro",
-  tmobile: "/tmobile",
-  "t-mobile": "/tmobile",
-  att: "/att",
-  attprepaid: "/att",
-  "att-prepaid": "/att",
-  verizon: "/verizon",
+  "topup-at": "/att",
+  "topup-af": "/att",
   boost: "/boost",
-  boostmobile: "/boost",
-  "boost-mobile": "/boost",
-  straighttalk: "/straight-talk",
-  "straight-talk": "/straight-talk",
+  "topup-crc": "/cricket",
   h2o: "/h2o",
-  h2owireless: "/h2o",
-  "h2o-wireless": "/h2o",
   lyca: "/lyca",
-  lycamobile: "/lyca",
-  "lyca-mobile": "/lyca",
+  metropcs: "/metro",
   net10: "/net10",
-  net10wireless: "/net10",
-  "net10-wireless": "/net10",
   pageplus: "/pageplus",
-  "page-plus": "/pageplus",
+  s1: "/simple-mobile",
+  tmobile: "/tmobile",
   tracfone: "/tracfone",
-  ultramobile: "/ultra-mobile",
   "ultra-mobile": "/ultra-mobile",
-  uscellular: "/uscellular",
   "us-cellular": "/uscellular",
+  verizon: "/verizon",
+  "straight-talk": "/straight-talk",
+  straighttalk: "/straight-talk",
 };
 
-/* ── brand colour per slug ── */
+/* ── API slug → brand colour ── */
 const slugToColor: Record<string, string> = {
-  simplemobile: "bg-[hsl(101,67%,44%)]",
-  "simple-mobile": "bg-[hsl(101,67%,44%)]",
-  cricket: "bg-[hsl(82,60%,42%)]",
-  cricketwireless: "bg-[hsl(82,60%,42%)]",
-  metro: "bg-[hsl(270,60%,32%)]",
-  metropcs: "bg-[hsl(270,60%,32%)]",
-  "metro-pcs": "bg-[hsl(270,60%,32%)]",
-  tmobile: "bg-[hsl(330,100%,45%)]",
-  "t-mobile": "bg-[hsl(330,100%,45%)]",
-  att: "bg-[hsl(196,100%,44%)]",
-  attprepaid: "bg-[hsl(196,100%,44%)]",
-  "att-prepaid": "bg-[hsl(196,100%,44%)]",
-  verizon: "bg-[hsl(0,100%,45%)]",
+  "topup-at": "bg-[hsl(196,100%,44%)]",
+  "topup-af": "bg-[hsl(196,100%,44%)]",
   boost: "bg-[hsl(27,100%,50%)]",
-  boostmobile: "bg-[hsl(27,100%,50%)]",
-  "boost-mobile": "bg-[hsl(27,100%,50%)]",
-  straighttalk: "bg-[hsl(72,74%,44%)]",
-  "straight-talk": "bg-[hsl(72,74%,44%)]",
+  "topup-crc": "bg-[hsl(82,60%,42%)]",
   h2o: "bg-[hsl(195,85%,50%)]",
-  h2owireless: "bg-[hsl(195,85%,50%)]",
-  "h2o-wireless": "bg-[hsl(195,85%,50%)]",
   lyca: "bg-[hsl(220,50%,22%)]",
-  lycamobile: "bg-[hsl(220,50%,22%)]",
-  "lyca-mobile": "bg-[hsl(220,50%,22%)]",
+  metropcs: "bg-[hsl(270,60%,32%)]",
   net10: "bg-[hsl(195,100%,50%)]",
-  net10wireless: "bg-[hsl(195,100%,50%)]",
-  "net10-wireless": "bg-[hsl(195,100%,50%)]",
   pageplus: "bg-[hsl(0,70%,50%)]",
-  "page-plus": "bg-[hsl(0,70%,50%)]",
+  s1: "bg-[hsl(101,67%,44%)]",
+  tmobile: "bg-[hsl(330,100%,45%)]",
   tracfone: "bg-[hsl(230,70%,30%)]",
-  ultramobile: "bg-[hsl(270,50%,40%)]",
   "ultra-mobile": "bg-[hsl(270,50%,40%)]",
-  uscellular: "bg-[hsl(220,80%,35%)]",
   "us-cellular": "bg-[hsl(220,80%,35%)]",
+  verizon: "bg-[hsl(0,100%,45%)]",
+  "straight-talk": "bg-[hsl(72,74%,44%)]",
+  straighttalk: "bg-[hsl(72,74%,44%)]",
 };
 
-/* ── static fallback (identical to previous hardcoded list) ── */
+/* ── static fallback ── */
 const staticCarriers = [
   { name: "Simple Mobile", logo: simpleMobileLogo, path: "/simple-mobile", bg: "bg-[hsl(101,67%,44%)]" },
   { name: "Cricket Wireless", logo: cricketLogo, path: "/cricket", bg: "bg-[hsl(82,60%,42%)]" },
@@ -157,10 +104,20 @@ interface DisplayCarrier {
   bg: string;
 }
 
+/** Deduplicate by path – keep the first occurrence (primary carrier entry) */
+function dedup(list: DisplayCarrier[]): DisplayCarrier[] {
+  const seen = new Set<string>();
+  return list.filter((c) => {
+    if (seen.has(c.path)) return false;
+    seen.add(c.path);
+    return true;
+  });
+}
+
 function mapApiCarrier(c: Carrier): DisplayCarrier | null {
   const slug = (c.slug || "").toLowerCase();
   const path = slugToPath[slug];
-  if (!path) return null; // unknown carrier – skip
+  if (!path) return null;
   const logo = localLogos[slug] || (c.logo as string) || "";
   const bg = slugToColor[slug] || "bg-primary";
   return { name: c.name, logo, path, bg };
@@ -168,7 +125,6 @@ function mapApiCarrier(c: Carrier): DisplayCarrier | null {
 
 const Home = () => {
   const [carriers, setCarriers] = useState<DisplayCarrier[]>(staticCarriers);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -176,17 +132,15 @@ const Home = () => {
       try {
         const apiCarriers = await fetchCarriers();
         if (!cancelled && apiCarriers.length > 0) {
-          const mapped = apiCarriers
-            .map(mapApiCarrier)
-            .filter((c): c is DisplayCarrier => c !== null);
-          if (mapped.length > 0) {
-            setCarriers(mapped);
-          }
+          const mapped = dedup(
+            apiCarriers
+              .map(mapApiCarrier)
+              .filter((c): c is DisplayCarrier => c !== null)
+          );
+          if (mapped.length > 0) setCarriers(mapped);
         }
       } catch (err) {
         console.warn("Carrier API unavailable, using static list", err);
-      } finally {
-        if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
