@@ -125,6 +125,8 @@ const Checkout = () => {
   // Checkout config from API (typed)
   const [checkoutConfig, setCheckoutConfig] = useState<Record<string, unknown> | null>(null);
   const [paypalReady, setPaypalReady] = useState(false);
+  const paypalContainerRef = useRef<HTMLDivElement>(null);
+  const paypalButtonsRef = useRef<{ close: () => void } | null>(null);
 
   // Success / error dialogs
   const [successData, setSuccessData] = useState<Record<string, unknown> | null>(null);
