@@ -86,13 +86,18 @@ export async function validateRecharge(
   if (planId) payload.plan_id = planId;
   if (amount) payload.amount = amount;
 
-  const data = await callProxy({
+  const raw = await callProxy({
     endpoint: `carriers/validate/${carrierSlug}`,
     method: "POST",
     payload,
   });
 
-  return data as ValidationResult;
+  // Proxy wraps responses: { success, data, error }
+  const wrapper = raw as Record<string, unknown>;
+  if (wrapper.success === false) {
+    return { success: false, message: (wrapper.error as string) || "Validation failed" } as ValidationResult;
+  }
+  return (wrapper.data || wrapper) as ValidationResult;
 }
 
 export async function submitTransaction(
