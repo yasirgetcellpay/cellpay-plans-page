@@ -45,7 +45,7 @@ export const PlanGrid = ({ plans, brandColor, textOnBrand = "text-primary-foregr
         ))}
       </div>
       {lastPlan && (
-        <div className="flex justify-center mt-2 sm:mt-4 lg:justify-start">
+        <div className="flex justify-center mt-2 sm:mt-4">
           <div className="w-[calc(50%-4px)] sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-16px)]">
             <Card plan={lastPlan} />
           </div>
