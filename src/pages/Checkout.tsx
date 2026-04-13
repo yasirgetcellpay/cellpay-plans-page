@@ -380,18 +380,24 @@ const Checkout = () => {
         token: linkToken,
         onSuccess: async (publicToken: string, metadata: Record<string, unknown>) => {
           try {
-            const exchangeResult = await exchangePlaidToken({
-              public_token: publicToken,
-              account_id: (metadata.accounts as Array<Record<string, unknown>>)?.[0]?.id,
-              institution_id: (metadata.institution as Record<string, unknown>)?.institution_id,
+            // Submit transaction directly with plaid_token
+            const result = await submitTransaction({
+              checkout_version: "5.0",
+              payment_method: "plaid",
+              amount: validation?.amount ?? Number(state.amount),
+              total: validation?.total ?? Number(state.amount),
               phone_number: state.phone.replace(/\D/g, ""),
               carrierId: validation?.carrier_id || validation?.carrierId,
               plan_id: state.planId ? String(state.planId) : undefined,
-              amount: validation?.amount ?? Number(state.amount),
-              payment_method: "plaid",
-              checkout_version: "5.0",
+              agree_desktop: true,
+              payment: {
+                firstName: firstName.trim() || "Customer",
+                lastName: lastName.trim() || "User",
+                email: email.trim() || "customer@cellpay.us",
+              },
+              plaid_token: publicToken,
             }) as Record<string, unknown>;
-            handleResult(exchangeResult);
+            handleResult(result);
           } catch {
             setErrorMsg("Bank payment failed");
           }
