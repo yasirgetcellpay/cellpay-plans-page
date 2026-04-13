@@ -539,8 +539,10 @@ const Checkout = () => {
       return;
     }
 
+    const klarnaConfig = checkoutConfig?.klarna as Record<string, unknown> | undefined;
+    const klarnaScriptUrl = (klarnaConfig?.paymentsScriptUrl as string) || "https://x.klarnacdn.net/kp/lib/v1/api.js";
     try {
-      await loadScript("https://x.klarnacdn.net/kp/lib/v1/api.js", "klarna-sdk");
+      await loadScript(klarnaScriptUrl, "klarna-sdk");
     } catch {
       setErrorMsg("Failed to load Klarna SDK");
       return;
