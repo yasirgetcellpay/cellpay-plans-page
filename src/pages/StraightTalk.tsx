@@ -2,6 +2,7 @@ import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
 import { useState, useCallback } from "react";
 import { Phone } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import straightTalkLogo from "@/assets/straight-talk-logo.svg";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
@@ -36,10 +37,17 @@ const formatPhone = (value: string): string => {
 };
 
 const StraightTalk = () => {
+  const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
   }, []);
+
+  const handlePlanSelect = (plan: { price: string }) => {
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length !== 10) return;
+    navigate("/checkout", { state: { phone, amount: plan.price.replace("$", ""), carrierSlug: "straight-talk", carrierName: "Straight Talk", brandColor } });
+  };
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -71,17 +79,17 @@ const StraightTalk = () => {
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 px-2">Wireless Plans</h3>
       </div>
-      <PlanGrid plans={wirelessPlans} brandColor={brandColor} textOnBrand="text-foreground" />
+      <PlanGrid plans={wirelessPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={handlePlanSelect} />
 
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 px-2">Broadband Plans</h3>
       </div>
-      <PlanGrid plans={broadbandPlans} brandColor={brandColor} textOnBrand="text-foreground" />
+      <PlanGrid plans={broadbandPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={handlePlanSelect} />
 
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 px-2">Add-On Plans</h3>
       </div>
-      <PlanGrid plans={addonPlans} brandColor={brandColor} textOnBrand="text-foreground" />
+      <PlanGrid plans={addonPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={handlePlanSelect} />
 
       <PaymentBar />
       <CarrierFooter brandColor={brandColor} carrierName="Straight Talk" />

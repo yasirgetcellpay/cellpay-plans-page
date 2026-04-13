@@ -2,6 +2,7 @@ import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
 import { useState, useCallback } from "react";
 import { Phone } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import lycaLogo from "@/assets/lyca-logo.webp";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
@@ -36,10 +37,17 @@ const formatPhone = (value: string): string => {
 };
 
 const Lyca = () => {
+  const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
   }, []);
+
+  const handlePlanSelect = (plan: { price: string }) => {
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length !== 10) return;
+    navigate("/checkout", { state: { phone, amount: plan.price.replace("$", ""), carrierSlug: "lyca", carrierName: "Lyca Mobile", brandColor } });
+  };
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -70,7 +78,7 @@ const Lyca = () => {
         </div>
       </div>
 
-      <PlanGrid plans={plans} brandColor={brandColor} />
+      <PlanGrid plans={plans} brandColor={brandColor} onSelect={handlePlanSelect} />
 
       <PaymentBar />
       <CarrierFooter brandColor={brandColor} carrierName="Lyca Mobile" />

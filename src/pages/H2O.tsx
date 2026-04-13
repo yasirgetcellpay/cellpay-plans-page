@@ -2,6 +2,7 @@ import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
 import { useState, useCallback } from "react";
 import { Phone } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import h2oLogo from "@/assets/h2o-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
@@ -28,10 +29,17 @@ const formatPhone = (value: string): string => {
 };
 
 const H2O = () => {
+  const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
   }, []);
+
+  const handlePlanSelect = (plan: { price: string }) => {
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length !== 10) return;
+    navigate("/checkout", { state: { phone, amount: plan.price.replace("$", ""), carrierSlug: "h2o", carrierName: "H2O Wireless", brandColor } });
+  };
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -59,7 +67,7 @@ const H2O = () => {
           <p className="text-[10px] sm:text-xs text-muted-foreground">Enter the phone number you want to recharge</p>
         </div>
       </div>
-      <PlanGrid plans={plans} brandColor={brandColor} />
+      <PlanGrid plans={plans} brandColor={brandColor} onSelect={handlePlanSelect} />
       <PaymentBar />
       <CarrierFooter brandColor={brandColor} carrierName="H2O Wireless" />
     </div>
