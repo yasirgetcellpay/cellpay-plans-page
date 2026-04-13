@@ -110,8 +110,9 @@ const Checkout = () => {
   const [city, setCity] = useState("");
   const [regionId, setRegionId] = useState("");
 
-  // Checkout config from API
+  // Checkout config from API (typed)
   const [checkoutConfig, setCheckoutConfig] = useState<Record<string, unknown> | null>(null);
+  const [paypalReady, setPaypalReady] = useState(false);
 
   // Success / error dialogs
   const [successData, setSuccessData] = useState<Record<string, unknown> | null>(null);
@@ -122,6 +123,7 @@ const Checkout = () => {
   const [klarnaReady, setKlarnaReady] = useState(false);
   const [klarnaToken, setKlarnaToken] = useState<string | null>(null);
 
+  // Load checkout config and validate recharge
   useEffect(() => {
     if (!state) { navigate("/"); return; }
     (async () => {
@@ -141,7 +143,10 @@ const Checkout = () => {
           return;
         }
         setValidation(result);
-        if (config) setCheckoutConfig(config);
+        if (config) {
+          console.log("Checkout config loaded:", config);
+          setCheckoutConfig(config);
+        }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Validation failed";
         toast({ title: "Error", description: msg, variant: "destructive" });
@@ -151,6 +156,22 @@ const Checkout = () => {
       }
     })();
   }, []);
+
+  // Load PayPal SDK when config is available and paypal is selected
+  useEffect(() => {
+    if (!checkoutConfig || paymentMethod !== "paypal") return;
+    const paypalConfig = checkoutConfig.paypal as Record<string, unknown> | undefined;
+    const clientId = paypalConfig?.clientId as string;
+    if (!clientId) return;
+
+    const existingScript = document.getElementById("paypal-sdk");
+    if (existingScript) { setPaypalReady(true); return; }
+
+    const sdkUrl = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture&components=buttons&enable-funding=venmo,paylater&disable-funding=card`;
+    loadScript(sdkUrl, "paypal-sdk")
+      .then(() => setPaypalReady(true))
+      .catch(() => toast({ title: "Error", description: "Failed to load PayPal SDK", variant: "destructive" }));
+  }, [checkoutConfig, paymentMethod]);
 
   const basePayload = useCallback((): Record<string, unknown> => ({
     phone_number: state?.phone.replace(/\D/g, "") || "",
@@ -267,72 +288,91 @@ const Checkout = () => {
     handleResult(result);
   };
 
-  // ─── PayPal ───
+  // ─── PayPal (SDK-based create-order / capture-order) ───
   const handlePayPal = async () => {
-    const payload = {
-      checkout_version: "5.0",
-      payment_method: "paypal",
-      amount: validation?.amount ?? Number(state.amount),
-      total: validation?.total ?? Number(state.amount),
+    const orderPayload = {
       phone_number: state.phone.replace(/\D/g, ""),
       carrierId: validation?.carrier_id || validation?.carrierId,
       plan_id: state.planId ? String(state.planId) : undefined,
-      agree_desktop: true,
-      payment: {
-        firstName: firstName.trim() || "Customer",
-        lastName: lastName.trim() || "User",
-        email: email.trim() || "customer@cellpay.us",
-      },
+      amount: validation?.amount ?? Number(state.amount),
+      total: validation?.total ?? Number(state.amount),
     };
 
-    const raw = await submitTransaction(payload) as Record<string, unknown>;
-
-    // Unwrap proxy response
-    let result = raw;
-    if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
-      const inner = result.data as Record<string, unknown>;
+    const orderRaw = await createPayPalOrder(orderPayload) as Record<string, unknown>;
+    // Unwrap double-nested
+    let orderResult = orderRaw;
+    if (orderResult.data && typeof orderResult.data === "object" && !Array.isArray(orderResult.data)) {
+      const inner = orderResult.data as Record<string, unknown>;
       if (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data)) {
-        result = inner.data as Record<string, unknown>;
+        orderResult = inner.data as Record<string, unknown>;
       } else {
-        result = inner;
+        orderResult = inner;
       }
     }
 
-    // If the API returns a PayPal approval URL, open it in a popup
-    const approvalUrl = (result.approval_url || result.approve_url || result.redirect_url || result.paypal_url) as string;
-    if (approvalUrl) {
-      const w = 500, h = 650;
-      const left = (screen.width - w) / 2, top = (screen.height - h) / 2;
-      const popup = window.open(approvalUrl, "PayPalPopup", `width=${w},height=${h},left=${left},top=${top}`);
+    const approvalUrl = (orderResult.approval_url || orderResult.approve_url || orderResult.redirect_url) as string;
+    const orderId = (orderResult.order_id || orderResult.id || orderResult.orderId) as string;
 
-      const poll = setInterval(async () => {
-        if (!popup || popup.closed) {
-          clearInterval(poll);
-          // After popup closes, check if transaction completed
-          toast({ title: "PayPal", description: "PayPal window closed. Check your order status." });
-          setSubmitting(false);
-        }
-      }, 1000);
-      return; // keep submitting true until popup closes
+    if (!approvalUrl) {
+      // If no approval URL but has status=true, it's a direct success (debug mode)
+      if (orderResult.status === true || orderResult.status === "true") {
+        handleResult(orderRaw);
+        return;
+      }
+      setErrorMsg("Could not initiate PayPal payment");
+      return;
     }
 
-    // If no redirect URL, treat as direct response
-    handleResult(raw);
+    // Open PayPal approval in popup
+    const w = 500, h = 650;
+    const left = (screen.width - w) / 2, top = (screen.height - h) / 2;
+    const popup = window.open(approvalUrl, "PayPalPopup", `width=${w},height=${h},left=${left},top=${top}`);
+
+    const poll = setInterval(async () => {
+      if (!popup || popup.closed) {
+        clearInterval(poll);
+        if (orderId) {
+          try {
+            const captureRaw = await capturePayPalOrder({ order_id: orderId }) as Record<string, unknown>;
+            handleResult(captureRaw);
+          } catch {
+            setErrorMsg("PayPal capture failed");
+          }
+        } else {
+          toast({ title: "PayPal", description: "PayPal window closed." });
+        }
+        setSubmitting(false);
+      }
+    }, 1000);
+    return; // keep submitting true
   };
 
   // ─── Plaid (Pay by Bank) ───
   const handlePlaid = async () => {
+    const plaidConfig = checkoutConfig?.plaid as Record<string, unknown> | undefined;
+    const scriptUrl = (plaidConfig?.linkInitializeScriptUrl as string) || "https://cdn.plaid.com/link/v2/stable/link-initialize.js";
     try {
-      await loadScript("https://cdn.plaid.com/link/v2/stable/link-initialize.js", "plaid-sdk");
+      await loadScript(scriptUrl, "plaid-sdk");
     } catch {
       setErrorMsg("Failed to load Plaid SDK");
       return;
     }
 
-    const tokenResp = await createPlaidLinkToken(basePayload()) as Record<string, unknown>;
-    const linkToken = (tokenResp.link_token || ((tokenResp as Record<string, unknown>).data as Record<string, unknown> | undefined)?.link_token) as string;
+    const tokenResp = await createPlaidLinkToken({
+      phone_number: state.phone.replace(/\D/g, ""),
+      carrierId: validation?.carrier_id || validation?.carrierId,
+      plan_id: state.planId ? String(state.planId) : undefined,
+      amount: validation?.amount ?? Number(state.amount),
+    }) as Record<string, unknown>;
+    // Unwrap
+    let tokenData = tokenResp;
+    if (tokenData.data && typeof tokenData.data === "object") {
+      const inner = tokenData.data as Record<string, unknown>;
+      if (inner.data && typeof inner.data === "object") tokenData = inner.data as Record<string, unknown>;
+      else tokenData = inner;
+    }
+    const linkToken = tokenData.link_token as string;
     if (!linkToken) { setErrorMsg("Could not create Plaid link"); return; }
-
     if (!window.Plaid) { setErrorMsg("Plaid SDK not available"); return; }
 
     return new Promise<void>((resolve) => {
@@ -341,9 +381,13 @@ const Checkout = () => {
         onSuccess: async (publicToken: string, metadata: Record<string, unknown>) => {
           try {
             const exchangeResult = await exchangePlaidToken({
-              ...basePayload(),
               public_token: publicToken,
               account_id: (metadata.accounts as Array<Record<string, unknown>>)?.[0]?.id,
+              institution_id: (metadata.institution as Record<string, unknown>)?.institution_id,
+              phone_number: state.phone.replace(/\D/g, ""),
+              carrierId: validation?.carrier_id || validation?.carrierId,
+              plan_id: state.planId ? String(state.planId) : undefined,
+              amount: validation?.amount ?? Number(state.amount),
               payment_method: "plaid",
               checkout_version: "5.0",
             }) as Record<string, unknown>;
@@ -377,16 +421,23 @@ const Checkout = () => {
       return;
     }
 
-    const client = new window.google.payments.api.PaymentsClient({ environment: "PRODUCTION" });
+    const gpayConfig = checkoutConfig?.googlePay as Record<string, unknown> | undefined;
+    const gpayEnv = (gpayConfig?.environment as string) || "TEST";
+    const merchantId = (gpayConfig?.merchantId || "") as string;
+    const merchantName = (gpayConfig?.merchantName || "CELLPAY") as string;
+    const gatewayMerchantId = (gpayConfig?.gatewayMerchantId || merchantId) as string;
+    const paymentGateway = (gpayConfig?.paymentGateway || "cybersource") as string;
+    const allowedNetworks = (gpayConfig?.allowedCardNetworks as string[]) || ["AMEX", "DISCOVER", "MASTERCARD", "VISA"];
+
+    const client = new window.google.payments.api.PaymentsClient({ environment: gpayEnv });
     const baseCardMethod = {
       type: "CARD",
-      parameters: { allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"], allowedCardNetworks: ["VISA", "MASTERCARD", "AMEX", "DISCOVER"] },
+      parameters: { allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"], allowedCardNetworks: allowedNetworks },
     };
 
     const ready = await client.isReadyToPay({ apiVersion: 2, apiVersionMinor: 0, allowedPaymentMethods: [baseCardMethod] });
     if (!ready.result) { setErrorMsg("Google Pay is not available on this device"); return; }
 
-    const merchantId = (checkoutConfig?.google_pay_merchant_id || checkoutConfig?.googlePayMerchantId || "") as string;
     const paymentData = await client.loadPaymentData({
       apiVersion: 2,
       apiVersionMinor: 0,
@@ -394,11 +445,11 @@ const Checkout = () => {
         ...baseCardMethod,
         tokenizationSpecification: {
           type: "PAYMENT_GATEWAY",
-          parameters: { gateway: "cellpay", gatewayMerchantId: merchantId },
+          parameters: { gateway: paymentGateway, gatewayMerchantId },
         },
       }],
-      transactionInfo: { totalPriceStatus: "FINAL", totalPrice: String(total), currencyCode: "USD", countryCode: "US" },
-      merchantInfo: { merchantId, merchantName: "CellPay" },
+      transactionInfo: { totalPriceStatus: "FINAL", totalPrice: String(total), currencyCode: (gpayConfig?.currencyCode as string) || "USD", countryCode: (gpayConfig?.countryCode as string) || "US" },
+      merchantInfo: { merchantId, merchantName },
     });
 
     const tokenStr = (paymentData.paymentMethodData as Record<string, unknown>)?.tokenizationData as Record<string, unknown>;
@@ -418,12 +469,15 @@ const Checkout = () => {
       return;
     }
 
+    const appleConfig = checkoutConfig?.applePay as Record<string, unknown> | undefined;
+    const displayName = (appleConfig?.displayName as string) || "Cellpay.us";
+
     const session = new window.ApplePaySession!(3, {
       countryCode: "US",
       currencyCode: "USD",
       supportedNetworks: ["visa", "masterCard", "amex", "discover"],
       merchantCapabilities: ["supports3DS"],
-      total: { label: "CellPay Recharge", amount: String(total) },
+      total: { label: displayName, amount: String(total) },
     });
 
     session.onvalidatemerchant = async (event) => {
@@ -485,8 +539,10 @@ const Checkout = () => {
       return;
     }
 
+    const klarnaConfig = checkoutConfig?.klarna as Record<string, unknown> | undefined;
+    const klarnaScriptUrl = (klarnaConfig?.paymentsScriptUrl as string) || "https://x.klarnacdn.net/kp/lib/v1/api.js";
     try {
-      await loadScript("https://x.klarnacdn.net/kp/lib/v1/api.js", "klarna-sdk");
+      await loadScript(klarnaScriptUrl, "klarna-sdk");
     } catch {
       setErrorMsg("Failed to load Klarna SDK");
       return;
