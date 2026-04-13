@@ -196,7 +196,7 @@ const DynamicCarrier = ({
         carrierId,
         carrierName,
         brandColor,
-        planId: selectedPlan?.plan_id,
+        planId: selectedPlan?.plan_id || rangePlanId || undefined,
         planName: selectedPlan?.name,
       },
     });
