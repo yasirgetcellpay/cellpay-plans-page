@@ -114,7 +114,7 @@ const staticCarriers: DisplayCarrier[] = [
   { name: "TracFone", logo: tracfoneLogo, path: "/tracfone", bg: "bg-[hsl(230,70%,30%)]" },
   { name: "Ultra Mobile", logo: ultraLogo, path: "/ultra-mobile", bg: "bg-[hsl(270,50%,40%)]" },
   { name: "US Cellular", logo: uscellularLogo, path: "/uscellular", bg: "bg-[hsl(220,80%,35%)]" },
-  { name: "XBOX", path: "/xbox", bg: "bg-[hsl(120,60%,40%)]" },
+  
 ];
 
 interface DisplayCarrier {
