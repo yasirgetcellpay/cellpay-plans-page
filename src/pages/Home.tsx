@@ -1,174 +1,82 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
+import cricketLogo from "@/assets/cricket-logo.webp";
+import metroLogo from "@/assets/metro-logo.svg";
+import tmobileLogo from "@/assets/tmobile-logo.svg";
+import attLogo from "@/assets/att-prepaid-logo.webp";
+import verizonLogo from "@/assets/verizon-logo.png";
+import boostLogo from "@/assets/boost-logo.png";
+import straightTalkLogo from "@/assets/straight-talk-logo.svg";
+import h2oLogo from "@/assets/h2o-logo.png";
+import lycaLogo from "@/assets/lyca-logo.webp";
+import net10Logo from "@/assets/net10-logo.png";
+import pageplusLogo from "@/assets/pageplus-logo.png";
+import tracfoneLogo from "@/assets/tracfone-logo.svg";
+import ultraLogo from "@/assets/ultra-mobile-logo.png";
+import uscellularLogo from "@/assets/uscellular-logo.png";
 
-import { fetchCarriers, type Carrier } from "@/services/apiWrapper";
-import { useAuth } from "@/contexts/AuthContext";
-import { AuthDialogs } from "@/components/AuthDialogs";
-import { PaymentBar } from "@/components/PaymentBar";
-import { Footer } from "@/components/Footer";
-import cellpayLogo from "@/assets/cellpay-logo.webp";
+const carriers = [
+  { name: "Simple Mobile", logo: simpleMobileLogo, path: "/simple-mobile", bg: "bg-[hsl(101,67%,44%)]" },
+  { name: "Cricket Wireless", logo: cricketLogo, path: "/cricket", bg: "bg-[hsl(82,60%,42%)]" },
+  { name: "Metro PCS", logo: metroLogo, path: "/metro", bg: "bg-[hsl(270,60%,32%)]" },
+  { name: "T-Mobile", logo: tmobileLogo, path: "/tmobile", bg: "bg-[hsl(330,100%,45%)]" },
+  { name: "AT&T Prepaid", logo: attLogo, path: "/att", bg: "bg-[hsl(196,100%,44%)]" },
+  { name: "Verizon", logo: verizonLogo, path: "/verizon", bg: "bg-[hsl(0,100%,45%)]" },
+  { name: "Boost Mobile", logo: boostLogo, path: "/boost", bg: "bg-[hsl(27,100%,50%)]" },
+  { name: "Straight Talk", logo: straightTalkLogo, path: "/straight-talk", bg: "bg-[hsl(72,74%,44%)]" },
+  { name: "H2O Wireless", logo: h2oLogo, path: "/h2o", bg: "bg-[hsl(195,85%,50%)]" },
+  { name: "Lyca Mobile", logo: lycaLogo, path: "/lyca", bg: "bg-[hsl(220,50%,22%)]" },
+  { name: "Net10 Wireless", logo: net10Logo, path: "/net10", bg: "bg-[hsl(195,100%,50%)]" },
+  { name: "Page Plus", logo: pageplusLogo, path: "/pageplus", bg: "bg-[hsl(0,70%,50%)]" },
+  { name: "TracFone", logo: tracfoneLogo, path: "/tracfone", bg: "bg-[hsl(230,70%,30%)]" },
+  { name: "Ultra Mobile", logo: ultraLogo, path: "/ultra-mobile", bg: "bg-[hsl(270,50%,40%)]" },
+  { name: "US Cellular", logo: uscellularLogo, path: "/uscellular", bg: "bg-[hsl(220,80%,35%)]" },
+];
 
-type ApiCarrier = Carrier;
+const Home = () => (
+  <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
+    {/* Header */}
+    <header className="bg-cellpay-dark py-6 text-center">
+      <h1 className="text-2xl sm:text-3xl font-extrabold text-primary-foreground tracking-tight">
+        Prepaid Phone Refill
+      </h1>
+      <p className="text-sm text-muted-foreground mt-1">Select your carrier to get started</p>
+    </header>
 
-const LOGO_BASE = "https://www.cellpay.us/webp/v4/home";
-
-const Home = () => {
-  const [carriers, setCarriers] = useState<ApiCarrier[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, user, logout } = useAuth();
-  const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      const result = await fetchCarriers();
-      if (cancelled) return;
-      if (result.success && result.data) {
-        const raw = result.data as unknown;
-        const extract = (v: unknown): ApiCarrier[] => {
-          if (Array.isArray(v)) return v;
-          if (typeof v === "object" && v !== null) {
-            const obj = v as Record<string, unknown>;
-            if (Array.isArray(obj.carriers)) return obj.carriers;
-            if (Array.isArray(obj.data)) return obj.data;
-            if (typeof obj.data === "object" && obj.data !== null) return extract(obj.data);
-          }
-          return [];
-        };
-        const list = extract(raw);
-        const GIFT_CARD_SLUGS = ["xbox"];
-        setCarriers(list.filter((c) => c.active !== false && !GIFT_CARD_SLUGS.includes(c.slug || "")));
-      } else {
-        setError(result.error || "Failed to load carriers");
-      }
-      setLoading(false);
-    };
-    load();
-    return () => { cancelled = true; };
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
-      {/* Simple navbar — white background, green bottom border */}
-      <nav className="w-full bg-card border-b-4 border-primary">
-        <div className="max-w-7xl mx-auto pl-4 sm:pl-6 lg:pl-8 pr-2 sm:pr-3 lg:pr-4 flex items-center justify-between h-16">
-          <Link to="/" className="flex-shrink-0">
-            <img src={cellpayLogo} alt="CellPay" className="h-10" />
+    {/* Carrier Grid */}
+    <main className="flex-1 flex items-center justify-center px-4 py-12">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl w-full">
+        {carriers.map((carrier) => (
+          <Link
+            key={carrier.path}
+            to={carrier.path}
+            className="group bg-card rounded-xl border border-border shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden active:scale-[0.97]"
+          >
+            <div className="flex items-center justify-center h-32 sm:h-40 bg-background p-6">
+              <img
+                src={carrier.logo}
+                alt={carrier.name}
+                className="max-h-12 sm:max-h-16 max-w-[80%] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className={`${carrier.bg} py-3 text-center`}>
+              <span className="text-primary-foreground font-bold text-sm sm:text-base">
+                {carrier.name}
+              </span>
+            </div>
           </Link>
-          <div className="flex items-center gap-4">
-            {isAuthenticated ? (
-              <>
-                <span className="text-sm text-muted-foreground">
-                  {user?.first_name || user?.email}
-                </span>
-                <button
-                  onClick={logout}
-                  className="text-sm font-medium text-destructive hover:underline"
-                >
-                  Log Out
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => setAuthMode("login")}
-                className="text-sm font-medium text-foreground hover:underline"
-              >
-                Log In
-              </button>
-            )}
-            <a
-              href="#carriers"
-              className="px-5 py-2 rounded text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors"
-            >
-              Recharge Now
-            </a>
-          </div>
-        </div>
-      </nav>
+        ))}
+      </div>
+    </main>
 
-      {/* Hero banner — dark green gradient */}
-      <section className="bg-gradient-to-r from-plan-tier1 to-plan-tier2 py-6 sm:py-8 text-center">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-primary-foreground tracking-tight">
-          Service Plans
-        </h1>
-      </section>
-
-      {/* Carrier Grid */}
-      <main id="carriers" className="flex-1 px-4 py-10 sm:py-14">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-lg font-semibold text-foreground mb-6 text-center">Choose a Carrier</h2>
-
-          {loading && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
-              {Array.from({ length: 15 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex flex-col items-center justify-center bg-card rounded-lg border border-border p-4 h-28 sm:h-32 animate-pulse"
-                >
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-muted" />
-                  <div className="mt-2 w-16 h-3 rounded bg-muted" />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {error && !loading && (
-            <div className="text-center py-16">
-              <p className="text-sm text-destructive">{error}</p>
-            </div>
-          )}
-
-          {!loading && !error && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
-              {carriers.map((carrier) => {
-                const slug = carrier.slug || "";
-                const displayName = carrier.name || slug;
-                const logoUrl = `${LOGO_BASE}/${slug}.webp`;
-
-                return (
-                  <Link
-                    key={carrier.id ?? slug}
-                    to={`/${slug}`}
-                    className="group flex flex-col items-center justify-center bg-card rounded-lg border border-border hover:border-primary hover:shadow-lg transition-all duration-200 p-4 h-28 sm:h-32"
-                  >
-                    <img
-                      src={logoUrl}
-                      alt={displayName}
-                      className="max-h-14 sm:max-h-16 max-w-[90%] w-auto object-contain group-hover:scale-105 transition-transform duration-200"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        target.style.display = "none";
-                        const parent = target.parentElement;
-                        if (parent && !parent.querySelector("span")) {
-                          const span = document.createElement("span");
-                          span.className = "text-sm font-bold text-foreground text-center";
-                          span.textContent = displayName;
-                          parent.appendChild(span);
-                        }
-                      }}
-                    />
-                    <span className="mt-2 text-xs font-medium text-muted-foreground group-hover:text-foreground text-center">
-                      {displayName}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </main>
-
-      <PaymentBar />
-      <Footer onLogin={() => setAuthMode("login")} onSignUp={() => setAuthMode("register")} />
-
-      <AuthDialogs
-        mode={authMode}
-        onClose={() => setAuthMode(null)}
-        onSwitchMode={setAuthMode}
-      />
-    </div>
-  );
-};
+    {/* Footer */}
+    <footer className="bg-cellpay-dark text-muted-foreground py-6 text-center text-xs">
+      <p>© 2026 All rights reserved.</p>
+      <p className="text-[10px] opacity-50 mt-2 max-w-2xl mx-auto px-4">
+        All carrier names and trademarks are property of their respective owners.
+      </p>
+    </footer>
+  </div>
+);
 
 export default Home;
