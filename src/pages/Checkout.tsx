@@ -158,6 +158,11 @@ const Checkout = () => {
 
   if (!state) return null;
 
+  const brandColor = state.brandColor;
+  const total = validation?.total ?? Number(state.amount);
+  const fee = validation?.fee ?? 0;
+  const tax = validation?.tax ?? 0;
+
   // Card helpers
   const formatCardNumber = (val: string) => {
     const digits = val.replace(/\D/g, "").slice(0, 16);
@@ -202,14 +207,6 @@ const Checkout = () => {
     email.includes("@");
 
   const canSubmit = agreedTerms && !submitting && (paymentMethod === "card" ? isCardValid : true);
-
-  const basePayload = useCallback((): Record<string, unknown> => ({
-    phone_number: state.phone.replace(/\D/g, ""),
-    carrier_slug: state.carrierSlug,
-    amount: state.amount,
-    plan_id: state.planId,
-    carrier_id: validation?.carrier_id || validation?.carrierId,
-  }), [state, validation]);
 
   const handleResult = (result: Record<string, unknown>) => {
     const status = (String(result.status || "")).toLowerCase();
