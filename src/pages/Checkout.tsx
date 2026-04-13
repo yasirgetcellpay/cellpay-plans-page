@@ -213,9 +213,20 @@ const Checkout = () => {
 
   const canSubmit = agreedTerms && !submitting && (paymentMethod === "card" ? isCardValid : true);
 
-  const handleResult = (result: Record<string, unknown>) => {
-    const status = (String(result.status || "")).toLowerCase();
-    if (status === "success" || status === "completed") {
+  const handleResult = (raw: Record<string, unknown>) => {
+    // Unwrap double-nested { data: { data: { status, message, transactionId } } }
+    let result = raw;
+    if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+      const inner = result.data as Record<string, unknown>;
+      if (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data)) {
+        result = inner.data as Record<string, unknown>;
+      } else {
+        result = inner;
+      }
+    }
+    const status = result.status;
+    const isSuccess = status === true || status === "true" || String(status || "").toLowerCase() === "success" || String(status || "").toLowerCase() === "completed";
+    if (isSuccess) {
       setSuccessData(result);
     } else {
       setErrorMsg((result.msg as string) || (result.message as string) || "Transaction failed");
