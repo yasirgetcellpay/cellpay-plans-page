@@ -68,6 +68,7 @@ const DynamicCarrier = ({
   const [isRange, setIsRange] = useState(false);
   const [rangeMin, setRangeMin] = useState(5);
   const [rangeMax, setRangeMax] = useState(300);
+  const [rangePlanId, setRangePlanId] = useState<string>("");
   const [plans, setPlans] = useState<NormalizedPlan[]>([]);
   const [faqs, setFaqs] = useState<Array<{ question: string; answer: string }>>([]);
   const [heading, setHeading] = useState("");
