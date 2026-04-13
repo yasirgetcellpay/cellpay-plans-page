@@ -107,14 +107,20 @@ const DynamicCarrier = ({
         // Plans
         const cp = data.carrier_plans;
         if (cp) {
-          const rangeFlag = cp.rangePlan === true || (typeof cp.rangePlan === "string" && cp.rangePlan !== "");
-          if (rangeFlag && cp.carrier) {
-            setIsRange(true);
-            setRangeMin(cp.carrier.rangeMin ?? 5);
-            setRangeMax(cp.carrier.rangeMax ?? 300);
-          } else if (Array.isArray(cp.plans) && cp.plans.length > 0) {
+          // carrier_plans can be a direct array or an object
+          if (Array.isArray(cp)) {
             setIsRange(false);
-            setPlans(normalizePlans(cp.plans));
+            setPlans(normalizePlans(cp as Array<Record<string, unknown>>));
+          } else {
+            const rangeFlag = cp.rangePlan === true || (typeof cp.rangePlan === "string" && cp.rangePlan !== "");
+            if (rangeFlag && cp.carrier) {
+              setIsRange(true);
+              setRangeMin(cp.carrier.rangeMin ?? 5);
+              setRangeMax(cp.carrier.rangeMax ?? 300);
+            } else if (Array.isArray(cp.plans) && cp.plans.length > 0) {
+              setIsRange(false);
+              setPlans(normalizePlans(cp.plans));
+            }
           }
         }
       } catch (err) {
