@@ -81,7 +81,7 @@ export interface CarrierViewData {
     slug: string;
     [key: string]: unknown;
   };
-  carrier_plans?: {
+  carrier_plans?: Array<Record<string, unknown>> | {
     rangePlan?: boolean | string;
     plans?: Array<Record<string, unknown>>;
     carrier?: {
