@@ -102,6 +102,15 @@ export async function fetchCarriers(): Promise<Carrier[]> {
   return extractArray(data, "carriers") as Carrier[];
 }
 
+export async function fetchCarrierView(slug: string): Promise<CarrierViewData> {
+  const raw = await callProxy({ endpoint: `carriers/view/${slug}`, method: "GET" });
+  const wrapper = raw as Record<string, unknown>;
+  if (wrapper.success === false) {
+    throw new Error((wrapper.error as string) || "Failed to load carrier");
+  }
+  return (wrapper.data || wrapper) as CarrierViewData;
+}
+
 export async function fetchPlans(carrierSlug: string): Promise<Plan[]> {
   const data = await callProxy({ endpoint: `carriers/${carrierSlug}/plans`, method: "GET" });
   return extractArray(data, "plans") as Plan[];
