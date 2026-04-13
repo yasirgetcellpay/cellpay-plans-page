@@ -145,7 +145,15 @@ export async function validateRecharge(
   if (wrapper.success === false) {
     return { success: false, message: (wrapper.error as string) || "Validation failed" } as ValidationResult;
   }
-  return (wrapper.data || wrapper) as ValidationResult;
+  // Handle double-nested { data: { data: { amount, fee, tax, total } } }
+  let result = (wrapper.data || wrapper) as Record<string, unknown>;
+  if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+    const inner = result.data as Record<string, unknown>;
+    if (inner.amount !== undefined || inner.fee !== undefined || inner.total !== undefined) {
+      result = inner;
+    }
+  }
+  return result as ValidationResult;
 }
 
 export async function submitTransaction(
