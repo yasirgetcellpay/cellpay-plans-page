@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { useState, useCallback } from "react";
 import { Phone } from "lucide-react";
 import net10Logo from "@/assets/net10-logo.png";
@@ -34,7 +35,8 @@ const Net10 = () => {
     <div className="min-h-screen bg-background font-sans antialiased">
       <nav className="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style={{ borderColor: brandColor }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center h-14 sm:h-20 items-center">
+          <div className="relative flex justify-center h-14 sm:h-20 items-center">
+            <BackButton />
             <img src={net10Logo} alt="Net10 Wireless" className="h-[24px] sm:h-[36px] w-auto" />
           </div>
         </div>

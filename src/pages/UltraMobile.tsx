@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { useState, useCallback } from "react";
 import { Phone } from "lucide-react";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
@@ -38,7 +39,8 @@ const UltraMobile = () => {
     <div className="min-h-screen bg-background font-sans antialiased">
       <nav className="sticky top-0 z-50 border-b-4 shadow-sm" style={{ backgroundColor: brandColor, borderColor: "hsl(270,50%,30%)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center h-14 sm:h-20 items-center">
+          <div className="relative flex justify-center h-14 sm:h-20 items-center">
+            <BackButton />
             <img src={ultraLogo} alt="Ultra Mobile" className="h-[36px] sm:h-[50px] w-auto object-contain" />
           </div>
         </div>

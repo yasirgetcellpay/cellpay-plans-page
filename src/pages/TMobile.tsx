@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { useState, useCallback } from "react";
 import { Phone, DollarSign } from "lucide-react";
 import tmobileLogo from "@/assets/tmobile-logo.svg";
@@ -51,7 +52,8 @@ const TMobile = () => {
     <div className="min-h-screen bg-background font-sans antialiased">
       <nav className="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style={{ borderColor: BRAND }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center h-14 sm:h-20 items-center">
+          <div className="relative flex justify-center h-14 sm:h-20 items-center">
+            <BackButton />
             <img src={tmobileLogo} alt="T-Mobile" className="w-[44px] sm:w-[52px]" />
           </div>
         </div>
