@@ -15,6 +15,7 @@ import PagePlus from "./pages/PagePlus.tsx";
 import Tracfone from "./pages/Tracfone.tsx";
 import UltraMobile from "./pages/UltraMobile.tsx";
 import USCellular from "./pages/USCellular.tsx";
+import DynamicCarrier from "./pages/DynamicCarrier.tsx";
 import Checkout from "./pages/Checkout.tsx";
 import PaymentCallback from "./pages/PaymentCallback.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -39,6 +40,15 @@ const App = () => (
       <Route path="/tracfone" element={<Tracfone />} />
       <Route path="/ultra-mobile" element={<UltraMobile />} />
       <Route path="/uscellular" element={<USCellular />} />
+
+      {/* New carriers from API without dedicated pages */}
+      <Route path="/att-firstnet" element={<DynamicCarrier carrierName="AT&T FirstNet" carrierSlug="topup-af" carrierId={81} brandColor="hsl(196,100%,44%)" hasFixedPlans />} />
+      <Route path="/pageplus-addon" element={<DynamicCarrier carrierName="Page Plus Addon Balance" carrierSlug="pageplusadd" carrierId={50} brandColor="hsl(0,70%,50%)" hasFixedPlans />} />
+      <Route path="/red-pocket" element={<DynamicCarrier carrierName="Red Pocket Mobile" carrierSlug="red-pocket-mobile" carrierId={2} brandColor="hsl(0,80%,45%)" hasFixedPlans />} />
+      <Route path="/total-wireless" element={<DynamicCarrier carrierName="Total Wireless" carrierSlug="total-wireless" carrierId={79} brandColor="hsl(200,70%,40%)" hasFixedPlans />} />
+      <Route path="/verizon-flexi" element={<DynamicCarrier carrierName="Verizon Wireless Flexi" carrierSlug="verizon-wireless-flexi" carrierId={75} brandColor="hsl(0,100%,45%)" amountRange={{ min: 5, max: 300 }} />} />
+      <Route path="/xbox" element={<DynamicCarrier carrierName="XBOX" carrierSlug="xbox" carrierId={76} brandColor="hsl(120,60%,40%)" hasFixedPlans />} />
+
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/payment-callback" element={<PaymentCallback />} />
       <Route path="*" element={<NotFound />} />
