@@ -15,7 +15,10 @@ import PagePlus from "./pages/PagePlus.tsx";
 import Tracfone from "./pages/Tracfone.tsx";
 import UltraMobile from "./pages/UltraMobile.tsx";
 import USCellular from "./pages/USCellular.tsx";
+import Checkout from "./pages/Checkout.tsx";
+import PaymentCallback from "./pages/PaymentCallback.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import { Toaster } from "@/components/ui/toaster";
 
 const App = () => (
   <BrowserRouter>
@@ -36,8 +39,11 @@ const App = () => (
       <Route path="/tracfone" element={<Tracfone />} />
       <Route path="/ultra-mobile" element={<UltraMobile />} />
       <Route path="/uscellular" element={<USCellular />} />
+      <Route path="/checkout" element={<Checkout />} />
+      <Route path="/payment-callback" element={<PaymentCallback />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
+    <Toaster />
   </BrowserRouter>
 );
 
