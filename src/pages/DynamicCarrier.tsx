@@ -140,6 +140,28 @@ const DynamicCarrier = ({
     setAmount(plan.price.replace("$", ""));
   };
 
+  // Direct checkout from plan card "Pay Now" button
+  const handlePlanPayNow = (plan: { price: string; highlight: string }) => {
+    if (phoneDigits.length !== 10) {
+      toast({ title: "Phone number required", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
+      return;
+    }
+    const planAmount = Number(plan.price.replace("$", ""));
+    const selectedPlan = plans.find((p) => p.amount === planAmount);
+    navigate("/checkout", {
+      state: {
+        phone,
+        amount: planAmount,
+        carrierSlug,
+        carrierId,
+        carrierName,
+        brandColor,
+        planId: selectedPlan?.plan_id,
+        planName: selectedPlan?.name,
+      },
+    });
+  };
+
   const { toast } = useToast();
 
   const handlePay = () => {
