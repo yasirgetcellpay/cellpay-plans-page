@@ -404,64 +404,7 @@ const Checkout = () => {
     handleResult(result);
   };
 
-  // ─── PayPal (SDK-based create-order / capture-order) ───
-  const handlePayPal = async () => {
-    const orderPayload = {
-      phone_number: state.phone.replace(/\D/g, ""),
-      carrierId: validation?.carrier_id || validation?.carrierId,
-      plan_id: state.planId ? String(state.planId) : undefined,
-      amount: validation?.amount ?? Number(state.amount),
-      total: validation?.total ?? Number(state.amount),
-    };
-
-    const orderRaw = await createPayPalOrder(orderPayload) as Record<string, unknown>;
-    // Unwrap double-nested
-    let orderResult = orderRaw;
-    if (orderResult.data && typeof orderResult.data === "object" && !Array.isArray(orderResult.data)) {
-      const inner = orderResult.data as Record<string, unknown>;
-      if (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data)) {
-        orderResult = inner.data as Record<string, unknown>;
-      } else {
-        orderResult = inner;
-      }
-    }
-
-    const approvalUrl = (orderResult.approval_url || orderResult.approve_url || orderResult.redirect_url) as string;
-    const orderId = (orderResult.order_id || orderResult.id || orderResult.orderId) as string;
-
-    if (!approvalUrl) {
-      // If no approval URL but has status=true, it's a direct success (debug mode)
-      if (orderResult.status === true || orderResult.status === "true" || orderResult.status === "success" || orderResult.status === "completed") {
-        handleResult(orderRaw);
-        return;
-      }
-      setErrorMsg("Could not initiate PayPal payment");
-      return;
-    }
-
-    // Open PayPal approval in popup
-    const w = 500, h = 650;
-    const left = (screen.width - w) / 2, top = (screen.height - h) / 2;
-    const popup = window.open(approvalUrl, "PayPalPopup", `width=${w},height=${h},left=${left},top=${top}`);
-
-    const poll = setInterval(async () => {
-      if (!popup || popup.closed) {
-        clearInterval(poll);
-        if (orderId) {
-          try {
-            const captureRaw = await capturePayPalOrder({ order_id: orderId }) as Record<string, unknown>;
-            handleResult(captureRaw);
-          } catch {
-            setErrorMsg("PayPal capture failed");
-          }
-        } else {
-          toast({ title: "PayPal", description: "PayPal window closed." });
-        }
-        setSubmitting(false);
-      }
-    }, 1000);
-    return; // keep submitting true
-  };
+  // PayPal is now handled entirely by SDK Buttons rendered in the UI
 
   // ─── Plaid (Pay by Bank) ───
   const handlePlaid = async () => {
