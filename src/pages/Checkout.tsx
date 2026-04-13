@@ -541,16 +541,26 @@ const Checkout = () => {
   };
 
   // ─── Klarna ───
+  const buildKlarnaPayload = (authToken: string) => ({
+    checkout_version: "5.0",
+    payment_method: "klarna",
+    amount: validation?.amount ?? Number(state.amount),
+    total: validation?.total ?? Number(state.amount),
+    phone_number: state.phone.replace(/\D/g, ""),
+    carrierId: validation?.carrier_id || validation?.carrierId,
+    plan_id: state.planId ? String(state.planId) : undefined,
+    agree_desktop: true,
+    payment: {
+      firstName: firstName.trim() || "Customer",
+      lastName: lastName.trim() || "User",
+      email: email.trim() || "customer@cellpay.us",
+    },
+    klarna_auth_token: authToken,
+  });
+
   const handleKlarna = async () => {
     if (klarnaToken) {
-      // Already authorized, submit
-      const result = await submitTransaction({
-        ...basePayload(),
-        payment_method: "klarna",
-        klarna_auth_token: klarnaToken,
-        bill_email: email || "customer@cellpay.us",
-        checkout_version: "5.0",
-      }) as Record<string, unknown>;
+      const result = await submitTransaction(buildKlarnaPayload(klarnaToken)) as Record<string, unknown>;
       handleResult(result);
       return;
     }
@@ -565,11 +575,18 @@ const Checkout = () => {
     }
 
     const sessionResp = await createKlarnaSession({
-      ...basePayload(),
-      amount: total, // dollars, not cents
+      phone_number: state.phone.replace(/\D/g, ""),
+      carrierId: validation?.carrier_id || validation?.carrierId,
+      plan_id: state.planId ? String(state.planId) : undefined,
+      amount: validation?.total ?? Number(state.amount),
     }) as Record<string, unknown>;
 
-    const sessionData = (sessionResp.data || sessionResp) as Record<string, unknown>;
+    let sessionData = sessionResp;
+    if (sessionData.data && typeof sessionData.data === "object") {
+      const inner = sessionData.data as Record<string, unknown>;
+      if (inner.data && typeof inner.data === "object") sessionData = inner.data as Record<string, unknown>;
+      else sessionData = inner;
+    }
     const clientToken = sessionData.client_token as string;
     if (!clientToken) { setErrorMsg("Could not create Klarna session"); return; }
 
@@ -585,13 +602,7 @@ const Checkout = () => {
           if (res.approved && res.authorization_token) {
             setKlarnaToken(res.authorization_token);
             try {
-              const result = await submitTransaction({
-                ...basePayload(),
-                payment_method: "klarna",
-                klarna_auth_token: res.authorization_token,
-                bill_email: email || "customer@cellpay.us",
-                checkout_version: "5.0",
-              }) as Record<string, unknown>;
+              const result = await submitTransaction(buildKlarnaPayload(res.authorization_token)) as Record<string, unknown>;
               handleResult(result);
             } catch {
               setErrorMsg("Klarna payment failed");
