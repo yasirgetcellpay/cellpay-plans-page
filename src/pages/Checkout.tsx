@@ -147,7 +147,7 @@ const Checkout = () => {
             state.carrierSlug,
             state.phone.replace(/\D/g, ""),
             state.planId,
-            state.planId ? undefined : Number(state.amount)
+            Number(state.amount)
           ),
           fetchCheckoutConfig().catch(() => null),
         ]);
