@@ -2,6 +2,7 @@ import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
 import { useState, useCallback, useEffect } from "react";
 import { Phone, DollarSign, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
@@ -134,13 +135,30 @@ const DynamicCarrier = ({
 
   const phoneDigits = phone.replace(/\D/g, "");
   const amountNum = amount ? parseInt(amount, 10) : 0;
-  const isValid = phoneDigits.length === 10 && amountNum >= rangeMin && amountNum <= rangeMax && confirmed && agreedTerms;
 
   const handlePlanSelect = (plan: { price: string; highlight: string }) => {
     setAmount(plan.price.replace("$", ""));
   };
 
+  const { toast } = useToast();
+
   const handlePay = () => {
+    if (phoneDigits.length !== 10) {
+      toast({ title: "Phone number required", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
+      return;
+    }
+    if (amountNum < rangeMin || amountNum > rangeMax) {
+      toast({ title: "Invalid amount", description: `Please enter an amount between $${rangeMin} and $${rangeMax}.`, variant: "destructive" });
+      return;
+    }
+    if (!confirmed) {
+      toast({ title: "Confirmation required", description: "Please confirm that the phone number is correct.", variant: "destructive" });
+      return;
+    }
+    if (!agreedTerms) {
+      toast({ title: "Terms required", description: "Please agree to the product policies.", variant: "destructive" });
+      return;
+    }
     const selectedPlan = plans.find((p) => p.amount === amountNum);
     navigate("/checkout", {
       state: {
@@ -256,9 +274,8 @@ const DynamicCarrier = ({
             <div className="flex justify-center">
               <button
                 type="button"
-                disabled={!isValid}
                 onClick={handlePay}
-                className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]"
+                className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]"
                 style={{ backgroundColor: bc }}
               >
                 PAY NOW
