@@ -110,8 +110,9 @@ const Checkout = () => {
   const [city, setCity] = useState("");
   const [regionId, setRegionId] = useState("");
 
-  // Checkout config from API
+  // Checkout config from API (typed)
   const [checkoutConfig, setCheckoutConfig] = useState<Record<string, unknown> | null>(null);
+  const [paypalReady, setPaypalReady] = useState(false);
 
   // Success / error dialogs
   const [successData, setSuccessData] = useState<Record<string, unknown> | null>(null);
@@ -122,6 +123,7 @@ const Checkout = () => {
   const [klarnaReady, setKlarnaReady] = useState(false);
   const [klarnaToken, setKlarnaToken] = useState<string | null>(null);
 
+  // Load checkout config and validate recharge
   useEffect(() => {
     if (!state) { navigate("/"); return; }
     (async () => {
@@ -141,7 +143,10 @@ const Checkout = () => {
           return;
         }
         setValidation(result);
-        if (config) setCheckoutConfig(config);
+        if (config) {
+          console.log("Checkout config loaded:", config);
+          setCheckoutConfig(config);
+        }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Validation failed";
         toast({ title: "Error", description: msg, variant: "destructive" });
@@ -151,6 +156,22 @@ const Checkout = () => {
       }
     })();
   }, []);
+
+  // Load PayPal SDK when config is available and paypal is selected
+  useEffect(() => {
+    if (!checkoutConfig || paymentMethod !== "paypal") return;
+    const paypalConfig = checkoutConfig.paypal as Record<string, unknown> | undefined;
+    const clientId = paypalConfig?.clientId as string;
+    if (!clientId) return;
+
+    const existingScript = document.getElementById("paypal-sdk");
+    if (existingScript) { setPaypalReady(true); return; }
+
+    const sdkUrl = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture&components=buttons&enable-funding=venmo,paylater&disable-funding=card`;
+    loadScript(sdkUrl, "paypal-sdk")
+      .then(() => setPaypalReady(true))
+      .catch(() => toast({ title: "Error", description: "Failed to load PayPal SDK", variant: "destructive" }));
+  }, [checkoutConfig, paymentMethod]);
 
   const basePayload = useCallback((): Record<string, unknown> => ({
     phone_number: state?.phone.replace(/\D/g, "") || "",
