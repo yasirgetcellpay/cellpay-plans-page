@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Footer } from "@/components/Footer";
+import { LegalBar } from "@/components/LegalBar";
+import { PaymentBar } from "@/components/PaymentBar";
 import { fetchCarriers, type Carrier } from "@/services/apiWrapper";
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
 import cricketLogo from "@/assets/cricket-logo.webp";
@@ -208,13 +211,9 @@ const Home = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-cellpay-dark text-muted-foreground py-6 text-center text-xs">
-        <p>© 2026 All rights reserved.</p>
-        <p className="text-[10px] opacity-50 mt-2 max-w-2xl mx-auto px-4">
-          All carrier names and trademarks are property of their respective owners.
-        </p>
-      </footer>
+      <PaymentBar />
+      <Footer />
+      <LegalBar />
     </div>
   );
 };
