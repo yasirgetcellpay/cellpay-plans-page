@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Navbar } from "@/components/Navbar";
+import { BackButton } from "@/components/BackButton";
+import { AccountDropdown } from "@/components/AccountDropdown";
 import { Footer } from "@/components/Footer";
 import { PaymentBar } from "@/components/PaymentBar";
 import { LegalBar } from "@/components/LegalBar";
@@ -58,7 +59,15 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
+      <nav className="sticky top-0 z-50 bg-card border-b-4 border-cellpay-green shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative flex justify-center h-14 sm:h-20 items-center">
+            <BackButton />
+            <span className="text-xl sm:text-2xl font-extrabold text-cellpay-green tracking-tight">CellPay</span>
+            <AccountDropdown />
+          </div>
+        </div>
+      </nav>
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-8">
         <h1 className="text-2xl font-bold text-foreground mb-6">My Profile</h1>
 
