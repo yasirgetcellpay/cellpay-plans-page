@@ -368,7 +368,9 @@ const Checkout = () => {
     const status = result.status;
     const isSuccess = status === true || status === "true" || String(status || "").toLowerCase() === "success" || String(status || "").toLowerCase() === "completed";
     if (isSuccess) {
-      setSuccessData(result);
+      const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
+      const params = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
+      navigate(`/order-confirmation?${params.toString()}`);
     } else {
       setErrorMsg((result.msg as string) || (result.message as string) || "Transaction failed");
     }
