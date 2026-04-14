@@ -13,6 +13,12 @@ async function callProxy(req: ProxyRequest): Promise<unknown> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
+  // Auto-inject bearer token from localStorage if not explicitly provided
+  if (!req.bearerToken) {
+    const storedToken = localStorage.getItem("cellpay_token");
+    if (storedToken) req.bearerToken = storedToken;
+  }
+
   try {
     const { data, error } = await supabase.functions.invoke("cellpay-proxy", {
       body: req,
