@@ -171,38 +171,51 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
-      {/* Header */}
-      <header className="bg-cellpay-dark py-6 text-center">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-primary-foreground tracking-tight">
-          Prepaid Phone Refill
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">Select your carrier to get started</p>
-      </header>
+      {/* Nav - consistent with carrier pages */}
+      <nav className="sticky top-0 z-50 bg-card border-b-4 border-cellpay-green shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-center h-14 sm:h-20 items-center">
+            <span className="text-xl sm:text-2xl font-extrabold text-cellpay-green tracking-tight">
+              CellPay
+            </span>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero - consistent with carrier hero sections */}
+      <section className="bg-gradient-to-r from-plan-tier1 to-plan-tier2 text-primary-foreground">
+        <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-xl md:text-2xl font-extrabold">
+            Prepaid Phone Refill
+          </h1>
+          <p className="text-sm opacity-90 mt-1">Select your carrier to get started</p>
+        </div>
+      </section>
 
       {/* Carrier Grid */}
-      <main className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl w-full">
+      <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6 max-w-3xl w-full">
           {carriers.map((carrier) => (
             <Link
               key={carrier.path}
               to={carrier.path}
-              className="group bg-card rounded-xl border border-border shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden active:scale-[0.97]"
+              className="group bg-card rounded-lg sm:rounded-xl border border-border shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden active:scale-[0.97]"
             >
-              <div className="flex items-center justify-center h-32 sm:h-40 bg-background p-6">
+              <div className="flex items-center justify-center h-24 sm:h-40 bg-background p-4 sm:p-6">
                 {carrier.logo ? (
                   <img
                     src={carrier.logo}
                     alt={carrier.name}
-                    className="max-h-12 sm:max-h-16 max-w-[80%] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                    className="max-h-10 sm:max-h-16 max-w-[80%] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
-                  <span className="text-lg sm:text-xl font-extrabold text-foreground group-hover:scale-105 transition-transform duration-300">
+                  <span className="text-sm sm:text-xl font-extrabold text-foreground group-hover:scale-105 transition-transform duration-300">
                     {carrier.name}
                   </span>
                 )}
               </div>
-              <div className={`${carrier.bg} py-3 text-center`}>
-                <span className="text-primary-foreground font-bold text-sm sm:text-base">
+              <div className={`${carrier.bg} py-2 sm:py-3 text-center`}>
+                <span className="text-primary-foreground font-bold text-xs sm:text-base">
                   {carrier.name}
                 </span>
               </div>
