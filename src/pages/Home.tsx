@@ -179,10 +179,35 @@ const Home = () => {
       {/* Nav - consistent with carrier pages */}
       <nav className="sticky top-0 z-50 bg-card border-b-4 border-cellpay-green shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center h-14 sm:h-20 items-center">
+          <div className="relative flex justify-center h-14 sm:h-20 items-center">
             <span className="text-xl sm:text-2xl font-extrabold text-cellpay-green tracking-tight">
               CellPay
             </span>
+            <div className="absolute right-0 flex items-center gap-2">
+              {isLoggedIn ? (
+                <>
+                  <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[120px]">
+                    {user?.first_name || user?.email}
+                  </span>
+                  <button
+                    onClick={logout}
+                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    title="Log out"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span className="hidden sm:inline">Logout</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setAuthOpen(true)}
+                  className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">Log In</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </nav>
