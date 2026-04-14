@@ -19,18 +19,21 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
             </ul>
           </div>
           <div>
-            <h5 className="font-bold mb-5 uppercase tracking-widest text-sm" style={{ color: brandColor }}>Policy</h5>
+            <h5 className="font-bold mb-5 uppercase tracking-widest text-sm" style={{ color: brandColor }}>My Account</h5>
+            <ul className="space-y-3 text-sm">
+              <li><a href="#" className="hover:text-primary-foreground">Log In</a></li>
+              <li><a href="#" className="hover:text-primary-foreground">Sign Up</a></li>
+              <li><a href="#" className="hover:text-primary-foreground">Recharge Now</a></li>
+              <li><a href="#" className="hover:text-primary-foreground">Check Balance</a></li>
+              <li><a href="#" className="hover:text-primary-foreground">Auto Recharge</a></li>
+            </ul>
+          </div>
+          <div>
+            <h5 className="font-bold mb-5 uppercase tracking-widest text-sm" style={{ color: brandColor }}>Legal</h5>
             <ul className="space-y-3 text-sm">
               <li><a href="https://www.cellpay.us/privacy-policy.html/" className="hover:text-primary-foreground">Privacy Policy</a></li>
               <li><a href="https://www.cellpay.us/terms-and-conditions.html" className="hover:text-primary-foreground">Terms &amp; Conditions</a></li>
               <li><a href="#" className="hover:text-primary-foreground">Returns &amp; Refunds Policy</a></li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="font-bold mb-5 uppercase tracking-widest text-sm" style={{ color: brandColor }}>Help &amp; FAQ</h5>
-            <ul className="space-y-3 text-sm">
-              <li><a href="https://www.cellpay.us/how-to-use/" className="hover:text-primary-foreground">How to Use</a></li>
-              <li><a href="https://www.cellpay.us/faq" className="hover:text-primary-foreground">FAQ</a></li>
             </ul>
           </div>
         </div>
