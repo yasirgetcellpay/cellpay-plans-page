@@ -42,8 +42,8 @@ export const Footer = ({ onLoginClick, onSignupClick }: FooterProps) => {
                 <li><button onClick={handleLogin} className="hover:text-primary-foreground">Log In</button></li>
                 <li><button onClick={handleSignup} className="hover:text-primary-foreground">Sign Up</button></li>
                 <li><a href="/" className="hover:text-primary-foreground">Recharge Now</a></li>
-                <li><a href="https://www.cellpay.us/check-balance.html" className="hover:text-primary-foreground">Check Balance</a></li>
-                <li><a href="https://www.cellpay.us/auto-recharge.html" className="hover:text-primary-foreground">Auto Recharge</a></li>
+                <li><a href="#" className="hover:text-primary-foreground">Check Balance</a></li>
+                <li><a href="#" className="hover:text-primary-foreground">Auto Recharge</a></li>
               </ul>
             </div>
             <div>
