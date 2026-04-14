@@ -211,13 +211,9 @@ const Home = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-cellpay-dark text-muted-foreground py-6 text-center text-xs">
-        <p>© 2026 All rights reserved.</p>
-        <p className="text-[10px] opacity-50 mt-2 max-w-2xl mx-auto px-4">
-          All carrier names and trademarks are property of their respective owners.
-        </p>
-      </footer>
+      <PaymentBar />
+      <Footer />
+      <LegalBar />
     </div>
   );
 };
