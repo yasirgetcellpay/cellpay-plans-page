@@ -195,31 +195,35 @@ const Home = () => {
             <span className="text-xl sm:text-2xl font-extrabold text-cellpay-green tracking-tight">
               CellPay
             </span>
-            <div className="absolute right-0 flex items-center gap-2">
-              {isLoggedIn ? (
-                <>
-                  <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[120px]">
-                    {user?.first_name || user?.email}
-                  </span>
-                  <button
-                    onClick={logout}
-                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    title="Log out"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span className="hidden sm:inline">Logout</span>
-                  </button>
-                </>
-              ) : (
+            {isLoggedIn && (
+              <div className="absolute right-0" ref={dropdownRef}>
                 <button
-                  onClick={() => setAuthOpen(true)}
-                  className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                  onClick={() => setDropdownOpen((p) => !p)}
+                  className="flex items-center gap-1 text-sm font-semibold text-foreground hover:text-primary transition-colors"
                 >
                   <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">Log In</span>
+                  <span className="hidden sm:inline truncate max-w-[100px]">
+                    {user?.first_name || "Account"}
+                  </span>
+                  <ChevronDown className="h-3 w-3" />
                 </button>
-              )}
-            </div>
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-44 bg-card border border-border rounded-md shadow-lg py-1 z-50">
+                    <div className="px-3 py-2 border-b border-border">
+                      <p className="text-sm font-semibold text-foreground truncate">{user?.first_name} {user?.last_name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                    </div>
+                    <button
+                      onClick={() => { logout(); setDropdownOpen(false); }}
+                      className="w-full text-left px-3 py-2 text-sm text-destructive hover:bg-muted transition-colors flex items-center gap-2"
+                    >
+                      <LogOut className="h-3.5 w-3.5" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </nav>
