@@ -9,7 +9,7 @@ interface ProxyRequest {
   bearerToken?: string;
 }
 
-async function callProxy(req: ProxyRequest): Promise<unknown> {
+export async function callProxy(req: ProxyRequest): Promise<unknown> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
