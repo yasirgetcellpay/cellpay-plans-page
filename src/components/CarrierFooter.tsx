@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AuthDialog } from "@/components/AuthDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CarrierFooterProps {
   brandColor: string;
@@ -10,6 +11,7 @@ interface CarrierFooterProps {
 export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-primary-foreground" }: CarrierFooterProps) => {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const { isLoggedIn } = useAuth();
 
   return (
     <>
@@ -28,8 +30,12 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
             <div>
               <h5 className="font-bold mb-5 uppercase tracking-widest text-sm" style={{ color: brandColor }}>My Account</h5>
               <ul className="space-y-3 text-sm">
-                <li><button onClick={() => { setAuthMode("login"); setAuthOpen(true); }} className="hover:text-primary-foreground">Log In</button></li>
-                <li><button onClick={() => { setAuthMode("register"); setAuthOpen(true); }} className="hover:text-primary-foreground">Sign Up</button></li>
+                {!isLoggedIn && (
+                  <>
+                    <li><button onClick={() => { setAuthMode("login"); setAuthOpen(true); }} className="hover:text-primary-foreground">Log In</button></li>
+                    <li><button onClick={() => { setAuthMode("register"); setAuthOpen(true); }} className="hover:text-primary-foreground">Sign Up</button></li>
+                  </>
+                )}
                 <li><a href="/" className="hover:text-primary-foreground">Recharge Now</a></li>
                 <li><a href="#" className="hover:text-primary-foreground">Check Balance</a></li>
                 <li><a href="#" className="hover:text-primary-foreground">Auto Recharge</a></li>
