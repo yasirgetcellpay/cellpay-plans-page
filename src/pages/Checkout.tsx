@@ -993,6 +993,9 @@ const Checkout = () => {
           </div>
         </div>
       )}
+      <PaymentBar />
+      <Footer />
+      <LegalBar />
     </div>
   );
 };
