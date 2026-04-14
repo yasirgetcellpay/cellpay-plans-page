@@ -51,7 +51,7 @@ export const Footer = ({ onLoginClick, onSignupClick }: FooterProps) => {
               <ul className="space-y-4 text-sm">
                 <li><a href="https://www.cellpay.us/privacy-policy.html" className="hover:text-primary-foreground">Privacy Policy</a></li>
                 <li><a href="https://www.cellpay.us/terms-and-conditions.html" className="hover:text-primary-foreground">Terms &amp; Conditions</a></li>
-                <li><a href="https://www.cellpay.us/returns-refunds-policy.html" className="hover:text-primary-foreground">Returns &amp; Refunds Policy</a></li>
+                <li><a href="https://www.cellpay.us/returns-and-refunds-policy.html/" className="hover:text-primary-foreground">Returns &amp; Refunds Policy</a></li>
               </ul>
             </div>
           </div>
