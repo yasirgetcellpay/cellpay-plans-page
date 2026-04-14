@@ -153,6 +153,18 @@ const Home = () => {
   const [carriers, setCarriers] = useState<DisplayCarrier[]>(staticCarriers);
   const [authOpen, setAuthOpen] = useState(false);
   const { isLoggedIn, user, logout } = useAuth();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
