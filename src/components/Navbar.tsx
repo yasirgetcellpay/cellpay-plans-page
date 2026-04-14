@@ -51,7 +51,7 @@ export const Navbar = () => {
                 <ChevronDown className={`h-3 w-3 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
               </button>
               {dropdownOpen && (
-                <div className="absolute right-0 mt-1 w-52 bg-card border border-border rounded-lg shadow-xl py-0 z-50 overflow-hidden">
+                <div className="absolute right-0 mt-1 w-56 bg-card border border-border rounded-xl shadow-xl py-0 z-50 overflow-hidden">
                   <div className="px-4 py-3 bg-muted/40 border-b border-border">
                     <p className="text-sm font-semibold text-foreground truncate">{user?.first_name} {user?.last_name}</p>
                     <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
