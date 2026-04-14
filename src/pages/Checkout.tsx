@@ -133,7 +133,7 @@ const Checkout = () => {
   const paypalButtonsRef = useRef<{ close: () => void } | null>(null);
 
   // Success / error dialogs
-  const [successData, setSuccessData] = useState<Record<string, unknown> | null>(null);
+  const [, setSuccessData] = useState<Record<string, unknown> | null>(null); // kept for Apple Pay compatibility
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Klarna
@@ -965,23 +965,7 @@ const Checkout = () => {
         </div>
       )}
 
-      {/* Success dialog */}
-      {successData && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => { setSuccessData(null); navigate("/"); }}>
-          <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <div className="text-4xl mb-3">✅</div>
-            <h3 className="text-xl font-bold text-foreground mb-2">Payment Successful!</h3>
-            <p className="text-sm text-muted-foreground mb-1">Your {state.carrierName} recharge has been processed.</p>
-            {(successData.transaction_id || successData.transactionId || successData.hashid) && (
-              <p className="text-xs text-muted-foreground">Transaction ID: <span className="font-mono font-bold">{String(successData.transactionId || successData.transaction_id || successData.hashid)}</span></p>
-            )}
-            <button type="button" onClick={() => { setSuccessData(null); navigate("/"); }}
-              className="mt-4 px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Error dialog */}
       {errorMsg && (
