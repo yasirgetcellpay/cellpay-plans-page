@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialMode?: "login" | "register";
 }
 
 async function callAuthProxy(endpoint: string, payload: Record<string, unknown>) {
@@ -22,8 +23,13 @@ async function callAuthProxy(endpoint: string, payload: Record<string, unknown>)
   return data as Record<string, unknown>;
 }
 
-export function AuthDialog({ open, onOpenChange }: Props) {
-  const [mode, setMode] = useState<"login" | "register">("login");
+export function AuthDialog({ open, onOpenChange, initialMode = "login" }: Props) {
+  const [mode, setMode] = useState<"login" | "register">(initialMode);
+
+  // Sync mode when initialMode or open changes
+  useEffect(() => {
+    if (open) setMode(initialMode);
+  }, [open, initialMode]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");

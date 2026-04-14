@@ -9,6 +9,7 @@ interface CarrierFooterProps {
 
 export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-primary-foreground" }: CarrierFooterProps) => {
   const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
 
   return (
     <>
@@ -19,7 +20,7 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
               <h5 className="font-bold mb-5 uppercase tracking-widest text-sm" style={{ color: brandColor }}>Company</h5>
               <ul className="space-y-3 text-sm">
                 <li><a href="https://www.cellpay.us/about-us/" className="hover:text-primary-foreground">About Us</a></li>
-                <li><a href="https://www.cellpay.us/contact-us.html/" className="hover:text-primary-foreground">Contact Us</a></li>
+                <li><a href="https://www.cellpay.us/contact-us.html" className="hover:text-primary-foreground">Contact Us</a></li>
                 <li><a href="https://www.cellpay.us/faq" className="hover:text-primary-foreground">FAQ</a></li>
                 <li><a href="https://www.cellpay.us/how-to-use/" className="hover:text-primary-foreground">How to Use</a></li>
               </ul>
@@ -27,19 +28,19 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
             <div>
               <h5 className="font-bold mb-5 uppercase tracking-widest text-sm" style={{ color: brandColor }}>My Account</h5>
               <ul className="space-y-3 text-sm">
-                <li><button onClick={() => setAuthOpen(true)} className="hover:text-primary-foreground">Log In</button></li>
-                <li><button onClick={() => setAuthOpen(true)} className="hover:text-primary-foreground">Sign Up</button></li>
+                <li><button onClick={() => { setAuthMode("login"); setAuthOpen(true); }} className="hover:text-primary-foreground">Log In</button></li>
+                <li><button onClick={() => { setAuthMode("register"); setAuthOpen(true); }} className="hover:text-primary-foreground">Sign Up</button></li>
                 <li><a href="/" className="hover:text-primary-foreground">Recharge Now</a></li>
-                <li><a href="#" className="hover:text-primary-foreground">Check Balance</a></li>
-                <li><a href="#" className="hover:text-primary-foreground">Auto Recharge</a></li>
+                <li><a href="https://www.cellpay.us/check-balance" className="hover:text-primary-foreground">Check Balance</a></li>
+                <li><a href="https://www.cellpay.us/auto-recharge" className="hover:text-primary-foreground">Auto Recharge</a></li>
               </ul>
             </div>
             <div>
               <h5 className="font-bold mb-5 uppercase tracking-widest text-sm" style={{ color: brandColor }}>Legal</h5>
               <ul className="space-y-3 text-sm">
-                <li><a href="https://www.cellpay.us/privacy-policy.html/" className="hover:text-primary-foreground">Privacy Policy</a></li>
+                <li><a href="https://www.cellpay.us/privacy-policy.html" className="hover:text-primary-foreground">Privacy Policy</a></li>
                 <li><a href="https://www.cellpay.us/terms-and-conditions.html" className="hover:text-primary-foreground">Terms &amp; Conditions</a></li>
-                <li><a href="#" className="hover:text-primary-foreground">Returns &amp; Refunds Policy</a></li>
+                <li><a href="https://www.cellpay.us/returns-refunds-policy.html" className="hover:text-primary-foreground">Returns &amp; Refunds Policy</a></li>
               </ul>
             </div>
           </div>
@@ -57,7 +58,7 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
           <a href="https://www.cellpay.us/terms-and-conditions.html" className="underline font-bold ml-1">[View full Terms &amp; Conditions]</a>
         </div>
       </div>
-      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} initialMode={authMode} />
     </>
   );
 };
