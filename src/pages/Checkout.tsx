@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Footer } from "@/components/Footer";
 import { LegalBar } from "@/components/LegalBar";
 import { PaymentBar } from "@/components/PaymentBar";
+import { AccountDropdown } from "@/components/AccountDropdown";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowLeft, CreditCard, Loader2 } from "lucide-react";
 import {
@@ -812,6 +813,7 @@ const Checkout = () => {
               <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
             <span className="font-bold text-lg text-foreground">Checkout</span>
+            <AccountDropdown />
           </div>
         </div>
       </nav>
