@@ -1,4 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { Footer } from "@/components/Footer";
+import { LegalBar } from "@/components/LegalBar";
+import { PaymentBar } from "@/components/PaymentBar";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowLeft, CreditCard, Loader2 } from "lucide-react";
 import {
@@ -990,6 +993,9 @@ const Checkout = () => {
           </div>
         </div>
       )}
+      <PaymentBar />
+      <Footer />
+      <LegalBar />
     </div>
   );
 };
