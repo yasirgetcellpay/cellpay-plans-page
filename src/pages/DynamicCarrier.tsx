@@ -1,5 +1,6 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
+import { AccountDropdown } from "@/components/AccountDropdown";
 import { useState, useCallback, useEffect } from "react";
 import { Phone, DollarSign, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -215,6 +216,7 @@ const DynamicCarrier = ({
             ) : (
               <span className="text-xl sm:text-2xl font-extrabold" style={{ color: bc }}>{carrierName}</span>
             )}
+            <AccountDropdown />
           </div>
         </div>
       </nav>
