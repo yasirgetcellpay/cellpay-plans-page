@@ -133,7 +133,7 @@ const Checkout = () => {
   const paypalButtonsRef = useRef<{ close: () => void } | null>(null);
 
   // Success / error dialogs
-  const [, setSuccessData] = useState<Record<string, unknown> | null>(null); // kept for Apple Pay compatibility
+  // Success now redirects to /order-confirmation page
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Klarna
