@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthDialog } from "@/components/AuthDialog";
-import { User, LogOut, ChevronDown } from "lucide-react";
+import { User, LogOut, ChevronDown, ShoppingBag, UserCog } from "lucide-react";
 import { LegalBar } from "@/components/LegalBar";
 import { PaymentBar } from "@/components/PaymentBar";
 import { fetchCarriers, type Carrier } from "@/services/apiWrapper";
@@ -120,7 +120,6 @@ const staticCarriers: DisplayCarrier[] = [
   { name: "TracFone", logo: tracfoneLogo, path: "/tracfone", bg: "bg-[hsl(230,70%,30%)]" },
   { name: "Ultra Mobile", logo: ultraLogo, path: "/ultra-mobile", bg: "bg-[hsl(270,50%,40%)]" },
   { name: "US Cellular", logo: uscellularLogo, path: "/uscellular", bg: "bg-[hsl(220,80%,35%)]" },
-  
 ];
 
 interface DisplayCarrier {
@@ -155,6 +154,7 @@ const Home = () => {
   const { isLoggedIn, user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -186,9 +186,13 @@ const Home = () => {
     return () => { cancelled = true; };
   }, []);
 
+  const handleNav = (path: string) => {
+    setDropdownOpen(false);
+    navigate(path);
+  };
+
   return (
     <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
-      {/* Nav - consistent with carrier pages */}
       <nav className="sticky top-0 z-50 bg-card border-b-4 border-cellpay-green shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex justify-center h-14 sm:h-20 items-center">
@@ -199,27 +203,47 @@ const Home = () => {
               <div className="absolute right-0" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen((p) => !p)}
-                  className="flex items-center gap-1 text-sm font-semibold text-foreground hover:text-primary transition-colors"
+                  className="flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-muted"
                 >
-                  <User className="h-4 w-4" />
+                  <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-3.5 w-3.5 text-primary" />
+                  </div>
                   <span className="hidden sm:inline truncate max-w-[100px]">
                     {user?.first_name || "Account"}
                   </span>
-                  <ChevronDown className="h-3 w-3" />
+                  <ChevronDown className={`h-3 w-3 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
                 </button>
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-44 bg-card border border-border rounded-md shadow-lg py-1 z-50">
-                    <div className="px-3 py-2 border-b border-border">
+                  <div className="absolute right-0 mt-1 w-56 bg-card border border-border rounded-xl shadow-xl py-0 z-50 overflow-hidden">
+                    <div className="px-4 py-3 bg-muted/40 border-b border-border">
                       <p className="text-sm font-semibold text-foreground truncate">{user?.first_name} {user?.last_name}</p>
                       <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                     </div>
-                    <button
-                      onClick={() => { logout(); setDropdownOpen(false); }}
-                      className="w-full text-left px-3 py-2 text-sm text-destructive hover:bg-muted transition-colors flex items-center gap-2"
-                    >
-                      <LogOut className="h-3.5 w-3.5" />
-                      Logout
-                    </button>
+                    <div className="py-1">
+                      <button
+                        onClick={() => handleNav("/profile")}
+                        className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-3"
+                      >
+                        <UserCog className="h-4 w-4 text-muted-foreground" />
+                        My Profile
+                      </button>
+                      <button
+                        onClick={() => handleNav("/orders")}
+                        className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-3"
+                      >
+                        <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                        My Orders
+                      </button>
+                    </div>
+                    <div className="border-t border-border py-1">
+                      <button
+                        onClick={() => { logout(); setDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors flex items-center gap-3"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Logout
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -228,7 +252,6 @@ const Home = () => {
         </div>
       </nav>
 
-      {/* Hero - consistent with carrier hero sections */}
       <section className="bg-gradient-to-r from-plan-tier1 to-plan-tier2 text-primary-foreground">
         <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl md:text-2xl font-extrabold">
@@ -238,7 +261,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Carrier Grid */}
       <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6 max-w-3xl w-full">
           {carriers.map((carrier) => (
