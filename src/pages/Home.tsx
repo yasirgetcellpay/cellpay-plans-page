@@ -255,8 +255,9 @@ const Home = () => {
       </main>
 
       <PaymentBar />
-      <Footer />
+      <Footer onLoginClick={() => setAuthOpen(true)} />
       <LegalBar />
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
     </div>
   );
 };
