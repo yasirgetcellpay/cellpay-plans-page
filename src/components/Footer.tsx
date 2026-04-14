@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthDialog } from "@/components/AuthDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -11,6 +12,7 @@ export const Footer = ({ onLoginClick, onSignupClick }: FooterProps) => {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = () => {
     if (onLoginClick) { onLoginClick(); return; }
@@ -41,7 +43,12 @@ export const Footer = ({ onLoginClick, onSignupClick }: FooterProps) => {
             <div>
               <h5 className="text-primary-foreground font-bold mb-6 uppercase tracking-widest text-sm">My Account</h5>
               <ul className="space-y-4 text-sm">
-                {!isLoggedIn && (
+                {isLoggedIn ? (
+                  <>
+                    <li><button onClick={() => navigate("/profile")} className="hover:text-primary-foreground">My Profile</button></li>
+                    <li><button onClick={() => navigate("/orders")} className="hover:text-primary-foreground">My Orders</button></li>
+                  </>
+                ) : (
                   <>
                     <li><button onClick={handleLogin} className="hover:text-primary-foreground">Log In</button></li>
                     <li><button onClick={handleSignup} className="hover:text-primary-foreground">Sign Up</button></li>

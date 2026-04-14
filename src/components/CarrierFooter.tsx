@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthDialog } from "@/components/AuthDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -12,6 +13,7 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <>
@@ -30,7 +32,12 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
             <div>
               <h5 className="font-bold mb-5 uppercase tracking-widest text-sm" style={{ color: brandColor }}>My Account</h5>
               <ul className="space-y-3 text-sm">
-                {!isLoggedIn && (
+                {isLoggedIn ? (
+                  <>
+                    <li><button onClick={() => navigate("/profile")} className="hover:text-primary-foreground">My Profile</button></li>
+                    <li><button onClick={() => navigate("/orders")} className="hover:text-primary-foreground">My Orders</button></li>
+                  </>
+                ) : (
                   <>
                     <li><button onClick={() => { setAuthMode("login"); setAuthOpen(true); }} className="hover:text-primary-foreground">Log In</button></li>
                     <li><button onClick={() => { setAuthMode("register"); setAuthOpen(true); }} className="hover:text-primary-foreground">Sign Up</button></li>
