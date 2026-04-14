@@ -151,6 +151,8 @@ function mapApiCarrier(c: Carrier): DisplayCarrier | null {
 
 const Home = () => {
   const [carriers, setCarriers] = useState<DisplayCarrier[]>(staticCarriers);
+  const [authOpen, setAuthOpen] = useState(false);
+  const { isLoggedIn, user, logout } = useAuth();
 
   useEffect(() => {
     let cancelled = false;
