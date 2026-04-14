@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AuthDialog } from "@/components/AuthDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface FooterProps {
   onLoginClick?: () => void;
@@ -9,6 +10,7 @@ interface FooterProps {
 export const Footer = ({ onLoginClick, onSignupClick }: FooterProps) => {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const { isLoggedIn } = useAuth();
 
   const handleLogin = () => {
     if (onLoginClick) { onLoginClick(); return; }
@@ -39,8 +41,12 @@ export const Footer = ({ onLoginClick, onSignupClick }: FooterProps) => {
             <div>
               <h5 className="text-primary-foreground font-bold mb-6 uppercase tracking-widest text-sm">My Account</h5>
               <ul className="space-y-4 text-sm">
-                <li><button onClick={handleLogin} className="hover:text-primary-foreground">Log In</button></li>
-                <li><button onClick={handleSignup} className="hover:text-primary-foreground">Sign Up</button></li>
+                {!isLoggedIn && (
+                  <>
+                    <li><button onClick={handleLogin} className="hover:text-primary-foreground">Log In</button></li>
+                    <li><button onClick={handleSignup} className="hover:text-primary-foreground">Sign Up</button></li>
+                  </>
+                )}
                 <li><a href="/" className="hover:text-primary-foreground">Recharge Now</a></li>
                 <li><a href="#" className="hover:text-primary-foreground">Check Balance</a></li>
                 <li><a href="#" className="hover:text-primary-foreground">Auto Recharge</a></li>
