@@ -27,5 +27,15 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      (function(){
+        if(window.location.hostname.indexOf('securepayusa.com')!==-1)return;
+        var k=window.__VITE_TIDIO_KEY__||'5ag7fquyyz6iqipaqeiinxdffpwv2xlg';
+        var s=document.createElement('script');
+        s.src='https://code.tidio.co/'+k+'.js';
+        s.async=true;
+        document.body.appendChild(s);
+      })();
+    </script>
   </body>
 </html>
