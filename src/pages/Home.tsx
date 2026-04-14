@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Footer } from "@/components/Footer";
+import { LegalBar } from "@/components/LegalBar";
+import { PaymentBar } from "@/components/PaymentBar";
 import { fetchCarriers, type Carrier } from "@/services/apiWrapper";
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
 import cricketLogo from "@/assets/cricket-logo.webp";
