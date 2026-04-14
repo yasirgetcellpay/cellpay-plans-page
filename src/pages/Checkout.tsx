@@ -616,7 +616,9 @@ const Checkout = () => {
         const isSuccess = result.status === true || result.status === "true" || String(result.status || "").toLowerCase() === "success" || String(result.status || "").toLowerCase() === "completed";
         if (isSuccess) {
           session.completePayment({ status: session.STATUS_SUCCESS });
-          setSuccessData(result);
+          const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
+          const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
+          navigate(`/order-confirmation?${apParams.toString()}`);
         } else {
           session.completePayment({ status: session.STATUS_FAILURE });
           setErrorMsg((result.msg as string) || (result.message as string) || "Apple Pay transaction failed");
