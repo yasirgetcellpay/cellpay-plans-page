@@ -4,6 +4,7 @@ import Home from "./pages/Home.tsx";
 import DynamicCarrier from "./pages/DynamicCarrier.tsx";
 import Checkout from "./pages/Checkout.tsx";
 import PaymentCallback from "./pages/PaymentCallback.tsx";
+import OrderConfirmation from "./pages/OrderConfirmation.tsx";
 import Profile from "./pages/Profile.tsx";
 import Orders from "./pages/Orders.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -59,6 +60,7 @@ const App = () => (
 
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/payment-callback" element={<PaymentCallback />} />
+        <Route path="/order-confirmation" element={<OrderConfirmation />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="*" element={<NotFound />} />

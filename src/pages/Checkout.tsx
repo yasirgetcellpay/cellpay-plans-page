@@ -133,7 +133,7 @@ const Checkout = () => {
   const paypalButtonsRef = useRef<{ close: () => void } | null>(null);
 
   // Success / error dialogs
-  const [successData, setSuccessData] = useState<Record<string, unknown> | null>(null);
+  // Success now redirects to /order-confirmation page
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Klarna
@@ -368,7 +368,9 @@ const Checkout = () => {
     const status = result.status;
     const isSuccess = status === true || status === "true" || String(status || "").toLowerCase() === "success" || String(status || "").toLowerCase() === "completed";
     if (isSuccess) {
-      setSuccessData(result);
+      const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
+      const params = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
+      navigate(`/order-confirmation?${params.toString()}`);
     } else {
       setErrorMsg((result.msg as string) || (result.message as string) || "Transaction failed");
     }
@@ -614,7 +616,9 @@ const Checkout = () => {
         const isSuccess = result.status === true || result.status === "true" || String(result.status || "").toLowerCase() === "success" || String(result.status || "").toLowerCase() === "completed";
         if (isSuccess) {
           session.completePayment({ status: session.STATUS_SUCCESS });
-          setSuccessData(result);
+          const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
+          const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
+          navigate(`/order-confirmation?${apParams.toString()}`);
         } else {
           session.completePayment({ status: session.STATUS_FAILURE });
           setErrorMsg((result.msg as string) || (result.message as string) || "Apple Pay transaction failed");
@@ -963,23 +967,7 @@ const Checkout = () => {
         </div>
       )}
 
-      {/* Success dialog */}
-      {successData && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => { setSuccessData(null); navigate("/"); }}>
-          <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <div className="text-4xl mb-3">✅</div>
-            <h3 className="text-xl font-bold text-foreground mb-2">Payment Successful!</h3>
-            <p className="text-sm text-muted-foreground mb-1">Your {state.carrierName} recharge has been processed.</p>
-            {(successData.transaction_id || successData.transactionId || successData.hashid) && (
-              <p className="text-xs text-muted-foreground">Transaction ID: <span className="font-mono font-bold">{String(successData.transactionId || successData.transaction_id || successData.hashid)}</span></p>
-            )}
-            <button type="button" onClick={() => { setSuccessData(null); navigate("/"); }}
-              className="mt-4 px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
-              Done
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Error dialog */}
       {errorMsg && (
