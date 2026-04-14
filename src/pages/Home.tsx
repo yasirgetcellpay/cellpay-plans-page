@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthDialog } from "@/components/AuthDialog";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, ChevronDown } from "lucide-react";
 import { LegalBar } from "@/components/LegalBar";
 import { PaymentBar } from "@/components/PaymentBar";
 import { fetchCarriers, type Carrier } from "@/services/apiWrapper";
@@ -153,6 +153,18 @@ const Home = () => {
   const [carriers, setCarriers] = useState<DisplayCarrier[]>(staticCarriers);
   const [authOpen, setAuthOpen] = useState(false);
   const { isLoggedIn, user, logout } = useAuth();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -183,31 +195,35 @@ const Home = () => {
             <span className="text-xl sm:text-2xl font-extrabold text-cellpay-green tracking-tight">
               CellPay
             </span>
-            <div className="absolute right-0 flex items-center gap-2">
-              {isLoggedIn ? (
-                <>
-                  <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[120px]">
-                    {user?.first_name || user?.email}
-                  </span>
-                  <button
-                    onClick={logout}
-                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    title="Log out"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span className="hidden sm:inline">Logout</span>
-                  </button>
-                </>
-              ) : (
+            {isLoggedIn && (
+              <div className="absolute right-0" ref={dropdownRef}>
                 <button
-                  onClick={() => setAuthOpen(true)}
-                  className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                  onClick={() => setDropdownOpen((p) => !p)}
+                  className="flex items-center gap-1 text-sm font-semibold text-foreground hover:text-primary transition-colors"
                 >
                   <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">Log In</span>
+                  <span className="hidden sm:inline truncate max-w-[100px]">
+                    {user?.first_name || "Account"}
+                  </span>
+                  <ChevronDown className="h-3 w-3" />
                 </button>
-              )}
-            </div>
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-44 bg-card border border-border rounded-md shadow-lg py-1 z-50">
+                    <div className="px-3 py-2 border-b border-border">
+                      <p className="text-sm font-semibold text-foreground truncate">{user?.first_name} {user?.last_name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                    </div>
+                    <button
+                      onClick={() => { logout(); setDropdownOpen(false); }}
+                      className="w-full text-left px-3 py-2 text-sm text-destructive hover:bg-muted transition-colors flex items-center gap-2"
+                    >
+                      <LogOut className="h-3.5 w-3.5" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </nav>
