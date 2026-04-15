@@ -103,7 +103,7 @@ const Orders = () => {
                 <div>
                   <p className="text-sm font-semibold text-foreground">{getCarrierName(order.carrier)}</p>
                   <p className="text-xs text-muted-foreground">{order.phone_number || "—"}</p>
-                  <p className="text-xs text-muted-foreground">{order.date || order.created_at || ""}</p>
+                  <p className="text-xs text-muted-foreground">{order.date || order.created || order.created_at || ""}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold text-foreground">${Number(order.amount || 0).toFixed(2)}</p>
