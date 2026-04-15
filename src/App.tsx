@@ -7,6 +7,13 @@ import PaymentCallback from "./pages/PaymentCallback.tsx";
 import OrderConfirmation from "./pages/OrderConfirmation.tsx";
 import Profile from "./pages/Profile.tsx";
 import Orders from "./pages/Orders.tsx";
+import AboutUs from "./pages/AboutUs.tsx";
+import ContactUs from "./pages/ContactUs.tsx";
+import FAQ from "./pages/FAQ.tsx";
+import HowToUse from "./pages/HowToUse.tsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
+import TermsAndConditions from "./pages/TermsAndConditions.tsx";
+import ReturnsPolicy from "./pages/ReturnsPolicy.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -63,6 +70,13 @@ const App = () => (
         <Route path="/order-confirmation" element={<OrderConfirmation />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/about-us" element={<AboutUs />} />
+        <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/how-to-use" element={<HowToUse />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+        <Route path="/returns-policy" element={<ReturnsPolicy />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />

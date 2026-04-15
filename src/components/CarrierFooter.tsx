@@ -23,10 +23,10 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
             <div>
               <h5 className="font-bold mb-5 uppercase tracking-widest text-sm" style={{ color: brandColor }}>Company</h5>
               <ul className="space-y-3 text-sm">
-                <li><a href="https://www.cellpay.us/about-us/" className="hover:text-primary-foreground">About Us</a></li>
-                <li><a href="https://www.cellpay.us/contact-us.html" className="hover:text-primary-foreground">Contact Us</a></li>
-                <li><a href="https://www.cellpay.us/faq" className="hover:text-primary-foreground">FAQ</a></li>
-                <li><a href="https://www.cellpay.us/how-to-use/" className="hover:text-primary-foreground">How to Use</a></li>
+                <li><button onClick={() => navigate("/about-us")} className="hover:text-primary-foreground">About Us</button></li>
+                <li><button onClick={() => navigate("/contact-us")} className="hover:text-primary-foreground">Contact Us</button></li>
+                <li><button onClick={() => navigate("/faq")} className="hover:text-primary-foreground">FAQ</button></li>
+                <li><button onClick={() => navigate("/how-to-use")} className="hover:text-primary-foreground">How to Use</button></li>
               </ul>
             </div>
             <div>
@@ -48,9 +48,9 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
             <div>
               <h5 className="font-bold mb-5 uppercase tracking-widest text-sm" style={{ color: brandColor }}>Legal</h5>
               <ul className="space-y-3 text-sm">
-                <li><a href="https://www.cellpay.us/privacy-policy.html" className="hover:text-primary-foreground">Privacy Policy</a></li>
-                <li><a href="https://www.cellpay.us/terms-and-conditions.html" className="hover:text-primary-foreground">Terms &amp; Conditions</a></li>
-                <li><a href="https://www.cellpay.us/returns-and-refunds-policy.html/" className="hover:text-primary-foreground">Returns &amp; Refunds Policy</a></li>
+                <li><button onClick={() => navigate("/privacy-policy")} className="hover:text-primary-foreground">Privacy Policy</button></li>
+                <li><button onClick={() => navigate("/terms-and-conditions")} className="hover:text-primary-foreground">Terms &amp; Conditions</button></li>
+                <li><button onClick={() => navigate("/returns-policy")} className="hover:text-primary-foreground">Returns &amp; Refunds Policy</button></li>
               </ul>
             </div>
           </div>
