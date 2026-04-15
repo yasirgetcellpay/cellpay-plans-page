@@ -12,13 +12,21 @@ import { callProxy } from "@/services/apiWrapper";
 interface Order {
   id: number | string;
   date?: string;
+  created?: string;
   created_at?: string;
-  carrier?: string;
+  carrier?: string | { name?: string; carrierId?: number };
   phone_number?: string;
   amount?: number | string;
   status?: string;
+  hashid?: string;
   [key: string]: unknown;
 }
+
+const getCarrierName = (carrier: Order["carrier"]): string => {
+  if (!carrier) return "Recharge";
+  if (typeof carrier === "string") return carrier;
+  return carrier.name || "Recharge";
+};
 
 const Orders = () => {
   const { isLoggedIn } = useAuth();
@@ -93,9 +101,9 @@ const Orders = () => {
             {orders.map((order, i) => (
               <div key={order.id || i} className="bg-card border border-border rounded-lg px-5 py-4 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{order.carrier || "Recharge"}</p>
+                  <p className="text-sm font-semibold text-foreground">{getCarrierName(order.carrier)}</p>
                   <p className="text-xs text-muted-foreground">{order.phone_number || "—"}</p>
-                  <p className="text-xs text-muted-foreground">{order.date || order.created_at || ""}</p>
+                  <p className="text-xs text-muted-foreground">{order.date || order.created || order.created_at || ""}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold text-foreground">${Number(order.amount || 0).toFixed(2)}</p>
