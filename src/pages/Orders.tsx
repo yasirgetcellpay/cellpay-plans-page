@@ -12,13 +12,21 @@ import { callProxy } from "@/services/apiWrapper";
 interface Order {
   id: number | string;
   date?: string;
+  created?: string;
   created_at?: string;
-  carrier?: string;
+  carrier?: string | { name?: string; carrierId?: number };
   phone_number?: string;
   amount?: number | string;
   status?: string;
+  hashid?: string;
   [key: string]: unknown;
 }
+
+const getCarrierName = (carrier: Order["carrier"]): string => {
+  if (!carrier) return "Recharge";
+  if (typeof carrier === "string") return carrier;
+  return carrier.name || "Recharge";
+};
 
 const Orders = () => {
   const { isLoggedIn } = useAuth();
