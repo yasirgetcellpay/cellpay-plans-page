@@ -37,18 +37,18 @@ const Orders = () => {
   const loadOrders = async () => {
     try {
       const raw = await callProxy({ endpoint: "transactions", method: "GET" });
-      const wrapper = raw as Record<string, unknown>;
-      // Unwrap: { success, data: { data: [...] } } or { success, data: [...] }
-      let result = wrapper.data ?? wrapper;
-      if (result && typeof result === "object" && !Array.isArray(result)) {
-        const inner = result as Record<string, unknown>;
-        if (Array.isArray(inner.data)) {
-          result = inner.data;
-        } else if (Array.isArray(inner.transactions)) {
-          result = inner.transactions;
-        } else if (Array.isArray(inner.orders)) {
-          result = inner.orders;
+      // Recursively unwrap nested data/transactions from API response
+      let result: unknown = raw;
+      for (let i = 0; i < 5; i++) {
+        if (Array.isArray(result)) break;
+        if (result && typeof result === "object") {
+          const obj = result as Record<string, unknown>;
+          if (Array.isArray(obj.transactions)) { result = obj.transactions; break; }
+          if (Array.isArray(obj.orders)) { result = obj.orders; break; }
+          if (Array.isArray(obj.data)) { result = obj.data; break; }
+          if (obj.data && typeof obj.data === "object") { result = obj.data; continue; }
         }
+        break;
       }
       const list = Array.isArray(result) ? result : [];
       setOrders(list as Order[]);
