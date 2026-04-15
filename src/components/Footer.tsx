@@ -34,10 +34,10 @@ export const Footer = ({ onLoginClick, onSignupClick }: FooterProps) => {
             <div>
               <h5 className="text-primary-foreground font-bold mb-6 uppercase tracking-widest text-sm">Company</h5>
               <ul className="space-y-4 text-sm">
-                <li><a href="https://www.cellpay.us/about-us/" className="hover:text-primary-foreground">About Us</a></li>
-                <li><a href="https://www.cellpay.us/contact-us.html" className="hover:text-primary-foreground">Contact Us</a></li>
-                <li><a href="https://www.cellpay.us/faq" className="hover:text-primary-foreground">FAQ</a></li>
-                <li><a href="https://www.cellpay.us/how-to-use/" className="hover:text-primary-foreground">How to Use</a></li>
+                <li><button onClick={() => navigate("/about-us")} className="hover:text-primary-foreground">About Us</button></li>
+                <li><button onClick={() => navigate("/contact-us")} className="hover:text-primary-foreground">Contact Us</button></li>
+                <li><button onClick={() => navigate("/faq")} className="hover:text-primary-foreground">FAQ</button></li>
+                <li><button onClick={() => navigate("/how-to-use")} className="hover:text-primary-foreground">How to Use</button></li>
               </ul>
             </div>
             <div>
@@ -59,18 +59,18 @@ export const Footer = ({ onLoginClick, onSignupClick }: FooterProps) => {
             <div>
               <h5 className="text-primary-foreground font-bold mb-6 uppercase tracking-widest text-sm">Legal</h5>
               <ul className="space-y-4 text-sm">
-                <li><a href="https://www.cellpay.us/privacy-policy.html" className="hover:text-primary-foreground">Privacy Policy</a></li>
-                <li><a href="https://www.cellpay.us/terms-and-conditions.html" className="hover:text-primary-foreground">Terms &amp; Conditions</a></li>
-                <li><a href="https://www.cellpay.us/returns-and-refunds-policy.html/" className="hover:text-primary-foreground">Returns &amp; Refunds Policy</a></li>
+                <li><button onClick={() => navigate("/privacy-policy")} className="hover:text-primary-foreground">Privacy Policy</button></li>
+                <li><button onClick={() => navigate("/terms-and-conditions")} className="hover:text-primary-foreground">Terms &amp; Conditions</button></li>
+                <li><button onClick={() => navigate("/returns-policy")} className="hover:text-primary-foreground">Returns &amp; Refunds Policy</button></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-muted pt-8 text-center">
             <p className="text-xs mb-4">
               © 2026 CellPay. All rights reserved. |{" "}
-              <a href="https://www.cellpay.us/privacy-policy.html" className="hover:text-primary-foreground">Privacy Policy</a> |{" "}
-              <a href="https://www.cellpay.us/terms-and-conditions.html" className="hover:text-primary-foreground">Terms &amp; Conditions</a> |{" "}
-              <a href="https://www.cellpay.us/contact-us.html" className="hover:text-primary-foreground">Contact Us</a>
+              <button onClick={() => navigate("/privacy-policy")} className="hover:text-primary-foreground">Privacy Policy</button> |{" "}
+              <button onClick={() => navigate("/terms-and-conditions")} className="hover:text-primary-foreground">Terms &amp; Conditions</button> |{" "}
+              <button onClick={() => navigate("/contact-us")} className="hover:text-primary-foreground">Contact Us</button>
             </p>
             <p className="text-[10px] leading-relaxed max-w-4xl mx-auto opacity-50">
               CellPay is an authorized payment processor for Simple Mobile services. Simple Mobile® is a registered trademark of Simple Mobile / Verizon Value. CellPay is not affiliated with Simple Mobile or Verizon. All carrier names and trademarks are property of their respective owners and are referenced solely to identify the services for which CellPay processes payments.
