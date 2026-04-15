@@ -101,7 +101,7 @@ const Orders = () => {
             {orders.map((order, i) => (
               <div key={order.id || i} className="bg-card border border-border rounded-lg px-5 py-4 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{order.carrier || "Recharge"}</p>
+                  <p className="text-sm font-semibold text-foreground">{getCarrierName(order.carrier)}</p>
                   <p className="text-xs text-muted-foreground">{order.phone_number || "—"}</p>
                   <p className="text-xs text-muted-foreground">{order.date || order.created_at || ""}</p>
                 </div>
