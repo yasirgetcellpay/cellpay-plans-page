@@ -1107,6 +1107,21 @@ const Checkout = () => {
           </div>
         </div>
       )}
+      {showSaveInfoTip && (
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => setShowSaveInfoTip(false)}>
+          <div className="bg-foreground text-background rounded-2xl p-6 max-w-sm w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <p className="text-sm leading-relaxed text-center">
+              You have opted to save your cc info on file for a faster future payment. Be sure to create an password after you have completed your purchase to pay with the saved bank card info next time. And you have opted to send text to pay message.
+            </p>
+            <div className="flex justify-center mt-4">
+              <button type="button" onClick={() => setShowSaveInfoTip(false)}
+                className="px-6 py-2 rounded-lg bg-background text-foreground font-bold text-sm">
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <PaymentBar />
       <Footer />
       <LegalBar />
