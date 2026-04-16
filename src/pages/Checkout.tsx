@@ -415,6 +415,9 @@ const Checkout = () => {
         cc_exp_month: expiryDigits.slice(0, 2),
         cc_exp_year: "20" + expiryDigits.slice(2),
         cvv_number: cardCvv,
+        save_cc: saveCard,
+        autopay: autoPay,
+        autopay_agreement: autoPay && autoPayTerms,
       },
       billing: {
         bill_email: email.trim(),
