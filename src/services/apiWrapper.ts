@@ -234,8 +234,12 @@ export async function fetchUserProfile(): Promise<Record<string, unknown>> {
   const raw = await callProxy({ endpoint: "users/profile", method: "GET" });
   const wrapper = raw as Record<string, unknown>;
   let result = (wrapper.data || wrapper) as Record<string, unknown>;
+  // Unwrap nested data layers: { data: { data: { user: {...} } } }
   if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
     result = result.data as Record<string, unknown>;
+  }
+  if (result.user && typeof result.user === "object") {
+    result = result.user as Record<string, unknown>;
   }
   return result;
 }
