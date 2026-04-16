@@ -239,3 +239,16 @@ export async function fetchUserProfile(): Promise<Record<string, unknown>> {
   }
   return result;
 }
+
+export async function updateUserProfile(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const raw = await callProxy({ endpoint: "users/profile", method: "PATCH", payload });
+  const wrapper = raw as Record<string, unknown>;
+  if (wrapper.success === false) {
+    throw new Error((wrapper.error as string) || "Failed to update profile");
+  }
+  let result = (wrapper.data || wrapper) as Record<string, unknown>;
+  if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+    result = result.data as Record<string, unknown>;
+  }
+  return result;
+}
