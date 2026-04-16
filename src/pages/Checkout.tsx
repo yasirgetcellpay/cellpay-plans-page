@@ -352,7 +352,9 @@ const Checkout = () => {
     lastName.trim().length > 0 &&
     email.includes("@");
 
-  const canSubmit = agreedTerms && !submitting && (paymentMethod === "card" ? isCardValid : true);
+  const isEmailValid = email.trim().length > 0 && email.includes("@") && email.includes(".");
+
+  const canSubmit = agreedTerms && !submitting && isEmailValid && (paymentMethod === "card" ? isCardValid : true);
 
   const handleResult = (raw: Record<string, unknown>) => {
     // Unwrap double-nested { data: { data: { status, message, transactionId } } }
