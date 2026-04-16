@@ -231,7 +231,7 @@ const Profile = () => {
               <div>
                 <p className="text-xs text-muted-foreground">Account Status</p>
                 <p className="text-sm font-medium text-foreground">
-                  {p?.verified ? "Verified" : "Unverified"} · {p?.active ? "Active" : "Inactive"}
+                  {p?.active ? "Active" : "Inactive"}
                 </p>
               </div>
             </div>
