@@ -2,17 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, LogOut, ShoppingBag, User, UserCog } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
 export const AccountDropdown = () => {
   const { isLoggedIn, user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
