@@ -850,6 +850,17 @@ const Checkout = () => {
             </div>
           </div>
 
+          {/* Email (required for all payment methods) */}
+          <div className="bg-card rounded-xl border border-border p-5">
+            <h2 className="font-bold text-foreground mb-3 text-sm">Contact Information</h2>
+            <input type="email" placeholder="Email Address *" value={email} onChange={(e) => setEmail(e.target.value)}
+              className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+              style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+            {email.length > 0 && !email.includes("@") && (
+              <p className="text-xs text-destructive mt-1">Please enter a valid email address</p>
+            )}
+          </div>
+
           {/* Payment Method Select */}
           <div className="bg-card rounded-xl border border-border p-5">
             <h2 className="font-bold text-foreground mb-3 text-sm">Payment Method</h2>
