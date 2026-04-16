@@ -1069,6 +1069,50 @@ const Checkout = () => {
                     <span className="font-semibold text-foreground">Subscribe to Auto Pay?</span>
                   </span>
                 </label>
+
+                {autoPay && (
+                  <div className="rounded-lg bg-muted/40 p-4 space-y-3">
+                    <p className="text-[12px] text-foreground leading-relaxed">
+                      Choose auto pay for automatic recurring recharge every 30 days to save fees, you will be charged flat <span className="font-semibold">$4.97</span> fee for recharge amount.
+                    </p>
+
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <input type="checkbox" checked={autoPayTerms} onChange={(e) => setAutoPayTerms(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
+                      <span className="text-[12px] font-bold text-foreground">Accept Terms and Conditions</span>
+                    </label>
+
+                    <div className="max-h-48 overflow-y-auto rounded-md border border-border bg-background p-3 text-[11px] text-muted-foreground leading-relaxed space-y-2">
+                      <p className="font-semibold text-foreground">GENERAL AND PAYMENT-SPECIFIC TERMS &amp; CONDITIONS; RECURRING CHARGE AUTHORIZATION</p>
+                      <p>The following terms and conditions are specific to Auto Recharge payments and are supplemental to (and do not supersede) the Pay Cell Systems Service Agreement, which includes the General Terms and Conditions of Service (available at http://paycellsystems.com), that you received and accepted when you first became a Pay Cell Systems customer. Your continued access to or use of the Auto Recharge service after the receipt and review hereof constitutes your consent to the terms contained herein and your continued consent to the terms contained in the Service Agreement. You also continue to be bound by the terms of the Pay Cell Systems Privacy Policy, also available at http://paycellsystems.com, which details the conditions and circumstances under which, in the ordinary course of business, Pay Cell Systems may provide information concerning you or your account to third parties.</p>
+                      <p>The following ''General Terms &amp; Conditions'' apply to all Auto Recharge Payment Options.</p>
+                      <p className="font-semibold text-foreground">General Terms and Conditions (Applicable to ALL Auto Recharge Subscribers)</p>
+                      <p className="font-semibold text-foreground">General Payment Information</p>
+                      <p>A valid major credit card, debit card or electronic check (a ''Registered Payment Method'') must be registered and on file with Pay Cell Systems at all times to take advantage of automatic payments. Only one (1) card or account may be registered for any prepaid wireless telephone number. If an electronic check is returned for any reason, you will be charged a fee of $50 per check. There may be additional return fees up to the maximum allowed by law. If you need to change or update your payment information, please call Pay Cell Systems Customer Care dial 888-800-6111.</p>
+                      <p className="font-semibold text-foreground">Billing Notifications</p>
+                      <p>You will be automatically billed for the recurring payments corresponding to your Auto Recharge Payment Option as set forth under the applicable Payment-Specific Terms &amp; Conditions below until you affirmatively un-enroll from the Auto Recharge service in accordance with the section below entitled ''Cancelling Auto Recharge''. These recurring charges to your account are non-refundable. Pay Cell Systems will send an email confirmation and text message to Monthly Unlimited Plan Users to email address and or the phone number listed on your account. The text message or email will indicate whether the attempt to charge your Registered Payment Method was successful and, if so, how much was charged and when the charge was made. We will also send a notification within 24 hours before charging your account notifying the impending charge. Pay Cell Systems will not charge you for these notifications. By law, you also have the right to receive notice prior to any transfer that varies in amount from the previous transfer or from the amount set forth in the cover letter accompanying this document.</p>
+                      <p className="font-semibold text-foreground">Adding Funds Manually</p>
+                      <p>You can manually recharge your account by accessing the ''Recharge'' tab at http://paycellsystems.com with your credit card as well as by entering the PIN number on the refill card purchased at any Pay Cell Systems Retailer locations.</p>
+                      <p className="font-semibold text-foreground">Cancelling Auto Recharge</p>
+                      <p>To cancel the Auto Recharge service, you must affirmatively un-enroll by calling Pay Cell Systems Customer Care 888-800-6111 or by checking the appropriate ''Un-enroll'' box at http://paycellsystems.com/cancelautopay. Cancellation will become effective immediately. Account balance is not refundable or exchangeable, and is forfeited at expiration date. You will not receive a refund or credit for any fees charged against your account prior to cancellation. Pay Cell Systems will send a confirmation email and text message as listed on your account indicating whether un-enrollment was successful at no charge to you. You understand that by un-enrolling you will be terminating not only your selected Payment Option, but also your Auto Recharge service entirely. Switching to a new Payment Option will require you to re-enroll in the Auto Recharge service.</p>
+                      <p className="font-semibold text-foreground">Questions and Errors</p>
+                      <p>If you have questions about any electronic transfer, or if you believe there is an error regarding a transfer set forth in the email referred to in the section above entitled ''Billing; Notifications'', please call us as soon as possible 888-800-6111 or email us at support@paycellsystems.com. You are not liable for unauthorized electronic transfers, or for Pay Cell Systems failure to properly make or stop certain transfers as required; however, we must hear from you regarding the suspected problem or error no later than 5 days after we send the applicable email on which the problem or error appears. Your complaint or question should include the following information:</p>
+                      <p>(1) Your name and account number;</p>
+                      <p>(2) A description of the error or the transfer you are unsure about, and a clear explanation of why you believe it is an error or why you need more information; and</p>
+                      <p>(3) The dollar amount of the suspected error.</p>
+                      <p>If you tell us of your complaint or question over the phone, we may require that you follow up by sending us the relevant information in writing within 5 business days.</p>
+                      <p>Within 7 business days after your call or our receipt of your written statement containing the information described above, we will attempt to determine whether an error has occurred and if it has, we will promptly correct the error. However, we may require up to 20 business days to investigate the matter (30 business days for new accounts or point-of-sale or foreign transactions). If we ask you to put your complaint or question in writing and we do not receive it within 10 business days, we may not credit your account. We will inform you of the results of our investigation within 3 business days after completion. If we determine there was an error, we will promptly credit the appropriate airtime or dollar amount to your account.</p>
+                      <p className="font-semibold text-foreground">Payment-Specific Terms and Conditions; Recurring Charge Authorization</p>
+                      <p>If you selected the Auto Recharge Payment Option when you enrolled in Auto Recharge, the following Payment-Specific Terms and Conditions and Recurring Charge Authorization apply to you.</p>
+                      <p className="font-semibold text-foreground">Billing Frequency and Amount; Payment Failure; Account Interruption and Cancellation</p>
+                      <p>You will be automatically billed for the fixed dollar amount set forth in the cover letter accompanying this document, until you affirmatively cancel from the Auto Recharge service or until service interruption, as described below. If you do not have sufficient funds in your account to make your monthly payment, your account will not be charged and your service will be interrupted. You will be required to manually add enough funds to your account to have your service restored, and upon restoration, your monthly payment anniversary date will then be based upon your date of restoration. If you don't make a full monthly payment within 30 days of any account interruption, you will lose all unused funds, your account will be canceled and you will lose your phone number.</p>
+                    </div>
+
+                    <p className="text-[13px] font-bold" style={{ color: brandColor }}>
+                      AUTOPAY FEE: $4.97
+                    </p>
+                  </div>
+                )}
               </>
             )}
 
