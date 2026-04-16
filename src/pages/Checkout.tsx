@@ -126,6 +126,16 @@ const Checkout = () => {
   const [city, setCity] = useState("");
   const [regionId, setRegionId] = useState("");
 
+  // Klarna billing fields
+  const [klarnaFirstName, setKlarnaFirstName] = useState("");
+  const [klarnaLastName, setKlarnaLastName] = useState("");
+  const [klarnaPhone, setKlarnaPhone] = useState("");
+  const [klarnaAddress, setKlarnaAddress] = useState("");
+  const [klarnaCity, setKlarnaCity] = useState("");
+  const [klarnaState, setKlarnaState] = useState("");
+  const [klarnaZip, setKlarnaZip] = useState("");
+  const [klarnaCountry, setKlarnaCountry] = useState("US");
+
   // Checkout config from API (typed)
   const [checkoutConfig, setCheckoutConfig] = useState<Record<string, unknown> | null>(null);
   const [paypalReady, setPaypalReady] = useState(false);
@@ -694,7 +704,19 @@ const Checkout = () => {
     return new Promise<void>((resolve) => {
       window.Klarna!.Payments.authorize(
         { payment_method_category: "pay_later" },
-        { billing_address: { country: "US" } },
+        {
+          billing_address: {
+            given_name: klarnaFirstName,
+            family_name: klarnaLastName,
+            email: email.trim(),
+            phone: klarnaPhone.replace(/\D/g, ""),
+            street_address: klarnaAddress,
+            city: klarnaCity,
+            region: klarnaState,
+            postal_code: klarnaZip,
+            country: klarnaCountry || "US",
+          },
+        },
         async (res) => {
           if (res.approved && res.authorization_token) {
             setKlarnaToken(res.authorization_token);
@@ -937,6 +959,67 @@ const Checkout = () => {
               ) : (
                 <div ref={paypalContainerRef} id="paypal-button-container" />
               )}
+            </div>
+          )}
+
+          {/* Klarna Billing Details */}
+          {paymentMethod === "klarna" && (
+            <div className="bg-card rounded-xl border border-border p-5 space-y-4">
+              <h2 className="font-bold text-foreground mb-1 text-sm">Billing Details</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">First Name <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder="First Name" value={klarnaFirstName} onChange={(e) => setKlarnaFirstName(e.target.value)}
+                    className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                    style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Last Name <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder="Last Name" value={klarnaLastName} onChange={(e) => setKlarnaLastName(e.target.value)}
+                    className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                    style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Bill Payer's Phone Number <span className="text-destructive">*</span></label>
+                <input type="tel" placeholder="(000) 000-0000" value={klarnaPhone} onChange={(e) => setKlarnaPhone(e.target.value)}
+                  className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Street Address <span className="text-destructive">*</span></label>
+                <input type="text" placeholder="Street Address" value={klarnaAddress} onChange={(e) => setKlarnaAddress(e.target.value)}
+                  className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">City <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder="City" value={klarnaCity} onChange={(e) => setKlarnaCity(e.target.value)}
+                    className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                    style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">State/Province <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder="State" value={klarnaState} onChange={(e) => setKlarnaState(e.target.value.toUpperCase())}
+                    className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                    style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Country <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder="United States" value={klarnaCountry} onChange={(e) => setKlarnaCountry(e.target.value)}
+                    className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                    style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">ZIP <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder="ZIP Code" value={klarnaZip} onChange={(e) => setKlarnaZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
+                    className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                    style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                </div>
+              </div>
             </div>
           )}
 
