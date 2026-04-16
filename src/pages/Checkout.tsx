@@ -368,7 +368,7 @@ const Checkout = () => {
 
   const isEmailValid = email.trim().length > 0 && email.includes("@") && email.includes(".");
 
-  const canSubmit = agreedTerms && !submitting && isEmailValid && (paymentMethod === "card" ? isCardValid : true);
+  const canSubmit = agreedTerms && !submitting && isEmailValid && (paymentMethod === "card" ? isCardValid : true) && (!autoPay || autoPayTerms);
 
   const handleResult = (raw: Record<string, unknown>) => {
     // Unwrap double-nested { data: { data: { status, message, transactionId } } }
