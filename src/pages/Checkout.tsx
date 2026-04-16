@@ -1043,6 +1043,34 @@ const Checkout = () => {
               </span>
             </label>
 
+            {paymentMethod === "card" && (
+              <>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
+                  <span className="text-[11px] text-muted-foreground leading-relaxed">
+                    <span className="font-semibold text-foreground">Save payment information for next time?</span>{" "}
+                    <button
+                      type="button"
+                      onClick={() => setShowSaveInfoTip(true)}
+                      className="underline font-semibold"
+                      style={{ color: brandColor }}
+                    >
+                      (What's this)
+                    </button>
+                  </span>
+                </label>
+
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" checked={autoPay} onChange={(e) => setAutoPay(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
+                  <span className="text-[11px] text-muted-foreground leading-relaxed">
+                    <span className="font-semibold text-foreground">Subscribe to Auto Pay?</span>
+                  </span>
+                </label>
+              </>
+            )}
+
             {paymentMethod !== "paypal" && (
               <button
                 type="button"
