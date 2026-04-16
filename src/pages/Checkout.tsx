@@ -115,6 +115,7 @@ const Checkout = () => {
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [saveCard, setSaveCard] = useState(false);
   const [autoPay, setAutoPay] = useState(false);
+  const [autoPayTerms, setAutoPayTerms] = useState(false);
   const [showSaveInfoTip, setShowSaveInfoTip] = useState(false);
 
   // Card fields
