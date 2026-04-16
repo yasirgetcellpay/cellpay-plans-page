@@ -228,3 +228,14 @@ export async function createApplePaySession(payload: Record<string, unknown>): P
 export async function createKlarnaSession(payload: Record<string, unknown>): Promise<unknown> {
   return callProxy({ endpoint: "payments/klarna/session", method: "POST", payload });
 }
+
+// User profile
+export async function fetchUserProfile(): Promise<Record<string, unknown>> {
+  const raw = await callProxy({ endpoint: "users/profile", method: "GET" });
+  const wrapper = raw as Record<string, unknown>;
+  let result = (wrapper.data || wrapper) as Record<string, unknown>;
+  if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+    result = result.data as Record<string, unknown>;
+  }
+  return result;
+}
