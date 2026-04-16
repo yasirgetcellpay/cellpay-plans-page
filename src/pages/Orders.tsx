@@ -108,13 +108,13 @@ const Orders = () => {
                 <div className="text-right">
                   <p className="text-sm font-bold text-foreground">${Number(order.amount || 0).toFixed(2)}</p>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    order.status === "completed" || order.status === "success"
-                      ? "bg-green-100 text-green-700"
-                      : order.status === "failed"
+                    order.status === "failed"
                       ? "bg-red-100 text-red-700"
-                      : "bg-yellow-100 text-yellow-700"
+                      : order.status === "pending"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-green-100 text-green-700"
                   }`}>
-                    {order.status || "Pending"}
+                    {order.status === "failed" ? "Failed" : order.status === "pending" ? "Pending" : "Completed"}
                   </span>
                 </div>
               </div>
