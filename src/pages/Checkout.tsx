@@ -113,6 +113,9 @@ const Checkout = () => {
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [saveCard, setSaveCard] = useState(false);
+  const [autoPay, setAutoPay] = useState(false);
+  const [showSaveInfoTip, setShowSaveInfoTip] = useState(false);
 
   // Card fields
   const [cardNumber, setCardNumber] = useState("");
