@@ -180,6 +180,41 @@ export async function fetchPlans(carrierSlug: string): Promise<Plan[]> {
   return extractArray(data, "plans") as Plan[];
 }
 
+export async function verifyPhone(
+  carrierSlug: string,
+  phoneNumber: string
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const raw = await callProxy({
+      endpoint: `carriers/verify-phone/${carrierSlug}`,
+      method: "POST",
+      payload: { phone_number: phoneNumber, confirm_phone_number: phoneNumber },
+    });
+    const wrapper = raw as Record<string, unknown>;
+    if (wrapper.success === false) {
+      const inner = wrapper.data as Record<string, unknown> | undefined;
+      const innerSuccess = inner && typeof inner === "object" ? inner.success : undefined;
+      if (innerSuccess === true) return { success: true };
+      const msg =
+        (wrapper.error as string) ||
+        (inner?.message as string) ||
+        "Couldn't verify the phone number";
+      return { success: false, message: msg };
+    }
+    let result = (wrapper.data || wrapper) as Record<string, unknown>;
+    if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+      result = result.data as Record<string, unknown>;
+    }
+    if (result.success === false) {
+      return { success: false, message: (result.message as string) || "Invalid phone number" };
+    }
+    return { success: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Couldn't verify the phone number";
+    return { success: false, message: msg };
+  }
+}
+
 export async function validateRecharge(
   carrierSlug: string,
   phoneNumber: string,
