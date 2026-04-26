@@ -156,6 +156,18 @@ const Checkout = () => {
   const [klarnaReady, setKlarnaReady] = useState(false);
   const [klarnaToken, setKlarnaToken] = useState<string | null>(null);
 
+  // Detect Apple Pay availability (Safari on supported Apple devices)
+  useEffect(() => {
+    try {
+      const aps = window.ApplePaySession;
+      if (aps && typeof aps.canMakePayments === "function" && aps.canMakePayments()) {
+        setApplePayAvailable(true);
+      }
+    } catch {
+      // not available
+    }
+  }, []);
+
   // Load checkout config and validate recharge
   useEffect(() => {
     if (!state) { navigate("/"); return; }
