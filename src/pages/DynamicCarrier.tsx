@@ -108,6 +108,26 @@ const DynamicCarrier = ({
         if (data.seo_carrier?.recommended?.h1) setHeading(data.seo_carrier.recommended.h1);
         if (data.seo_carrier?.recommended?.h2) setSubheading(data.seo_carrier.recommended.h2);
 
+        // Dynamic <head> SEO tags from API (fall back to seo_carrier nested fields)
+        const seoSrc = (data.seo_carrier ?? {}) as Record<string, unknown>;
+        const title =
+          (data.title_for_layout as string) ||
+          (seoSrc.title_for_layout as string) ||
+          "";
+        const description =
+          (data.seo_description as string) ||
+          (seoSrc.seo_description as string) ||
+          "";
+        const keywords =
+          (data.seo_keywords as string) ||
+          (seoSrc.seo_keywords as string) ||
+          "";
+        const schema =
+          (data.seo_schema as string) ||
+          (seoSrc.seo_schema as string) ||
+          "";
+        applySeoHead({ title, description, keywords, schema });
+
         // Plans
         const cp = data.carrier_plans;
         if (cp) {
