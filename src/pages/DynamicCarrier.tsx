@@ -210,7 +210,7 @@ const DynamicCarrier = ({
     setAmount(plan.price.replace("$", ""));
   };
 
-  // Direct checkout from plan card "Pay Now" button
+  // Direct checkout from plan card "Pay Now" button (fixed_plans → use that plan's carrier id)
   const handlePlanPayNow = (plan: { price: string; highlight: string }) => {
     if (phoneDigits.length !== 10) {
       toast({ title: "Phone number required", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
@@ -223,7 +223,7 @@ const DynamicCarrier = ({
         phone,
         amount: planAmount,
         carrierSlug,
-        carrierId,
+        carrierId: selectedPlan?.carrierId ?? carrierId,
         carrierName,
         brandColor,
         planId: selectedPlan?.plan_id,
