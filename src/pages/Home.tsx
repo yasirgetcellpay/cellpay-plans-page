@@ -137,8 +137,16 @@ function dedup(list: DisplayCarrier[]): DisplayCarrier[] {
   });
 }
 
+// Slugs to hide from the homepage grid (duplicate variants of carriers already shown)
+const excludedSlugs = new Set<string>([
+  "topup-af",                  // AT&T FirstNet (duplicate of AT&T)
+  "verizon-wireless-flexi",    // Verizon Flexi (duplicate of Verizon)
+  "pageplusadd",               // Page Plus Addon (duplicate of Page Plus)
+]);
+
 function mapApiCarrier(c: Carrier): DisplayCarrier | null {
   const slug = (c.slug || "").toLowerCase();
+  if (excludedSlugs.has(slug)) return null;
   const path = slugToPath[slug];
   if (!path) return null;
   const logo = localLogos[slug] || (c.logo as string) || undefined;
