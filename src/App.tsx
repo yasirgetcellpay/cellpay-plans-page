@@ -38,6 +38,7 @@ import uscellularLogo from "@/assets/uscellular-logo.png";
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
+      <RouteSeo />
       <Routes>
         <Route path="/" element={<Home />} />
 
