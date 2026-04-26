@@ -171,8 +171,18 @@ const Home = () => {
     let cancelled = false;
     (async () => {
       try {
-        const apiCarriers = await fetchCarriers();
-        if (!cancelled && apiCarriers.length > 0) {
+        const { carriers: apiCarriers, seo } = await fetchCarriers();
+        if (cancelled) return;
+
+        // Apply SEO from the same response — no extra request
+        applySeoHead({
+          title: seo.title_for_layout,
+          description: seo.seo_description,
+          keywords: seo.seo_keywords,
+          schema: seo.seo_schema,
+        });
+
+        if (apiCarriers.length > 0) {
           const mapped = dedup(
             apiCarriers
               .map(mapApiCarrier)
