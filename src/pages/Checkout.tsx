@@ -117,6 +117,7 @@ const Checkout = () => {
   const [autoPay, setAutoPay] = useState(false);
   const [autoPayTerms, setAutoPayTerms] = useState(false);
   const [showSaveInfoTip, setShowSaveInfoTip] = useState(false);
+  const [applePayAvailable, setApplePayAvailable] = useState(false);
 
   // Card fields
   const [cardNumber, setCardNumber] = useState("");
@@ -154,6 +155,18 @@ const Checkout = () => {
   const klarnaContainerRef = useRef<HTMLDivElement>(null);
   const [klarnaReady, setKlarnaReady] = useState(false);
   const [klarnaToken, setKlarnaToken] = useState<string | null>(null);
+
+  // Detect Apple Pay availability (Safari on supported Apple devices)
+  useEffect(() => {
+    try {
+      const aps = window.ApplePaySession;
+      if (aps && typeof aps.canMakePayments === "function" && aps.canMakePayments()) {
+        setApplePayAvailable(true);
+      }
+    } catch {
+      // not available
+    }
+  }, []);
 
   // Load checkout config and validate recharge
   useEffect(() => {
@@ -828,7 +841,7 @@ const Checkout = () => {
     { key: "paypal", label: "PayPal" },
     { key: "plaid", label: "Pay by Bank" },
     { key: "googlepay", label: "Google Pay" },
-    { key: "applepay", label: "Apple Pay" },
+    ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: "Apple Pay" }] : []),
     { key: "klarna", label: "Klarna" },
     { key: "cashapp", label: "Cash App" },
   ];
