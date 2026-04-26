@@ -320,29 +320,33 @@ const DynamicCarrier = ({
                 />
               </div>
 
-              <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
-                {isRange ? "Recharge Amount" : "Select Amount"}
-              </label>
-              <div className="relative mb-1">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={amount}
-                  onChange={handleAmountChange}
-                  placeholder={`$${rangeMin} - $${rangeMax}`}
-                  className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
-                  style={{ "--tw-ring-color": bc } as React.CSSProperties}
-                />
-              </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">
-                {isRange ? "Enter the amount you want to recharge" : "Or select a plan below"}
-              </p>
+              {showRange && (
+                <>
+                  <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
+                    Select Amount
+                  </label>
+                  <div className="relative mb-1">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={amount}
+                      onChange={handleAmountChange}
+                      placeholder={`Enter an amount between ${rangeMin} - ${rangeMax}`}
+                      className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
+                      style={{ "--tw-ring-color": bc } as React.CSSProperties}
+                    />
+                  </div>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">
+                    {showFixedPlans ? "Or select a plan below" : "Enter the amount you want to recharge"}
+                  </p>
+                </>
+              )}
             </div>
           </div>
 
-          {/* Plan grid (fixed-plan carriers only) */}
-          {!isRange && plans.length > 0 && (
+          {/* Plan grid (fixed_plans) */}
+          {showFixedPlans && plans.length > 0 && (
             <PlanGrid
               plans={plans.map((p) => ({ price: p.price, highlight: p.highlight }))}
               brandColor={bc}
@@ -350,8 +354,8 @@ const DynamicCarrier = ({
             />
           )}
 
-          {/* Terms + Pay (only for range-based carriers without fixed plans) */}
-          {(isRange || plans.length === 0) && (
+          {/* Terms + Pay (custom amount path) */}
+          {showRange && (
           <div className="max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
             <p className="text-xs sm:text-sm font-bold text-foreground mb-2 mt-2">Important</p>
             <label className="flex items-start gap-2 mb-3 cursor-pointer">
