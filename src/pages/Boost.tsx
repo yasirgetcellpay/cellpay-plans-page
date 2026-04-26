@@ -1,10 +1,12 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
 import { useState, useCallback } from "react";
-import { Phone, DollarSign } from "lucide-react";
+import { Phone, DollarSign, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import boostLogo from "@/assets/boost-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
+import { verifyPhone } from "@/services/apiWrapper";
+import { useToast } from "@/hooks/use-toast";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -16,10 +18,12 @@ const formatPhone = (value: string): string => {
 
 const Boost = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
@@ -82,7 +86,16 @@ const Boost = () => {
           <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">Agree with Boost Mobile Product Policies and Sales.{" "}<a href="https://www.boostmobile.com/about/legal/terms-conditions" className="text-[hsl(27,100%,50%)] underline font-semibold">View More</a></span>
         </label>
         <div className="flex justify-center">
-          <button type="button" disabled={!isValid} onClick={() => navigate("/checkout", { state: { phone, amount, carrierSlug: "boost", carrierName: "Boost Mobile", brandColor: "hsl(27,100%,50%)" } })} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg bg-[hsl(27,100%,50%)] hover:bg-[hsl(27,100%,44%)] disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]">PAY NOW</button>
+          <button type="button" disabled={!isValid || verifying} onClick={async () => {
+            setVerifying(true);
+            const verify = await verifyPhone("boost", phoneDigits);
+            setVerifying(false);
+            if (!verify.success) {
+              toast({ title: "Invalid phone number", description: verify.message || "Couldn't verify the phone number.", variant: "destructive" });
+              return;
+            }
+            navigate("/checkout", { state: { phone, amount, carrierSlug: "boost", carrierName: "Boost Mobile", brandColor: "hsl(27,100%,50%)" } });
+          }} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg bg-[hsl(27,100%,50%)] hover:bg-[hsl(27,100%,44%)] disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2">{verifying && <Loader2 className="h-4 w-4 animate-spin" />}{verifying ? "VERIFYING..." : "PAY NOW"}</button>
         </div>
         <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
       </div>

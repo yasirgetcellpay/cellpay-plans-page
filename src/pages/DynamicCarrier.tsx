@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
 import { FAQSection } from "@/components/FAQSection";
-import { fetchCarrierView, type CarrierViewData } from "@/services/apiWrapper";
+import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
 
 const formatPhone = (value: string): string => {
@@ -72,6 +72,7 @@ const DynamicCarrier = ({
   const [confirmed, setConfirmed] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [verifying, setVerifying] = useState(false);
 
   // API-loaded state
   const [carrierName, setCarrierName] = useState(initialName);
@@ -217,9 +218,16 @@ const DynamicCarrier = ({
   };
 
   // Direct checkout from plan card "Pay Now" button (fixed_plans → use that plan's carrier id)
-  const handlePlanPayNow = (plan: { price: string; highlight: string }) => {
+  const handlePlanPayNow = async (plan: { price: string; highlight: string }) => {
     if (phoneDigits.length !== 10) {
       toast({ title: "Phone number required", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
+      return;
+    }
+    setVerifying(true);
+    const verify = await verifyPhone(carrierSlug, phoneDigits);
+    setVerifying(false);
+    if (!verify.success) {
+      toast({ title: "Invalid phone number", description: verify.message || "Couldn't verify the phone number.", variant: "destructive" });
       return;
     }
     const planAmount = Number(plan.price.replace("$", ""));
@@ -240,7 +248,7 @@ const DynamicCarrier = ({
 
   const { toast } = useToast();
 
-  const handlePay = () => {
+  const handlePay = async () => {
     if (phoneDigits.length !== 10) {
       toast({ title: "Phone number required", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
       return;
@@ -255,6 +263,13 @@ const DynamicCarrier = ({
     }
     if (!agreedTerms) {
       toast({ title: "Terms required", description: "Please agree to the product policies.", variant: "destructive" });
+      return;
+    }
+    setVerifying(true);
+    const verify = await verifyPhone(carrierSlug, phoneDigits);
+    setVerifying(false);
+    if (!verify.success) {
+      toast({ title: "Invalid phone number", description: verify.message || "Couldn't verify the phone number.", variant: "destructive" });
       return;
     }
     // Custom amount path → use carrier_plans.carrier.id when available
@@ -380,10 +395,12 @@ const DynamicCarrier = ({
               <button
                 type="button"
                 onClick={handlePay}
-                className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]"
+                disabled={verifying}
+                className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: bc }}
               >
-                PAY NOW
+                {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
+                {verifying ? "VERIFYING..." : "PAY NOW"}
               </button>
             </div>
             <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">
