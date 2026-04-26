@@ -251,13 +251,14 @@ const DynamicCarrier = ({
       toast({ title: "Terms required", description: "Please agree to the product policies.", variant: "destructive" });
       return;
     }
+    // Custom amount path → use carrier_plans.carrier.id when available
     const selectedPlan = plans.find((p) => p.amount === amountNum);
     navigate("/checkout", {
       state: {
         phone,
         amount: amountNum,
         carrierSlug,
-        carrierId,
+        carrierId: selectedPlan?.carrierId ?? rangeCarrierId ?? carrierId,
         carrierName,
         brandColor,
         planId: selectedPlan?.plan_id || rangePlanId || undefined,
