@@ -128,28 +128,48 @@ const DynamicCarrier = ({
           "";
         applySeoHead({ title, description, keywords, schema });
 
-        // Plans
+        // Plans: support both `carrier_plans` (range/custom amount) and `fixed_plans` (fixed buttons).
         const cp = data.carrier_plans;
-        if (cp) {
-          // carrier_plans can be a direct array or an object
+        const fp = (data as Record<string, unknown>).fixed_plans as
+          | Array<Record<string, unknown>>
+          | { rangePlan?: boolean | string; plans?: Array<Record<string, unknown>>; [k: string]: unknown }
+          | undefined;
+
+        const cpRange =
+          cp && !Array.isArray(cp) &&
+          (cp.rangePlan === true || (typeof cp.rangePlan === "string" && cp.rangePlan !== ""));
+
+        const fpRange =
+          fp && !Array.isArray(fp) &&
+          (fp.rangePlan === true || (typeof fp.rangePlan === "string" && fp.rangePlan !== ""));
+
+        // 1) Custom Range: carrier_plans.rangePlan === true → show amount input
+        if (cpRange && cp && !Array.isArray(cp)) {
+          setIsRange(true);
+          setRangeMin(cp.carrier?.rangeMin ?? 5);
+          setRangeMax(cp.carrier?.rangeMax ?? 300);
+          if (typeof cp.rangePlan === "string" && cp.rangePlan !== "") {
+            setRangePlanId(cp.rangePlan);
+          } else if (cp.carrier?.rangePlan) {
+            setRangePlanId(String(cp.carrier.rangePlan));
+          }
+        }
+
+        // 2) Fixed Options: fixed_plans.rangePlan === true → show fixed plan buttons
+        if (fpRange && fp && !Array.isArray(fp) && Array.isArray(fp.plans) && fp.plans.length > 0) {
+          setIsRange(false);
+          setPlans(normalizePlans(fp.plans));
+        } else if (Array.isArray(fp) && fp.length > 0) {
+          setIsRange(false);
+          setPlans(normalizePlans(fp as Array<Record<string, unknown>>));
+        } else if (cp) {
+          // Fallback to carrier_plans for fixed plan list when fixed_plans is absent
           if (Array.isArray(cp)) {
             setIsRange(false);
             setPlans(normalizePlans(cp as Array<Record<string, unknown>>));
-          } else {
-            const rangeFlag = cp.rangePlan === true || (typeof cp.rangePlan === "string" && cp.rangePlan !== "");
-            if (rangeFlag && cp.carrier) {
-              setIsRange(true);
-              setRangeMin(cp.carrier.rangeMin ?? 5);
-              setRangeMax(cp.carrier.rangeMax ?? 300);
-              if (typeof cp.rangePlan === "string" && cp.rangePlan !== "") {
-                setRangePlanId(cp.rangePlan);
-              } else if (cp.carrier.rangePlan) {
-                setRangePlanId(String(cp.carrier.rangePlan));
-              }
-            } else if (Array.isArray(cp.plans) && cp.plans.length > 0) {
-              setIsRange(false);
-              setPlans(normalizePlans(cp.plans));
-            }
+          } else if (!cpRange && Array.isArray(cp.plans) && cp.plans.length > 0) {
+            setIsRange(false);
+            setPlans(normalizePlans(cp.plans));
           }
         }
       } catch (err) {
