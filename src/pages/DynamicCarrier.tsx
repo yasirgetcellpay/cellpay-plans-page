@@ -33,6 +33,7 @@ interface NormalizedPlan {
   highlight: string;
   amount: number;
   name: string;
+  carrierId?: number; // per-plan carrier id (used for fixed_plans entries)
 }
 
 function normalizePlans(plans: Array<Record<string, unknown>>): NormalizedPlan[] {
@@ -40,12 +41,20 @@ function normalizePlans(plans: Array<Record<string, unknown>>): NormalizedPlan[]
     const id = String(p.plan_id || p.planId || p.id || p.ID || "");
     const amt = Number(p.amount || p.price || p.Amount || 0);
     const name = String(p.name || p.Name || p.description || "");
+    const carrier = p.carrier;
+    const carrierIdNum =
+      typeof carrier === "number"
+        ? carrier
+        : typeof carrier === "string" && carrier !== ""
+        ? Number(carrier)
+        : undefined;
     return {
       plan_id: id,
       price: `$${amt}`,
       highlight: name || "Prepaid Refill",
       amount: amt,
       name: name || "Prepaid Refill",
+      carrierId: Number.isFinite(carrierIdNum) ? (carrierIdNum as number) : undefined,
     };
   });
 }
