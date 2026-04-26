@@ -829,7 +829,7 @@ const Checkout = () => {
     { key: "paypal", label: "PayPal" },
     { key: "plaid", label: "Pay by Bank" },
     { key: "googlepay", label: "Google Pay" },
-    { key: "applepay", label: "Apple Pay" },
+    ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: "Apple Pay" }] : []),
     { key: "klarna", label: "Klarna" },
     { key: "cashapp", label: "Cash App" },
   ];
