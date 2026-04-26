@@ -154,9 +154,10 @@ const DynamicCarrier = ({
           fp && !Array.isArray(fp) &&
           (fp.rangePlan === true || (typeof fp.rangePlan === "string" && fp.rangePlan !== ""));
 
-        // 1) Custom Range: carrier_plans.rangePlan === true → show amount input
+        // 1) Custom Range: carrier_plans.rangePlan === true → show amount input.
+        //    Capture carrier_plans.carrier.id (or .ID) as the carrier id used for range purchases.
         if (cpRange && cp && !Array.isArray(cp)) {
-          setIsRange(true);
+          setShowRange(true);
           setRangeMin(cp.carrier?.rangeMin ?? 5);
           setRangeMax(cp.carrier?.rangeMax ?? 300);
           if (typeof cp.rangePlan === "string" && cp.rangePlan !== "") {
@@ -164,24 +165,34 @@ const DynamicCarrier = ({
           } else if (cp.carrier?.rangePlan) {
             setRangePlanId(String(cp.carrier.rangePlan));
           }
+          const rcRaw =
+            (cp.carrier as Record<string, unknown> | undefined)?.id ??
+            (cp.carrier as Record<string, unknown> | undefined)?.ID;
+          const rcNum = typeof rcRaw === "number" ? rcRaw : rcRaw != null ? Number(rcRaw) : NaN;
+          if (Number.isFinite(rcNum)) setRangeCarrierId(rcNum);
+        } else {
+          setShowRange(false);
         }
 
-        // 2) Fixed Options: fixed_plans.rangePlan === true → show fixed plan buttons
+        // 2) Fixed Options: fixed_plans.rangePlan === true → show fixed plan buttons.
+        //    Each entry's `carrier` field holds the carrier id to send for that plan.
         if (fpRange && fp && !Array.isArray(fp) && Array.isArray(fp.plans) && fp.plans.length > 0) {
-          setIsRange(false);
+          setShowFixedPlans(true);
           setPlans(normalizePlans(fp.plans));
         } else if (Array.isArray(fp) && fp.length > 0) {
-          setIsRange(false);
+          setShowFixedPlans(true);
           setPlans(normalizePlans(fp as Array<Record<string, unknown>>));
-        } else if (cp) {
+        } else if (cp && !cpRange) {
           // Fallback to carrier_plans for fixed plan list when fixed_plans is absent
           if (Array.isArray(cp)) {
-            setIsRange(false);
+            setShowFixedPlans(true);
             setPlans(normalizePlans(cp as Array<Record<string, unknown>>));
-          } else if (!cpRange && Array.isArray(cp.plans) && cp.plans.length > 0) {
-            setIsRange(false);
+          } else if (Array.isArray(cp.plans) && cp.plans.length > 0) {
+            setShowFixedPlans(true);
             setPlans(normalizePlans(cp.plans));
           }
+        } else {
+          setShowFixedPlans(false);
         }
       } catch (err) {
         console.warn("Failed to load carrier view for", carrierSlug, err);
