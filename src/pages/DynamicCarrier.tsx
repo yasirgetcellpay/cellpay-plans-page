@@ -140,8 +140,12 @@ const DynamicCarrier = ({
         applySeoHead({ title, description, keywords, schema });
 
         // Plans: support both `carrier_plans` (range/custom amount) and `fixed_plans` (fixed buttons).
+        // `fixed_plans` may live at the response root OR nested inside `carrier_plans.fixed_plans`.
         const cp = data.carrier_plans;
-        const fp = (data as Record<string, unknown>).fixed_plans as
+        const rootFp = (data as Record<string, unknown>).fixed_plans;
+        const nestedFp =
+          cp && !Array.isArray(cp) ? (cp as Record<string, unknown>).fixed_plans : undefined;
+        const fp = (rootFp ?? nestedFp) as
           | Array<Record<string, unknown>>
           | { rangePlan?: boolean | string; plans?: Array<Record<string, unknown>>; [k: string]: unknown }
           | undefined;
@@ -150,9 +154,11 @@ const DynamicCarrier = ({
           cp && !Array.isArray(cp) &&
           (cp.rangePlan === true || (typeof cp.rangePlan === "string" && cp.rangePlan !== ""));
 
+        // For root/nested arrays of fixed_plans, presence of items means "show fixed buttons".
         const fpRange =
-          fp && !Array.isArray(fp) &&
-          (fp.rangePlan === true || (typeof fp.rangePlan === "string" && fp.rangePlan !== ""));
+          (Array.isArray(fp) && fp.length > 0) ||
+          (fp && !Array.isArray(fp) &&
+            (fp.rangePlan === true || (typeof fp.rangePlan === "string" && fp.rangePlan !== "")));
 
         // 1) Custom Range: carrier_plans.rangePlan === true → show amount input.
         //    Capture carrier_plans.carrier.id (or .ID) as the carrier id used for range purchases.
