@@ -116,6 +116,40 @@ export async function fetchCarriers(): Promise<Carrier[]> {
   return extractArray(data, "carriers") as Carrier[];
 }
 
+export interface SeoPayload {
+  title_for_layout?: string;
+  seo_description?: string;
+  seo_keywords?: string;
+  seo_schema?: string;
+}
+
+/**
+ * Fetch SEO metadata for a given route/path from the backend.
+ * The proxy endpoint mirrors the request path so the backend can return
+ * route-specific title/description/keywords/schema.
+ */
+export async function fetchSeo(path: string): Promise<SeoPayload> {
+  const clean = path.replace(/^\/+/, "");
+  const endpoint = clean ? `seo/${clean}` : "seo";
+  try {
+    const raw = await callProxy({ endpoint, method: "GET" });
+    const wrapper = raw as Record<string, unknown>;
+    if (wrapper.success === false) return {};
+    let result = (wrapper.data || wrapper) as Record<string, unknown>;
+    if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+      result = result.data as Record<string, unknown>;
+    }
+    return {
+      title_for_layout: result.title_for_layout as string | undefined,
+      seo_description: result.seo_description as string | undefined,
+      seo_keywords: result.seo_keywords as string | undefined,
+      seo_schema: result.seo_schema as string | undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 export async function fetchCarrierView(slug: string): Promise<CarrierViewData> {
   const raw = await callProxy({ endpoint: `carriers/view/${slug}`, method: "GET" });
   const wrapper = raw as Record<string, unknown>;
