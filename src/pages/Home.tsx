@@ -113,7 +113,6 @@ const staticCarriers: DisplayCarrier[] = [
   { name: "Lyca Mobile", logo: lycaLogo, path: "/lyca", bg: "bg-[hsl(220,50%,22%)]" },
   { name: "Net10 Wireless", logo: net10Logo, path: "/net10", bg: "bg-[hsl(195,100%,50%)]" },
   { name: "Page Plus", logo: pageplusLogo, path: "/pageplus", bg: "bg-[hsl(0,70%,50%)]" },
-  { name: "Page Plus Addon Balance", logo: pageplusLogo, path: "/pageplus-addon", bg: "bg-[hsl(0,70%,50%)]" },
   { name: "Red Pocket Mobile", path: "/red-pocket", bg: "bg-[hsl(0,80%,45%)]" },
   { name: "Total Wireless", path: "/total-wireless", bg: "bg-[hsl(200,70%,40%)]" },
   { name: "TracFone", logo: tracfoneLogo, path: "/tracfone", bg: "bg-[hsl(230,70%,30%)]" },
