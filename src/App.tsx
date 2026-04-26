@@ -16,6 +16,7 @@ import TermsAndConditions from "./pages/TermsAndConditions.tsx";
 import ReturnsPolicy from "./pages/ReturnsPolicy.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { Toaster } from "@/components/ui/toaster";
+import { RouteSeo } from "@/hooks/useRouteSeo";
 
 // Local logo imports
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
