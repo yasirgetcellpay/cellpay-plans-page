@@ -108,6 +108,11 @@ export interface CarrierViewData {
     };
     [key: string]: unknown;
   };
+  fixed_plans?: Array<Record<string, unknown>> | {
+    rangePlan?: boolean | string;
+    plans?: Array<Record<string, unknown>>;
+    [key: string]: unknown;
+  };
   [key: string]: unknown;
 }
 
