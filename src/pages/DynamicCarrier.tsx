@@ -76,10 +76,12 @@ const DynamicCarrier = ({
   // API-loaded state
   const [carrierName, setCarrierName] = useState(initialName);
   const [carrierId, setCarrierId] = useState(initialCarrierId);
-  const [isRange, setIsRange] = useState(false);
+  const [showRange, setShowRange] = useState(false); // custom amount input from carrier_plans.rangePlan
+  const [showFixedPlans, setShowFixedPlans] = useState(false); // fixed plan buttons from fixed_plans.rangePlan
   const [rangeMin, setRangeMin] = useState(5);
   const [rangeMax, setRangeMax] = useState(300);
   const [rangePlanId, setRangePlanId] = useState<string>("");
+  const [rangeCarrierId, setRangeCarrierId] = useState<number | undefined>(undefined); // carrier_plans.carrier.id
   const [plans, setPlans] = useState<NormalizedPlan[]>([]);
   const [faqs, setFaqs] = useState<Array<{ question: string; answer: string }>>([]);
   const [heading, setHeading] = useState("");
