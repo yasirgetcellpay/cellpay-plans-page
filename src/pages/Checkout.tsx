@@ -117,6 +117,7 @@ const Checkout = () => {
   const [autoPay, setAutoPay] = useState(false);
   const [autoPayTerms, setAutoPayTerms] = useState(false);
   const [showSaveInfoTip, setShowSaveInfoTip] = useState(false);
+  const [applePayAvailable, setApplePayAvailable] = useState(false);
 
   // Card fields
   const [cardNumber, setCardNumber] = useState("");
