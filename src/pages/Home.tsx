@@ -7,6 +7,7 @@ import { User, LogOut, ChevronDown, ShoppingBag, UserCog } from "lucide-react";
 import { LegalBar } from "@/components/LegalBar";
 import { PaymentBar } from "@/components/PaymentBar";
 import { fetchCarriers, type Carrier } from "@/services/apiWrapper";
+import { applySeoHead } from "@/lib/seo";
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
 import cricketLogo from "@/assets/cricket-logo.webp";
 import metroLogo from "@/assets/metro-logo.svg";
@@ -170,8 +171,18 @@ const Home = () => {
     let cancelled = false;
     (async () => {
       try {
-        const apiCarriers = await fetchCarriers();
-        if (!cancelled && apiCarriers.length > 0) {
+        const { carriers: apiCarriers, seo } = await fetchCarriers();
+        if (cancelled) return;
+
+        // Apply SEO from the same response — no extra request
+        applySeoHead({
+          title: seo.title_for_layout,
+          description: seo.seo_description,
+          keywords: seo.seo_keywords,
+          schema: seo.seo_schema,
+        });
+
+        if (apiCarriers.length > 0) {
           const mapped = dedup(
             apiCarriers
               .map(mapApiCarrier)
