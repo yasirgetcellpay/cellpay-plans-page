@@ -395,10 +395,12 @@ const DynamicCarrier = ({
               <button
                 type="button"
                 onClick={handlePay}
-                className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]"
+                disabled={verifying}
+                className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: bc }}
               >
-                PAY NOW
+                {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
+                {verifying ? "VERIFYING..." : "PAY NOW"}
               </button>
             </div>
             <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">
