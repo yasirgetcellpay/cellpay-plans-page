@@ -7,6 +7,7 @@ import { User, LogOut, ChevronDown, ShoppingBag, UserCog } from "lucide-react";
 import { LegalBar } from "@/components/LegalBar";
 import { PaymentBar } from "@/components/PaymentBar";
 import { fetchCarriers, type Carrier } from "@/services/apiWrapper";
+import { applySeoHead } from "@/lib/seo";
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
 import cricketLogo from "@/assets/cricket-logo.webp";
 import metroLogo from "@/assets/metro-logo.svg";
