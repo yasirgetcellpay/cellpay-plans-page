@@ -37,6 +37,7 @@ serve(async (req) => {
     const headers: Record<string, string> = {
       "X-Api-Key": apiKey,
       "X-Api-Secret": apiSecret,
+      "X-Cellpay-Domain": "yasircell.cellpay.us",
       "Content-Type": "application/json",
       "Accept": "*/*",
     };
