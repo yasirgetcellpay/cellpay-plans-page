@@ -9,6 +9,7 @@ import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, type CarrierViewData } from "@/services/apiWrapper";
+import { applySeoHead } from "@/lib/seo";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -106,6 +107,26 @@ const DynamicCarrier = ({
         if (data.seo_carrier?.faqs) setFaqs(data.seo_carrier.faqs);
         if (data.seo_carrier?.recommended?.h1) setHeading(data.seo_carrier.recommended.h1);
         if (data.seo_carrier?.recommended?.h2) setSubheading(data.seo_carrier.recommended.h2);
+
+        // Dynamic <head> SEO tags from API (fall back to seo_carrier nested fields)
+        const seoSrc = (data.seo_carrier ?? {}) as Record<string, unknown>;
+        const title =
+          (data.title_for_layout as string) ||
+          (seoSrc.title_for_layout as string) ||
+          "";
+        const description =
+          (data.seo_description as string) ||
+          (seoSrc.seo_description as string) ||
+          "";
+        const keywords =
+          (data.seo_keywords as string) ||
+          (seoSrc.seo_keywords as string) ||
+          "";
+        const schema =
+          (data.seo_schema as string) ||
+          (seoSrc.seo_schema as string) ||
+          "";
+        applySeoHead({ title, description, keywords, schema });
 
         // Plans
         const cp = data.carrier_plans;

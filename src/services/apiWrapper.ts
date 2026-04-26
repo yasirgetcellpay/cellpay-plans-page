@@ -79,7 +79,15 @@ export interface CarrierViewData {
     recommended?: { h1?: string; h2?: string };
     support_text?: { option1?: string };
     faqs?: Array<{ question: string; answer: string }>;
+    title_for_layout?: string;
+    seo_description?: string;
+    seo_keywords?: string;
+    seo_schema?: string;
   };
+  title_for_layout?: string;
+  seo_description?: string;
+  seo_keywords?: string;
+  seo_schema?: string;
   carrier?: {
     id: number;
     name: string;
