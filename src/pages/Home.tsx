@@ -106,16 +106,13 @@ const staticCarriers: DisplayCarrier[] = [
   { name: "Metro PCS", logo: metroLogo, path: "/metro", bg: "bg-[hsl(270,60%,32%)]" },
   { name: "T-Mobile", logo: tmobileLogo, path: "/tmobile", bg: "bg-[hsl(330,100%,45%)]" },
   { name: "AT&T Prepaid", logo: attLogo, path: "/att", bg: "bg-[hsl(196,100%,44%)]" },
-  { name: "AT&T FirstNet", logo: attLogo, path: "/att-firstnet", bg: "bg-[hsl(196,100%,44%)]" },
   { name: "Verizon", logo: verizonLogo, path: "/verizon", bg: "bg-[hsl(0,100%,45%)]" },
-  { name: "Verizon Wireless Flexi", logo: verizonLogo, path: "/verizon-flexi", bg: "bg-[hsl(0,100%,45%)]" },
   { name: "Boost Mobile", logo: boostLogo, path: "/boost", bg: "bg-[hsl(27,100%,50%)]" },
   { name: "Straight Talk", logo: straightTalkLogo, path: "/straight-talk", bg: "bg-[hsl(72,74%,44%)]" },
   { name: "H2O Wireless", logo: h2oLogo, path: "/h2o", bg: "bg-[hsl(195,85%,50%)]" },
   { name: "Lyca Mobile", logo: lycaLogo, path: "/lyca", bg: "bg-[hsl(220,50%,22%)]" },
   { name: "Net10 Wireless", logo: net10Logo, path: "/net10", bg: "bg-[hsl(195,100%,50%)]" },
   { name: "Page Plus", logo: pageplusLogo, path: "/pageplus", bg: "bg-[hsl(0,70%,50%)]" },
-  { name: "Page Plus Addon Balance", logo: pageplusLogo, path: "/pageplus-addon", bg: "bg-[hsl(0,70%,50%)]" },
   { name: "Red Pocket Mobile", path: "/red-pocket", bg: "bg-[hsl(0,80%,45%)]" },
   { name: "Total Wireless", path: "/total-wireless", bg: "bg-[hsl(200,70%,40%)]" },
   { name: "TracFone", logo: tracfoneLogo, path: "/tracfone", bg: "bg-[hsl(230,70%,30%)]" },
@@ -140,8 +137,16 @@ function dedup(list: DisplayCarrier[]): DisplayCarrier[] {
   });
 }
 
+// Slugs to hide from the homepage grid (duplicate variants of carriers already shown)
+const excludedSlugs = new Set<string>([
+  "topup-af",                  // AT&T FirstNet (duplicate of AT&T)
+  "verizon-wireless-flexi",    // Verizon Flexi (duplicate of Verizon)
+  "pageplusadd",               // Page Plus Addon (duplicate of Page Plus)
+]);
+
 function mapApiCarrier(c: Carrier): DisplayCarrier | null {
   const slug = (c.slug || "").toLowerCase();
+  if (excludedSlugs.has(slug)) return null;
   const path = slugToPath[slug];
   if (!path) return null;
   const logo = localLogos[slug] || (c.logo as string) || undefined;
