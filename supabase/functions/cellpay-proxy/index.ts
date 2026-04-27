@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const API_BASE = "https://yasircell.cellpay.us/api";
+const API_BASE = "https://api.cellpay.us/api";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -37,7 +37,7 @@ serve(async (req) => {
     const headers: Record<string, string> = {
       "X-Api-Key": apiKey,
       "X-Api-Secret": apiSecret,
-      "X-Cellpay-Domain": "yasircell.cellpay.us",
+      "X-Cellpay-Domain": "www.cellpay.us",
       "Content-Type": "application/json",
       "Accept": "*/*",
     };
