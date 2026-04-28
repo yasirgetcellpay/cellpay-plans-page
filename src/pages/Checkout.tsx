@@ -495,6 +495,9 @@ const Checkout = () => {
       },
       browser_info: browserInfoRef.current,
       gclid: getGclid(),
+      kount_ssid: sessionIdRef.current,
+      riskified_sessionid: sessionIdRef.current,
+      cbsys_sessionid: sessionIdRef.current,
     };
     const result = await submitTransaction(payload) as Record<string, unknown>;
     handleResult(result);
