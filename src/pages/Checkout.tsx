@@ -738,6 +738,7 @@ const Checkout = () => {
     },
     klarna_auth_token: authToken,
     browser_info: browserInfoRef.current,
+    gclid: getGclid(),
   });
 
   const handleKlarna = async () => {
