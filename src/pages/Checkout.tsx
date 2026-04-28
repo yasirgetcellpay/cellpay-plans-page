@@ -157,6 +157,50 @@ const Checkout = () => {
   const [klarnaReady, setKlarnaReady] = useState(false);
   const [klarnaToken, setKlarnaToken] = useState<string | null>(null);
 
+  // Browser fingerprint (FingerprintJS Pro)
+  const browserInfoRef = useRef<string>("");
+
+  const getClientProps = useCallback(() => {
+    try {
+      return {
+        languages: (navigator.languages || []).join(",") || navigator.language || "",
+        screenResolution: screen?.width && screen?.height ? `${screen.width}x${screen.height}` : "",
+        timezone: Intl?.DateTimeFormat ? Intl.DateTimeFormat().resolvedOptions().timeZone || "" : "",
+        platform: navigator.platform || "",
+        vendor: navigator.vendor || "",
+      };
+    } catch {
+      return {};
+    }
+  }, []);
+
+  // Load FingerprintJS Pro and capture visitor identifier
+  useEffect(() => {
+    let cancelled = false;
+    // Set a baseline payload immediately so we always send something
+    browserInfoRef.current = JSON.stringify(getClientProps());
+
+    (async () => {
+      try {
+        const FingerprintJS = await import(
+          /* @vite-ignore */ "https://fpjscdn.net/v3/4zITUeuShmfN065uFVho"
+        );
+        const fp = await (FingerprintJS as { load: () => Promise<{ get: () => Promise<{ visitorId: string; requestId?: string }> }> }).load();
+        const result = await fp.get();
+        if (cancelled) return;
+        browserInfoRef.current = JSON.stringify({
+          visitorId: result.visitorId,
+          requestId: result.requestId || "",
+          ...getClientProps(),
+        });
+      } catch (err) {
+        console.warn("FingerprintJS Pro error", err);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [getClientProps]);
+
   // Detect Apple Pay availability (Safari on supported Apple devices)
   useEffect(() => {
     try {
