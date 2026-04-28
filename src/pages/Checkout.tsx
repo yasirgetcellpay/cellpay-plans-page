@@ -215,6 +215,23 @@ const Checkout = () => {
     return () => { cancelled = true; };
   }, [getClientProps]);
 
+  // Resolve visitor public IP for the `source` field. Best-effort — if the
+  // lookup fails (offline / blocked), we send an empty string.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json() as { ip?: string };
+        if (!cancelled && data?.ip) visitorIpRef.current = data.ip;
+      } catch {
+        // ignore
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   // Detect Apple Pay availability (Safari on supported Apple devices)
   useEffect(() => {
     try {
