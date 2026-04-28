@@ -120,6 +120,16 @@ const Checkout = () => {
   const [showSaveInfoTip, setShowSaveInfoTip] = useState(false);
   const [applePayAvailable, setApplePayAvailable] = useState(false);
 
+  // Unique session identifier — generated once per checkout flow and reused
+  // across kount_ssid / riskified_sessionid / cbsys_sessionid on every request.
+  const sessionIdRef = useRef<string>("");
+  if (!sessionIdRef.current) {
+    sessionIdRef.current =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID().replace(/-/g, "")
+        : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}${Math.random().toString(36).slice(2, 12)}`;
+  }
+
   // Card fields
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
