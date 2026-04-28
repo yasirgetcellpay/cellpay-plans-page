@@ -556,6 +556,9 @@ const Checkout = () => {
               plaid_token: publicToken,
               browser_info: browserInfoRef.current,
               gclid: getGclid(),
+              kount_ssid: sessionIdRef.current,
+              riskified_sessionid: sessionIdRef.current,
+              cbsys_sessionid: sessionIdRef.current,
             }) as Record<string, unknown>;
             handleResult(result);
           } catch {
