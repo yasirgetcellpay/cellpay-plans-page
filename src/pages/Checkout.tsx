@@ -732,6 +732,7 @@ const Checkout = () => {
       email: email.trim() || "customer@cellpay.us",
     },
     klarna_auth_token: authToken,
+    browser_info: browserInfoRef.current,
   });
 
   const handleKlarna = async () => {
