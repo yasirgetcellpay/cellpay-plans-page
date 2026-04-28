@@ -821,6 +821,7 @@ const Checkout = () => {
         lastName: lastName.trim() || "User",
         email: email.trim() || "customer@cellpay.us",
       },
+      browser_info: browserInfoRef.current,
     }) as Record<string, unknown>;
 
     // Unwrap double-nested response
