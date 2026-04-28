@@ -120,6 +120,16 @@ const Checkout = () => {
   const [showSaveInfoTip, setShowSaveInfoTip] = useState(false);
   const [applePayAvailable, setApplePayAvailable] = useState(false);
 
+  // Unique session identifier — generated once per checkout flow and reused
+  // across kount_ssid / riskified_sessionid / cbsys_sessionid on every request.
+  const sessionIdRef = useRef<string>("");
+  if (!sessionIdRef.current) {
+    sessionIdRef.current =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID().replace(/-/g, "")
+        : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}${Math.random().toString(36).slice(2, 12)}`;
+  }
+
   // Card fields
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
@@ -485,6 +495,9 @@ const Checkout = () => {
       },
       browser_info: browserInfoRef.current,
       gclid: getGclid(),
+      kount_ssid: sessionIdRef.current,
+      riskified_sessionid: sessionIdRef.current,
+      cbsys_sessionid: sessionIdRef.current,
     };
     const result = await submitTransaction(payload) as Record<string, unknown>;
     handleResult(result);
@@ -543,6 +556,9 @@ const Checkout = () => {
               plaid_token: publicToken,
               browser_info: browserInfoRef.current,
               gclid: getGclid(),
+              kount_ssid: sessionIdRef.current,
+              riskified_sessionid: sessionIdRef.current,
+              cbsys_sessionid: sessionIdRef.current,
             }) as Record<string, unknown>;
             handleResult(result);
           } catch {
@@ -623,6 +639,9 @@ const Checkout = () => {
       google_pay_token: tokenStr?.token,
       browser_info: browserInfoRef.current,
       gclid: getGclid(),
+      kount_ssid: sessionIdRef.current,
+      riskified_sessionid: sessionIdRef.current,
+      cbsys_sessionid: sessionIdRef.current,
     }) as Record<string, unknown>;
     handleResult(result);
   };
@@ -686,6 +705,9 @@ const Checkout = () => {
           apple_pay_billing_contact: JSON.stringify(billingContact),
           browser_info: browserInfoRef.current,
           gclid: getGclid(),
+          kount_ssid: sessionIdRef.current,
+          riskified_sessionid: sessionIdRef.current,
+          cbsys_sessionid: sessionIdRef.current,
         }) as Record<string, unknown>;
 
         // Unwrap
@@ -739,6 +761,9 @@ const Checkout = () => {
     klarna_auth_token: authToken,
     browser_info: browserInfoRef.current,
     gclid: getGclid(),
+    kount_ssid: sessionIdRef.current,
+    riskified_sessionid: sessionIdRef.current,
+    cbsys_sessionid: sessionIdRef.current,
   });
 
   const handleKlarna = async () => {
@@ -829,6 +854,9 @@ const Checkout = () => {
       },
       browser_info: browserInfoRef.current,
       gclid: getGclid(),
+      kount_ssid: sessionIdRef.current,
+      riskified_sessionid: sessionIdRef.current,
+      cbsys_sessionid: sessionIdRef.current,
     }) as Record<string, unknown>;
 
     // Unwrap double-nested response
