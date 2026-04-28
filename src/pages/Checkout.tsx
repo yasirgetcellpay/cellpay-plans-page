@@ -542,6 +542,7 @@ const Checkout = () => {
               },
               plaid_token: publicToken,
               browser_info: browserInfoRef.current,
+              gclid: getGclid(),
             }) as Record<string, unknown>;
             handleResult(result);
           } catch {
