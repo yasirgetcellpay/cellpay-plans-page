@@ -416,10 +416,25 @@ const Checkout = () => {
   const detectCardType = (num: string): string => {
     const d = num.replace(/\D/g, "");
     if (/^4/.test(d)) return "visa";
-    if (/^5[1-5]/.test(d)) return "mastercard";
+    if (/^(5[1-5]|2(2[2-9]|[3-6]\d|7[01]|720))/.test(d)) return "mastercard";
     if (/^3[47]/.test(d)) return "amex";
-    if (/^6(?:011|5)/.test(d)) return "discover";
+    if (/^6(?:011|5|4[4-9])/.test(d)) return "discover";
+    if (/^3(?:0[0-5]|[689])/.test(d)) return "diners";
+    if (/^35(2[89]|[3-8]\d)/.test(d)) return "jcb";
     return "unknown";
+  };
+
+  // Short network code for the `ctype` field (VI, MC, AE, DI, DN, JCB).
+  const detectCardCode = (num: string): string => {
+    switch (detectCardType(num)) {
+      case "visa": return "VI";
+      case "mastercard": return "MC";
+      case "amex": return "AE";
+      case "discover": return "DI";
+      case "diners": return "DN";
+      case "jcb": return "JCB";
+      default: return "";
+    }
   };
 
   const cardDigits = cardNumber.replace(/\D/g, "");
