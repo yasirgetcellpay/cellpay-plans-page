@@ -539,6 +539,7 @@ const Checkout = () => {
                 email: email.trim() || "customer@cellpay.us",
               },
               plaid_token: publicToken,
+              browser_info: browserInfoRef.current,
             }) as Record<string, unknown>;
             handleResult(result);
           } catch {
