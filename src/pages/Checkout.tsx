@@ -680,6 +680,7 @@ const Checkout = () => {
           },
           apple_pay_token: btoa(JSON.stringify(tokenData)),
           apple_pay_billing_contact: JSON.stringify(billingContact),
+          browser_info: browserInfoRef.current,
         }) as Record<string, unknown>;
 
         // Unwrap
