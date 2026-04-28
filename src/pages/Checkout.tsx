@@ -804,6 +804,7 @@ const Checkout = () => {
     kount_ssid: sessionIdRef.current,
     riskified_sessionid: sessionIdRef.current,
     cbsys_sessionid: sessionIdRef.current,
+    source: visitorIpRef.current,
   });
 
   const handleKlarna = async () => {
