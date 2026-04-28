@@ -828,6 +828,7 @@ const Checkout = () => {
         email: email.trim() || "customer@cellpay.us",
       },
       browser_info: browserInfoRef.current,
+      gclid: getGclid(),
     }) as Record<string, unknown>;
 
     // Unwrap double-nested response
