@@ -482,6 +482,7 @@ const Checkout = () => {
         country_id: country,
         region_id: regionId || cardZip,
       },
+      browser_info: browserInfoRef.current,
     };
     const result = await submitTransaction(payload) as Record<string, unknown>;
     handleResult(result);
