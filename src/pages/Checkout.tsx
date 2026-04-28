@@ -618,6 +618,7 @@ const Checkout = () => {
         email: email.trim() || "customer@cellpay.us",
       },
       google_pay_token: tokenStr?.token,
+      browser_info: browserInfoRef.current,
     }) as Record<string, unknown>;
     handleResult(result);
   };
