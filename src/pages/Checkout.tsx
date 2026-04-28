@@ -435,7 +435,7 @@ const Checkout = () => {
       },
       billing: {
         bill_email: email.trim(),
-        country_id: "US",
+        country_id: country,
         region_id: regionId || cardZip,
       },
     };
