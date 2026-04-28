@@ -130,6 +130,7 @@ const Checkout = () => {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [regionId, setRegionId] = useState("");
+  const [country, setCountry] = useState("US");
 
   // Klarna billing fields
   const [klarnaFirstName, setKlarnaFirstName] = useState("");
