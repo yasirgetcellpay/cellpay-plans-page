@@ -130,6 +130,9 @@ const Checkout = () => {
         : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}${Math.random().toString(36).slice(2, 12)}`;
   }
 
+  // Visitor IP — fetched once on mount and sent as `source` on every transaction.
+  const visitorIpRef = useRef<string>("");
+
   // Card fields
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
@@ -211,6 +214,23 @@ const Checkout = () => {
 
     return () => { cancelled = true; };
   }, [getClientProps]);
+
+  // Resolve visitor public IP for the `source` field. Best-effort — if the
+  // lookup fails (offline / blocked), we send an empty string.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json() as { ip?: string };
+        if (!cancelled && data?.ip) visitorIpRef.current = data.ip;
+      } catch {
+        // ignore
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Detect Apple Pay availability (Safari on supported Apple devices)
   useEffect(() => {
@@ -416,10 +436,25 @@ const Checkout = () => {
   const detectCardType = (num: string): string => {
     const d = num.replace(/\D/g, "");
     if (/^4/.test(d)) return "visa";
-    if (/^5[1-5]/.test(d)) return "mastercard";
+    if (/^(5[1-5]|2(2[2-9]|[3-6]\d|7[01]|720))/.test(d)) return "mastercard";
     if (/^3[47]/.test(d)) return "amex";
-    if (/^6(?:011|5)/.test(d)) return "discover";
+    if (/^6(?:011|5|4[4-9])/.test(d)) return "discover";
+    if (/^3(?:0[0-5]|[689])/.test(d)) return "diners";
+    if (/^35(2[89]|[3-8]\d)/.test(d)) return "jcb";
     return "unknown";
+  };
+
+  // Short network code for the `ctype` field (VI, MC, AE, DI, DN, JCB).
+  const detectCardCode = (num: string): string => {
+    switch (detectCardType(num)) {
+      case "visa": return "VI";
+      case "mastercard": return "MC";
+      case "amex": return "AE";
+      case "discover": return "DI";
+      case "diners": return "DN";
+      case "jcb": return "JCB";
+      default: return "";
+    }
   };
 
   const cardDigits = cardNumber.replace(/\D/g, "");
@@ -498,6 +533,8 @@ const Checkout = () => {
       kount_ssid: sessionIdRef.current,
       riskified_sessionid: sessionIdRef.current,
       cbsys_sessionid: sessionIdRef.current,
+      source: visitorIpRef.current,
+      ctype: detectCardCode(cardDigits),
     };
     const result = await submitTransaction(payload) as Record<string, unknown>;
     handleResult(result);
@@ -559,6 +596,7 @@ const Checkout = () => {
               kount_ssid: sessionIdRef.current,
               riskified_sessionid: sessionIdRef.current,
               cbsys_sessionid: sessionIdRef.current,
+              source: visitorIpRef.current,
             }) as Record<string, unknown>;
             handleResult(result);
           } catch {
@@ -642,6 +680,7 @@ const Checkout = () => {
       kount_ssid: sessionIdRef.current,
       riskified_sessionid: sessionIdRef.current,
       cbsys_sessionid: sessionIdRef.current,
+      source: visitorIpRef.current,
     }) as Record<string, unknown>;
     handleResult(result);
   };
@@ -708,6 +747,7 @@ const Checkout = () => {
           kount_ssid: sessionIdRef.current,
           riskified_sessionid: sessionIdRef.current,
           cbsys_sessionid: sessionIdRef.current,
+          source: visitorIpRef.current,
         }) as Record<string, unknown>;
 
         // Unwrap
@@ -764,6 +804,7 @@ const Checkout = () => {
     kount_ssid: sessionIdRef.current,
     riskified_sessionid: sessionIdRef.current,
     cbsys_sessionid: sessionIdRef.current,
+    source: visitorIpRef.current,
   });
 
   const handleKlarna = async () => {
@@ -857,6 +898,7 @@ const Checkout = () => {
       kount_ssid: sessionIdRef.current,
       riskified_sessionid: sessionIdRef.current,
       cbsys_sessionid: sessionIdRef.current,
+      source: visitorIpRef.current,
     }) as Record<string, unknown>;
 
     // Unwrap double-nested response
