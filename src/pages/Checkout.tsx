@@ -622,6 +622,7 @@ const Checkout = () => {
       },
       google_pay_token: tokenStr?.token,
       browser_info: browserInfoRef.current,
+      gclid: getGclid(),
     }) as Record<string, unknown>;
     handleResult(result);
   };
