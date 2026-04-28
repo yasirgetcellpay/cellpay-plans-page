@@ -18,6 +18,7 @@ import {
   type ValidationResult,
 } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
+import { getGclid } from "@/lib/tracking";
 
 interface LocationState {
   phone: string;
