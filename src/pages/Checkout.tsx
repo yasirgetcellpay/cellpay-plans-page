@@ -182,10 +182,10 @@ const Checkout = () => {
 
     (async () => {
       try {
-        const FingerprintJS = await import(
-          /* @vite-ignore */ "https://fpjscdn.net/v3/4zITUeuShmfN065uFVho"
-        );
-        const fp = await (FingerprintJS as { load: () => Promise<{ get: () => Promise<{ visitorId: string; requestId?: string }> }> }).load();
+        const FingerprintJS = await (new Function(
+          "return import('https://fpjscdn.net/v3/4zITUeuShmfN065uFVho')"
+        )() as Promise<{ load: () => Promise<{ get: () => Promise<{ visitorId: string; requestId?: string }> }> }>);
+        const fp = await FingerprintJS.load();
         const result = await fp.get();
         if (cancelled) return;
         browserInfoRef.current = JSON.stringify({
