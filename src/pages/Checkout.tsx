@@ -18,6 +18,7 @@ import {
   type ValidationResult,
 } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
+import { getGclid } from "@/lib/tracking";
 
 interface LocationState {
   phone: string;
@@ -483,6 +484,7 @@ const Checkout = () => {
         region_id: regionId || cardZip,
       },
       browser_info: browserInfoRef.current,
+      gclid: getGclid(),
     };
     const result = await submitTransaction(payload) as Record<string, unknown>;
     handleResult(result);
@@ -540,6 +542,7 @@ const Checkout = () => {
               },
               plaid_token: publicToken,
               browser_info: browserInfoRef.current,
+              gclid: getGclid(),
             }) as Record<string, unknown>;
             handleResult(result);
           } catch {
@@ -619,6 +622,7 @@ const Checkout = () => {
       },
       google_pay_token: tokenStr?.token,
       browser_info: browserInfoRef.current,
+      gclid: getGclid(),
     }) as Record<string, unknown>;
     handleResult(result);
   };
@@ -681,6 +685,7 @@ const Checkout = () => {
           apple_pay_token: btoa(JSON.stringify(tokenData)),
           apple_pay_billing_contact: JSON.stringify(billingContact),
           browser_info: browserInfoRef.current,
+          gclid: getGclid(),
         }) as Record<string, unknown>;
 
         // Unwrap
@@ -733,6 +738,7 @@ const Checkout = () => {
     },
     klarna_auth_token: authToken,
     browser_info: browserInfoRef.current,
+    gclid: getGclid(),
   });
 
   const handleKlarna = async () => {
@@ -822,6 +828,7 @@ const Checkout = () => {
         email: email.trim() || "customer@cellpay.us",
       },
       browser_info: browserInfoRef.current,
+      gclid: getGclid(),
     }) as Record<string, unknown>;
 
     // Unwrap double-nested response

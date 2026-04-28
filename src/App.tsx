@@ -1,5 +1,7 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { captureTrackingIdsFromUrl } from "@/lib/tracking";
 import Home from "./pages/Home.tsx";
 import DynamicCarrier from "./pages/DynamicCarrier.tsx";
 import Checkout from "./pages/Checkout.tsx";
@@ -34,9 +36,18 @@ import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
 import uscellularLogo from "@/assets/uscellular-logo.png";
 
+const TrackingCapture = () => {
+  const location = useLocation();
+  useEffect(() => {
+    captureTrackingIdsFromUrl();
+  }, [location.search]);
+  return null;
+};
+
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
+      <TrackingCapture />
       <Routes>
         <Route path="/" element={<Home />} />
 
