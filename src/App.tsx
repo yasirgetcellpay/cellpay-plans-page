@@ -36,9 +36,18 @@ import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
 import uscellularLogo from "@/assets/uscellular-logo.png";
 
+const TrackingCapture = () => {
+  const location = useLocation();
+  useEffect(() => {
+    captureTrackingIdsFromUrl();
+  }, [location.search]);
+  return null;
+};
+
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
+      <TrackingCapture />
       <Routes>
         <Route path="/" element={<Home />} />
 
