@@ -639,6 +639,9 @@ const Checkout = () => {
       google_pay_token: tokenStr?.token,
       browser_info: browserInfoRef.current,
       gclid: getGclid(),
+      kount_ssid: sessionIdRef.current,
+      riskified_sessionid: sessionIdRef.current,
+      cbsys_sessionid: sessionIdRef.current,
     }) as Record<string, unknown>;
     handleResult(result);
   };
