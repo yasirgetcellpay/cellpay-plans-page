@@ -533,6 +533,8 @@ const Checkout = () => {
       kount_ssid: sessionIdRef.current,
       riskified_sessionid: sessionIdRef.current,
       cbsys_sessionid: sessionIdRef.current,
+      source: visitorIpRef.current,
+      ctype: detectCardCode(cardDigits),
     };
     const result = await submitTransaction(payload) as Record<string, unknown>;
     handleResult(result);
