@@ -705,6 +705,9 @@ const Checkout = () => {
           apple_pay_billing_contact: JSON.stringify(billingContact),
           browser_info: browserInfoRef.current,
           gclid: getGclid(),
+          kount_ssid: sessionIdRef.current,
+          riskified_sessionid: sessionIdRef.current,
+          cbsys_sessionid: sessionIdRef.current,
         }) as Record<string, unknown>;
 
         // Unwrap
