@@ -898,6 +898,7 @@ const Checkout = () => {
       kount_ssid: sessionIdRef.current,
       riskified_sessionid: sessionIdRef.current,
       cbsys_sessionid: sessionIdRef.current,
+      source: visitorIpRef.current,
     }) as Record<string, unknown>;
 
     // Unwrap double-nested response
