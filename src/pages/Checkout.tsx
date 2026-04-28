@@ -130,6 +130,9 @@ const Checkout = () => {
         : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}${Math.random().toString(36).slice(2, 12)}`;
   }
 
+  // Visitor IP — fetched once on mount and sent as `source` on every transaction.
+  const visitorIpRef = useRef<string>("");
+
   // Card fields
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
