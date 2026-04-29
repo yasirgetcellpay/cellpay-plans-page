@@ -1027,7 +1027,7 @@ const Checkout = () => {
           <div className="bg-card rounded-xl border border-border p-5">
             <h2 className="font-bold text-foreground mb-3 text-sm">Order Summary</h2>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Phone</span><span className="font-medium text-foreground">{state.phone}</span></div>
+              <div className="flex justify-between items-center"><span className="text-muted-foreground">Phone</span><span className="font-medium text-foreground inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-cellpay-green" />{state.phone}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Amount</span><span className="font-medium text-foreground">${state.amount}</span></div>
               {fee > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Service Fee</span><span className="font-medium text-foreground">${Number(fee).toFixed(2)}</span></div>}
               {tax > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Tax</span><span className="font-medium text-foreground">${Number(tax).toFixed(2)}</span></div>}
