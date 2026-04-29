@@ -273,12 +273,55 @@ const Home = () => {
         </div>
       </nav>
 
-      <section className="bg-gradient-to-r from-plan-tier1 to-plan-tier2 text-primary-foreground">
-        <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-xl md:text-2xl font-extrabold">
-            Prepaid Phone Refill
+      {/* Hero — unified green to match logo (feedback #2, #8) */}
+      <section className="bg-cellpay-green text-primary-foreground">
+        <div className="max-w-7xl mx-auto px-5 py-5 sm:py-6 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-2xl md:text-3xl font-extrabold leading-tight">
+            Refill Any Prepaid Phone in Seconds
           </h1>
-          <p className="text-sm opacity-90 mt-1">Select your carrier to get started</p>
+          <p className="text-sm sm:text-base opacity-95 mt-1.5">
+            Instant top-ups for 15+ carriers · No account required
+          </p>
+          {/* Social proof — feedback #5, #12 */}
+          <div className="mt-3 flex items-center justify-center gap-1.5 text-xs sm:text-sm">
+            <div className="flex items-center gap-0.5">
+              {[0,1,2,3,4].map(i => (
+                <Star key={i} className="h-3.5 w-3.5 fill-current" />
+              ))}
+            </div>
+            <span className="font-bold">4.8/5</span>
+            <span className="opacity-90">· 50,000+ customers served</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust bar — feedback #4, #10, #11 */}
+      <section className="bg-card border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs sm:text-sm text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4 text-cellpay-green" />
+              <span className="font-semibold">Secure Checkout</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Zap className="h-4 w-4 text-cellpay-green" />
+              <span className="font-semibold">Instant Delivery</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Headphones className="h-4 w-4 text-cellpay-green" />
+              <span className="font-semibold">24/7 Support</span>
+            </div>
+            <div className="hidden sm:flex items-center gap-2 ml-2 pl-5 border-l border-border">
+              <span className="text-[10px] uppercase tracking-wider opacity-70">We accept</span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="px-1.5 py-0.5 rounded bg-[hsl(225,82%,44%)] text-white text-[9px] font-extrabold">VISA</span>
+                <span className="px-1.5 py-0.5 rounded bg-[hsl(0,0%,15%)] text-white text-[9px] font-extrabold">MC</span>
+                <span className="px-1.5 py-0.5 rounded bg-[hsl(208,100%,41%)] text-white text-[9px] font-extrabold">AMEX</span>
+                <span className="px-1.5 py-0.5 rounded bg-[hsl(24,93%,54%)] text-white text-[9px] font-extrabold">DISC</span>
+                <span className="px-1.5 py-0.5 rounded bg-[hsl(218,100%,26%)] text-white text-[9px] font-extrabold">PayPal</span>
+              </span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -288,6 +331,7 @@ const Home = () => {
             <Link
               key={carrier.path}
               to={carrier.path}
+              aria-label={`Refill ${carrier.name}`}
               className="group bg-card rounded-lg sm:rounded-xl border border-border shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden active:scale-[0.97]"
             >
               <div className="flex items-center justify-center h-24 sm:h-40 bg-background p-4 sm:p-6">
@@ -295,6 +339,7 @@ const Home = () => {
                   <img
                     src={carrier.logo}
                     alt={carrier.name}
+                    loading="lazy"
                     className="max-h-10 sm:max-h-16 max-w-[80%] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
@@ -303,9 +348,11 @@ const Home = () => {
                   </span>
                 )}
               </div>
+              {/* Only show name strip when there is NO logo (avoid duplicate label) — feedback #7.
+                  When a logo is present, show a neutral CTA strip instead. */}
               <div className={`${carrier.bg} py-2 sm:py-3 text-center`}>
                 <span className="text-primary-foreground font-bold text-xs sm:text-base">
-                  {carrier.name}
+                  {carrier.logo ? "Refill Now" : carrier.name}
                 </span>
               </div>
             </Link>
