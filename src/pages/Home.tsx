@@ -23,6 +23,9 @@ import pageplusLogo from "@/assets/pageplus-logo.png";
 import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
 import uscellularLogo from "@/assets/uscellular-logo.png";
+import redPocketLogo from "@/assets/red-pocket-logo.png";
+import totalWirelessLogo from "@/assets/total-wireless-logo.png";
+import { ShieldCheck, Zap, Headphones, Star } from "lucide-react";
 
 /* ── API slug → local logo ── */
 const localLogos: Record<string, string> = {
@@ -45,6 +48,8 @@ const localLogos: Record<string, string> = {
   "verizon-wireless-flexi": verizonLogo,
   "straight-talk": straightTalkLogo,
   straighttalk: straightTalkLogo,
+  "red-pocket-mobile": redPocketLogo,
+  "total-wireless": totalWirelessLogo,
 };
 
 /* ── API slug → app route ── */
@@ -113,8 +118,8 @@ const staticCarriers: DisplayCarrier[] = [
   { name: "Lyca Mobile", logo: lycaLogo, path: "/lyca", bg: "bg-[hsl(220,50%,22%)]" },
   { name: "Net10 Wireless", logo: net10Logo, path: "/net10", bg: "bg-[hsl(195,100%,50%)]" },
   { name: "Page Plus", logo: pageplusLogo, path: "/pageplus", bg: "bg-[hsl(0,70%,50%)]" },
-  { name: "Red Pocket Mobile", path: "/red-pocket", bg: "bg-[hsl(0,80%,45%)]" },
-  { name: "Total Wireless", path: "/total-wireless", bg: "bg-[hsl(200,70%,40%)]" },
+  { name: "Red Pocket Mobile", logo: redPocketLogo, path: "/red-pocket", bg: "bg-[hsl(0,80%,45%)]" },
+  { name: "Total Wireless", logo: totalWirelessLogo, path: "/total-wireless", bg: "bg-[hsl(200,70%,40%)]" },
   { name: "TracFone", logo: tracfoneLogo, path: "/tracfone", bg: "bg-[hsl(230,70%,30%)]" },
   { name: "Ultra Mobile", logo: ultraLogo, path: "/ultra-mobile", bg: "bg-[hsl(270,50%,40%)]" },
   { name: "US Cellular", logo: uscellularLogo, path: "/uscellular", bg: "bg-[hsl(220,80%,35%)]" },
