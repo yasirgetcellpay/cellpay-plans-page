@@ -326,13 +326,13 @@ const DynamicCarrier = ({
       </nav>
 
       <section style={{ backgroundColor: bc }} className="text-primary-foreground">
-        <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-7xl mx-auto px-5 py-4 sm:py-5 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl md:text-2xl font-extrabold">
-            {heading || `${carrierName} Bill Pay`}
+            {heading || `Streamlined Solutions for Swift and Secure ${carrierName} Prepaid Transactions`}
           </h1>
-          {subheading && (
-            <p className="text-sm opacity-90 mt-1">{subheading}</p>
-          )}
+          <p className="text-sm opacity-90 mt-1">
+            {subheading || `Effortless and Secure Transactions Tailored for ${carrierName} Prepaid Users`}
+          </p>
         </div>
       </section>
 
