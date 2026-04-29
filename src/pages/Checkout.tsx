@@ -188,6 +188,12 @@ const Checkout = () => {
     }
   }, []);
 
+  // Hide Tidio chat overlay on mobile during checkout — feedback #3, #19, #34
+  useEffect(() => {
+    document.body.classList.add("hide-chat-mobile");
+    return () => document.body.classList.remove("hide-chat-mobile");
+  }, []);
+
   // Load FingerprintJS Pro and capture visitor identifier
   useEffect(() => {
     let cancelled = false;
