@@ -354,6 +354,16 @@ const DynamicCarrier = ({
                   style={{ "--tw-ring-color": bc } as React.CSSProperties}
                 />
               </div>
+              {phoneDigits.length === 10 && (
+                <p className="text-[10px] sm:text-xs text-cellpay-green font-semibold mb-2 -mt-1">
+                  ✓ Refilling: {phone}
+                </p>
+              )}
+              {phoneDigits.length > 0 && phoneDigits.length < 10 && (
+                <p className="text-[10px] sm:text-xs text-destructive mb-2 -mt-1">
+                  Enter all 10 digits
+                </p>
+              )}
 
               {showRange && (
                 <>
