@@ -4,7 +4,7 @@ import { LegalBar } from "@/components/LegalBar";
 import { PaymentBar } from "@/components/PaymentBar";
 import { AccountDropdown } from "@/components/AccountDropdown";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowLeft, CreditCard, Loader2 } from "lucide-react";
+import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2 } from "lucide-react";
 import {
   validateRecharge,
   submitTransaction,
@@ -186,6 +186,12 @@ const Checkout = () => {
     } catch {
       return {};
     }
+  }, []);
+
+  // Hide Tidio chat overlay on mobile during checkout — feedback #3, #19, #34
+  useEffect(() => {
+    document.body.classList.add("hide-chat-mobile");
+    return () => document.body.classList.remove("hide-chat-mobile");
   }, []);
 
   // Load FingerprintJS Pro and capture visitor identifier
@@ -964,15 +970,27 @@ const Checkout = () => {
     }
   };
 
-  const paymentMethods: { key: PaymentMethod; label: string }[] = [
-    { key: "card", label: "Credit Card" },
-    { key: "paypal", label: "PayPal" },
-    { key: "plaid", label: "Pay by Bank" },
-    { key: "googlepay", label: "Google Pay" },
-    ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: "Apple Pay" }] : []),
-    { key: "klarna", label: "Klarna" },
-    { key: "cashapp", label: "Cash App" },
+  // Detect iOS for Apple Pay priority — feedback #31
+  const isIOS = typeof navigator !== "undefined" &&
+    /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
+
+  type MethodEntry = { key: PaymentMethod; label: string; Icon: React.ComponentType<{ className?: string }> };
+  const baseMethods: MethodEntry[] = [
+    { key: "card", label: "Credit Card", Icon: CreditCard },
+    ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: "Apple Pay", Icon: Apple }] : []),
+    { key: "googlepay", label: "Google Pay", Icon: Smartphone },
+    { key: "paypal", label: "PayPal", Icon: Wallet },
+    { key: "plaid", label: "Pay by Bank", Icon: Building2 },
+    { key: "cashapp", label: "Cash App", Icon: Wallet },
+    { key: "klarna", label: "Klarna", Icon: Wallet }, // Klarna last — feedback #31
   ];
+  // On iOS, push Apple Pay to first position (after Credit Card stays default but Apple Pay prominent)
+  const paymentMethods: MethodEntry[] = isIOS && applePayAvailable
+    ? [
+        baseMethods.find(m => m.key === "applepay")!,
+        ...baseMethods.filter(m => m.key !== "applepay"),
+      ]
+    : baseMethods;
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -1009,7 +1027,7 @@ const Checkout = () => {
           <div className="bg-card rounded-xl border border-border p-5">
             <h2 className="font-bold text-foreground mb-3 text-sm">Order Summary</h2>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Phone</span><span className="font-medium text-foreground">{state.phone}</span></div>
+              <div className="flex justify-between items-center"><span className="text-muted-foreground">Phone</span><span className="font-medium text-foreground inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-cellpay-green" />{state.phone}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Amount</span><span className="font-medium text-foreground">${state.amount}</span></div>
               {fee > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Service Fee</span><span className="font-medium text-foreground">${Number(fee).toFixed(2)}</span></div>}
               {tax > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Tax</span><span className="font-medium text-foreground">${Number(tax).toFixed(2)}</span></div>}
@@ -1040,14 +1058,15 @@ const Checkout = () => {
                   key={m.key}
                   type="button"
                   onClick={() => setPaymentMethod(m.key)}
-                  className={`rounded-lg border-2 py-2 px-3 text-xs font-bold transition-all ${
+                  className={`rounded-lg border-2 py-2 px-2 text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                     paymentMethod === m.key
                       ? "border-current text-primary-foreground"
                       : "border-border text-muted-foreground hover:border-current"
                   }`}
                   style={paymentMethod === m.key ? { backgroundColor: brandColor, borderColor: brandColor } : undefined}
                 >
-                  {m.label}
+                  <m.Icon className="h-3.5 w-3.5" />
+                  <span>{m.label}</span>
                 </button>
               ))}
             </div>

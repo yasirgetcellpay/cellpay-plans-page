@@ -94,9 +94,32 @@
   * {
     @apply border-border;
   }
+  html {
+    /* Slight bump in base font for readability — feedback #36 */
+    font-size: 16.5px;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: 'Open Sans', sans-serif;
+    /* Prevent Tidio chat widget from overlapping CTAs on mobile — feedback #3, #19, #34 */
+    padding-bottom: 0;
+  }
+  /* Tidio launcher repositioning + hide on small screens for plan/checkout pages
+     (feedback #3, #19, #34) */
+  #tidio-chat-iframe,
+  iframe[id^="tidio-chat"] {
+    bottom: 16px !important;
+  }
+  @media (max-width: 640px) {
+    body.hide-chat-mobile #tidio-chat,
+    body.hide-chat-mobile #tidio-chat-iframe,
+    body.hide-chat-mobile iframe[id^="tidio-chat"] {
+      display: none !important;
+    }
+  }
+  /* Prevent input/select fields from horizontal-scrolling on small mobile widths — feedback #37 */
+  input, select, textarea {
+    max-width: 100%;
   }
 }
 

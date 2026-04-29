@@ -36,11 +36,24 @@ interface NormalizedPlan {
   carrierId?: number; // per-plan carrier id (used for fixed_plans entries)
 }
 
+// Strip non-printable / replacement chars (e.g. Ultra Mobile sometimes returns U+FFFD) — feedback #40
+const sanitizeText = (s: string): string =>
+  s.replace(/[\uFFFD\u0000-\u001F\u007F-\u009F]/g, "").replace(/\s+/g, " ").trim();
+
+// Normalize "Topup $80" / "Topup 70.00 USD" → "$80" / "$70" — feedback #17
+const normalizeHighlight = (raw: string, amount: number): string => {
+  const cleaned = sanitizeText(raw);
+  if (!cleaned) return amount > 0 ? `$${amount} Refill` : "Prepaid Refill";
+  // If the description is just a Topup label, replace with clean dollar amount
+  if (/^topup/i.test(cleaned)) return amount > 0 ? `$${amount} Refill` : cleaned;
+  return cleaned;
+};
+
 function normalizePlans(plans: Array<Record<string, unknown>>): NormalizedPlan[] {
   return plans.map((p) => {
     const id = String(p.plan_id || p.planId || p.id || p.ID || "");
     const amt = Number(p.amount || p.price || p.Amount || 0);
-    const name = String(p.name || p.Name || p.description || "");
+    const rawName = String(p.name || p.Name || p.description || "");
     const carrier = p.carrier;
     const carrierIdNum =
       typeof carrier === "number"
@@ -48,12 +61,13 @@ function normalizePlans(plans: Array<Record<string, unknown>>): NormalizedPlan[]
         : typeof carrier === "string" && carrier !== ""
         ? Number(carrier)
         : undefined;
+    const cleanName = normalizeHighlight(rawName, amt);
     return {
       plan_id: id,
       price: `$${amt}`,
-      highlight: name || "Prepaid Refill",
+      highlight: cleanName,
       amount: amt,
-      name: name || "Prepaid Refill",
+      name: cleanName,
       carrierId: Number.isFinite(carrierIdNum) ? (carrierIdNum as number) : undefined,
     };
   });
@@ -102,6 +116,11 @@ const DynamicCarrier = ({
     },
     [rangeMax]
   );
+
+  useEffect(() => {
+    document.body.classList.add("hide-chat-mobile");
+    return () => document.body.classList.remove("hide-chat-mobile");
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -340,6 +359,16 @@ const DynamicCarrier = ({
                   style={{ "--tw-ring-color": bc } as React.CSSProperties}
                 />
               </div>
+              {phoneDigits.length === 10 && (
+                <p className="text-[10px] sm:text-xs text-cellpay-green font-semibold mb-2 -mt-1">
+                  ✓ Refilling: {phone}
+                </p>
+              )}
+              {phoneDigits.length > 0 && phoneDigits.length < 10 && (
+                <p className="text-[10px] sm:text-xs text-destructive mb-2 -mt-1">
+                  Enter all 10 digits
+                </p>
+              )}
 
               {showRange && (
                 <>
@@ -372,6 +401,7 @@ const DynamicCarrier = ({
               plans={plans.map((p) => ({ price: p.price, highlight: p.highlight }))}
               brandColor={bc}
               onSelect={handlePlanPayNow}
+              popularIndex={Math.min(plans.length - 1, Math.floor(plans.length / 2))}
             />
           )}
 
