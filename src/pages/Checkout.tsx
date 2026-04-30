@@ -978,15 +978,15 @@ const Checkout = () => {
   const isIOS = typeof navigator !== "undefined" &&
     /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
 
-  type MethodEntry = { key: PaymentMethod; label: string; Icon: React.ComponentType<{ className?: string }> };
+  type MethodEntry = { key: PaymentMethod; label: string; Brand: React.ComponentType<{ className?: string }> };
   const baseMethods: MethodEntry[] = [
-    { key: "card", label: "Credit Card", Icon: CreditCard },
-    ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: "Apple Pay", Icon: Apple }] : []),
-    { key: "googlepay", label: "Google Pay", Icon: Smartphone },
-    { key: "paypal", label: "PayPal", Icon: Wallet },
-    { key: "plaid", label: "Pay by Bank", Icon: Building2 },
-    { key: "cashapp", label: "Cash App", Icon: Wallet },
-    { key: "klarna", label: "Klarna", Icon: Wallet }, // Klarna last — feedback #31
+    { key: "card", label: "Card", Brand: CardBrandsStrip },
+    ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: "Apple Pay", Brand: ApplePayMark }] : []),
+    { key: "googlepay", label: "Google Pay", Brand: GooglePayMark },
+    { key: "paypal", label: "PayPal", Brand: PayPalMark },
+    { key: "plaid", label: "Pay by Bank", Brand: BankMark },
+    { key: "cashapp", label: "Cash App", Brand: CashAppMark },
+    { key: "klarna", label: "Klarna", Brand: KlarnaMark }, // Klarna last — feedback #31
   ];
   // On iOS, push Apple Pay to first position (after Credit Card stays default but Apple Pay prominent)
   const paymentMethods: MethodEntry[] = isIOS && applePayAvailable
