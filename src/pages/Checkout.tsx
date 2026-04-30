@@ -734,7 +734,7 @@ const Checkout = () => {
 
         const raw = await submitTransaction({
           checkout_version: "5.0",
-          payment_method: "apple_pay",
+          payment_method: "applepay",
           amount: validation?.amount ?? Number(state.amount),
           total: validation?.total ?? Number(state.amount),
           phone_number: state.phone.replace(/\D/g, ""),
