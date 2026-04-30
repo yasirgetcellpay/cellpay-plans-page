@@ -390,6 +390,22 @@ const DynamicCarrier = ({
                 </p>
               )}
 
+              {/* Postpaid carrier deflection link — feedback */}
+              {postpaidUrl && (
+                <p className="text-[11px] sm:text-xs text-muted-foreground mb-3 -mt-1">
+                  Postpaid account?{" "}
+                  <a
+                    href={postpaidUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold underline"
+                    style={{ color: bc }}
+                  >
+                    Visit {carrierName} →
+                  </a>
+                </p>
+              )}
+
               {showRange && (
                 <>
                   <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
@@ -412,6 +428,16 @@ const DynamicCarrier = ({
                   </p>
                 </>
               )}
+
+              {/* Persistent inline error — feedback: "error message quickly flashes away" */}
+              {inlineError && (
+                <div
+                  role="alert"
+                  className="mt-3 rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-[11px] sm:text-xs text-destructive font-semibold text-left"
+                >
+                  {inlineError}
+                </div>
+              )}
             </div>
           </div>
 
@@ -427,36 +453,55 @@ const DynamicCarrier = ({
 
           {/* Terms + Pay (custom amount path) */}
           {showRange && (
-          <div className="max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
+          <div className="max-w-[420px] mx-auto px-4 pb-24 sm:pb-12">
             <p className="text-xs sm:text-sm font-bold text-foreground mb-2 mt-2">Important</p>
-            <label className="flex items-start gap-2 mb-3 cursor-pointer">
+            <label className="flex items-start gap-2 mb-6 cursor-pointer">
               <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: bc }} />
-              <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
+              <span className="text-[11px] sm:text-xs text-foreground leading-relaxed">
                 I have confirmed that I entered the correct phone number. I understand that this sale is final as the minutes cannot be removed nor transferred once loaded to the phone number I have provided above.
               </span>
             </label>
-            <label className="flex items-start gap-2 mb-6 cursor-pointer">
-              <input type="checkbox" checked={agreedTerms} onChange={(e) => setAgreedTerms(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: bc }} />
-              <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
-                Agree with {carrierName} Product Policies and Sales.
-              </span>
-            </label>
-            <div className="flex justify-center">
+            {/* Desktop / tablet Pay button (mobile uses sticky bar below) */}
+            <div className="hidden sm:flex justify-center">
               <button
                 type="button"
                 onClick={handlePay}
                 disabled={verifying}
-                className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
+                className="h-[48px] px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: bc }}
               >
                 {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
                 {verifying ? "VERIFYING..." : "PAY NOW"}
               </button>
             </div>
-            <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">
+            <p className="hidden sm:block text-center text-[10px] sm:text-xs text-muted-foreground mt-3">
               Secure payment. Instant refill sent directly to your phone.
             </p>
           </div>
+          )}
+
+          {/* Mobile sticky Pay bar — keeps CTA visible above numeric keyboard
+              on open denomination flows (feedback Page 2 #4) */}
+          {showRange && (
+            <div className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-3 py-2 flex items-center gap-2"
+                 style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)" }}>
+              <div className="flex-1 text-left leading-tight">
+                <p className="text-[10px] text-muted-foreground">Total</p>
+                <p className="text-base font-extrabold text-foreground">
+                  ${amountNum > 0 ? amountNum : "—"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handlePay}
+                disabled={verifying}
+                className="flex-[2] h-[46px] rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
+                style={{ backgroundColor: bc }}
+              >
+                {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
+                {verifying ? "VERIFYING..." : "PAY NOW"}
+              </button>
+            </div>
           )}
 
           {/* FAQs from API */}
