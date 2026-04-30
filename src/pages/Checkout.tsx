@@ -189,8 +189,11 @@ const Checkout = () => {
   }, []);
 
   // Hide Tidio chat overlay on mobile during checkout — feedback #3, #19, #34
+  // Also scroll to top on mount so users always land on the "Checkout" H1 on
+  // mobile (feedback Page 4–5 #1).
   useEffect(() => {
     document.body.classList.add("hide-chat-mobile");
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     return () => document.body.classList.remove("hide-chat-mobile");
   }, []);
 
@@ -1293,9 +1296,6 @@ const Checkout = () => {
                       <p>You will be automatically billed for the fixed dollar amount set forth in the cover letter accompanying this document, until you affirmatively cancel from the Auto Recharge service or until service interruption, as described below. If you do not have sufficient funds in your account to make your monthly payment, your account will not be charged and your service will be interrupted. You will be required to manually add enough funds to your account to have your service restored, and upon restoration, your monthly payment anniversary date will then be based upon your date of restoration. If you don't make a full monthly payment within 30 days of any account interruption, you will lose all unused funds, your account will be canceled and you will lose your phone number.</p>
                     </div>
 
-                    <p className="text-[13px] font-bold" style={{ color: brandColor }}>
-                      AUTOPAY FEE: $4.97
-                    </p>
                   </div>
                 )}
               </>
