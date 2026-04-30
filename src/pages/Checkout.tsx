@@ -5,6 +5,7 @@ import { PaymentBar } from "@/components/PaymentBar";
 import { AccountDropdown } from "@/components/AccountDropdown";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
+import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
 import {
   validateRecharge,
   submitTransaction,
@@ -977,15 +978,15 @@ const Checkout = () => {
   const isIOS = typeof navigator !== "undefined" &&
     /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
 
-  type MethodEntry = { key: PaymentMethod; label: string; Icon: React.ComponentType<{ className?: string }> };
+  type MethodEntry = { key: PaymentMethod; label: string; Brand: React.ComponentType<{ className?: string }> };
   const baseMethods: MethodEntry[] = [
-    { key: "card", label: "Credit Card", Icon: CreditCard },
-    ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: "Apple Pay", Icon: Apple }] : []),
-    { key: "googlepay", label: "Google Pay", Icon: Smartphone },
-    { key: "paypal", label: "PayPal", Icon: Wallet },
-    { key: "plaid", label: "Pay by Bank", Icon: Building2 },
-    { key: "cashapp", label: "Cash App", Icon: Wallet },
-    { key: "klarna", label: "Klarna", Icon: Wallet }, // Klarna last — feedback #31
+    { key: "card", label: "Card", Brand: CardBrandsStrip },
+    ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: "Apple Pay", Brand: ApplePayMark }] : []),
+    { key: "googlepay", label: "Google Pay", Brand: GooglePayMark },
+    { key: "paypal", label: "PayPal", Brand: PayPalMark },
+    { key: "plaid", label: "Pay by Bank", Brand: BankMark },
+    { key: "cashapp", label: "Cash App", Brand: CashAppMark },
+    { key: "klarna", label: "Klarna", Brand: KlarnaMark }, // Klarna last — feedback #31
   ];
   // On iOS, push Apple Pay to first position (after Credit Card stays default but Apple Pay prominent)
   const paymentMethods: MethodEntry[] = isIOS && applePayAvailable
@@ -1082,15 +1083,15 @@ const Checkout = () => {
                   key={m.key}
                   type="button"
                   onClick={() => setPaymentMethod(m.key)}
-                  className={`rounded-lg border-2 py-2 px-2 text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  className={`rounded-lg border-2 py-2.5 px-2 text-xs font-bold transition-all flex flex-col items-center justify-center gap-1.5 min-h-[60px] ${
                     paymentMethod === m.key
                       ? "border-current text-primary-foreground"
-                      : "border-border text-muted-foreground hover:border-current"
+                      : "border-border text-muted-foreground hover:border-current bg-card"
                   }`}
                   style={paymentMethod === m.key ? { backgroundColor: brandColor, borderColor: brandColor } : undefined}
                 >
-                  <m.Icon className="h-3.5 w-3.5" />
-                  <span>{m.label}</span>
+                  <m.Brand className="h-5 w-auto max-w-[60px]" />
+                  <span className="text-[10px] leading-none">{m.label}</span>
                 </button>
               ))}
             </div>
