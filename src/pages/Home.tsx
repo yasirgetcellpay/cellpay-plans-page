@@ -364,6 +364,72 @@ const Home = () => {
         </div>
       </main>
 
+      {/* How it works — feedback Page 7 #3 */}
+      <section className="bg-muted/40 border-t border-border">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+          <h2 className="text-center text-xl sm:text-2xl font-extrabold text-foreground mb-2">
+            How it works in 4 easy steps
+          </h2>
+          <p className="text-center text-sm text-muted-foreground mb-8">
+            Refill any prepaid line in under 60 seconds — no account needed.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            {[
+              { n: "1", title: "Choose a Carrier", icon: ListChecks },
+              { n: "2", title: "Enter your number", icon: Smartphone },
+              { n: "3", title: "Select a plan", icon: MousePointerClick },
+              { n: "4", title: "Pay", icon: CreditCard },
+            ].map((s) => (
+              <div key={s.n} className="bg-card rounded-xl border border-border p-4 sm:p-5 text-center shadow-sm">
+                <div className="mx-auto mb-3 inline-flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-cellpay-green/10 text-cellpay-green font-extrabold text-sm sm:text-base">
+                  Step {s.n}
+                </div>
+                <s.icon className="mx-auto h-6 w-6 sm:h-7 sm:w-7 text-cellpay-green mb-2" />
+                <p className="text-sm sm:text-base font-bold text-foreground">{s.title}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ — feedback Page 7 #3 */}
+      <section className="bg-card border-t border-border">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+          <h2 className="text-center text-xl sm:text-2xl font-extrabold text-foreground mb-6">
+            Frequently Asked Questions
+          </h2>
+          <Accordion type="single" collapsible className="w-full">
+            {[
+              {
+                q: "What is CellPay?",
+                a: "CellPay is a fast, secure online payment service that lets you refill any major US prepaid wireless line in seconds — no account required.",
+              },
+              {
+                q: "How does CellPay work?",
+                a: "Pick your carrier, enter the prepaid phone number, choose a refill amount or plan, and pay with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. The refill is applied to the line instantly.",
+              },
+              {
+                q: "Is CellPay for real?",
+                a: "Yes. CellPay has processed payments for thousands of customers across 15+ carriers. Every transaction is processed through trusted, PCI-compliant payment networks.",
+              },
+              {
+                q: "Is CellPay secure?",
+                a: "Absolutely. All payment data is encrypted in transit with TLS, and card data is handled by PCI-DSS-compliant providers. CellPay never stores your full card number on our servers.",
+              },
+            ].map((f, i) => (
+              <AccordionItem key={i} value={`home-faq-${i}`}>
+                <AccordionTrigger className="text-left font-bold text-foreground">
+                  {f.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  {f.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </section>
+
       <PaymentBar />
       <Footer />
       <LegalBar />
