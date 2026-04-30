@@ -73,7 +73,7 @@ export const Footer = ({ onLoginClick, onSignupClick }: FooterProps) => {
               <button onClick={() => navigate("/contact-us")} className="hover:text-primary-foreground">Contact Us</button>
             </p>
             <p className="text-[10px] leading-relaxed max-w-4xl mx-auto opacity-50">
-              CellPay is an authorized payment processor for Simple Mobile services. Simple Mobile® is a registered trademark of Simple Mobile / Verizon Value. CellPay is not affiliated with Simple Mobile or Verizon. All carrier names and trademarks are property of their respective owners and are referenced solely to identify the services for which CellPay processes payments.
+              CellPay is an independent authorized payment processor for prepaid wireless services. All carrier names, logos, and trademarks (including AT&amp;T, Verizon, T-Mobile, Cricket, Simple Mobile, Boost, Metro, Straight Talk, H2O, Lyca, Net10, Page Plus, TracFone, Ultra Mobile, US Cellular, Red Pocket, and Total Wireless) are the property of their respective owners and are referenced solely to identify the services for which CellPay processes payments. CellPay is not affiliated with, endorsed by, or sponsored by any carrier.
             </p>
           </div>
         </div>
