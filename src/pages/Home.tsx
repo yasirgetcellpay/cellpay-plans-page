@@ -25,7 +25,13 @@ import ultraLogo from "@/assets/ultra-mobile-logo.png";
 import uscellularLogo from "@/assets/uscellular-logo.png";
 import redPocketLogo from "@/assets/red-pocket-logo.png";
 import totalWirelessLogo from "@/assets/total-wireless-logo.png";
-import { ShieldCheck, Zap, Headphones, Star } from "lucide-react";
+import { ShieldCheck, Zap, Headphones, Star, Smartphone, MousePointerClick, ListChecks, CreditCard } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 /* ── API slug → local logo ── */
 const localLogos: Record<string, string> = {
@@ -217,9 +223,15 @@ const Home = () => {
       <nav className="sticky top-0 z-50 bg-card border-b-4 border-cellpay-green shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex justify-center h-14 sm:h-20 items-center">
-            <span className="text-xl sm:text-2xl font-extrabold text-cellpay-green tracking-tight">
-              CellPay
-            </span>
+            {/* CellPay wordmark — feedback Page 7 #2 */}
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-cellpay-green text-primary-foreground shadow-sm">
+                <Smartphone className="h-4 w-4 sm:h-5 sm:w-5" />
+              </span>
+              <span className="text-xl sm:text-2xl font-extrabold text-cellpay-green tracking-tight">
+                CellPay
+              </span>
+            </div>
             {isLoggedIn && (
               <div className="absolute right-0" ref={dropdownRef}>
                 <button
@@ -311,16 +323,8 @@ const Home = () => {
               <Headphones className="h-4 w-4 text-cellpay-green" />
               <span className="font-semibold">24/7 Support</span>
             </div>
-            <div className="hidden sm:flex items-center gap-2 ml-2 pl-5 border-l border-border">
-              <span className="text-[10px] uppercase tracking-wider opacity-70">We accept</span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="px-1.5 py-0.5 rounded bg-[hsl(225,82%,44%)] text-white text-[9px] font-extrabold">VISA</span>
-                <span className="px-1.5 py-0.5 rounded bg-[hsl(0,0%,15%)] text-white text-[9px] font-extrabold">MC</span>
-                <span className="px-1.5 py-0.5 rounded bg-[hsl(208,100%,41%)] text-white text-[9px] font-extrabold">AMEX</span>
-                <span className="px-1.5 py-0.5 rounded bg-[hsl(24,93%,54%)] text-white text-[9px] font-extrabold">DISC</span>
-                <span className="px-1.5 py-0.5 rounded bg-[hsl(218,100%,26%)] text-white text-[9px] font-extrabold">PayPal</span>
-              </span>
-            </div>
+            {/* Inline 'We accept' strip removed from top per feedback Page 6 (Non-blocker #1).
+                Payment logos are still shown via <PaymentBar /> at the bottom. */}
           </div>
         </div>
       </section>
