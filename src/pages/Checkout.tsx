@@ -1083,15 +1083,15 @@ const Checkout = () => {
                   key={m.key}
                   type="button"
                   onClick={() => setPaymentMethod(m.key)}
-                  className={`rounded-lg border-2 py-2 px-2 text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  className={`rounded-lg border-2 py-2.5 px-2 text-xs font-bold transition-all flex flex-col items-center justify-center gap-1.5 min-h-[60px] ${
                     paymentMethod === m.key
                       ? "border-current text-primary-foreground"
-                      : "border-border text-muted-foreground hover:border-current"
+                      : "border-border text-muted-foreground hover:border-current bg-card"
                   }`}
                   style={paymentMethod === m.key ? { backgroundColor: brandColor, borderColor: brandColor } : undefined}
                 >
-                  <m.Icon className="h-3.5 w-3.5" />
-                  <span>{m.label}</span>
+                  <m.Brand className="h-5 w-auto max-w-[60px]" />
+                  <span className="text-[10px] leading-none">{m.label}</span>
                 </button>
               ))}
             </div>
