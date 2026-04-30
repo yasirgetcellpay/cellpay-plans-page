@@ -84,9 +84,10 @@ const DynamicCarrier = ({
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);
-  const [agreedTerms, setAgreedTerms] = useState(false);
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
+  // Persistent inline error message — visible until the user changes input.
+  const [inlineError, setInlineError] = useState<string | null>(null);
 
   // API-loaded state
   const [carrierName, setCarrierName] = useState(initialName);
@@ -101,6 +102,16 @@ const DynamicCarrier = ({
   const [faqs, setFaqs] = useState<Array<{ question: string; answer: string }>>([]);
   const [heading, setHeading] = useState("");
   const [subheading, setSubheading] = useState("");
+
+  // Postpaid carriers — show "Postpaid Account?" link to corporate site (feedback)
+  const postpaidUrls: Record<string, string> = {
+    "topup-at": "https://www.att.com/wireless/",
+    "topup-af": "https://www.att.com/firstnet/",
+    verizon: "https://www.verizon.com/plans/",
+    "verizon-wireless-flexi": "https://www.verizon.com/plans/",
+    tmobile: "https://www.t-mobile.com/cell-phone-plans",
+  };
+  const postpaidUrl = postpaidUrls[carrierSlug];
 
   const handlePhoneChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => setPhone(formatPhone(e.target.value)),
