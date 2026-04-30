@@ -57,7 +57,7 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
           <div className="border-t border-muted pt-6 text-center">
             <p className="text-xs">© 2026 CellPay. All rights reserved.</p>
             <p className="text-[10px] leading-relaxed max-w-4xl mx-auto opacity-50 mt-3">
-              {carrierName}® is a registered trademark of its respective owner. All carrier names and trademarks are property of their respective owners. CellPay is not affiliated with {carrierName}.
+              {carrierName}® and all carrier names, logos, and trademarks are the property of their respective owners and are referenced solely to identify the prepaid services for which CellPay processes payments. CellPay is an independent payment processor and is not affiliated with, endorsed by, or sponsored by {carrierName}.
             </p>
           </div>
         </div>

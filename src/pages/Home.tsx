@@ -25,7 +25,13 @@ import ultraLogo from "@/assets/ultra-mobile-logo.png";
 import uscellularLogo from "@/assets/uscellular-logo.png";
 import redPocketLogo from "@/assets/red-pocket-logo.png";
 import totalWirelessLogo from "@/assets/total-wireless-logo.png";
-import { ShieldCheck, Zap, Headphones, Star } from "lucide-react";
+import { ShieldCheck, Zap, Headphones, Star, Smartphone, MousePointerClick, ListChecks, CreditCard } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 /* ── API slug → local logo ── */
 const localLogos: Record<string, string> = {
@@ -217,9 +223,15 @@ const Home = () => {
       <nav className="sticky top-0 z-50 bg-card border-b-4 border-cellpay-green shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex justify-center h-14 sm:h-20 items-center">
-            <span className="text-xl sm:text-2xl font-extrabold text-cellpay-green tracking-tight">
-              CellPay
-            </span>
+            {/* CellPay wordmark — feedback Page 7 #2 */}
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-cellpay-green text-primary-foreground shadow-sm">
+                <Smartphone className="h-4 w-4 sm:h-5 sm:w-5" />
+              </span>
+              <span className="text-xl sm:text-2xl font-extrabold text-cellpay-green tracking-tight">
+                CellPay
+              </span>
+            </div>
             {isLoggedIn && (
               <div className="absolute right-0" ref={dropdownRef}>
                 <button
@@ -311,16 +323,8 @@ const Home = () => {
               <Headphones className="h-4 w-4 text-cellpay-green" />
               <span className="font-semibold">24/7 Support</span>
             </div>
-            <div className="hidden sm:flex items-center gap-2 ml-2 pl-5 border-l border-border">
-              <span className="text-[10px] uppercase tracking-wider opacity-70">We accept</span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="px-1.5 py-0.5 rounded bg-[hsl(225,82%,44%)] text-white text-[9px] font-extrabold">VISA</span>
-                <span className="px-1.5 py-0.5 rounded bg-[hsl(0,0%,15%)] text-white text-[9px] font-extrabold">MC</span>
-                <span className="px-1.5 py-0.5 rounded bg-[hsl(208,100%,41%)] text-white text-[9px] font-extrabold">AMEX</span>
-                <span className="px-1.5 py-0.5 rounded bg-[hsl(24,93%,54%)] text-white text-[9px] font-extrabold">DISC</span>
-                <span className="px-1.5 py-0.5 rounded bg-[hsl(218,100%,26%)] text-white text-[9px] font-extrabold">PayPal</span>
-              </span>
-            </div>
+            {/* Inline 'We accept' strip removed from top per feedback Page 6 (Non-blocker #1).
+                Payment logos are still shown via <PaymentBar /> at the bottom. */}
           </div>
         </div>
       </section>
@@ -359,6 +363,72 @@ const Home = () => {
           ))}
         </div>
       </main>
+
+      {/* How it works — feedback Page 7 #3 */}
+      <section className="bg-muted/40 border-t border-border">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+          <h2 className="text-center text-xl sm:text-2xl font-extrabold text-foreground mb-2">
+            How it works in 4 easy steps
+          </h2>
+          <p className="text-center text-sm text-muted-foreground mb-8">
+            Refill any prepaid line in under 60 seconds — no account needed.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            {[
+              { n: "1", title: "Choose a Carrier", icon: ListChecks },
+              { n: "2", title: "Enter your number", icon: Smartphone },
+              { n: "3", title: "Select a plan", icon: MousePointerClick },
+              { n: "4", title: "Pay", icon: CreditCard },
+            ].map((s) => (
+              <div key={s.n} className="bg-card rounded-xl border border-border p-4 sm:p-5 text-center shadow-sm">
+                <div className="mx-auto mb-3 inline-flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-cellpay-green/10 text-cellpay-green font-extrabold text-sm sm:text-base">
+                  Step {s.n}
+                </div>
+                <s.icon className="mx-auto h-6 w-6 sm:h-7 sm:w-7 text-cellpay-green mb-2" />
+                <p className="text-sm sm:text-base font-bold text-foreground">{s.title}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ — feedback Page 7 #3 */}
+      <section className="bg-card border-t border-border">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+          <h2 className="text-center text-xl sm:text-2xl font-extrabold text-foreground mb-6">
+            Frequently Asked Questions
+          </h2>
+          <Accordion type="single" collapsible className="w-full">
+            {[
+              {
+                q: "What is CellPay?",
+                a: "CellPay is a fast, secure online payment service that lets you refill any major US prepaid wireless line in seconds — no account required.",
+              },
+              {
+                q: "How does CellPay work?",
+                a: "Pick your carrier, enter the prepaid phone number, choose a refill amount or plan, and pay with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. The refill is applied to the line instantly.",
+              },
+              {
+                q: "Is CellPay for real?",
+                a: "Yes. CellPay has processed payments for thousands of customers across 15+ carriers. Every transaction is processed through trusted, PCI-compliant payment networks.",
+              },
+              {
+                q: "Is CellPay secure?",
+                a: "Absolutely. All payment data is encrypted in transit with TLS, and card data is handled by PCI-DSS-compliant providers. CellPay never stores your full card number on our servers.",
+              },
+            ].map((f, i) => (
+              <AccordionItem key={i} value={`home-faq-${i}`}>
+                <AccordionTrigger className="text-left font-bold text-foreground">
+                  {f.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  {f.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </section>
 
       <PaymentBar />
       <Footer />

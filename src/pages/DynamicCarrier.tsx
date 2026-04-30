@@ -84,9 +84,10 @@ const DynamicCarrier = ({
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);
-  const [agreedTerms, setAgreedTerms] = useState(false);
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
+  // Persistent inline error message — visible until the user changes input.
+  const [inlineError, setInlineError] = useState<string | null>(null);
 
   // API-loaded state
   const [carrierName, setCarrierName] = useState(initialName);
@@ -102,14 +103,28 @@ const DynamicCarrier = ({
   const [heading, setHeading] = useState("");
   const [subheading, setSubheading] = useState("");
 
+  // Postpaid carriers — show "Postpaid Account?" link to corporate site (feedback)
+  const postpaidUrls: Record<string, string> = {
+    "topup-at": "https://www.att.com/wireless/",
+    "topup-af": "https://www.att.com/firstnet/",
+    verizon: "https://www.verizon.com/plans/",
+    "verizon-wireless-flexi": "https://www.verizon.com/plans/",
+    tmobile: "https://www.t-mobile.com/cell-phone-plans",
+  };
+  const postpaidUrl = postpaidUrls[carrierSlug];
+
   const handlePhoneChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => setPhone(formatPhone(e.target.value)),
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPhone(formatPhone(e.target.value));
+      setInlineError(null);
+    },
     []
   );
 
   const handleAmountChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value.replace(/[^0-9]/g, "");
+      setInlineError(null);
       if (val === "") { setAmount(""); return; }
       const num = parseInt(val, 10);
       if (num <= rangeMax) setAmount(val);
@@ -268,27 +283,32 @@ const DynamicCarrier = ({
   const { toast } = useToast();
 
   const handlePay = async () => {
+    setInlineError(null);
     if (phoneDigits.length !== 10) {
-      toast({ title: "Phone number required", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
+      const msg = "Please enter a valid 10-digit phone number.";
+      setInlineError(msg);
+      toast({ title: "Phone number required", description: msg, variant: "destructive" });
       return;
     }
     if (amountNum < rangeMin || amountNum > rangeMax) {
-      toast({ title: "Invalid amount", description: `Please enter an amount between $${rangeMin} and $${rangeMax}.`, variant: "destructive" });
+      const msg = `Please enter an amount between $${rangeMin} and $${rangeMax}.`;
+      setInlineError(msg);
+      toast({ title: "Invalid amount", description: msg, variant: "destructive" });
       return;
     }
     if (!confirmed) {
-      toast({ title: "Confirmation required", description: "Please confirm that the phone number is correct.", variant: "destructive" });
-      return;
-    }
-    if (!agreedTerms) {
-      toast({ title: "Terms required", description: "Please agree to the product policies.", variant: "destructive" });
+      const msg = "Please confirm that the phone number is correct.";
+      setInlineError(msg);
+      toast({ title: "Confirmation required", description: msg, variant: "destructive" });
       return;
     }
     setVerifying(true);
     const verify = await verifyPhone(carrierSlug, phoneDigits);
     setVerifying(false);
     if (!verify.success) {
-      toast({ title: "Invalid phone number", description: verify.message || "Couldn't verify the phone number.", variant: "destructive" });
+      const msg = verify.message || "Couldn't verify the phone number.";
+      setInlineError(msg);
+      toast({ title: "Invalid phone number", description: msg, variant: "destructive" });
       return;
     }
     // Custom amount path → use carrier_plans.carrier.id when available
@@ -370,6 +390,22 @@ const DynamicCarrier = ({
                 </p>
               )}
 
+              {/* Postpaid carrier deflection link — feedback */}
+              {postpaidUrl && (
+                <p className="text-[11px] sm:text-xs text-muted-foreground mb-3 -mt-1">
+                  Postpaid account?{" "}
+                  <a
+                    href={postpaidUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold underline"
+                    style={{ color: bc }}
+                  >
+                    Visit {carrierName} →
+                  </a>
+                </p>
+              )}
+
               {showRange && (
                 <>
                   <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
@@ -392,6 +428,16 @@ const DynamicCarrier = ({
                   </p>
                 </>
               )}
+
+              {/* Persistent inline error — feedback: "error message quickly flashes away" */}
+              {inlineError && (
+                <div
+                  role="alert"
+                  className="mt-3 rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-[11px] sm:text-xs text-destructive font-semibold text-left"
+                >
+                  {inlineError}
+                </div>
+              )}
             </div>
           </div>
 
@@ -407,36 +453,55 @@ const DynamicCarrier = ({
 
           {/* Terms + Pay (custom amount path) */}
           {showRange && (
-          <div className="max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
+          <div className="max-w-[420px] mx-auto px-4 pb-24 sm:pb-12">
             <p className="text-xs sm:text-sm font-bold text-foreground mb-2 mt-2">Important</p>
-            <label className="flex items-start gap-2 mb-3 cursor-pointer">
+            <label className="flex items-start gap-2 mb-6 cursor-pointer">
               <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: bc }} />
-              <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
+              <span className="text-[11px] sm:text-xs text-foreground leading-relaxed">
                 I have confirmed that I entered the correct phone number. I understand that this sale is final as the minutes cannot be removed nor transferred once loaded to the phone number I have provided above.
               </span>
             </label>
-            <label className="flex items-start gap-2 mb-6 cursor-pointer">
-              <input type="checkbox" checked={agreedTerms} onChange={(e) => setAgreedTerms(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: bc }} />
-              <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
-                Agree with {carrierName} Product Policies and Sales.
-              </span>
-            </label>
-            <div className="flex justify-center">
+            {/* Desktop / tablet Pay button (mobile uses sticky bar below) */}
+            <div className="hidden sm:flex justify-center">
               <button
                 type="button"
                 onClick={handlePay}
                 disabled={verifying}
-                className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
+                className="h-[48px] px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: bc }}
               >
                 {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
                 {verifying ? "VERIFYING..." : "PAY NOW"}
               </button>
             </div>
-            <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">
+            <p className="hidden sm:block text-center text-[10px] sm:text-xs text-muted-foreground mt-3">
               Secure payment. Instant refill sent directly to your phone.
             </p>
           </div>
+          )}
+
+          {/* Mobile sticky Pay bar — keeps CTA visible above numeric keyboard
+              on open denomination flows (feedback Page 2 #4) */}
+          {showRange && (
+            <div className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-3 py-2 flex items-center gap-2"
+                 style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)" }}>
+              <div className="flex-1 text-left leading-tight">
+                <p className="text-[10px] text-muted-foreground">Total</p>
+                <p className="text-base font-extrabold text-foreground">
+                  ${amountNum > 0 ? amountNum : "—"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handlePay}
+                disabled={verifying}
+                className="flex-[2] h-[46px] rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
+                style={{ backgroundColor: bc }}
+              >
+                {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
+                {verifying ? "VERIFYING..." : "PAY NOW"}
+              </button>
+            </div>
           )}
 
           {/* FAQs from API */}

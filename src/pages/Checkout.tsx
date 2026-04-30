@@ -4,7 +4,7 @@ import { LegalBar } from "@/components/LegalBar";
 import { PaymentBar } from "@/components/PaymentBar";
 import { AccountDropdown } from "@/components/AccountDropdown";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import {
   validateRecharge,
   submitTransaction,
@@ -189,8 +189,11 @@ const Checkout = () => {
   }, []);
 
   // Hide Tidio chat overlay on mobile during checkout — feedback #3, #19, #34
+  // Also scroll to top on mount so users always land on the "Checkout" H1 on
+  // mobile (feedback Page 4–5 #1).
   useEffect(() => {
     document.body.classList.add("hide-chat-mobile");
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     return () => document.body.classList.remove("hide-chat-mobile");
   }, []);
 
@@ -1038,7 +1041,28 @@ const Checkout = () => {
             </div>
           </div>
 
-          {/* Email (required for all payment methods) */}
+          {/* Checkout trust badges — feedback Page 5–6 #2 */}
+          <div className="bg-card rounded-xl border border-border px-4 py-3">
+            <div className="flex items-center justify-around gap-2 text-[11px] font-semibold text-muted-foreground">
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
+                <Lock className="h-4 w-4 text-cellpay-green" />
+                <span>SSL Secured</span>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
+                <ShieldCheck className="h-4 w-4 text-cellpay-green" />
+                <span>PCI Compliant</span>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
+                <CheckCircle2 className="h-4 w-4 text-cellpay-green" />
+                <span>Verified Merchant</span>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
+                <Headphones className="h-4 w-4 text-cellpay-green" />
+                <span>24/7 Support</span>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-card rounded-xl border border-border p-5">
             <h2 className="font-bold text-foreground mb-3 text-sm">Contact Information</h2>
             <input type="email" placeholder="Email Address *" value={email} onChange={(e) => setEmail(e.target.value)}
@@ -1293,9 +1317,6 @@ const Checkout = () => {
                       <p>You will be automatically billed for the fixed dollar amount set forth in the cover letter accompanying this document, until you affirmatively cancel from the Auto Recharge service or until service interruption, as described below. If you do not have sufficient funds in your account to make your monthly payment, your account will not be charged and your service will be interrupted. You will be required to manually add enough funds to your account to have your service restored, and upon restoration, your monthly payment anniversary date will then be based upon your date of restoration. If you don't make a full monthly payment within 30 days of any account interruption, you will lose all unused funds, your account will be canceled and you will lose your phone number.</p>
                     </div>
 
-                    <p className="text-[13px] font-bold" style={{ color: brandColor }}>
-                      AUTOPAY FEE: $4.97
-                    </p>
                   </div>
                 )}
               </>

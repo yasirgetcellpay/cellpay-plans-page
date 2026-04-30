@@ -52,12 +52,13 @@ export const PlanGrid = ({
         </div>
         <div className="p-1.5 sm:p-6 flex-grow flex flex-col">
           <div
-            className="bg-muted p-1 sm:p-3 rounded text-center font-bold text-[9px] sm:text-base mb-1.5 sm:mb-3"
+            className="bg-muted p-1 sm:p-3 rounded text-center font-bold text-[10px] sm:text-base mb-1.5 sm:mb-3 text-foreground"
             style={{ color: brandColor }}
           >
             {plan.highlight}
           </div>
-          <p className="text-[9px] sm:text-xs text-muted-foreground text-center mt-auto">
+          {/* "Tap to continue" only on touch (mobile) — feedback Page 7 #2 */}
+          <p className="sm:hidden text-[10px] text-muted-foreground text-center mt-auto font-medium">
             {onSelect ? "Tap to continue" : ""}
           </p>
         </div>
