@@ -520,7 +520,7 @@ const Checkout = () => {
         address: address.trim(),
         city: city.trim(),
         zip: cardZip,
-        cc_type: detectCardType(cardDigits),
+        cc_type: detectCardCode(cardDigits),
         cc_number: cardDigits,
         cc_exp_month: expiryDigits.slice(0, 2),
         cc_exp_year: "20" + expiryDigits.slice(2),
