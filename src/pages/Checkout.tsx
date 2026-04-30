@@ -4,7 +4,7 @@ import { LegalBar } from "@/components/LegalBar";
 import { PaymentBar } from "@/components/PaymentBar";
 import { AccountDropdown } from "@/components/AccountDropdown";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import {
   validateRecharge,
   submitTransaction,
@@ -1041,7 +1041,28 @@ const Checkout = () => {
             </div>
           </div>
 
-          {/* Email (required for all payment methods) */}
+          {/* Checkout trust badges — feedback Page 5–6 #2 */}
+          <div className="bg-card rounded-xl border border-border px-4 py-3">
+            <div className="flex items-center justify-around gap-2 text-[11px] font-semibold text-muted-foreground">
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
+                <Lock className="h-4 w-4 text-cellpay-green" />
+                <span>SSL Secured</span>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
+                <ShieldCheck className="h-4 w-4 text-cellpay-green" />
+                <span>PCI Compliant</span>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
+                <CheckCircle2 className="h-4 w-4 text-cellpay-green" />
+                <span>Verified Merchant</span>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
+                <Headphones className="h-4 w-4 text-cellpay-green" />
+                <span>24/7 Support</span>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-card rounded-xl border border-border p-5">
             <h2 className="font-bold text-foreground mb-3 text-sm">Contact Information</h2>
             <input type="email" placeholder="Email Address *" value={email} onChange={(e) => setEmail(e.target.value)}
