@@ -54,7 +54,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { endpoint, method = "GET", payload, bearerToken } = body;
+    const { endpoint, method = "GET", payload, bearerToken, callerHost } = body;
 
     if (!endpoint) {
       return new Response(JSON.stringify({ error: "Missing endpoint" }), {
@@ -63,11 +63,14 @@ serve(async (req) => {
       });
     }
 
+    // Resolve dynamic X-Cellpay-Domain from caller's hostname (with fallback for lovable/dev hosts)
+    const cellpayDomain = resolveCellpayDomain(callerHost);
+
     const url = `${API_BASE}/${endpoint}`;
     const headers: Record<string, string> = {
       "X-Api-Key": apiKey,
       "X-Api-Secret": apiSecret,
-      "X-Cellpay-Domain": "www.cellpay.us",
+      "X-Cellpay-Domain": cellpayDomain,
       "Content-Type": "application/json",
       "Accept": "*/*",
     };
