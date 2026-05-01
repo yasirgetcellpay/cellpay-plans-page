@@ -19,9 +19,12 @@ export async function callProxy(req: ProxyRequest): Promise<unknown> {
     if (storedToken) req.bearerToken = storedToken;
   }
 
+  // Forward caller's hostname so the edge function can derive the X-Cellpay-Domain header
+  const callerHost = typeof window !== "undefined" ? window.location.hostname : "";
+
   try {
     const { data, error } = await supabase.functions.invoke("cellpay-proxy", {
-      body: req,
+      body: { ...req, callerHost },
     });
 
     if (error) throw new Error(error.message || "Proxy call failed");
