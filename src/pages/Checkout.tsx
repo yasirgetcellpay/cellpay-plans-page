@@ -414,6 +414,8 @@ const Checkout = () => {
     plan_id: state?.planId,
     carrier_id: validation?.carrier_id || validation?.carrierId,
   }), [state, validation]);
+  const subdivisions = useMemo(() => getSubdivisions(country), [country]);
+  const hasSubdivisions = subdivisions.length > 0;
 
   if (!state) return null;
 
