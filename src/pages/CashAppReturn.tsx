@@ -55,7 +55,8 @@ const CashAppReturn = () => {
           return;
         }
 
-        if (internalStatus === "processing" || internalStatus === "" || internalStatus === "pending") {
+        const retryStatuses = ["processing", "inprogress", "in_progress", "in-progress", "retry", "pending", ""];
+        if (retryStatuses.includes(internalStatus)) {
           setStatus("processing");
           if (apiMsg) setMessage(apiMsg);
           timerRef.current = window.setTimeout(poll, POLL_INTERVAL_MS);
