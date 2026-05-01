@@ -53,7 +53,7 @@ declare global {
         begin: () => void;
         onvalidatemerchant: ((e: { validationURL: string }) => void) | null;
         onpaymentauthorized: ((e: { payment: Record<string, unknown> }) => void) | null;
-        oncancel: (() => void) | null;
+        oncancel: ((e?: unknown) => void) | null;
         completeMerchantValidation: (session: unknown) => void;
         completePayment: (result: { status: number }) => void;
         abort: () => void;
