@@ -720,16 +720,40 @@ const Checkout = () => {
     session.onvalidatemerchant = async (event) => {
       try {
         const merchantSession = await createApplePaySession({ validationURL: event.validationURL }) as Record<string, unknown>;
-        // Unwrap double-nested
-        let sessionResult = merchantSession;
-        if (sessionResult.data && typeof sessionResult.data === "object") {
-          const inner = sessionResult.data as Record<string, unknown>;
-          if (inner.data && typeof inner.data === "object") sessionResult = inner.data as Record<string, unknown>;
-          else sessionResult = inner;
+        // Recursively unwrap any { success, data } wrappers until we find the real Apple session
+        let sessionResult: Record<string, unknown> = merchantSession;
+        for (let i = 0; i < 5; i++) {
+          if (
+            sessionResult &&
+            typeof sessionResult === "object" &&
+            !sessionResult.merchantSessionIdentifier &&
+            sessionResult.data &&
+            typeof sessionResult.data === "object"
+          ) {
+            sessionResult = sessionResult.data as Record<string, unknown>;
+          } else {
+            break;
+          }
         }
-        session.completeMerchantValidation(sessionResult);
-      } catch {
+        if (!sessionResult.merchantSessionIdentifier) {
+          console.error("[ApplePay] Invalid merchant session payload", merchantSession);
+          setErrorMsg("Apple Pay merchant validation returned an invalid session");
+          session.abort();
+          setSubmitting(false);
+          return;
+        }
+        console.log("[ApplePay] merchant session validated for domain", sessionResult.domainName);
+        try {
+          session.completeMerchantValidation(sessionResult);
+        } catch (innerErr) {
+          console.error("[ApplePay] completeMerchantValidation threw", innerErr);
+          setErrorMsg("Apple Pay merchant validation failed (domain mismatch?)");
+          setSubmitting(false);
+        }
+      } catch (err) {
+        console.error("[ApplePay] onvalidatemerchant error", err);
         setErrorMsg("Apple Pay merchant validation failed");
+        try { session.abort(); } catch { /* noop */ }
         setSubmitting(false);
       }
     };
