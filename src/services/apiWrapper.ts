@@ -21,6 +21,14 @@ export async function callProxy(req: ProxyRequest): Promise<unknown> {
 
   // Forward caller's hostname so the edge function can derive the X-Cellpay-Domain header
   const callerHost = typeof window !== "undefined" ? window.location.hostname : "";
+  const FALLBACK_HOST_SUFFIXES = ["lovable.dev", "lovable.app", "lovableproject.com", "localhost"];
+  const cleaned = callerHost.toLowerCase().split(":")[0];
+  let resolvedDomain = "www.cellpay.us";
+  if (cleaned && !FALLBACK_HOST_SUFFIXES.some((s) => cleaned === s || cleaned.endsWith(`.${s}`))) {
+    const parts = cleaned.split(".").filter(Boolean);
+    if (parts.length >= 2) resolvedDomain = parts.slice(-2).join(".");
+  }
+  console.log(`[cellpay-proxy] -> X-Cellpay-Domain="${resolvedDomain}" (callerHost="${callerHost}", endpoint=${req.endpoint})`);
 
   try {
     const { data, error } = await supabase.functions.invoke("cellpay-proxy", {
