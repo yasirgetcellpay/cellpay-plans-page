@@ -22,20 +22,8 @@ function resolveCellpayDomain(host: string | undefined | null): string {
   if (FALLBACK_HOST_SUFFIXES.some((s) => cleaned === s || cleaned.endsWith(`.${s}`))) {
     return FALLBACK_DOMAIN;
   }
-  // Strip leading "www." for the registrable-domain calculation but keep it on output if original had it
-  const parts = cleaned.split(".").filter(Boolean);
-  if (parts.length < 2) return FALLBACK_DOMAIN;
-  // Handle simple two-label TLDs (com, us, net, org, io, etc.) — registrable = last 2 labels.
-  // Handle a few common ccTLD second-levels (co.uk, com.au, etc.) — registrable = last 3 labels.
-  const twoLevelSuffixes = new Set([
-    "co.uk", "co.in", "co.nz", "co.jp", "co.kr", "co.za",
-    "com.au", "com.br", "com.mx", "com.tr", "com.sg",
-    "org.uk", "net.au",
-  ]);
-  const lastTwo = parts.slice(-2).join(".");
-  const lastThree = parts.slice(-3).join(".");
-  const registrable = twoLevelSuffixes.has(lastTwo) && parts.length >= 3 ? lastThree : lastTwo;
-  return registrable;
+  // Use the full hostname as-is (e.g. "recharge.cellpay.us")
+  return cleaned;
 }
 
 serve(async (req) => {
