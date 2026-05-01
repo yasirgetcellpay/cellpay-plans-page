@@ -7,6 +7,7 @@ import DynamicCarrier from "./pages/DynamicCarrier.tsx";
 import Checkout from "./pages/Checkout.tsx";
 import PaymentCallback from "./pages/PaymentCallback.tsx";
 import OrderConfirmation from "./pages/OrderConfirmation.tsx";
+import CashAppReturn from "./pages/CashAppReturn.tsx";
 import Profile from "./pages/Profile.tsx";
 import Orders from "./pages/Orders.tsx";
 import AboutUs from "./pages/AboutUs.tsx";
