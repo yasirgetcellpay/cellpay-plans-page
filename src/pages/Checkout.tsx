@@ -20,6 +20,8 @@ import {
 } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
 import { getGclid } from "@/lib/tracking";
+import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib/subdivisions";
+import { useMemo } from "react";
 
 interface LocationState {
   phone: string;
