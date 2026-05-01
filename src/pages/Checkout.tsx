@@ -746,7 +746,7 @@ const Checkout = () => {
     const displayName = (appleConfig?.displayName as string) || "Cellpay.us";
     console.log("[ApplePay] config", { displayName, total, host: window.location.hostname });
 
-    let session: ReturnType<NonNullable<typeof window.ApplePaySession>["prototype"]["constructor"]> extends infer S ? S : never;
+    let session: InstanceType<NonNullable<typeof window.ApplePaySession>>;
     try {
       session = new window.ApplePaySession!(3, {
         countryCode: "US",
