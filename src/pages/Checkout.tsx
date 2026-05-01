@@ -1114,26 +1114,12 @@ const Checkout = () => {
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
-              <select value={country} onChange={(e) => setCountry(e.target.value)}
+              <select value={country} onChange={(e) => { setCountry(e.target.value); setRegionId(""); }}
                 className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                 style={{ "--tw-ring-color": brandColor } as React.CSSProperties}>
-                <option value="US">United States</option>
-                <option value="CA">Canada</option>
-                <option value="MX">Mexico</option>
-                <option value="GB">United Kingdom</option>
-                <option value="AU">Australia</option>
-                <option value="DE">Germany</option>
-                <option value="FR">France</option>
-                <option value="ES">Spain</option>
-                <option value="IT">Italy</option>
-                <option value="NL">Netherlands</option>
-                <option value="IN">India</option>
-                <option value="PK">Pakistan</option>
-                <option value="BD">Bangladesh</option>
-                <option value="PH">Philippines</option>
-                <option value="BR">Brazil</option>
-                <option value="JP">Japan</option>
-                <option value="CN">China</option>
+                {SUPPORTED_COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>{c.name}</option>
+                ))}
                 <option value="OTHER">Other</option>
               </select>
               <input type="text" placeholder="Street Address" value={address} onChange={(e) => setAddress(e.target.value)}
@@ -1143,9 +1129,29 @@ const Checkout = () => {
                 <input type="text" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                <input type="text" placeholder="State" value={regionId} onChange={(e) => setRegionId(e.target.value.toUpperCase().slice(0, 2))} maxLength={2}
-                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
-                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                {hasSubdivisions ? (
+                  <select
+                    value={regionId}
+                    onChange={(e) => setRegionId(e.target.value)}
+                    className="h-11 px-3 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                    style={{ "--tw-ring-color": brandColor } as React.CSSProperties}
+                  >
+                    <option value="">State</option>
+                    {subdivisions.map((s) => (
+                      <option key={s.code} value={s.code}>{s.code} — {s.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    placeholder="State / Region"
+                    value={regionId}
+                    onChange={(e) => setRegionId(e.target.value.toUpperCase().slice(0, 10))}
+                    maxLength={10}
+                    className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                    style={{ "--tw-ring-color": brandColor } as React.CSSProperties}
+                  />
+                )}
                 <input type="text" placeholder="ZIP" value={cardZip} onChange={(e) => setCardZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
