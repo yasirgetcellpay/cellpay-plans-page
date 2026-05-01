@@ -61,6 +61,7 @@ declare global {
         STATUS_FAILURE: number;
       };
       canMakePayments: () => boolean;
+      canMakePaymentsWithActiveCard?: (merchantId: string) => Promise<boolean>;
     };
     Klarna?: {
       Payments: {
@@ -246,16 +247,33 @@ const Checkout = () => {
   }, []);
 
   // Detect Apple Pay availability (Safari on supported Apple devices)
+  // Mirrors reference site: uses canMakePaymentsWithActiveCard against the merchant ID
   useEffect(() => {
-    try {
-      const aps = window.ApplePaySession;
-      if (aps && typeof aps.canMakePayments === "function" && aps.canMakePayments()) {
-        setApplePayAvailable(true);
-      }
-    } catch {
-      // not available
+    let cancelled = false;
+    const aps = window.ApplePaySession;
+    if (!aps || typeof aps.canMakePayments !== "function" || !aps.canMakePayments()) return;
+
+    const merchantId =
+      ((checkoutConfig?.applePay as Record<string, unknown> | undefined)?.merchantIdentifier as string) ||
+      "merchant.cellpay.us";
+
+    if (typeof aps.canMakePaymentsWithActiveCard === "function") {
+      aps
+        .canMakePaymentsWithActiveCard(merchantId)
+        .then((ok) => {
+          if (!cancelled) setApplePayAvailable(!!ok);
+        })
+        .catch(() => {
+          // fallback: at least the device supports Apple Pay even if no provisioned card check works
+          if (!cancelled) setApplePayAvailable(true);
+        });
+    } else {
+      setApplePayAvailable(true);
     }
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [checkoutConfig]);
 
   // Load checkout config and validate recharge
   useEffect(() => {
@@ -716,6 +734,7 @@ const Checkout = () => {
       supportedNetworks: ["visa", "masterCard", "amex", "discover"],
       merchantCapabilities: ["supports3DS"],
       total: { label: displayName, amount: String(total) },
+      requiredBillingContactFields: ["postalAddress", "email", "phone"],
     });
 
     session.onvalidatemerchant = async (event) => {
