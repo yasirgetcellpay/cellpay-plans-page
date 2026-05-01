@@ -734,6 +734,7 @@ const Checkout = () => {
       supportedNetworks: ["visa", "masterCard", "amex", "discover"],
       merchantCapabilities: ["supports3DS"],
       total: { label: displayName, amount: String(total) },
+      requiredBillingContactFields: ["postalAddress", "email", "phone"],
     });
 
     session.onvalidatemerchant = async (event) => {
