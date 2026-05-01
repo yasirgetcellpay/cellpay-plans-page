@@ -1007,6 +1007,19 @@ const Checkout = () => {
 
   // ─── Cash App (Pockyt) ───
   const handleCashApp = async () => {
+    // Build absolute return URL pointing back to this app
+    const cashappReturnUrl = `${window.location.origin}/checkout/cashapp-return`;
+
+    // Persist context so the return page can rebuild the success redirect
+    try {
+      sessionStorage.setItem(
+        "cashapp_return_ctx",
+        JSON.stringify({ brandColor, carrier: state.carrierName })
+      );
+    } catch {
+      /* ignore */
+    }
+
     const raw = await submitTransaction({
       checkout_version: "5.0",
       payment_method: "pockyt",
@@ -1015,6 +1028,7 @@ const Checkout = () => {
       carrierId: validation?.carrier_id || validation?.carrierId,
       plan_id: state.planId ? String(state.planId) : undefined,
       agree_desktop: true,
+      cashapp_return_url: cashappReturnUrl,
       payment: {
         firstName: firstName.trim() || "Customer",
         lastName: lastName.trim() || "User",
@@ -1049,7 +1063,7 @@ const Checkout = () => {
       return;
     }
 
-    // Direct response
+    // Direct response (no redirect needed)
     handleResult(raw);
   };
 
