@@ -5,26 +5,19 @@ export interface Subdivision {
   name: string;
 }
 
-// Countries we expose in the country dropdown (kept in sync with checkout UI).
-export const SUPPORTED_COUNTRIES: { code: string; name: string }[] = [
-  { code: "US", name: "United States" },
-  { code: "CA", name: "Canada" },
-  { code: "MX", name: "Mexico" },
-  { code: "GB", name: "United Kingdom" },
-  { code: "AU", name: "Australia" },
-  { code: "DE", name: "Germany" },
-  { code: "FR", name: "France" },
-  { code: "ES", name: "Spain" },
-  { code: "IT", name: "Italy" },
-  { code: "NL", name: "Netherlands" },
-  { code: "IN", name: "India" },
-  { code: "PK", name: "Pakistan" },
-  { code: "BD", name: "Bangladesh" },
-  { code: "PH", name: "Philippines" },
-  { code: "BR", name: "Brazil" },
-  { code: "JP", name: "Japan" },
-  { code: "CN", name: "China" },
-];
+const PRIORITY = ["US", "CA", "MX", "GB", "AU", "IN", "PK", "BD", "PH", "BR", "DE", "FR", "ES", "IT", "NL", "JP", "CN"];
+
+// Full ISO 3166-1 country list, with priority countries pinned to the top.
+export const SUPPORTED_COUNTRIES: { code: string; name: string }[] = (() => {
+  const all = (Country.getAllCountries() || []).map((c) => ({ code: c.isoCode, name: c.name }));
+  const priority = PRIORITY
+    .map((code) => all.find((c) => c.code === code))
+    .filter((c): c is { code: string; name: string } => !!c);
+  const rest = all
+    .filter((c) => !PRIORITY.includes(c.code))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return [...priority, ...rest];
+})();
 
 /**
  * Returns ISO 3166-2 subdivisions for a given ISO 3166-1 alpha-2 country code.
