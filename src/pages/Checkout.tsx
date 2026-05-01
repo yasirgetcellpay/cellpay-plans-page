@@ -1045,17 +1045,7 @@ const Checkout = () => {
     const nestedHostedUrl = hostedUrl || (dataObj?.HostedURL as string);
 
     if (nestedHostedUrl) {
-      const w = 500, h = 700;
-      const left = (screen.width - w) / 2, top = (screen.height - h) / 2;
-      const popup = window.open(nestedHostedUrl, "CashAppPay", `width=${w},height=${h},left=${left},top=${top}`);
-
-      const poll = setInterval(() => {
-        if (!popup || popup.closed) {
-          clearInterval(poll);
-          toast({ title: "Cash App Pay", description: "Payment window closed. Check your order status." });
-          setSubmitting(false);
-        }
-      }, 1000);
+      window.location.href = nestedHostedUrl;
       return;
     }
 
