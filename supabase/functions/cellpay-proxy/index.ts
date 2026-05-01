@@ -65,6 +65,7 @@ serve(async (req) => {
 
     // Resolve dynamic X-Cellpay-Domain from caller's hostname (with fallback for lovable/dev hosts)
     const cellpayDomain = resolveCellpayDomain(callerHost);
+    console.log(`[cellpay-proxy] callerHost="${callerHost}" -> X-Cellpay-Domain="${cellpayDomain}" (endpoint=${endpoint})`);
 
     const url = `${API_BASE}/${endpoint}`;
     const headers: Record<string, string> = {
