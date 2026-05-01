@@ -56,6 +56,7 @@ declare global {
         oncancel: (() => void) | null;
         completeMerchantValidation: (session: unknown) => void;
         completePayment: (result: { status: number }) => void;
+        abort: () => void;
         STATUS_SUCCESS: number;
         STATUS_FAILURE: number;
       };
