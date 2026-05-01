@@ -830,10 +830,12 @@ const Checkout = () => {
     };
 
     session.onpaymentauthorized = async (event) => {
+      console.log("[ApplePay] onpaymentauthorized fired");
       try {
         const payment = event.payment;
         const tokenData = (payment.token as Record<string, unknown>)?.paymentData;
         const billingContact = payment.billingContact;
+        console.log("[ApplePay] payment authorized, submitting transaction", { hasToken: !!tokenData });
 
         const raw = await submitTransaction({
           checkout_version: "5.0",
@@ -858,6 +860,7 @@ const Checkout = () => {
           cbsys_sessionid: sessionIdRef.current,
           source: visitorIpRef.current,
         }) as Record<string, unknown>;
+        console.log("[ApplePay] transaction response", raw);
 
         // Unwrap
         let result = raw;
@@ -872,23 +875,38 @@ const Checkout = () => {
 
         const isSuccess = result.status === true || result.status === "true" || String(result.status || "").toLowerCase() === "success" || String(result.status || "").toLowerCase() === "completed";
         if (isSuccess) {
+          console.log("[ApplePay] transaction success");
           session.completePayment({ status: session.STATUS_SUCCESS });
           const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
           const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
           navigate(`/order-confirmation?${apParams.toString()}`);
         } else {
+          console.error("[ApplePay] transaction failed", result);
           session.completePayment({ status: session.STATUS_FAILURE });
           setErrorMsg((result.msg as string) || (result.message as string) || "Apple Pay transaction failed");
         }
-      } catch {
+      } catch (err) {
+        console.error("[ApplePay] onpaymentauthorized error", err);
         session.completePayment({ status: session.STATUS_FAILURE });
-        setErrorMsg("Apple Pay payment failed");
+        setErrorMsg("Apple Pay payment failed: " + (err instanceof Error ? err.message : String(err)));
       }
       setSubmitting(false);
     };
 
-    session.oncancel = () => { setSubmitting(false); };
-    session.begin();
+    session.oncancel = (event) => {
+      console.warn("[ApplePay] oncancel fired", event);
+      setSubmitting(false);
+    };
+
+    try {
+      console.log("[ApplePay] calling session.begin()");
+      session.begin();
+    } catch (e) {
+      console.error("[ApplePay] session.begin() threw", e);
+      setErrorMsg("Apple Pay could not start: " + (e instanceof Error ? e.message : String(e)));
+      setSubmitting(false);
+      return;
+    }
     return; // keep submitting true
   };
 
