@@ -539,7 +539,7 @@ const Checkout = () => {
       billing: {
         bill_email: email.trim(),
         country_id: country,
-        region_id: regionId || cardZip,
+        region_id: normalizeRegionCode(country, regionId) || cardZip,
       },
       browser_info: browserInfoRef.current,
       gclid: getGclid(),
