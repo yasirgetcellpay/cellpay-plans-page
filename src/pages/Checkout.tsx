@@ -421,8 +421,6 @@ const Checkout = () => {
   const total = validation?.total ?? Number(state.amount);
   const fee = validation?.fee ?? 0;
   const tax = validation?.tax ?? 0;
-  const subdivisions = useMemo(() => getSubdivisions(country), [country]);
-  const hasSubdivisions = subdivisions.length > 0;
 
   // Card helpers
   const formatCardNumber = (val: string) => {
