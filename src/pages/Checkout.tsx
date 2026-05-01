@@ -1115,7 +1115,7 @@ const Checkout = () => {
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
-              <select value={country} onChange={(e) => { setCountry(e.target.value); setRegionId(""); }}
+              <select value={country} onChange={(e) => { setCountry(e.target.value); setRegionId(""); setRegionOther(false); }}
                 className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                 style={{ "--tw-ring-color": brandColor } as React.CSSProperties}>
                 {SUPPORTED_COUNTRIES.map((c) => (
