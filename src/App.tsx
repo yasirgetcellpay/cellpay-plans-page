@@ -80,6 +80,7 @@ const App = () => (
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/payment-callback" element={<PaymentCallback />} />
         <Route path="/order-confirmation" element={<OrderConfirmation />} />
+        <Route path="/checkout/cashapp-return" element={<CashAppReturn />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/about-us" element={<AboutUs />} />
