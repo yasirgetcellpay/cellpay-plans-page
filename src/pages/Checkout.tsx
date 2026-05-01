@@ -61,6 +61,7 @@ declare global {
         STATUS_FAILURE: number;
       };
       canMakePayments: () => boolean;
+      canMakePaymentsWithActiveCard?: (merchantId: string) => Promise<boolean>;
     };
     Klarna?: {
       Payments: {
