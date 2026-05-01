@@ -1130,10 +1130,18 @@ const Checkout = () => {
                 <input type="text" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                {hasSubdivisions ? (
+                {hasSubdivisions && !regionOther ? (
                   <select
                     value={regionId}
-                    onChange={(e) => setRegionId(e.target.value)}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "__OTHER__") {
+                        setRegionOther(true);
+                        setRegionId("");
+                      } else {
+                        setRegionId(v);
+                      }
+                    }}
                     className="h-11 px-3 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties}
                   >
@@ -1141,17 +1149,29 @@ const Checkout = () => {
                     {subdivisions.map((s) => (
                       <option key={s.code} value={s.code}>{s.code} — {s.name}</option>
                     ))}
+                    <option value="__OTHER__">Other…</option>
                   </select>
                 ) : (
-                  <input
-                    type="text"
-                    placeholder="State / Region"
-                    value={regionId}
-                    onChange={(e) => setRegionId(e.target.value.toUpperCase().slice(0, 10))}
-                    maxLength={10}
-                    className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
-                    style={{ "--tw-ring-color": brandColor } as React.CSSProperties}
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="State / Region"
+                      value={regionId}
+                      onChange={(e) => setRegionId(e.target.value.toUpperCase().slice(0, 10))}
+                      maxLength={10}
+                      className="h-11 w-full px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                      style={{ "--tw-ring-color": brandColor } as React.CSSProperties}
+                    />
+                    {hasSubdivisions && regionOther && (
+                      <button
+                        type="button"
+                        onClick={() => { setRegionOther(false); setRegionId(""); }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground hover:text-foreground underline"
+                      >
+                        list
+                      </button>
+                    )}
+                  </div>
                 )}
                 <input type="text" placeholder="ZIP" value={cardZip} onChange={(e) => setCardZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
