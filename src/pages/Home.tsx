@@ -338,8 +338,8 @@ const Home = () => {
           {carriers.map((carrier) => (
             <Link
               key={carrier.path}
-              to={carrier.path}
-              aria-label={`Refill ${carrier.name}`}
+              to={langPath(carrier.path, lang)}
+              aria-label={`${tr.refillNow} ${carrier.name}`}
               className="group bg-card rounded-lg sm:rounded-xl border border-border shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden active:scale-[0.97]"
             >
               <div className="flex items-center justify-center h-24 sm:h-40 bg-background p-4 sm:p-6">
