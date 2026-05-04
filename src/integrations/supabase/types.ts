@@ -139,6 +139,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      finalize_transaction_log: {
+        Args: {
+          _error_message: string
+          _hashid: string
+          _id: string
+          _raw_response: Json
+          _status: string
+          _transaction_id: string
+        }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -146,6 +157,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_transaction_attempt: { Args: { _data: Json }; Returns: string }
       record_presence: {
         Args: { _path: string; _session_id: string; _user_agent: string }
         Returns: undefined
