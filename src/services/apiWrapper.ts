@@ -285,7 +285,7 @@ export async function submitTransaction(
         status: "pending",
         source_ip: (p.source as string) || null,
         user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
-        metadata: meta as Record<string, unknown>,
+        metadata: JSON.parse(JSON.stringify(meta)),
       }])
       .select("id")
       .single();
