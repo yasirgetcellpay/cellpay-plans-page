@@ -30,12 +30,11 @@ export function usePresence() {
 
     const ping = async () => {
       try {
-        await supabase
-          .from("page_visitors")
-          .upsert(
-            { session_id: sid, path, user_agent: ua, last_seen: new Date().toISOString() },
-            { onConflict: "session_id" }
-          );
+        await supabase.rpc("record_presence", {
+          _session_id: sid,
+          _path: path,
+          _user_agent: ua,
+        });
       } catch {
         // ignore
       }
