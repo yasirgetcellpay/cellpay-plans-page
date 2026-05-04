@@ -1489,12 +1489,12 @@ const Checkout = () => {
                 style={{ backgroundColor: brandColor }}
               >
                 {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-                {submitting ? "Processing..." : "PLACE ORDER NOW"}
+                {submitting ? tr.processing : tr.placeOrder}
               </button>
             )}
 
             <p className="text-center text-[10px] text-muted-foreground">
-              Secure payment powered by CellPay. Instant refill sent directly to your phone.
+              {tr.securePoweredBy}
             </p>
           </div>
         </div>
