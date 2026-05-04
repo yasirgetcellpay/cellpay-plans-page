@@ -324,7 +324,7 @@ export async function submitTransaction(
         hashid: (result.hashid as string) || null,
         transaction_id: (result.transactionId as string) || (result.transaction_id as string) || null,
         error_message: isSuccess ? null : ((result.msg as string) || (result.message as string) || null),
-        raw_response: result as object,
+        raw_response: result as Record<string, unknown>,
       }).eq("id", logId);
     }
   } catch (e) {
