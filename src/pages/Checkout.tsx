@@ -113,6 +113,8 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const state = location.state as LocationState | null;
+  const lang = useLang();
+  const tr = t(lang);
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
