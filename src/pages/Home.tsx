@@ -32,6 +32,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useLang, t, langPath } from "@/lib/i18n";
 
 /* ── API slug → local logo ── */
 const localLogos: Record<string, string> = {
