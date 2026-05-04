@@ -1446,7 +1446,7 @@ const Checkout = () => {
                     <label className="flex items-start gap-2 cursor-pointer">
                       <input type="checkbox" checked={autoPayTerms} onChange={(e) => setAutoPayTerms(e.target.checked)}
                         className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
-                      <span className="text-[12px] font-bold text-foreground">Accept Terms and Conditions</span>
+                      <span className="text-[12px] font-bold text-foreground">{tr.acceptAutoPayTerms}</span>
                     </label>
 
                     <div className="max-h-48 overflow-y-auto rounded-md border border-border bg-background p-3 text-[11px] text-muted-foreground leading-relaxed space-y-2">
