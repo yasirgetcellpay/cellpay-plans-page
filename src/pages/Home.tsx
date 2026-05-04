@@ -400,27 +400,10 @@ const Home = () => {
       <section className="bg-card border-t border-border">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
           <h2 className="text-center text-xl sm:text-2xl font-extrabold text-foreground mb-6">
-            Frequently Asked Questions
+            {tr.homeFaqTitle}
           </h2>
           <Accordion type="single" collapsible className="w-full">
-            {[
-              {
-                q: "What is CellPay?",
-                a: "CellPay is a fast, secure online payment service that lets you refill any major US prepaid wireless line in seconds — no account required.",
-              },
-              {
-                q: "How does CellPay work?",
-                a: "Pick your carrier, enter the prepaid phone number, choose a refill amount or plan, and pay with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. The refill is applied to the line instantly.",
-              },
-              {
-                q: "Is CellPay for real?",
-                a: "Yes. CellPay has processed payments for thousands of customers across 15+ carriers. Every transaction is processed through trusted, PCI-compliant payment networks.",
-              },
-              {
-                q: "Is CellPay secure?",
-                a: "Absolutely. All payment data is encrypted in transit with TLS, and card data is handled by PCI-DSS-compliant providers. CellPay never stores your full card number on our servers.",
-              },
-            ].map((f, i) => (
+            {tr.homeFaq.map((f, i) => (
               <AccordionItem key={i} value={`home-faq-${i}`}>
                 <AccordionTrigger className="text-left font-bold text-foreground">
                   {f.q}
@@ -434,7 +417,7 @@ const Home = () => {
         </div>
       </section>
 
-      <PaymentBar />
+      <PaymentBar lang={lang} />
       <Footer />
       <LegalBar />
     </div>
