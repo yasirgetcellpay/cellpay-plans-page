@@ -146,6 +146,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      record_presence: {
+        Args: { _path: string; _session_id: string; _user_agent: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user"
