@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tables } from "@/integrations/supabase/types";
 
 type TxLog = Tables<"transaction_logs">;
+type Visitor = { session_id: string; path: string; last_seen: string };
 
 const RANGES = [
   { label: "Last 24h", value: "1d", hours: 24 },
@@ -29,6 +30,8 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [methodFilter, setMethodFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [visitors, setVisitors] = useState<Visitor[]>([]);
+  const [now, setNow] = useState(Date.now());
 
   // Auth + admin check
   useEffect(() => {
@@ -92,6 +95,35 @@ export default function AdminDashboard() {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [isAdmin]);
+
+  // Live visitors (presence) — refresh every 10s
+  useEffect(() => {
+    if (!isAdmin) return;
+    const fetchVisitors = async () => {
+      const since = new Date(Date.now() - 60_000).toISOString();
+      const { data } = await supabase
+        .from("page_visitors")
+        .select("session_id, path, last_seen")
+        .gte("last_seen", since)
+        .order("last_seen", { ascending: false });
+      setVisitors((data as Visitor[]) || []);
+      setNow(Date.now());
+    };
+    fetchVisitors();
+    const t = window.setInterval(fetchVisitors, 10_000);
+    return () => window.clearInterval(t);
+  }, [isAdmin]);
+
+  const liveVisitors = useMemo(() => {
+    const cutoff = now - 60_000;
+    return visitors.filter((v) => new Date(v.last_seen).getTime() >= cutoff);
+  }, [visitors, now]);
+
+  const visitorsByPath = useMemo(() => {
+    const map = new Map<string, number>();
+    liveVisitors.forEach((v) => map.set(v.path, (map.get(v.path) || 0) + 1));
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+  }, [liveVisitors]);
 
   const filtered = useMemo(() => {
     return logs.filter((l) => {
