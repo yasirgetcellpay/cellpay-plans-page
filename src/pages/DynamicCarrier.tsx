@@ -352,10 +352,10 @@ const DynamicCarrier = ({
       <section style={{ backgroundColor: bc }} className="text-primary-foreground">
         <div className="max-w-7xl mx-auto px-5 py-4 sm:py-5 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl md:text-2xl font-extrabold">
-            {heading || `Streamlined Solutions for Swift and Secure ${carrierName} Prepaid Transactions`}
+            {(lang === "es" || !heading) ? tr.heroH1(carrierName) : heading}
           </h1>
           <p className="text-sm opacity-90 mt-1">
-            {subheading || `Effortless and Secure Transactions Tailored for ${carrierName} Prepaid Users`}
+            {(lang === "es" || !subheading) ? tr.heroH2(carrierName) : subheading}
           </p>
         </div>
       </section>
@@ -370,7 +370,7 @@ const DynamicCarrier = ({
           <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">
             <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">
               <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
-                Enter Your {carrierName} Phone Number
+                {tr.enterPhoneLabel(carrierName)}
               </label>
               <div className="relative mb-3">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
@@ -378,26 +378,26 @@ const DynamicCarrier = ({
                   type="tel"
                   value={phone}
                   onChange={handlePhoneChange}
-                  placeholder="(XXX) XXX-XXXX"
+                  placeholder={tr.phonePlaceholder}
                   className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
                   style={{ "--tw-ring-color": bc } as React.CSSProperties}
                 />
               </div>
               {phoneDigits.length === 10 && (
                 <p className="text-[10px] sm:text-xs text-cellpay-green font-semibold mb-2 -mt-1">
-                  ✓ Refilling: {phone}
+                  ✓ {tr.refilling}: {phone}
                 </p>
               )}
               {phoneDigits.length > 0 && phoneDigits.length < 10 && (
                 <p className="text-[10px] sm:text-xs text-destructive mb-2 -mt-1">
-                  Enter all 10 digits
+                  {tr.enterAll10}
                 </p>
               )}
 
               {/* Postpaid carrier deflection link — feedback */}
               {postpaidUrl && (
                 <p className="text-[11px] sm:text-xs text-muted-foreground mb-3 -mt-1">
-                  Postpaid account?{" "}
+                  {tr.postpaidQuestion}{" "}
                   <a
                     href={postpaidUrl}
                     target="_blank"
@@ -405,7 +405,7 @@ const DynamicCarrier = ({
                     className="font-semibold underline"
                     style={{ color: bc }}
                   >
-                    Visit {carrierName} →
+                    {tr.visitCarrier(carrierName)}
                   </a>
                 </p>
               )}
@@ -413,7 +413,7 @@ const DynamicCarrier = ({
               {showRange && (
                 <>
                   <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
-                    Select Amount
+                    {tr.selectAmount}
                   </label>
                   <div className="relative mb-1">
                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
@@ -422,13 +422,13 @@ const DynamicCarrier = ({
                       inputMode="numeric"
                       value={amount}
                       onChange={handleAmountChange}
-                      placeholder={`Enter an amount between ${rangeMin} - ${rangeMax}`}
+                      placeholder={tr.amountPlaceholder(rangeMin, rangeMax)}
                       className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
                       style={{ "--tw-ring-color": bc } as React.CSSProperties}
                     />
                   </div>
                   <p className="text-[10px] sm:text-xs text-muted-foreground">
-                    {showFixedPlans ? "Or select a plan below" : "Enter the amount you want to recharge"}
+                    {showFixedPlans ? tr.orSelectPlanBelow : tr.enterAmount}
                   </p>
                 </>
               )}
@@ -458,11 +458,11 @@ const DynamicCarrier = ({
           {/* Terms + Pay (custom amount path) */}
           {showRange && (
           <div className="max-w-[420px] mx-auto px-4 pb-24 sm:pb-12">
-            <p className="text-xs sm:text-sm font-bold text-foreground mb-2 mt-2">Important</p>
+            <p className="text-xs sm:text-sm font-bold text-foreground mb-2 mt-2">{tr.importantLabel}</p>
             <label className="flex items-start gap-2 mb-6 cursor-pointer">
               <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: bc }} />
               <span className="text-[11px] sm:text-xs text-foreground leading-relaxed">
-                I have confirmed that I entered the correct phone number. I understand that this sale is final as the minutes cannot be removed nor transferred once loaded to the phone number I have provided above.
+                {tr.confirmText}
               </span>
             </label>
             {/* Desktop / tablet Pay button (mobile uses sticky bar below) */}
@@ -475,11 +475,11 @@ const DynamicCarrier = ({
                 style={{ backgroundColor: bc }}
               >
                 {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
-                {verifying ? "VERIFYING..." : "PAY NOW"}
+                {verifying ? tr.verifying : tr.payNow}
               </button>
             </div>
             <p className="hidden sm:block text-center text-[10px] sm:text-xs text-muted-foreground mt-3">
-              Secure payment. Instant refill sent directly to your phone.
+              {tr.securePayment}
             </p>
           </div>
           )}
@@ -490,7 +490,7 @@ const DynamicCarrier = ({
             <div className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-3 py-2 flex items-center gap-2"
                  style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)" }}>
               <div className="flex-1 text-left leading-tight">
-                <p className="text-[10px] text-muted-foreground">Total</p>
+                <p className="text-[10px] text-muted-foreground">{tr.total}</p>
                 <p className="text-base font-extrabold text-foreground">
                   ${amountNum > 0 ? amountNum : "—"}
                 </p>
@@ -503,20 +503,20 @@ const DynamicCarrier = ({
                 style={{ backgroundColor: bc }}
               >
                 {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
-                {verifying ? "VERIFYING..." : "PAY NOW"}
+                {verifying ? tr.verifying : tr.payNow}
               </button>
             </div>
           )}
 
           {/* FAQs from API */}
           {faqs.length > 0 && (
-            <DynamicFAQ faqs={faqs} carrierName={carrierName} brandColor={bc} />
+            <DynamicFAQ faqs={faqs} carrierName={carrierName} brandColor={bc} lang={lang} />
           )}
         </>
       )}
 
-      <PaymentBar />
-      <CarrierFooter brandColor={bc} carrierName={carrierName} />
+      <PaymentBar lang={lang} />
+      <CarrierFooter brandColor={bc} carrierName={carrierName} lang={lang} />
     </div>
   );
 };
@@ -533,14 +533,18 @@ const DynamicFAQ = ({
   faqs,
   carrierName,
   brandColor,
+  lang = "en",
 }: {
   faqs: Array<{ question: string; answer: string }>;
   carrierName: string;
   brandColor: string;
-}) => (
+  lang?: Language;
+}) => {
+  const tr = t(lang);
+  return (
   <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
     <h2 className="text-2xl font-extrabold text-foreground mb-4 text-center">
-      {carrierName} FAQs
+      {tr.faqsTitle(carrierName)}
     </h2>
     <Accordion type="single" collapsible className="w-full">
       {faqs.map((faq, i) => (
@@ -555,6 +559,7 @@ const DynamicFAQ = ({
       ))}
     </Accordion>
   </section>
-);
+  );
+};
 
 export default DynamicCarrier;
