@@ -246,7 +246,7 @@ const Home = () => {
                     <User className="h-3.5 w-3.5 text-primary" />
                   </div>
                   <span className="hidden sm:inline truncate max-w-[100px]">
-                    {user?.first_name || "Account"}
+                    {user?.first_name || tr.account}
                   </span>
                   <ChevronDown className={`h-3 w-3 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
                 </button>
@@ -262,14 +262,14 @@ const Home = () => {
                         className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-3"
                       >
                         <UserCog className="h-4 w-4 text-muted-foreground" />
-                        My Profile
+                        {tr.myProfile}
                       </button>
                       <button
                         onClick={() => handleNav("/orders")}
                         className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-3"
                       >
                         <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-                        My Orders
+                        {tr.myOrders}
                       </button>
                     </div>
                     <div className="border-t border-border py-1">
@@ -278,7 +278,7 @@ const Home = () => {
                         className="w-full text-left px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors flex items-center gap-3"
                       >
                         <LogOut className="h-4 w-4" />
-                        Logout
+                        {lang === "es" ? "Cerrar Sesión" : "Logout"}
                       </button>
                     </div>
                   </div>
