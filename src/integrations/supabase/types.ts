@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      page_visitors: {
+        Row: {
+          created_at: string
+          last_seen: string
+          path: string
+          session_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          last_seen?: string
+          path?: string
+          session_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          last_seen?: string
+          path?: string
+          session_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       transaction_logs: {
         Row: {
           amount: number | null
