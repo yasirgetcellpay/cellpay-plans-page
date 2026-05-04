@@ -4,7 +4,8 @@ import { callProxy } from "@/services/apiWrapper";
 import { Footer } from "@/components/Footer";
 import { PaymentBar } from "@/components/PaymentBar";
 import { LegalBar } from "@/components/LegalBar";
-import { Loader2, CheckCircle, ArrowLeft, ShoppingBag } from "lucide-react";
+import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
+import { useLang, t, langPath } from "@/lib/i18n";
 
 interface TransactionData {
   id?: number;
@@ -23,6 +24,8 @@ interface TransactionData {
 const OrderConfirmation = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const lang = useLang();
+  const tr = t(lang);
   const hashid = searchParams.get("hashid") || "";
   const brandColor = searchParams.get("color") || "hsl(142,70%,40%)";
   const carrierName = searchParams.get("carrier") || "";
@@ -33,7 +36,7 @@ const OrderConfirmation = () => {
 
   useEffect(() => {
     if (!hashid) {
-      setError("No transaction reference found.");
+      setError(tr.noTransaction);
       setLoading(false);
       return;
     }
@@ -51,7 +54,7 @@ const OrderConfirmation = () => {
       const txn = (result.transaction || result) as TransactionData;
       setTransaction(txn);
     } catch {
-      setError("Could not load transaction details.");
+      setError(tr.couldNotLoad);
     } finally {
       setLoading(false);
     }
@@ -69,7 +72,8 @@ const OrderConfirmation = () => {
     return phone;
   };
 
-  const displayCarrier = transaction?.carrier?.name || carrierName || "Recharge";
+  const home = langPath("/", lang);
+  const displayCarrier = transaction?.carrier?.name || carrierName || (lang === "es" ? "Recarga" : "Recharge");
   const displayEmail = transaction?.user?.email || "";
 
   return (
@@ -80,14 +84,14 @@ const OrderConfirmation = () => {
           <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 mt-0.5" />
           <div>
             <h1 className="text-lg sm:text-xl font-bold">
-              Thank you for your payment. The charge on your statement will reflect CellPay.
+              {tr.thankYouHeader}
             </h1>
             <p className="text-sm mt-1 opacity-90">
-              If you need additional information, please{" "}
-              <a href="https://www.cellpay.us/contact" className="underline font-semibold">contact us.</a>
+              {tr.contactUsLink}{" "}
+              <a href="https://www.cellpay.us/contact" className="underline font-semibold">{tr.contactUs.toLowerCase()}.</a>
             </p>
             <p className="text-xs mt-2 opacity-80">
-              Your payment has been posted on your account. It can take up to 30 min to reflect on your account.
+              {tr.postedNote}
             </p>
           </div>
         </div>
@@ -102,8 +106,8 @@ const OrderConfirmation = () => {
         ) : error ? (
           <div className="text-center py-16">
             <p className="text-muted-foreground">{error}</p>
-            <button onClick={() => navigate("/")} className="mt-4 px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
-              Back to Home
+            <button onClick={() => navigate(home)} className="mt-4 px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
+              {tr.backToHome}
             </button>
           </div>
         ) : transaction ? (
@@ -111,28 +115,28 @@ const OrderConfirmation = () => {
             {/* Order Details Card */}
             <div className="bg-card rounded-xl border border-border overflow-hidden">
               <div className="divide-y divide-border">
-                <Row label="Order ID" value={<span style={{ color: brandColor }} className="font-bold">{String(transaction.id || transaction.hashid || "—")}</span>} />
+                <Row label={tr.orderId} value={<span style={{ color: brandColor }} className="font-bold">{String(transaction.id || transaction.hashid || "—")}</span>} />
                 {transaction.pin && (
-                  <Row label="Pin (Use it if not recharged)" value={<span className="font-mono font-bold text-foreground">{transaction.pin}</span>} />
+                  <Row label={tr.pinLabel} value={<span className="font-mono font-bold text-foreground">{transaction.pin}</span>} />
                 )}
-                <Row label="Product Name" value={<span style={{ color: brandColor }} className="font-semibold">{displayCarrier}</span>} />
-                <Row label="Phone Number" value={<span style={{ color: brandColor }}>{formatPhone(transaction.phone_number)}</span>} />
-                {displayEmail && <Row label="Email" value={<span style={{ color: brandColor }}>{displayEmail}</span>} />}
-                <Row label="Qty" value={<span style={{ color: brandColor }}>1</span>} />
-                <Row label="Price" value={<span style={{ color: brandColor }} className="font-bold">${Number(transaction.amount || 0).toFixed(2)}</span>} />
+                <Row label={tr.productName} value={<span style={{ color: brandColor }} className="font-semibold">{displayCarrier}</span>} />
+                <Row label={tr.phoneNumber} value={<span style={{ color: brandColor }}>{formatPhone(transaction.phone_number)}</span>} />
+                {displayEmail && <Row label={tr.emailLabel} value={<span style={{ color: brandColor }}>{displayEmail}</span>} />}
+                <Row label={tr.qty} value={<span style={{ color: brandColor }}>1</span>} />
+                <Row label={tr.price} value={<span style={{ color: brandColor }} className="font-bold">${Number(transaction.amount || 0).toFixed(2)}</span>} />
                 {(transaction.fee !== undefined && Number(transaction.fee) > 0) && (
-                  <Row label="Service Fee" value={<span style={{ color: brandColor }}>${Number(transaction.fee).toFixed(2)}</span>} />
+                  <Row label={tr.serviceFee} value={<span style={{ color: brandColor }}>${Number(transaction.fee).toFixed(2)}</span>} />
                 )}
               </div>
 
               <div className="p-5">
                 <button
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate(home)}
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity"
                   style={{ backgroundColor: brandColor }}
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  CONTINUE SHOPPING
+                  {tr.continueShopping}
                 </button>
               </div>
             </div>
@@ -140,7 +144,7 @@ const OrderConfirmation = () => {
         ) : null}
       </main>
 
-      <PaymentBar />
+      <PaymentBar lang={lang} />
       <Footer />
       <LegalBar />
     </div>

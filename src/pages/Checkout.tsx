@@ -21,6 +21,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { getGclid } from "@/lib/tracking";
 import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib/subdivisions";
+import { useLang, t } from "@/lib/i18n";
 
 interface LocationState {
   phone: string;
@@ -112,6 +113,8 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const state = location.state as LocationState | null;
+  const lang = useLang();
+  const tr = t(lang);
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -295,7 +298,7 @@ const Checkout = () => {
           fetchCheckoutConfig().catch(() => null),
         ]);
         if (result.success === false) {
-          toast({ title: "Validation failed", description: result.message || "Unable to validate this recharge", variant: "destructive" });
+          toast({ title: tr.validationFailedTitle, description: result.message || tr.validationFailedDesc, variant: "destructive" });
           navigate(-1);
           return;
         }
@@ -305,8 +308,8 @@ const Checkout = () => {
           setCheckoutConfig(config);
         }
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Validation failed";
-        toast({ title: "Error", description: msg, variant: "destructive" });
+        const msg = err instanceof Error ? err.message : tr.validationFailedTitle;
+        toast({ title: tr.errorTitle, description: msg, variant: "destructive" });
         navigate(-1);
       } finally {
         setLoading(false);
@@ -528,7 +531,7 @@ const Checkout = () => {
     if (isSuccess) {
       const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
       const params = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
-      navigate(`/order-confirmation?${params.toString()}`);
+      navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
     } else {
       setErrorMsg((result.msg as string) || (result.message as string) || "Transaction failed");
     }
@@ -885,7 +888,7 @@ const Checkout = () => {
           session.completePayment({ status: session.STATUS_SUCCESS });
           const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
           const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
-          navigate(`/order-confirmation?${apParams.toString()}`);
+          navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${apParams.toString()}`);
         } else {
           console.error("[ApplePay] transaction failed", result);
           session.completePayment({ status: session.STATUS_FAILURE });
@@ -1108,13 +1111,13 @@ const Checkout = () => {
 
   type MethodEntry = { key: PaymentMethod; label: string; Brand: React.ComponentType<{ className?: string }> };
   const baseMethods: MethodEntry[] = [
-    { key: "card", label: "Card", Brand: CardBrandsStrip },
-    ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: "Apple Pay", Brand: ApplePayMark }] : []),
-    { key: "googlepay", label: "Google Pay", Brand: GooglePayMark },
-    { key: "paypal", label: "PayPal", Brand: PayPalMark },
-    { key: "plaid", label: "Pay by Bank", Brand: BankMark },
-    { key: "cashapp", label: "Cash App", Brand: CashAppMark },
-    { key: "klarna", label: "Klarna", Brand: KlarnaMark }, // Klarna last — feedback #31
+    { key: "card", label: tr.methodCard, Brand: CardBrandsStrip },
+    ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: tr.methodApplePay, Brand: ApplePayMark }] : []),
+    { key: "googlepay", label: tr.methodGooglePay, Brand: GooglePayMark },
+    { key: "paypal", label: tr.methodPayPal, Brand: PayPalMark },
+    { key: "plaid", label: tr.methodPayByBank, Brand: BankMark },
+    { key: "cashapp", label: tr.methodCashApp, Brand: CashAppMark },
+    { key: "klarna", label: tr.methodKlarna, Brand: KlarnaMark }, // Klarna last — feedback #31
   ];
   // On iOS, push Apple Pay to first position (after Credit Card stays default but Apple Pay prominent)
   const paymentMethods: MethodEntry[] = isIOS && applePayAvailable
@@ -1134,11 +1137,11 @@ const Checkout = () => {
               type="button"
               onClick={() => navigate(-1)}
               className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-full hover:bg-muted transition-colors text-foreground"
-              aria-label="Go back"
+              aria-label={tr.goBackAria}
             >
               <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
-            <span className="font-bold text-lg text-foreground">Checkout</span>
+            <span className="font-bold text-lg text-foreground">{tr.checkout}</span>
             <AccountDropdown />
           </div>
         </div>
@@ -1146,7 +1149,7 @@ const Checkout = () => {
 
       {/* Hero */}
       <section className="text-primary-foreground py-3 text-center" style={{ backgroundColor: brandColor }}>
-        <h1 className="text-xl font-extrabold">{state.carrierName} Recharge</h1>
+        <h1 className="text-xl font-extrabold">{tr.rechargeTitle(state.carrierName)}</h1>
       </section>
 
       {loading ? (
@@ -1157,14 +1160,14 @@ const Checkout = () => {
         <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
           {/* Order summary */}
           <div className="bg-card rounded-xl border border-border p-5">
-            <h2 className="font-bold text-foreground mb-3 text-sm">Order Summary</h2>
+            <h2 className="font-bold text-foreground mb-3 text-sm">{tr.orderSummary}</h2>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between items-center"><span className="text-muted-foreground">Phone</span><span className="font-medium text-foreground inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-cellpay-green" />{state.phone}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Amount</span><span className="font-medium text-foreground">${state.amount}</span></div>
-              {fee > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Service Fee</span><span className="font-medium text-foreground">${Number(fee).toFixed(2)}</span></div>}
-              {tax > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Tax</span><span className="font-medium text-foreground">${Number(tax).toFixed(2)}</span></div>}
+              <div className="flex justify-between items-center"><span className="text-muted-foreground">{tr.phone}</span><span className="font-medium text-foreground inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-cellpay-green" />{state.phone}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{tr.amount}</span><span className="font-medium text-foreground">${state.amount}</span></div>
+              {fee > 0 && <div className="flex justify-between"><span className="text-muted-foreground">{tr.serviceFee}</span><span className="font-medium text-foreground">${Number(fee).toFixed(2)}</span></div>}
+              {tax > 0 && <div className="flex justify-between"><span className="text-muted-foreground">{tr.tax}</span><span className="font-medium text-foreground">${Number(tax).toFixed(2)}</span></div>}
               <div className="border-t border-border pt-2 flex justify-between font-bold">
-                <span className="text-foreground">Total</span>
+                <span className="text-foreground">{tr.total}</span>
                 <span style={{ color: brandColor }}>${Number(total).toFixed(2)}</span>
               </div>
             </div>
@@ -1175,36 +1178,36 @@ const Checkout = () => {
             <div className="flex items-center justify-around gap-2 text-[11px] font-semibold text-muted-foreground">
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
                 <Lock className="h-4 w-4 text-cellpay-green" />
-                <span>SSL Secured</span>
+                <span>{tr.sslSecured}</span>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
                 <ShieldCheck className="h-4 w-4 text-cellpay-green" />
-                <span>PCI Compliant</span>
+                <span>{tr.pciCompliant}</span>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
                 <CheckCircle2 className="h-4 w-4 text-cellpay-green" />
-                <span>Verified Merchant</span>
+                <span>{tr.verifiedMerchant}</span>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
                 <Headphones className="h-4 w-4 text-cellpay-green" />
-                <span>24/7 Support</span>
+                <span>{tr.support247}</span>
               </div>
             </div>
           </div>
 
           <div className="bg-card rounded-xl border border-border p-5">
-            <h2 className="font-bold text-foreground mb-3 text-sm">Contact Information</h2>
-            <input type="email" placeholder="Email Address *" value={email} onChange={(e) => setEmail(e.target.value)}
+            <h2 className="font-bold text-foreground mb-3 text-sm">{tr.contactInformation}</h2>
+            <input type="email" placeholder={tr.emailPlaceholder} value={email} onChange={(e) => setEmail(e.target.value)}
               className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
               style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
             {email.length > 0 && !email.includes("@") && (
-              <p className="text-xs text-destructive mt-1">Please enter a valid email address</p>
+              <p className="text-xs text-destructive mt-1">{tr.invalidEmail}</p>
             )}
           </div>
 
           {/* Payment Method Select */}
           <div className="bg-card rounded-xl border border-border p-5">
-            <h2 className="font-bold text-foreground mb-3 text-sm">Payment Method</h2>
+            <h2 className="font-bold text-foreground mb-3 text-sm">{tr.paymentMethod}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {paymentMethods.map((m) => (
                 <button
@@ -1229,13 +1232,13 @@ const Checkout = () => {
           {paymentMethod === "card" && (
             <div className="bg-card rounded-xl border border-border p-5 space-y-4">
               <h2 className="font-bold text-foreground mb-1 text-sm flex items-center gap-2">
-                <CreditCard className="h-4 w-4" /> Card Details
+                <CreditCard className="h-4 w-4" /> {tr.cardDetails}
               </h2>
               <div className="grid grid-cols-2 gap-3">
-                <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                <input type="text" placeholder={tr.firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)}
+                <input type="text" placeholder={tr.lastName} value={lastName} onChange={(e) => setLastName(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
@@ -1245,13 +1248,13 @@ const Checkout = () => {
                 {SUPPORTED_COUNTRIES.map((c) => (
                   <option key={c.code} value={c.code}>{c.name}</option>
                 ))}
-                <option value="OTHER">Other</option>
+                <option value="OTHER">{lang === "es" ? "Otro" : "Other"}</option>
               </select>
-              <input type="text" placeholder="Street Address" value={address} onChange={(e) => setAddress(e.target.value)}
+              <input type="text" placeholder={tr.streetAddress} value={address} onChange={(e) => setAddress(e.target.value)}
                 className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                 style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               <div className="grid grid-cols-3 gap-3">
-                <input type="text" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)}
+                <input type="text" placeholder={tr.city} value={city} onChange={(e) => setCity(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 {hasSubdivisions && !regionOther ? (
@@ -1269,17 +1272,17 @@ const Checkout = () => {
                     className="h-11 px-3 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties}
                   >
-                    <option value="">State</option>
+                    <option value="">{tr.state}</option>
                     {subdivisions.map((s) => (
                       <option key={s.code} value={s.code}>{s.code} — {s.name}</option>
                     ))}
-                    <option value="__OTHER__">Other…</option>
+                    <option value="__OTHER__">{lang === "es" ? "Otro…" : "Other…"}</option>
                   </select>
                 ) : (
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder="State / Region"
+                      placeholder={tr.stateProvince}
                       value={regionId}
                       onChange={(e) => setRegionId(e.target.value.toUpperCase().slice(0, 10))}
                       maxLength={10}
@@ -1292,23 +1295,23 @@ const Checkout = () => {
                         onClick={() => { setRegionOther(false); setRegionId(""); }}
                         className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground hover:text-foreground underline"
                       >
-                        list
+                        {lang === "es" ? "lista" : "list"}
                       </button>
                     )}
                   </div>
                 )}
-                <input type="text" placeholder="ZIP" value={cardZip} onChange={(e) => setCardZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
+                <input type="text" placeholder={tr.zip} value={cardZip} onChange={(e) => setCardZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
-              <input type="text" placeholder="Card Number" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} maxLength={19}
+              <input type="text" placeholder={tr.cardNumber} value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} maxLength={19}
                 className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                 style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               <div className="grid grid-cols-2 gap-3">
-                <input type="text" placeholder="MM/YY" value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} maxLength={5}
+                <input type="text" placeholder={tr.expiry} value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} maxLength={5}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                <input type="text" placeholder="CVV" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} maxLength={4}
+                <input type="text" placeholder={tr.cvv} value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} maxLength={4}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
@@ -1318,11 +1321,11 @@ const Checkout = () => {
           {/* PayPal Buttons container (rendered by SDK) */}
           {paymentMethod === "paypal" && (
             <div className="bg-card rounded-xl border border-border p-5 space-y-3">
-              <h2 className="font-bold text-foreground mb-1 text-sm">PayPal Checkout</h2>
+              <h2 className="font-bold text-foreground mb-1 text-sm">{tr.paypalCheckout}</h2>
               {!paypalReady ? (
                 <div className="flex items-center justify-center py-6">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                  <span className="ml-2 text-sm text-muted-foreground">Loading PayPal...</span>
+                  <span className="ml-2 text-sm text-muted-foreground">{tr.loadingPaypal}</span>
                 </div>
               ) : (
                 <div ref={paypalContainerRef} id="paypal-button-container" />
@@ -1333,57 +1336,57 @@ const Checkout = () => {
           {/* Klarna Billing Details */}
           {paymentMethod === "klarna" && (
             <div className="bg-card rounded-xl border border-border p-5 space-y-4">
-              <h2 className="font-bold text-foreground mb-1 text-sm">Billing Details</h2>
+              <h2 className="font-bold text-foreground mb-1 text-sm">{tr.billingDetails}</h2>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">First Name <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder="First Name" value={klarnaFirstName} onChange={(e) => setKlarnaFirstName(e.target.value)}
+                  <label className="text-xs text-muted-foreground mb-1 block">{tr.firstName} <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder={tr.firstName} value={klarnaFirstName} onChange={(e) => setKlarnaFirstName(e.target.value)}
                     className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Last Name <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder="Last Name" value={klarnaLastName} onChange={(e) => setKlarnaLastName(e.target.value)}
+                  <label className="text-xs text-muted-foreground mb-1 block">{tr.lastName} <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder={tr.lastName} value={klarnaLastName} onChange={(e) => setKlarnaLastName(e.target.value)}
                     className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Bill Payer's Phone Number <span className="text-destructive">*</span></label>
+                <label className="text-xs text-muted-foreground mb-1 block">{tr.billPayerPhone} <span className="text-destructive">*</span></label>
                 <input type="tel" placeholder="(000) 000-0000" value={klarnaPhone} onChange={(e) => setKlarnaPhone(e.target.value)}
                   className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Street Address <span className="text-destructive">*</span></label>
-                <input type="text" placeholder="Street Address" value={klarnaAddress} onChange={(e) => setKlarnaAddress(e.target.value)}
+                <label className="text-xs text-muted-foreground mb-1 block">{tr.streetAddress} <span className="text-destructive">*</span></label>
+                <input type="text" placeholder={tr.streetAddress} value={klarnaAddress} onChange={(e) => setKlarnaAddress(e.target.value)}
                   className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">City <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder="City" value={klarnaCity} onChange={(e) => setKlarnaCity(e.target.value)}
+                  <label className="text-xs text-muted-foreground mb-1 block">{tr.city} <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder={tr.city} value={klarnaCity} onChange={(e) => setKlarnaCity(e.target.value)}
                     className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">State/Province <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder="State" value={klarnaState} onChange={(e) => setKlarnaState(e.target.value.toUpperCase())}
+                  <label className="text-xs text-muted-foreground mb-1 block">{tr.stateProvince} <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder={tr.state} value={klarnaState} onChange={(e) => setKlarnaState(e.target.value.toUpperCase())}
                     className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Country <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder="United States" value={klarnaCountry} onChange={(e) => setKlarnaCountry(e.target.value)}
+                  <label className="text-xs text-muted-foreground mb-1 block">{tr.country} <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder={lang === "es" ? "Estados Unidos" : "United States"} value={klarnaCountry} onChange={(e) => setKlarnaCountry(e.target.value)}
                     className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">ZIP <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder="ZIP Code" value={klarnaZip} onChange={(e) => setKlarnaZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
+                  <label className="text-xs text-muted-foreground mb-1 block">{tr.zip} <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder={tr.zipCode} value={klarnaZip} onChange={(e) => setKlarnaZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
                     className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
@@ -1400,11 +1403,11 @@ const Checkout = () => {
               <input type="checkbox" checked={agreedTerms} onChange={(e) => setAgreedTerms(e.target.checked)}
                 className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
               <span className="text-[11px] text-muted-foreground leading-relaxed">
-                I agree to the{" "}
+                {tr.agreeTerms}{" "}
                 <a href="https://www.cellpay.us/terms-and-conditions.html" className="underline font-semibold" style={{ color: brandColor }}>
-                  Terms & Conditions
+                  {tr.termsAndConditions}
                 </a>{" "}
-                and confirm this sale is final.
+                {tr.agreeTermsSuffix}
               </span>
             </label>
 
@@ -1414,14 +1417,14 @@ const Checkout = () => {
                   <input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)}
                     className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
                   <span className="text-[11px] text-muted-foreground leading-relaxed">
-                    <span className="font-semibold text-foreground">Save payment information for next time?</span>{" "}
+                    <span className="font-semibold text-foreground">{tr.saveCard}</span>{" "}
                     <button
                       type="button"
                       onClick={() => setShowSaveInfoTip(true)}
                       className="underline font-semibold"
                       style={{ color: brandColor }}
                     >
-                      (What's this)
+                      {tr.saveCardWhats}
                     </button>
                   </span>
                 </label>
@@ -1430,7 +1433,7 @@ const Checkout = () => {
                   <input type="checkbox" checked={autoPay} onChange={(e) => setAutoPay(e.target.checked)}
                     className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
                   <span className="text-[11px] text-muted-foreground leading-relaxed">
-                    <span className="font-semibold text-foreground">Subscribe to Auto Pay?</span>
+                    <span className="font-semibold text-foreground">{tr.subscribeAutoPay}</span>
                   </span>
                 </label>
 
@@ -1443,7 +1446,7 @@ const Checkout = () => {
                     <label className="flex items-start gap-2 cursor-pointer">
                       <input type="checkbox" checked={autoPayTerms} onChange={(e) => setAutoPayTerms(e.target.checked)}
                         className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
-                      <span className="text-[12px] font-bold text-foreground">Accept Terms and Conditions</span>
+                      <span className="text-[12px] font-bold text-foreground">{tr.acceptAutoPayTerms}</span>
                     </label>
 
                     <div className="max-h-48 overflow-y-auto rounded-md border border-border bg-background p-3 text-[11px] text-muted-foreground leading-relaxed space-y-2">
@@ -1486,12 +1489,12 @@ const Checkout = () => {
                 style={{ backgroundColor: brandColor }}
               >
                 {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-                {submitting ? "Processing..." : "PLACE ORDER NOW"}
+                {submitting ? tr.processing : tr.placeOrder}
               </button>
             )}
 
             <p className="text-center text-[10px] text-muted-foreground">
-              Secure payment powered by CellPay. Instant refill sent directly to your phone.
+              {tr.securePoweredBy}
             </p>
           </div>
         </div>
@@ -1504,11 +1507,11 @@ const Checkout = () => {
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => setErrorMsg(null)}>
           <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="text-4xl mb-3">❌</div>
-            <h3 className="text-xl font-bold text-foreground mb-2">Payment Failed</h3>
+            <h3 className="text-xl font-bold text-foreground mb-2">{tr.paymentFailed}</h3>
             <p className="text-sm text-muted-foreground mb-4">{errorMsg}</p>
             <button type="button" onClick={() => setErrorMsg(null)}
               className="px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
-              Try Again
+              {tr.tryAgain}
             </button>
           </div>
         </div>
@@ -1517,18 +1520,20 @@ const Checkout = () => {
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => setShowSaveInfoTip(false)}>
           <div className="bg-foreground text-background rounded-2xl p-6 max-w-sm w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
             <p className="text-sm leading-relaxed text-center">
-              You have opted to save your cc info on file for a faster future payment. Be sure to create an password after you have completed your purchase to pay with the saved bank card info next time. And you have opted to send text to pay message.
+              {lang === "es"
+                ? "Ha optado por guardar la información de su tarjeta para un pago futuro más rápido. Asegúrese de crear una contraseña después de completar su compra para pagar con la información guardada la próxima vez."
+                : "You have opted to save your cc info on file for a faster future payment. Be sure to create an password after you have completed your purchase to pay with the saved bank card info next time. And you have opted to send text to pay message."}
             </p>
             <div className="flex justify-center mt-4">
               <button type="button" onClick={() => setShowSaveInfoTip(false)}
                 className="px-6 py-2 rounded-lg bg-background text-foreground font-bold text-sm">
-                Got it
+                {lang === "es" ? "Entendido" : "Got it"}
               </button>
             </div>
           </div>
         </div>
       )}
-      <PaymentBar />
+      <PaymentBar lang={lang} />
       <Footer />
       <LegalBar />
     </div>
