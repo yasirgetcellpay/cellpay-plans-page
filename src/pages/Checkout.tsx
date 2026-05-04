@@ -833,9 +833,9 @@ const Checkout = () => {
       console.log("[ApplePay] onpaymentauthorized fired");
       try {
         const payment = event.payment;
-        const tokenData = (payment.token as Record<string, unknown>)?.paymentData;
+        const fullToken = payment.token as Record<string, unknown> | undefined;
         const billingContact = payment.billingContact;
-        console.log("[ApplePay] payment authorized, submitting transaction", { hasToken: !!tokenData });
+        console.log("[ApplePay] payment authorized, submitting transaction", { hasToken: !!fullToken });
 
         const raw = await submitTransaction({
           checkout_version: "5.0",
@@ -851,7 +851,7 @@ const Checkout = () => {
             lastName: (billingContact as Record<string, unknown>)?.familyName || lastName.trim() || "User",
             email: email.trim() || "customer@cellpay.us",
           },
-          apple_pay_token: btoa(JSON.stringify(tokenData)),
+          apple_pay_token: JSON.stringify(fullToken),
           apple_pay_billing_contact: JSON.stringify(billingContact),
           browser_info: browserInfoRef.current,
           gclid: getGclid(),
