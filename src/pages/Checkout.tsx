@@ -1178,36 +1178,36 @@ const Checkout = () => {
             <div className="flex items-center justify-around gap-2 text-[11px] font-semibold text-muted-foreground">
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
                 <Lock className="h-4 w-4 text-cellpay-green" />
-                <span>SSL Secured</span>
+                <span>{tr.sslSecured}</span>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
                 <ShieldCheck className="h-4 w-4 text-cellpay-green" />
-                <span>PCI Compliant</span>
+                <span>{tr.pciCompliant}</span>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
                 <CheckCircle2 className="h-4 w-4 text-cellpay-green" />
-                <span>Verified Merchant</span>
+                <span>{tr.verifiedMerchant}</span>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
                 <Headphones className="h-4 w-4 text-cellpay-green" />
-                <span>24/7 Support</span>
+                <span>{tr.support247}</span>
               </div>
             </div>
           </div>
 
           <div className="bg-card rounded-xl border border-border p-5">
-            <h2 className="font-bold text-foreground mb-3 text-sm">Contact Information</h2>
-            <input type="email" placeholder="Email Address *" value={email} onChange={(e) => setEmail(e.target.value)}
+            <h2 className="font-bold text-foreground mb-3 text-sm">{tr.contactInformation}</h2>
+            <input type="email" placeholder={tr.emailPlaceholder} value={email} onChange={(e) => setEmail(e.target.value)}
               className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
               style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
             {email.length > 0 && !email.includes("@") && (
-              <p className="text-xs text-destructive mt-1">Please enter a valid email address</p>
+              <p className="text-xs text-destructive mt-1">{tr.invalidEmail}</p>
             )}
           </div>
 
           {/* Payment Method Select */}
           <div className="bg-card rounded-xl border border-border p-5">
-            <h2 className="font-bold text-foreground mb-3 text-sm">Payment Method</h2>
+            <h2 className="font-bold text-foreground mb-3 text-sm">{tr.paymentMethod}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {paymentMethods.map((m) => (
                 <button
