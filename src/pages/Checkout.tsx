@@ -1336,57 +1336,57 @@ const Checkout = () => {
           {/* Klarna Billing Details */}
           {paymentMethod === "klarna" && (
             <div className="bg-card rounded-xl border border-border p-5 space-y-4">
-              <h2 className="font-bold text-foreground mb-1 text-sm">Billing Details</h2>
+              <h2 className="font-bold text-foreground mb-1 text-sm">{tr.billingDetails}</h2>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">First Name <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder="First Name" value={klarnaFirstName} onChange={(e) => setKlarnaFirstName(e.target.value)}
+                  <label className="text-xs text-muted-foreground mb-1 block">{tr.firstName} <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder={tr.firstName} value={klarnaFirstName} onChange={(e) => setKlarnaFirstName(e.target.value)}
                     className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Last Name <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder="Last Name" value={klarnaLastName} onChange={(e) => setKlarnaLastName(e.target.value)}
+                  <label className="text-xs text-muted-foreground mb-1 block">{tr.lastName} <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder={tr.lastName} value={klarnaLastName} onChange={(e) => setKlarnaLastName(e.target.value)}
                     className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Bill Payer's Phone Number <span className="text-destructive">*</span></label>
+                <label className="text-xs text-muted-foreground mb-1 block">{tr.billPayerPhone} <span className="text-destructive">*</span></label>
                 <input type="tel" placeholder="(000) 000-0000" value={klarnaPhone} onChange={(e) => setKlarnaPhone(e.target.value)}
                   className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Street Address <span className="text-destructive">*</span></label>
-                <input type="text" placeholder="Street Address" value={klarnaAddress} onChange={(e) => setKlarnaAddress(e.target.value)}
+                <label className="text-xs text-muted-foreground mb-1 block">{tr.streetAddress} <span className="text-destructive">*</span></label>
+                <input type="text" placeholder={tr.streetAddress} value={klarnaAddress} onChange={(e) => setKlarnaAddress(e.target.value)}
                   className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">City <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder="City" value={klarnaCity} onChange={(e) => setKlarnaCity(e.target.value)}
+                  <label className="text-xs text-muted-foreground mb-1 block">{tr.city} <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder={tr.city} value={klarnaCity} onChange={(e) => setKlarnaCity(e.target.value)}
                     className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">State/Province <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder="State" value={klarnaState} onChange={(e) => setKlarnaState(e.target.value.toUpperCase())}
+                  <label className="text-xs text-muted-foreground mb-1 block">{tr.stateProvince} <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder={tr.state} value={klarnaState} onChange={(e) => setKlarnaState(e.target.value.toUpperCase())}
                     className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Country <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder="United States" value={klarnaCountry} onChange={(e) => setKlarnaCountry(e.target.value)}
+                  <label className="text-xs text-muted-foreground mb-1 block">{tr.country} <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder={lang === "es" ? "Estados Unidos" : "United States"} value={klarnaCountry} onChange={(e) => setKlarnaCountry(e.target.value)}
                     className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">ZIP <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder="ZIP Code" value={klarnaZip} onChange={(e) => setKlarnaZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
+                  <label className="text-xs text-muted-foreground mb-1 block">{tr.zip} <span className="text-destructive">*</span></label>
+                  <input type="text" placeholder={tr.zipCode} value={klarnaZip} onChange={(e) => setKlarnaZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
                     className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
