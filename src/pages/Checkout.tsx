@@ -298,7 +298,7 @@ const Checkout = () => {
           fetchCheckoutConfig().catch(() => null),
         ]);
         if (result.success === false) {
-          toast({ title: "Validation failed", description: result.message || "Unable to validate this recharge", variant: "destructive" });
+          toast({ title: tr.validationFailedTitle, description: result.message || tr.validationFailedDesc, variant: "destructive" });
           navigate(-1);
           return;
         }
@@ -308,8 +308,8 @@ const Checkout = () => {
           setCheckoutConfig(config);
         }
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Validation failed";
-        toast({ title: "Error", description: msg, variant: "destructive" });
+        const msg = err instanceof Error ? err.message : tr.validationFailedTitle;
+        toast({ title: tr.errorTitle, description: msg, variant: "destructive" });
         navigate(-1);
       } finally {
         setLoading(false);
