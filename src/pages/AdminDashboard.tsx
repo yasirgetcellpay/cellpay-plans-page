@@ -224,12 +224,35 @@ export default function AdminDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <KpiCard title="Live visitors" value={String(liveVisitors.length)} sub="active in last 60s" />
           <KpiCard title="Revenue" value={fmt$(kpis.revenue)} sub={`${kpis.successCount} successful`} />
           <KpiCard title="Total attempts" value={String(kpis.total)} sub={`${kpis.pending} pending`} />
           <KpiCard title="Success rate" value={`${kpis.successRate.toFixed(1)}%`} sub={`${kpis.failed} failed`} />
           <KpiCard title="Avg order value" value={fmt$(kpis.aov)} sub="successful only" />
         </div>
+
+        {/* Live visitors by page */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              Visitors by page <span className="text-xs font-normal text-muted-foreground">(live, last 60s)</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader><TableRow><TableHead>Page</TableHead><TableHead className="text-right">People</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {visitorsByPath.map(([path, count]) => (
+                  <TableRow key={path}><TableCell className="font-mono text-xs">{path}</TableCell><TableCell className="text-right">{count}</TableCell></TableRow>
+                ))}
+                {visitorsByPath.length === 0 && (
+                  <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">No one online right now</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
 
         {/* Breakdowns */}
         <div className="grid md:grid-cols-2 gap-4">
