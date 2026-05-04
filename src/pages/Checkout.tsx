@@ -1111,13 +1111,13 @@ const Checkout = () => {
 
   type MethodEntry = { key: PaymentMethod; label: string; Brand: React.ComponentType<{ className?: string }> };
   const baseMethods: MethodEntry[] = [
-    { key: "card", label: "Card", Brand: CardBrandsStrip },
-    ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: "Apple Pay", Brand: ApplePayMark }] : []),
-    { key: "googlepay", label: "Google Pay", Brand: GooglePayMark },
-    { key: "paypal", label: "PayPal", Brand: PayPalMark },
-    { key: "plaid", label: "Pay by Bank", Brand: BankMark },
-    { key: "cashapp", label: "Cash App", Brand: CashAppMark },
-    { key: "klarna", label: "Klarna", Brand: KlarnaMark }, // Klarna last — feedback #31
+    { key: "card", label: tr.methodCard, Brand: CardBrandsStrip },
+    ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: tr.methodApplePay, Brand: ApplePayMark }] : []),
+    { key: "googlepay", label: tr.methodGooglePay, Brand: GooglePayMark },
+    { key: "paypal", label: tr.methodPayPal, Brand: PayPalMark },
+    { key: "plaid", label: tr.methodPayByBank, Brand: BankMark },
+    { key: "cashapp", label: tr.methodCashApp, Brand: CashAppMark },
+    { key: "klarna", label: tr.methodKlarna, Brand: KlarnaMark }, // Klarna last — feedback #31
   ];
   // On iOS, push Apple Pay to first position (after Credit Card stays default but Apple Pay prominent)
   const paymentMethods: MethodEntry[] = isIOS && applePayAvailable
