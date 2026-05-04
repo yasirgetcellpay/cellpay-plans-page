@@ -293,10 +293,10 @@ const Home = () => {
       <section className="bg-cellpay-green text-primary-foreground">
         <div className="max-w-7xl mx-auto px-5 py-5 sm:py-6 sm:px-6 lg:px-8 text-center">
           <h1 className="text-2xl md:text-3xl font-extrabold leading-tight">
-            Refill Any Prepaid Phone in Seconds
+            {tr.homeH1}
           </h1>
           <p className="text-sm sm:text-base opacity-95 mt-1.5">
-            Instant top-ups for 15+ carriers · No account required
+            {tr.homeSubtitle}
           </p>
           {/* Social proof — feedback #5, #12 */}
           <div className="mt-3 flex items-center justify-center gap-1.5 text-xs sm:text-sm">
@@ -306,7 +306,7 @@ const Home = () => {
               ))}
             </div>
             <span className="font-bold">4.8/5</span>
-            <span className="opacity-90">· 50,000+ customers served</span>
+            <span className="opacity-90">{tr.homeRating}</span>
           </div>
         </div>
       </section>
