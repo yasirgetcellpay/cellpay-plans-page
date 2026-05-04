@@ -1403,11 +1403,11 @@ const Checkout = () => {
               <input type="checkbox" checked={agreedTerms} onChange={(e) => setAgreedTerms(e.target.checked)}
                 className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
               <span className="text-[11px] text-muted-foreground leading-relaxed">
-                I agree to the{" "}
+                {tr.agreeTerms}{" "}
                 <a href="https://www.cellpay.us/terms-and-conditions.html" className="underline font-semibold" style={{ color: brandColor }}>
-                  Terms & Conditions
+                  {tr.termsAndConditions}
                 </a>{" "}
-                and confirm this sale is final.
+                {tr.agreeTermsSuffix}
               </span>
             </label>
 
@@ -1417,14 +1417,14 @@ const Checkout = () => {
                   <input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)}
                     className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
                   <span className="text-[11px] text-muted-foreground leading-relaxed">
-                    <span className="font-semibold text-foreground">Save payment information for next time?</span>{" "}
+                    <span className="font-semibold text-foreground">{tr.saveCard}</span>{" "}
                     <button
                       type="button"
                       onClick={() => setShowSaveInfoTip(true)}
                       className="underline font-semibold"
                       style={{ color: brandColor }}
                     >
-                      (What's this)
+                      {tr.saveCardWhats}
                     </button>
                   </span>
                 </label>
@@ -1433,7 +1433,7 @@ const Checkout = () => {
                   <input type="checkbox" checked={autoPay} onChange={(e) => setAutoPay(e.target.checked)}
                     className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
                   <span className="text-[11px] text-muted-foreground leading-relaxed">
-                    <span className="font-semibold text-foreground">Subscribe to Auto Pay?</span>
+                    <span className="font-semibold text-foreground">{tr.subscribeAutoPay}</span>
                   </span>
                 </label>
 
