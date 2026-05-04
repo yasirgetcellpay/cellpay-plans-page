@@ -360,7 +360,7 @@ const Home = () => {
                   When a logo is present, show a neutral CTA strip instead. */}
               <div className={`${carrier.bg} py-2 sm:py-3 text-center`}>
                 <span className="text-primary-foreground font-bold text-xs sm:text-base">
-                  {carrier.logo ? "Refill Now" : carrier.name}
+                  {carrier.logo ? tr.refillNow : carrier.name}
                 </span>
               </div>
             </Link>
