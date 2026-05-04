@@ -269,7 +269,7 @@ export async function submitTransaction(
     const meta = (window as unknown as { __cellpayCheckoutMeta?: Record<string, unknown> }).__cellpayCheckoutMeta || {};
     const { data: inserted } = await supabase
       .from("transaction_logs")
-      .insert({
+      .insert([{
         carrier_name: (meta.carrierName as string) || null,
         carrier_slug: (meta.carrierSlug as string) || null,
         carrier_id: p.carrierId != null ? String(p.carrierId) : null,
@@ -285,8 +285,8 @@ export async function submitTransaction(
         status: "pending",
         source_ip: (p.source as string) || null,
         user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
-        metadata: meta as object,
-      })
+        metadata: meta as Record<string, unknown>,
+      }])
       .select("id")
       .single();
     logId = inserted?.id || null;
