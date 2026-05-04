@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { captureTrackingIdsFromUrl } from "@/lib/tracking";
@@ -23,7 +23,6 @@ import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { Toaster } from "@/components/ui/toaster";
 
-// Local logo imports
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
 import cricketLogo from "@/assets/cricket-logo.webp";
 import metroLogo from "@/assets/metro-logo.svg";
@@ -40,6 +39,60 @@ import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
 import uscellularLogo from "@/assets/uscellular-logo.png";
 
+interface CarrierRouteDef {
+  path: string;            // English path (without leading /es)
+  name: string;
+  slug: string;
+  carrierId: number;
+  brandColor: string;
+  logo?: string;
+}
+
+// Single source of truth for every carrier route. English path + auto /es/ mirror.
+const carrierRoutes: CarrierRouteDef[] = [
+  { path: "/s1.html", name: "Simple Mobile", slug: "s1", carrierId: 15, brandColor: "hsl(101,67%,44%)", logo: simpleMobileLogo },
+  { path: "/topup-crc.html", name: "Cricket Wireless", slug: "topup-crc", carrierId: 45, brandColor: "hsl(82,60%,42%)", logo: cricketLogo },
+  { path: "/metropcs.html", name: "Metro PCS", slug: "metropcs", carrierId: 38, brandColor: "hsl(270,60%,32%)", logo: metroLogo },
+  { path: "/tmobile-flexi.html", name: "T-Mobile", slug: "tmobile", carrierId: 43, brandColor: "hsl(330,100%,45%)", logo: tmobileLogo },
+  { path: "/topup-at.html", name: "AT&T Prepaid", slug: "topup-at", carrierId: 3, brandColor: "hsl(196,100%,44%)", logo: attLogo },
+  { path: "/verizon", name: "Verizon Wireless Prepaid", slug: "verizon", carrierId: 14, brandColor: "hsl(0,100%,45%)", logo: verizonLogo },
+  { path: "/boost.html", name: "Boost Mobile", slug: "boost", carrierId: 36, brandColor: "hsl(27,100%,50%)", logo: boostLogo },
+  { path: "/straight-talk.html", name: "Straight Talk", slug: "straight-talk", carrierId: 0, brandColor: "hsl(72,74%,44%)", logo: straightTalkLogo },
+  { path: "/h2o.html", name: "H2O Wireless", slug: "h2o", carrierId: 6, brandColor: "hsl(195,85%,50%)", logo: h2oLogo },
+  { path: "/lyca.html", name: "Lyca Mobile", slug: "lyca", carrierId: 29, brandColor: "hsl(220,50%,22%)", logo: lycaLogo },
+  { path: "/net10.html", name: "Net10 Wireless", slug: "net10", carrierId: 7, brandColor: "hsl(195,100%,50%)", logo: net10Logo },
+  { path: "/pageplus.html", name: "Page Plus", slug: "pageplus", carrierId: 1, brandColor: "hsl(0,70%,50%)", logo: pageplusLogo },
+  { path: "/tracfone.html", name: "TracFone", slug: "tracfone", carrierId: 10, brandColor: "hsl(230,70%,30%)", logo: tracfoneLogo },
+  { path: "/ultra-mobile.html", name: "Ultra Mobile", slug: "ultra-mobile", carrierId: 25, brandColor: "hsl(270,50%,40%)", logo: ultraLogo },
+  { path: "/us-cellular.html", name: "US Cellular", slug: "us-cellular", carrierId: 88, brandColor: "hsl(220,80%,35%)", logo: uscellularLogo },
+  { path: "/att-firstnet", name: "AT&T FirstNet", slug: "topup-af", carrierId: 81, brandColor: "hsl(196,100%,44%)", logo: attLogo },
+  { path: "/pageplus-addon", name: "Page Plus Addon Balance", slug: "pageplusadd", carrierId: 50, brandColor: "hsl(0,70%,50%)", logo: pageplusLogo },
+  { path: "/red-pocket", name: "Red Pocket Mobile", slug: "red-pocket-mobile", carrierId: 2, brandColor: "hsl(0,80%,45%)" },
+  { path: "/total-wireless", name: "Total Wireless", slug: "total-wireless", carrierId: 79, brandColor: "hsl(200,70%,40%)" },
+  { path: "/verizon-wireless-flexi.html", name: "Verizon Wireless Flexi", slug: "verizon-wireless-flexi", carrierId: 75, brandColor: "hsl(0,100%,45%)", logo: verizonLogo },
+  { path: "/xbox", name: "XBOX", slug: "xbox", carrierId: 76, brandColor: "hsl(120,60%,40%)" },
+];
+
+// Legacy `-espanol.html` URLs (kept as redirects to /es/* for backward compatibility)
+const legacyEspanolRedirects: Array<[string, string]> = [
+  ["/s1-espanol.html", "/es/s1.html"],
+  ["/topup-crc-espanol.html", "/es/topup-crc.html"],
+  ["/metropcs-espanol.html", "/es/metropcs.html"],
+  ["/tmobile-flexi-espanol.html", "/es/tmobile-flexi.html"],
+  ["/topup-at-espanol.html", "/es/topup-at.html"],
+  ["/verizon-espanol", "/es/verizon"],
+  ["/boost-espanol.html", "/es/boost.html"],
+  ["/straight-talk-espanol.html", "/es/straight-talk.html"],
+  ["/h2o-espanol.html", "/es/h2o.html"],
+  ["/lyca-espanol.html", "/es/lyca.html"],
+  ["/net10-espanol.html", "/es/net10.html"],
+  ["/pageplus-espanol.html", "/es/pageplus.html"],
+  ["/tracfone-espanol.html", "/es/tracfone.html"],
+  ["/ultra-mobile-espanol.html", "/es/ultra-mobile.html"],
+  ["/us-cellular-espanol.html", "/es/us-cellular.html"],
+  ["/verizon-wireless-flexi-espanol.html", "/es/verizon-wireless-flexi.html"],
+];
+
 const TrackingCapture = () => {
   const location = useLocation();
   useEffect(() => {
@@ -49,60 +102,69 @@ const TrackingCapture = () => {
   return null;
 };
 
+/** Spanish fallback: if no /es/* route matched, strip the `/es` prefix and redirect to English. */
+const EsFallback = () => {
+  const { pathname, search, hash } = useLocation();
+  const stripped = pathname.replace(/^\/es(?=\/|$)/, "") || "/";
+  return <Navigate to={`${stripped}${search}${hash}`} replace />;
+};
+
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
       <TrackingCapture />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/es" element={<Home />} />
 
-        {/* All carrier pages — plans loaded dynamically from /carriers/view/{slug} */}
-        <Route path="/s1.html" element={<DynamicCarrier carrierName="Simple Mobile" carrierSlug="s1" carrierId={15} brandColor="hsl(101,67%,44%)" logo={simpleMobileLogo} />} />
-        <Route path="/topup-crc.html" element={<DynamicCarrier carrierName="Cricket Wireless" carrierSlug="topup-crc" carrierId={45} brandColor="hsl(82,60%,42%)" logo={cricketLogo} />} />
-        <Route path="/metropcs.html" element={<DynamicCarrier carrierName="Metro PCS" carrierSlug="metropcs" carrierId={38} brandColor="hsl(270,60%,32%)" logo={metroLogo} />} />
-        <Route path="/tmobile-flexi.html" element={<DynamicCarrier carrierName="T-Mobile" carrierSlug="tmobile" carrierId={43} brandColor="hsl(330,100%,45%)" logo={tmobileLogo} />} />
-        <Route path="/topup-at.html" element={<DynamicCarrier carrierName="AT&T Prepaid" carrierSlug="topup-at" carrierId={3} brandColor="hsl(196,100%,44%)" logo={attLogo} />} />
-        <Route path="/verizon" element={<DynamicCarrier carrierName="Verizon Wireless Prepaid" carrierSlug="verizon" carrierId={14} brandColor="hsl(0,100%,45%)" logo={verizonLogo} />} />
-        <Route path="/boost.html" element={<DynamicCarrier carrierName="Boost Mobile" carrierSlug="boost" carrierId={36} brandColor="hsl(27,100%,50%)" logo={boostLogo} />} />
-        <Route path="/straight-talk.html" element={<DynamicCarrier carrierName="Straight Talk" carrierSlug="straight-talk" carrierId={0} brandColor="hsl(72,74%,44%)" logo={straightTalkLogo} />} />
-        <Route path="/h2o.html" element={<DynamicCarrier carrierName="H2O Wireless" carrierSlug="h2o" carrierId={6} brandColor="hsl(195,85%,50%)" logo={h2oLogo} />} />
-        <Route path="/lyca.html" element={<DynamicCarrier carrierName="Lyca Mobile" carrierSlug="lyca" carrierId={29} brandColor="hsl(220,50%,22%)" logo={lycaLogo} />} />
-        <Route path="/net10.html" element={<DynamicCarrier carrierName="Net10 Wireless" carrierSlug="net10" carrierId={7} brandColor="hsl(195,100%,50%)" logo={net10Logo} />} />
-        <Route path="/pageplus.html" element={<DynamicCarrier carrierName="Page Plus" carrierSlug="pageplus" carrierId={1} brandColor="hsl(0,70%,50%)" logo={pageplusLogo} />} />
-        <Route path="/tracfone.html" element={<DynamicCarrier carrierName="TracFone" carrierSlug="tracfone" carrierId={10} brandColor="hsl(230,70%,30%)" logo={tracfoneLogo} />} />
-        <Route path="/ultra-mobile.html" element={<DynamicCarrier carrierName="Ultra Mobile" carrierSlug="ultra-mobile" carrierId={25} brandColor="hsl(270,50%,40%)" logo={ultraLogo} />} />
-        <Route path="/us-cellular.html" element={<DynamicCarrier carrierName="US Cellular" carrierSlug="us-cellular" carrierId={88} brandColor="hsl(220,80%,35%)" logo={uscellularLogo} />} />
+        {/* Carrier pages — English + /es/ mirrors */}
+        {carrierRoutes.flatMap((c) => [
+          <Route
+            key={`en-${c.path}`}
+            path={c.path}
+            element={
+              <DynamicCarrier
+                carrierName={c.name}
+                carrierSlug={c.slug}
+                carrierId={c.carrierId}
+                brandColor={c.brandColor}
+                logo={c.logo}
+              />
+            }
+          />,
+          <Route
+            key={`es-${c.path}`}
+            path={`/es${c.path}`}
+            element={
+              <DynamicCarrier
+                lang="es"
+                carrierName={c.name}
+                carrierSlug={c.slug}
+                carrierId={c.carrierId}
+                brandColor={c.brandColor}
+                logo={c.logo}
+              />
+            }
+          />,
+        ])}
 
-        {/* Spanish (Español) versions — same data, translated UI */}
-        <Route path="/s1-espanol.html" element={<DynamicCarrier lang="es" carrierName="Simple Mobile" carrierSlug="s1" carrierId={15} brandColor="hsl(101,67%,44%)" logo={simpleMobileLogo} />} />
-        <Route path="/topup-crc-espanol.html" element={<DynamicCarrier lang="es" carrierName="Cricket Wireless" carrierSlug="topup-crc" carrierId={45} brandColor="hsl(82,60%,42%)" logo={cricketLogo} />} />
-        <Route path="/metropcs-espanol.html" element={<DynamicCarrier lang="es" carrierName="Metro PCS" carrierSlug="metropcs" carrierId={38} brandColor="hsl(270,60%,32%)" logo={metroLogo} />} />
-        <Route path="/tmobile-flexi-espanol.html" element={<DynamicCarrier lang="es" carrierName="T-Mobile" carrierSlug="tmobile" carrierId={43} brandColor="hsl(330,100%,45%)" logo={tmobileLogo} />} />
-        <Route path="/topup-at-espanol.html" element={<DynamicCarrier lang="es" carrierName="AT&T Prepaid" carrierSlug="topup-at" carrierId={3} brandColor="hsl(196,100%,44%)" logo={attLogo} />} />
-        <Route path="/verizon-espanol" element={<DynamicCarrier lang="es" carrierName="Verizon Wireless Prepaid" carrierSlug="verizon" carrierId={14} brandColor="hsl(0,100%,45%)" logo={verizonLogo} />} />
-        <Route path="/boost-espanol.html" element={<DynamicCarrier lang="es" carrierName="Boost Mobile" carrierSlug="boost" carrierId={36} brandColor="hsl(27,100%,50%)" logo={boostLogo} />} />
-        <Route path="/straight-talk-espanol.html" element={<DynamicCarrier lang="es" carrierName="Straight Talk" carrierSlug="straight-talk" carrierId={0} brandColor="hsl(72,74%,44%)" logo={straightTalkLogo} />} />
-        <Route path="/h2o-espanol.html" element={<DynamicCarrier lang="es" carrierName="H2O Wireless" carrierSlug="h2o" carrierId={6} brandColor="hsl(195,85%,50%)" logo={h2oLogo} />} />
-        <Route path="/lyca-espanol.html" element={<DynamicCarrier lang="es" carrierName="Lyca Mobile" carrierSlug="lyca" carrierId={29} brandColor="hsl(220,50%,22%)" logo={lycaLogo} />} />
-        <Route path="/net10-espanol.html" element={<DynamicCarrier lang="es" carrierName="Net10 Wireless" carrierSlug="net10" carrierId={7} brandColor="hsl(195,100%,50%)" logo={net10Logo} />} />
-        <Route path="/pageplus-espanol.html" element={<DynamicCarrier lang="es" carrierName="Page Plus" carrierSlug="pageplus" carrierId={1} brandColor="hsl(0,70%,50%)" logo={pageplusLogo} />} />
-        <Route path="/tracfone-espanol.html" element={<DynamicCarrier lang="es" carrierName="TracFone" carrierSlug="tracfone" carrierId={10} brandColor="hsl(230,70%,30%)" logo={tracfoneLogo} />} />
-        <Route path="/ultra-mobile-espanol.html" element={<DynamicCarrier lang="es" carrierName="Ultra Mobile" carrierSlug="ultra-mobile" carrierId={25} brandColor="hsl(270,50%,40%)" logo={ultraLogo} />} />
-        <Route path="/us-cellular-espanol.html" element={<DynamicCarrier lang="es" carrierName="US Cellular" carrierSlug="us-cellular" carrierId={88} brandColor="hsl(220,80%,35%)" logo={uscellularLogo} />} />
+        {/* Legacy `-espanol` URLs → redirect to canonical /es/* */}
+        {legacyEspanolRedirects.map(([from, to]) => (
+          <Route key={from} path={from} element={<Navigate to={to} replace />} />
+        ))}
 
-        {/* New carriers from API without dedicated logos */}
-        <Route path="/att-firstnet" element={<DynamicCarrier carrierName="AT&T FirstNet" carrierSlug="topup-af" carrierId={81} brandColor="hsl(196,100%,44%)" logo={attLogo} />} />
-        <Route path="/pageplus-addon" element={<DynamicCarrier carrierName="Page Plus Addon Balance" carrierSlug="pageplusadd" carrierId={50} brandColor="hsl(0,70%,50%)" logo={pageplusLogo} />} />
-        <Route path="/red-pocket" element={<DynamicCarrier carrierName="Red Pocket Mobile" carrierSlug="red-pocket-mobile" carrierId={2} brandColor="hsl(0,80%,45%)" />} />
-        <Route path="/total-wireless" element={<DynamicCarrier carrierName="Total Wireless" carrierSlug="total-wireless" carrierId={79} brandColor="hsl(200,70%,40%)" />} />
-        <Route path="/verizon-wireless-flexi.html" element={<DynamicCarrier carrierName="Verizon Wireless Flexi" carrierSlug="verizon-wireless-flexi" carrierId={75} brandColor="hsl(0,100%,45%)" logo={verizonLogo} />} />
-        <Route path="/verizon-wireless-flexi-espanol.html" element={<DynamicCarrier lang="es" carrierName="Verizon Wireless Flexi" carrierSlug="verizon-wireless-flexi" carrierId={75} brandColor="hsl(0,100%,45%)" logo={verizonLogo} />} />
-        <Route path="/xbox" element={<DynamicCarrier carrierName="XBOX" carrierSlug="xbox" carrierId={76} brandColor="hsl(120,60%,40%)" />} />
-
+        {/* Checkout / confirmation flow — English + /es/ mirrors. Same components,
+            language is detected from URL pathname inside each page. */}
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/es/checkout" element={<Checkout />} />
         <Route path="/payment-callback" element={<PaymentCallback />} />
+        <Route path="/es/payment-callback" element={<PaymentCallback />} />
         <Route path="/order-confirmation" element={<OrderConfirmation />} />
+        <Route path="/es/order-confirmation" element={<OrderConfirmation />} />
         <Route path="/checkout/cashapp-return" element={<CashAppReturn />} />
+        <Route path="/es/checkout/cashapp-return" element={<CashAppReturn />} />
+
+        {/* Account & content pages */}
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/about-us" element={<AboutUs />} />
@@ -114,6 +176,9 @@ const App = () => (
         <Route path="/returns-policy" element={<ReturnsPolicy />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminDashboard />} />
+
+        {/* Fallback: any unmatched /es/* path → strip /es and redirect to English. */}
+        <Route path="/es/*" element={<EsFallback />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
