@@ -78,7 +78,7 @@ const App = () => (
         <Route path="/pageplus-addon" element={<DynamicCarrier carrierName="Page Plus Addon Balance" carrierSlug="pageplusadd" carrierId={50} brandColor="hsl(0,70%,50%)" logo={pageplusLogo} />} />
         <Route path="/red-pocket" element={<DynamicCarrier carrierName="Red Pocket Mobile" carrierSlug="red-pocket-mobile" carrierId={2} brandColor="hsl(0,80%,45%)" />} />
         <Route path="/total-wireless" element={<DynamicCarrier carrierName="Total Wireless" carrierSlug="total-wireless" carrierId={79} brandColor="hsl(200,70%,40%)" />} />
-        <Route path="/verizon-flexi" element={<DynamicCarrier carrierName="Verizon Wireless Flexi" carrierSlug="verizon-wireless-flexi" carrierId={75} brandColor="hsl(0,100%,45%)" logo={verizonLogo} />} />
+        <Route path="/verizon-wireless-flexi.html" element={<DynamicCarrier carrierName="Verizon Wireless Flexi" carrierSlug="verizon-wireless-flexi" carrierId={75} brandColor="hsl(0,100%,45%)" logo={verizonLogo} />} />
         <Route path="/xbox" element={<DynamicCarrier carrierName="XBOX" carrierSlug="xbox" carrierId={76} brandColor="hsl(120,60%,40%)" />} />
 
         <Route path="/checkout" element={<Checkout />} />
