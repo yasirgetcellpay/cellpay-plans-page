@@ -219,7 +219,7 @@ const Home = () => {
 
   const handleNav = (path: string) => {
     setDropdownOpen(false);
-    navigate(path);
+    navigate(langPath(path, lang));
   };
 
   return (
