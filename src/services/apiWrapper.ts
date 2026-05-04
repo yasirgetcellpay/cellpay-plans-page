@@ -261,12 +261,77 @@ export async function submitTransaction(
   payload: Record<string, unknown>,
   bearerToken?: string
 ): Promise<unknown> {
-  return callProxy({
-    endpoint: "checkout/transaction",
-    method: "POST",
-    payload,
-    bearerToken,
-  });
+  // Log pending attempt to admin dashboard
+  let logId: string | null = null;
+  try {
+    const p = payload as Record<string, unknown>;
+    const paymentObj = (p.payment as Record<string, unknown>) || {};
+    const meta = (window as unknown as { __cellpayCheckoutMeta?: Record<string, unknown> }).__cellpayCheckoutMeta || {};
+    const { data: inserted } = await supabase
+      .from("transaction_logs")
+      .insert({
+        carrier_name: (meta.carrierName as string) || null,
+        carrier_slug: (meta.carrierSlug as string) || null,
+        carrier_id: p.carrierId != null ? String(p.carrierId) : null,
+        plan_id: p.plan_id != null ? String(p.plan_id) : null,
+        phone_number: (p.phone_number as string) || null,
+        email: (paymentObj.email as string) || null,
+        first_name: (paymentObj.firstName as string) || null,
+        last_name: (paymentObj.lastName as string) || null,
+        amount: (p.amount as number) ?? null,
+        total: (p.total as number) ?? null,
+        payment_method: (p.payment_method as string) || null,
+        card_type: (p.ctype as string) || null,
+        status: "pending",
+        source_ip: (p.source as string) || null,
+        user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+        metadata: meta as object,
+      })
+      .select("id")
+      .single();
+    logId = inserted?.id || null;
+  } catch (e) {
+    console.warn("[tx-log] insert failed", e);
+  }
+
+  let raw: unknown;
+  let txError: string | null = null;
+  try {
+    raw = await callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken });
+  } catch (e) {
+    txError = e instanceof Error ? e.message : String(e);
+    if (logId) {
+      await supabase.from("transaction_logs").update({ status: "failed", error_message: txError }).eq("id", logId);
+    }
+    throw e;
+  }
+
+  // Determine success/failure from response
+  try {
+    let result = (raw as Record<string, unknown>) || {};
+    if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+      const inner = result.data as Record<string, unknown>;
+      result = (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data))
+        ? (inner.data as Record<string, unknown>) : inner;
+    }
+    const status = result.status;
+    const isSuccess = status === true || status === "true" ||
+      String(status || "").toLowerCase() === "success" ||
+      String(status || "").toLowerCase() === "completed";
+    if (logId) {
+      await supabase.from("transaction_logs").update({
+        status: isSuccess ? "success" : "failed",
+        hashid: (result.hashid as string) || null,
+        transaction_id: (result.transactionId as string) || (result.transaction_id as string) || null,
+        error_message: isSuccess ? null : ((result.msg as string) || (result.message as string) || null),
+        raw_response: result as object,
+      }).eq("id", logId);
+    }
+  } catch (e) {
+    console.warn("[tx-log] update failed", e);
+  }
+
+  return raw;
 }
 
 export async function fetchCheckoutConfig(): Promise<Record<string, unknown>> {
