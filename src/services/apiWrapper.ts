@@ -261,78 +261,7 @@ export async function submitTransaction(
   payload: Record<string, unknown>,
   bearerToken?: string
 ): Promise<unknown> {
-  // Log pending attempt to admin dashboard
-  let logId: string | null = null;
-  try {
-    const p = payload as Record<string, unknown>;
-    const paymentObj = (p.payment as Record<string, unknown>) || {};
-    const meta = (window as unknown as { __cellpayCheckoutMeta?: Record<string, unknown> }).__cellpayCheckoutMeta || {};
-    const { data: newId } = await supabase.rpc("log_transaction_attempt", {
-      _data: {
-        carrier_name: (meta.carrierName as string) || null,
-        carrier_slug: (meta.carrierSlug as string) || null,
-        carrier_id: p.carrierId != null ? String(p.carrierId) : null,
-        plan_id: p.plan_id != null ? String(p.plan_id) : null,
-        phone_number: (p.phone_number as string) || null,
-        email: (paymentObj.email as string) || null,
-        first_name: (paymentObj.firstName as string) || null,
-        last_name: (paymentObj.lastName as string) || null,
-        amount: p.amount != null ? String(p.amount) : null,
-        total: p.total != null ? String(p.total) : null,
-        payment_method: (p.payment_method as string) || null,
-        card_type: (p.ctype as string) || null,
-        source_ip: (p.source as string) || null,
-        user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
-        metadata: JSON.parse(JSON.stringify(meta)),
-      },
-    });
-    logId = (newId as string) || null;
-  } catch (e) {
-    console.warn("[tx-log] insert failed", e);
-  }
-
-  let raw: unknown;
-  let txError: string | null = null;
-  try {
-    raw = await callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken });
-  } catch (e) {
-    txError = e instanceof Error ? e.message : String(e);
-    if (logId) {
-      await supabase.rpc("finalize_transaction_log", {
-        _id: logId, _status: "failed", _hashid: null, _transaction_id: null,
-        _error_message: txError, _raw_response: null,
-      });
-    }
-    throw e;
-  }
-
-  // Determine success/failure from response
-  try {
-    let result = (raw as Record<string, unknown>) || {};
-    if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
-      const inner = result.data as Record<string, unknown>;
-      result = (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data))
-        ? (inner.data as Record<string, unknown>) : inner;
-    }
-    const status = result.status;
-    const isSuccess = status === true || status === "true" ||
-      String(status || "").toLowerCase() === "success" ||
-      String(status || "").toLowerCase() === "completed";
-    if (logId) {
-      await supabase.rpc("finalize_transaction_log", {
-        _id: logId,
-        _status: isSuccess ? "success" : "failed",
-        _hashid: (result.hashid as string) || null,
-        _transaction_id: (result.transactionId as string) || (result.transaction_id as string) || null,
-        _error_message: isSuccess ? null : ((result.msg as string) || (result.message as string) || null),
-        _raw_response: JSON.parse(JSON.stringify(result)),
-      });
-    }
-  } catch (e) {
-    console.warn("[tx-log] update failed", e);
-  }
-
-  return raw;
+  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken });
 }
 
 export async function fetchCheckoutConfig(): Promise<Record<string, unknown>> {
