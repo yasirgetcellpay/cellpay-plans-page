@@ -270,7 +270,7 @@ const DynamicCarrier = ({
     }
     const planAmount = Number(plan.price.replace("$", ""));
     const selectedPlan = plans.find((p) => p.amount === planAmount);
-    navigate("/checkout", {
+    navigate(lang === "es" ? "/es/checkout" : "/checkout", {
       state: {
         phone,
         amount: planAmount,
@@ -317,7 +317,7 @@ const DynamicCarrier = ({
     }
     // Custom amount path → use carrier_plans.carrier.id when available
     const selectedPlan = plans.find((p) => p.amount === amountNum);
-    navigate("/checkout", {
+    navigate(lang === "es" ? "/es/checkout" : "/checkout", {
       state: {
         phone,
         amount: amountNum,

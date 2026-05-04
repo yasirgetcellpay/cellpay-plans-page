@@ -1,3 +1,5 @@
+import { useLocation } from "react-router-dom";
+
 export type Language = "en" | "es";
 
 export interface Translations {
@@ -56,6 +58,89 @@ export interface Translations {
   viewFullTerms: string;
   // PaymentBar
   weAccept: string;
+
+  // ── Checkout ──
+  checkout: string;
+  rechargeTitle: (carrier: string) => string;
+  orderSummary: string;
+  phone: string;
+  amount: string;
+  serviceFee: string;
+  tax: string;
+  sslSecured: string;
+  pciCompliant: string;
+  verifiedMerchant: string;
+  support247: string;
+  contactInformation: string;
+  emailPlaceholder: string;
+  invalidEmail: string;
+  paymentMethod: string;
+  cardDetails: string;
+  firstName: string;
+  lastName: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  zip: string;
+  cardNumber: string;
+  expiry: string;
+  cvv: string;
+  paypalCheckout: string;
+  loadingPaypal: string;
+  billingDetails: string;
+  billPayerPhone: string;
+  stateProvince: string;
+  country: string;
+  zipCode: string;
+  agreeTerms: string;
+  agreeTermsSuffix: string;
+  saveCard: string;
+  saveCardWhats: string;
+  subscribeAutoPay: string;
+  acceptAutoPayTerms: string;
+  placeOrder: string;
+  processing: string;
+  securePoweredBy: string;
+  paymentFailed: string;
+  tryAgain: string;
+  validationFailedTitle: string;
+  validationFailedDesc: string;
+  errorTitle: string;
+  goBackAria: string;
+  // Card method labels
+  methodCard: string;
+  methodApplePay: string;
+  methodGooglePay: string;
+  methodPayPal: string;
+  methodPayByBank: string;
+  methodCashApp: string;
+  methodKlarna: string;
+
+  // ── Order Confirmation ──
+  thankYouHeader: string;
+  contactUsLink: string;
+  postedNote: string;
+  noTransaction: string;
+  couldNotLoad: string;
+  backToHome: string;
+  orderId: string;
+  pinLabel: string;
+  productName: string;
+  phoneNumber: string;
+  emailLabel: string;
+  qty: string;
+  price: string;
+  continueShopping: string;
+
+  // ── CashApp / Callback ──
+  processingPayment: string;
+  confirmingCashApp: string;
+  doNotClose: string;
+  paymentSuccessful: string;
+  rechargeProcessed: string;
+  paymentFailedDesc: string;
+  transactionLabel: string;
+  missingSession: string;
 }
 
 const en: Translations = {
@@ -108,6 +193,85 @@ const en: Translations = {
     "All prices shown are full retail prices. Taxes and fees are additional and vary by location. Service plans are non-refundable.",
   viewFullTerms: "[View full Terms & Conditions]",
   weAccept: "We Accept:",
+
+  checkout: "Checkout",
+  rechargeTitle: (c) => `${c} Recharge`,
+  orderSummary: "Order Summary",
+  phone: "Phone",
+  amount: "Amount",
+  serviceFee: "Service Fee",
+  tax: "Tax",
+  sslSecured: "SSL Secured",
+  pciCompliant: "PCI Compliant",
+  verifiedMerchant: "Verified Merchant",
+  support247: "24/7 Support",
+  contactInformation: "Contact Information",
+  emailPlaceholder: "Email Address *",
+  invalidEmail: "Please enter a valid email address",
+  paymentMethod: "Payment Method",
+  cardDetails: "Card Details",
+  firstName: "First Name",
+  lastName: "Last Name",
+  streetAddress: "Street Address",
+  city: "City",
+  state: "State",
+  zip: "ZIP",
+  cardNumber: "Card Number",
+  expiry: "MM/YY",
+  cvv: "CVV",
+  paypalCheckout: "PayPal Checkout",
+  loadingPaypal: "Loading PayPal...",
+  billingDetails: "Billing Details",
+  billPayerPhone: "Bill Payer's Phone Number",
+  stateProvince: "State/Province",
+  country: "Country",
+  zipCode: "ZIP Code",
+  agreeTerms: "I agree to the",
+  agreeTermsSuffix: "and confirm this sale is final.",
+  saveCard: "Save payment information for next time?",
+  saveCardWhats: "(What's this)",
+  subscribeAutoPay: "Subscribe to Auto Pay?",
+  acceptAutoPayTerms: "Accept Terms and Conditions",
+  placeOrder: "PLACE ORDER NOW",
+  processing: "Processing...",
+  securePoweredBy: "Secure payment powered by CellPay. Instant refill sent directly to your phone.",
+  paymentFailed: "Payment Failed",
+  tryAgain: "Try Again",
+  validationFailedTitle: "Validation failed",
+  validationFailedDesc: "Unable to validate this recharge",
+  errorTitle: "Error",
+  goBackAria: "Go back",
+  methodCard: "Card",
+  methodApplePay: "Apple Pay",
+  methodGooglePay: "Google Pay",
+  methodPayPal: "PayPal",
+  methodPayByBank: "Pay by Bank",
+  methodCashApp: "Cash App",
+  methodKlarna: "Klarna",
+
+  thankYouHeader: "Thank you for your payment. The charge on your statement will reflect CellPay.",
+  contactUsLink: "If you need additional information, please",
+  postedNote: "Your payment has been posted on your account. It can take up to 30 min to reflect on your account.",
+  noTransaction: "No transaction reference found.",
+  couldNotLoad: "Could not load transaction details.",
+  backToHome: "Back to Home",
+  orderId: "Order ID",
+  pinLabel: "Pin (Use it if not recharged)",
+  productName: "Product Name",
+  phoneNumber: "Phone Number",
+  emailLabel: "Email",
+  qty: "Qty",
+  price: "Price",
+  continueShopping: "CONTINUE SHOPPING",
+
+  processingPayment: "Processing your payment",
+  confirmingCashApp: "Confirming your Cash App payment…",
+  doNotClose: "Please don't close this window — we'll update automatically.",
+  paymentSuccessful: "Payment Successful!",
+  rechargeProcessed: "Your recharge has been processed successfully.",
+  paymentFailedDesc: "Your payment could not be completed. Please try again.",
+  transactionLabel: "Transaction",
+  missingSession: "Missing payment session reference.",
 };
 
 const es: Translations = {
@@ -160,6 +324,102 @@ const es: Translations = {
     "Todos los precios mostrados son precios minoristas completos. Los impuestos y tarifas son adicionales y varían según la ubicación. Los planes de servicio no son reembolsables.",
   viewFullTerms: "[Ver Términos y Condiciones completos]",
   weAccept: "Aceptamos:",
+
+  checkout: "Pago",
+  rechargeTitle: (c) => `Recarga de ${c}`,
+  orderSummary: "Resumen del pedido",
+  phone: "Teléfono",
+  amount: "Monto",
+  serviceFee: "Cargo por servicio",
+  tax: "Impuesto",
+  sslSecured: "SSL Seguro",
+  pciCompliant: "Cumple con PCI",
+  verifiedMerchant: "Comerciante verificado",
+  support247: "Soporte 24/7",
+  contactInformation: "Información de contacto",
+  emailPlaceholder: "Correo electrónico *",
+  invalidEmail: "Por favor ingrese un correo electrónico válido",
+  paymentMethod: "Método de pago",
+  cardDetails: "Detalles de la tarjeta",
+  firstName: "Nombre",
+  lastName: "Apellido",
+  streetAddress: "Dirección",
+  city: "Ciudad",
+  state: "Estado",
+  zip: "Código Postal",
+  cardNumber: "Número de tarjeta",
+  expiry: "MM/AA",
+  cvv: "CVV",
+  paypalCheckout: "Pago con PayPal",
+  loadingPaypal: "Cargando PayPal...",
+  billingDetails: "Datos de facturación",
+  billPayerPhone: "Teléfono del pagador",
+  stateProvince: "Estado/Provincia",
+  country: "País",
+  zipCode: "Código Postal",
+  agreeTerms: "Acepto los",
+  agreeTermsSuffix: "y confirmo que esta venta es final.",
+  saveCard: "¿Guardar información de pago para la próxima vez?",
+  saveCardWhats: "(¿Qué es esto?)",
+  subscribeAutoPay: "¿Suscribirse a pago automático?",
+  acceptAutoPayTerms: "Aceptar Términos y Condiciones",
+  placeOrder: "REALIZAR PEDIDO AHORA",
+  processing: "Procesando...",
+  securePoweredBy: "Pago seguro con tecnología de CellPay. Recarga instantánea enviada a su teléfono.",
+  paymentFailed: "Pago fallido",
+  tryAgain: "Intentar de nuevo",
+  validationFailedTitle: "Validación fallida",
+  validationFailedDesc: "No se pudo validar esta recarga",
+  errorTitle: "Error",
+  goBackAria: "Volver",
+  methodCard: "Tarjeta",
+  methodApplePay: "Apple Pay",
+  methodGooglePay: "Google Pay",
+  methodPayPal: "PayPal",
+  methodPayByBank: "Pago bancario",
+  methodCashApp: "Cash App",
+  methodKlarna: "Klarna",
+
+  thankYouHeader: "Gracias por su pago. El cargo en su estado de cuenta aparecerá como CellPay.",
+  contactUsLink: "Si necesita información adicional, por favor",
+  postedNote: "Su pago se ha registrado en su cuenta. Puede tardar hasta 30 min en reflejarse.",
+  noTransaction: "No se encontró referencia de transacción.",
+  couldNotLoad: "No se pudieron cargar los detalles de la transacción.",
+  backToHome: "Volver al inicio",
+  orderId: "ID del pedido",
+  pinLabel: "PIN (Úselo si no se recargó)",
+  productName: "Nombre del producto",
+  phoneNumber: "Número de teléfono",
+  emailLabel: "Correo electrónico",
+  qty: "Cant.",
+  price: "Precio",
+  continueShopping: "CONTINUAR COMPRANDO",
+
+  processingPayment: "Procesando su pago",
+  confirmingCashApp: "Confirmando su pago de Cash App…",
+  doNotClose: "Por favor no cierre esta ventana — actualizaremos automáticamente.",
+  paymentSuccessful: "¡Pago exitoso!",
+  rechargeProcessed: "Su recarga se procesó exitosamente.",
+  paymentFailedDesc: "No se pudo completar su pago. Por favor inténtelo de nuevo.",
+  transactionLabel: "Transacción",
+  missingSession: "Falta la referencia de la sesión de pago.",
 };
 
 export const t = (lang: Language): Translations => (lang === "es" ? es : en);
+
+/** Detect language from current URL pathname. `/es/...` → 'es', else 'en'. */
+export const detectLangFromPath = (pathname: string): Language =>
+  pathname === "/es" || pathname.startsWith("/es/") || /-espanol(\.html)?$/.test(pathname) ? "es" : "en";
+
+/** React hook: returns current language based on URL. */
+export const useLang = (): Language => {
+  const { pathname } = useLocation();
+  return detectLangFromPath(pathname);
+};
+
+/** Prefix a path with `/es` when lang is Spanish. */
+export const langPath = (path: string, lang: Language): string => {
+  if (lang !== "es") return path;
+  if (path.startsWith("/es/") || path === "/es") return path;
+  return `/es${path.startsWith("/") ? path : `/${path}`}`;
+};
