@@ -153,6 +153,7 @@ const excludedSlugs = new Set<string>([
   "topup-af",                  // AT&T FirstNet (duplicate of AT&T)
   "verizon-wireless-flexi",    // Verizon Flexi (duplicate of Verizon)
   "pageplusadd",               // Page Plus Addon (duplicate of Page Plus)
+  "red-pocket-mobile",         // Red Pocket Mobile (hidden from homepage)
 ]);
 
 function mapApiCarrier(c: Carrier): DisplayCarrier | null {
