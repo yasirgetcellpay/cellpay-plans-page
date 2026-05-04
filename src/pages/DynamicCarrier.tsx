@@ -258,14 +258,14 @@ const DynamicCarrier = ({
   // Direct checkout from plan card "Pay Now" button (fixed_plans → use that plan's carrier id)
   const handlePlanPayNow = async (plan: { price: string; highlight: string }) => {
     if (phoneDigits.length !== 10) {
-      toast({ title: "Phone number required", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
+      toast({ title: tr.phoneRequired, description: tr.phoneRequired, variant: "destructive" });
       return;
     }
     setVerifying(true);
     const verify = await verifyPhone(carrierSlug, phoneDigits);
     setVerifying(false);
     if (!verify.success) {
-      toast({ title: "Invalid phone number", description: verify.message || "Couldn't verify the phone number.", variant: "destructive" });
+      toast({ title: tr.invalidPhone, description: verify.message || tr.invalidPhone, variant: "destructive" });
       return;
     }
     const planAmount = Number(plan.price.replace("$", ""));
@@ -289,30 +289,30 @@ const DynamicCarrier = ({
   const handlePay = async () => {
     setInlineError(null);
     if (phoneDigits.length !== 10) {
-      const msg = "Please enter a valid 10-digit phone number.";
+      const msg = tr.phoneRequired;
       setInlineError(msg);
-      toast({ title: "Phone number required", description: msg, variant: "destructive" });
+      toast({ title: msg, description: msg, variant: "destructive" });
       return;
     }
     if (amountNum < rangeMin || amountNum > rangeMax) {
-      const msg = `Please enter an amount between $${rangeMin} and $${rangeMax}.`;
+      const msg = tr.invalidAmount(rangeMin, rangeMax);
       setInlineError(msg);
-      toast({ title: "Invalid amount", description: msg, variant: "destructive" });
+      toast({ title: msg, description: msg, variant: "destructive" });
       return;
     }
     if (!confirmed) {
-      const msg = "Please confirm that the phone number is correct.";
+      const msg = tr.confirmRequired;
       setInlineError(msg);
-      toast({ title: "Confirmation required", description: msg, variant: "destructive" });
+      toast({ title: msg, description: msg, variant: "destructive" });
       return;
     }
     setVerifying(true);
     const verify = await verifyPhone(carrierSlug, phoneDigits);
     setVerifying(false);
     if (!verify.success) {
-      const msg = verify.message || "Couldn't verify the phone number.";
+      const msg = verify.message || tr.invalidPhone;
       setInlineError(msg);
-      toast({ title: "Invalid phone number", description: msg, variant: "destructive" });
+      toast({ title: tr.invalidPhone, description: msg, variant: "destructive" });
       return;
     }
     // Custom amount path → use carrier_plans.carrier.id when available
