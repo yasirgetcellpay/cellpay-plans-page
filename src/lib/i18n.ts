@@ -132,6 +132,24 @@ export interface Translations {
   price: string;
   continueShopping: string;
 
+  // ── Home page ──
+  homeH1: string;
+  homeSubtitle: string;
+  homeRating: string;
+  secureCheckout: string;
+  instantDelivery: string;
+  support247Short: string;
+  refillNow: string;
+  howItWorksTitle: string;
+  howItWorksSubtitle: string;
+  step: string;
+  stepChooseCarrier: string;
+  stepEnterNumber: string;
+  stepSelectPlan: string;
+  stepPay: string;
+  homeFaqTitle: string;
+  homeFaq: { q: string; a: string }[];
+
   // ── CashApp / Callback ──
   processingPayment: string;
   confirmingCashApp: string;
