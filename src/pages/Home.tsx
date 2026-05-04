@@ -112,23 +112,23 @@ const slugToColor: Record<string, string> = {
 
 /* ── static fallback (all carriers) ── */
 const staticCarriers: DisplayCarrier[] = [
-  { name: "Simple Mobile", logo: simpleMobileLogo, path: "/simple-mobile", bg: "bg-[hsl(101,67%,44%)]" },
-  { name: "Cricket Wireless", logo: cricketLogo, path: "/cricket", bg: "bg-[hsl(82,60%,42%)]" },
-  { name: "Metro PCS", logo: metroLogo, path: "/metro", bg: "bg-[hsl(270,60%,32%)]" },
-  { name: "T-Mobile", logo: tmobileLogo, path: "/tmobile", bg: "bg-[hsl(330,100%,45%)]" },
-  { name: "AT&T Prepaid", logo: attLogo, path: "/att", bg: "bg-[hsl(196,100%,44%)]" },
+  { name: "Simple Mobile", logo: simpleMobileLogo, path: "/s1.html", bg: "bg-[hsl(101,67%,44%)]" },
+  { name: "Cricket Wireless", logo: cricketLogo, path: "/topup-crc.html", bg: "bg-[hsl(82,60%,42%)]" },
+  { name: "Metro PCS", logo: metroLogo, path: "/metropcs.html", bg: "bg-[hsl(270,60%,32%)]" },
+  { name: "T-Mobile", logo: tmobileLogo, path: "/tmobile-flexi.html", bg: "bg-[hsl(330,100%,45%)]" },
+  { name: "AT&T Prepaid", logo: attLogo, path: "/topup-at.html", bg: "bg-[hsl(196,100%,44%)]" },
   { name: "Verizon", logo: verizonLogo, path: "/verizon", bg: "bg-[hsl(0,100%,45%)]" },
-  { name: "Boost Mobile", logo: boostLogo, path: "/boost", bg: "bg-[hsl(27,100%,50%)]" },
-  { name: "Straight Talk", logo: straightTalkLogo, path: "/straight-talk", bg: "bg-[hsl(72,74%,44%)]" },
-  { name: "H2O Wireless", logo: h2oLogo, path: "/h2o", bg: "bg-[hsl(195,85%,50%)]" },
-  { name: "Lyca Mobile", logo: lycaLogo, path: "/lyca", bg: "bg-[hsl(220,50%,22%)]" },
-  { name: "Net10 Wireless", logo: net10Logo, path: "/net10", bg: "bg-[hsl(195,100%,50%)]" },
-  { name: "Page Plus", logo: pageplusLogo, path: "/pageplus", bg: "bg-[hsl(0,70%,50%)]" },
+  { name: "Boost Mobile", logo: boostLogo, path: "/boost.html", bg: "bg-[hsl(27,100%,50%)]" },
+  { name: "Straight Talk", logo: straightTalkLogo, path: "/straight-talk.html", bg: "bg-[hsl(72,74%,44%)]" },
+  { name: "H2O Wireless", logo: h2oLogo, path: "/h2o.html", bg: "bg-[hsl(195,85%,50%)]" },
+  { name: "Lyca Mobile", logo: lycaLogo, path: "/lyca.html", bg: "bg-[hsl(220,50%,22%)]" },
+  { name: "Net10 Wireless", logo: net10Logo, path: "/net10.html", bg: "bg-[hsl(195,100%,50%)]" },
+  { name: "Page Plus", logo: pageplusLogo, path: "/pageplus.html", bg: "bg-[hsl(0,70%,50%)]" },
   
   { name: "Total Wireless", logo: totalWirelessLogo, path: "/total-wireless", bg: "bg-[hsl(200,70%,40%)]" },
-  { name: "TracFone", logo: tracfoneLogo, path: "/tracfone", bg: "bg-[hsl(230,70%,30%)]" },
-  { name: "Ultra Mobile", logo: ultraLogo, path: "/ultra-mobile", bg: "bg-[hsl(270,50%,40%)]" },
-  { name: "US Cellular", logo: uscellularLogo, path: "/uscellular", bg: "bg-[hsl(220,80%,35%)]" },
+  { name: "TracFone", logo: tracfoneLogo, path: "/tracfone.html", bg: "bg-[hsl(230,70%,30%)]" },
+  { name: "Ultra Mobile", logo: ultraLogo, path: "/ultra-mobile.html", bg: "bg-[hsl(270,50%,40%)]" },
+  { name: "US Cellular", logo: uscellularLogo, path: "/us-cellular.html", bg: "bg-[hsl(220,80%,35%)]" },
 ];
 
 interface DisplayCarrier {
