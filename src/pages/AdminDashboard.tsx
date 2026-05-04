@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tables } from "@/integrations/supabase/types";
 
 type TxLog = Tables<"transaction_logs">;
+type Visitor = { session_id: string; path: string; last_seen: string };
 
 const RANGES = [
   { label: "Last 24h", value: "1d", hours: 24 },
@@ -29,6 +30,8 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [methodFilter, setMethodFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [visitors, setVisitors] = useState<Visitor[]>([]);
+  const [now, setNow] = useState(Date.now());
 
   // Auth + admin check
   useEffect(() => {
@@ -92,6 +95,35 @@ export default function AdminDashboard() {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [isAdmin]);
+
+  // Live visitors (presence) — refresh every 10s
+  useEffect(() => {
+    if (!isAdmin) return;
+    const fetchVisitors = async () => {
+      const since = new Date(Date.now() - 60_000).toISOString();
+      const { data } = await supabase
+        .from("page_visitors")
+        .select("session_id, path, last_seen")
+        .gte("last_seen", since)
+        .order("last_seen", { ascending: false });
+      setVisitors((data as Visitor[]) || []);
+      setNow(Date.now());
+    };
+    fetchVisitors();
+    const t = window.setInterval(fetchVisitors, 10_000);
+    return () => window.clearInterval(t);
+  }, [isAdmin]);
+
+  const liveVisitors = useMemo(() => {
+    const cutoff = now - 60_000;
+    return visitors.filter((v) => new Date(v.last_seen).getTime() >= cutoff);
+  }, [visitors, now]);
+
+  const visitorsByPath = useMemo(() => {
+    const map = new Map<string, number>();
+    liveVisitors.forEach((v) => map.set(v.path, (map.get(v.path) || 0) + 1));
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+  }, [liveVisitors]);
 
   const filtered = useMemo(() => {
     return logs.filter((l) => {
@@ -192,12 +224,35 @@ export default function AdminDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <KpiCard title="Live visitors" value={String(liveVisitors.length)} sub="active in last 60s" />
           <KpiCard title="Revenue" value={fmt$(kpis.revenue)} sub={`${kpis.successCount} successful`} />
           <KpiCard title="Total attempts" value={String(kpis.total)} sub={`${kpis.pending} pending`} />
           <KpiCard title="Success rate" value={`${kpis.successRate.toFixed(1)}%`} sub={`${kpis.failed} failed`} />
           <KpiCard title="Avg order value" value={fmt$(kpis.aov)} sub="successful only" />
         </div>
+
+        {/* Live visitors by page */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              Visitors by page <span className="text-xs font-normal text-muted-foreground">(live, last 60s)</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader><TableRow><TableHead>Page</TableHead><TableHead className="text-right">People</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {visitorsByPath.map(([path, count]) => (
+                  <TableRow key={path}><TableCell className="font-mono text-xs">{path}</TableCell><TableCell className="text-right">{count}</TableCell></TableRow>
+                ))}
+                {visitorsByPath.length === 0 && (
+                  <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">No one online right now</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
 
         {/* Breakdowns */}
         <div className="grid md:grid-cols-2 gap-4">

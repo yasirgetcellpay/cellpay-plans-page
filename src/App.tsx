@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { captureTrackingIdsFromUrl } from "@/lib/tracking";
+import { usePresence } from "@/hooks/usePresence";
 import Home from "./pages/Home.tsx";
 import DynamicCarrier from "./pages/DynamicCarrier.tsx";
 import Checkout from "./pages/Checkout.tsx";
@@ -44,6 +45,7 @@ const TrackingCapture = () => {
   useEffect(() => {
     captureTrackingIdsFromUrl();
   }, [location.search]);
+  usePresence();
   return null;
 };
 
