@@ -21,6 +21,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { getGclid } from "@/lib/tracking";
 import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib/subdivisions";
+import { useLang, t } from "@/lib/i18n";
 
 interface LocationState {
   phone: string;
