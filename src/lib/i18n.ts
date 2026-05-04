@@ -290,6 +290,28 @@ const en: Translations = {
   paymentFailedDesc: "Your payment could not be completed. Please try again.",
   transactionLabel: "Transaction",
   missingSession: "Missing payment session reference.",
+
+  homeH1: "Refill Any Prepaid Phone in Seconds",
+  homeSubtitle: "Instant top-ups for 15+ carriers · No account required",
+  homeRating: "· 50,000+ customers served",
+  secureCheckout: "Secure Checkout",
+  instantDelivery: "Instant Delivery",
+  support247Short: "24/7 Support",
+  refillNow: "Refill Now",
+  howItWorksTitle: "How it works in 4 easy steps",
+  howItWorksSubtitle: "Refill any prepaid line in under 60 seconds — no account needed.",
+  step: "Step",
+  stepChooseCarrier: "Choose a Carrier",
+  stepEnterNumber: "Enter your number",
+  stepSelectPlan: "Select a plan",
+  stepPay: "Pay",
+  homeFaqTitle: "Frequently Asked Questions",
+  homeFaq: [
+    { q: "What is CellPay?", a: "CellPay is a fast, secure online payment service that lets you refill any major US prepaid wireless line in seconds — no account required." },
+    { q: "How does CellPay work?", a: "Pick your carrier, enter the prepaid phone number, choose a refill amount or plan, and pay with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. The refill is applied to the line instantly." },
+    { q: "Is CellPay for real?", a: "Yes. CellPay has processed payments for thousands of customers across 15+ carriers. Every transaction is processed through trusted, PCI-compliant payment networks." },
+    { q: "Is CellPay secure?", a: "Absolutely. All payment data is encrypted in transit with TLS, and card data is handled by PCI-DSS-compliant providers. CellPay never stores your full card number on our servers." },
+  ],
 };
 
 const es: Translations = {
