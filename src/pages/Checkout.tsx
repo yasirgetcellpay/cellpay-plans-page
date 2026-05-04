@@ -1507,11 +1507,11 @@ const Checkout = () => {
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => setErrorMsg(null)}>
           <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="text-4xl mb-3">❌</div>
-            <h3 className="text-xl font-bold text-foreground mb-2">Payment Failed</h3>
+            <h3 className="text-xl font-bold text-foreground mb-2">{tr.paymentFailed}</h3>
             <p className="text-sm text-muted-foreground mb-4">{errorMsg}</p>
             <button type="button" onClick={() => setErrorMsg(null)}
               className="px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
-              Try Again
+              {tr.tryAgain}
             </button>
           </div>
         </div>
@@ -1520,18 +1520,20 @@ const Checkout = () => {
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => setShowSaveInfoTip(false)}>
           <div className="bg-foreground text-background rounded-2xl p-6 max-w-sm w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
             <p className="text-sm leading-relaxed text-center">
-              You have opted to save your cc info on file for a faster future payment. Be sure to create an password after you have completed your purchase to pay with the saved bank card info next time. And you have opted to send text to pay message.
+              {lang === "es"
+                ? "Ha optado por guardar la información de su tarjeta para un pago futuro más rápido. Asegúrese de crear una contraseña después de completar su compra para pagar con la información guardada la próxima vez."
+                : "You have opted to save your cc info on file for a faster future payment. Be sure to create an password after you have completed your purchase to pay with the saved bank card info next time. And you have opted to send text to pay message."}
             </p>
             <div className="flex justify-center mt-4">
               <button type="button" onClick={() => setShowSaveInfoTip(false)}
                 className="px-6 py-2 rounded-lg bg-background text-foreground font-bold text-sm">
-                Got it
+                {lang === "es" ? "Entendido" : "Got it"}
               </button>
             </div>
           </div>
         </div>
       )}
-      <PaymentBar />
+      <PaymentBar lang={lang} />
       <Footer />
       <LegalBar />
     </div>
