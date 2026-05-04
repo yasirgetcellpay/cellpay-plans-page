@@ -267,9 +267,8 @@ export async function submitTransaction(
     const p = payload as Record<string, unknown>;
     const paymentObj = (p.payment as Record<string, unknown>) || {};
     const meta = (window as unknown as { __cellpayCheckoutMeta?: Record<string, unknown> }).__cellpayCheckoutMeta || {};
-    const { data: inserted } = await supabase
-      .from("transaction_logs")
-      .insert([{
+    const { data: newId } = await supabase.rpc("log_transaction_attempt", {
+      _data: {
         carrier_name: (meta.carrierName as string) || null,
         carrier_slug: (meta.carrierSlug as string) || null,
         carrier_id: p.carrierId != null ? String(p.carrierId) : null,
@@ -278,18 +277,16 @@ export async function submitTransaction(
         email: (paymentObj.email as string) || null,
         first_name: (paymentObj.firstName as string) || null,
         last_name: (paymentObj.lastName as string) || null,
-        amount: (p.amount as number) ?? null,
-        total: (p.total as number) ?? null,
+        amount: p.amount != null ? String(p.amount) : null,
+        total: p.total != null ? String(p.total) : null,
         payment_method: (p.payment_method as string) || null,
         card_type: (p.ctype as string) || null,
-        status: "pending",
         source_ip: (p.source as string) || null,
         user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
         metadata: JSON.parse(JSON.stringify(meta)),
-      }])
-      .select("id")
-      .single();
-    logId = inserted?.id || null;
+      },
+    });
+    logId = (newId as string) || null;
   } catch (e) {
     console.warn("[tx-log] insert failed", e);
   }
@@ -301,7 +298,10 @@ export async function submitTransaction(
   } catch (e) {
     txError = e instanceof Error ? e.message : String(e);
     if (logId) {
-      await supabase.from("transaction_logs").update({ status: "failed", error_message: txError }).eq("id", logId);
+      await supabase.rpc("finalize_transaction_log", {
+        _id: logId, _status: "failed", _hashid: null, _transaction_id: null,
+        _error_message: txError, _raw_response: null,
+      });
     }
     throw e;
   }
@@ -319,13 +319,14 @@ export async function submitTransaction(
       String(status || "").toLowerCase() === "success" ||
       String(status || "").toLowerCase() === "completed";
     if (logId) {
-      await supabase.from("transaction_logs").update({
-        status: isSuccess ? "success" : "failed",
-        hashid: (result.hashid as string) || null,
-        transaction_id: (result.transactionId as string) || (result.transaction_id as string) || null,
-        error_message: isSuccess ? null : ((result.msg as string) || (result.message as string) || null),
-        raw_response: JSON.parse(JSON.stringify(result)),
-      }).eq("id", logId);
+      await supabase.rpc("finalize_transaction_log", {
+        _id: logId,
+        _status: isSuccess ? "success" : "failed",
+        _hashid: (result.hashid as string) || null,
+        _transaction_id: (result.transactionId as string) || (result.transaction_id as string) || null,
+        _error_message: isSuccess ? null : ((result.msg as string) || (result.message as string) || null),
+        _raw_response: JSON.parse(JSON.stringify(result)),
+      });
     }
   } catch (e) {
     console.warn("[tx-log] update failed", e);
