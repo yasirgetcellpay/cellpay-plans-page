@@ -32,6 +32,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useLang, t, langPath } from "@/lib/i18n";
 
 /* ── API slug → local logo ── */
 const localLogos: Record<string, string> = {
@@ -173,6 +174,8 @@ const Home = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const lang = useLang();
+  const tr = t(lang);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -216,7 +219,7 @@ const Home = () => {
 
   const handleNav = (path: string) => {
     setDropdownOpen(false);
-    navigate(path);
+    navigate(langPath(path, lang));
   };
 
   return (
@@ -243,7 +246,7 @@ const Home = () => {
                     <User className="h-3.5 w-3.5 text-primary" />
                   </div>
                   <span className="hidden sm:inline truncate max-w-[100px]">
-                    {user?.first_name || "Account"}
+                    {user?.first_name || tr.account}
                   </span>
                   <ChevronDown className={`h-3 w-3 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
                 </button>
@@ -259,14 +262,14 @@ const Home = () => {
                         className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-3"
                       >
                         <UserCog className="h-4 w-4 text-muted-foreground" />
-                        My Profile
+                        {tr.myProfile}
                       </button>
                       <button
                         onClick={() => handleNav("/orders")}
                         className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-3"
                       >
                         <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-                        My Orders
+                        {tr.myOrders}
                       </button>
                     </div>
                     <div className="border-t border-border py-1">
@@ -275,7 +278,7 @@ const Home = () => {
                         className="w-full text-left px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors flex items-center gap-3"
                       >
                         <LogOut className="h-4 w-4" />
-                        Logout
+                        {lang === "es" ? "Cerrar Sesión" : "Logout"}
                       </button>
                     </div>
                   </div>
@@ -290,10 +293,10 @@ const Home = () => {
       <section className="bg-cellpay-green text-primary-foreground">
         <div className="max-w-7xl mx-auto px-5 py-5 sm:py-6 sm:px-6 lg:px-8 text-center">
           <h1 className="text-2xl md:text-3xl font-extrabold leading-tight">
-            Refill Any Prepaid Phone in Seconds
+            {tr.homeH1}
           </h1>
           <p className="text-sm sm:text-base opacity-95 mt-1.5">
-            Instant top-ups for 15+ carriers · No account required
+            {tr.homeSubtitle}
           </p>
           {/* Social proof — feedback #5, #12 */}
           <div className="mt-3 flex items-center justify-center gap-1.5 text-xs sm:text-sm">
@@ -303,7 +306,7 @@ const Home = () => {
               ))}
             </div>
             <span className="font-bold">4.8/5</span>
-            <span className="opacity-90">· 50,000+ customers served</span>
+            <span className="opacity-90">{tr.homeRating}</span>
           </div>
         </div>
       </section>
@@ -314,15 +317,15 @@ const Home = () => {
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="h-4 w-4 text-cellpay-green" />
-              <span className="font-semibold">Secure Checkout</span>
+              <span className="font-semibold">{tr.secureCheckout}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Zap className="h-4 w-4 text-cellpay-green" />
-              <span className="font-semibold">Instant Delivery</span>
+              <span className="font-semibold">{tr.instantDelivery}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Headphones className="h-4 w-4 text-cellpay-green" />
-              <span className="font-semibold">24/7 Support</span>
+              <span className="font-semibold">{tr.support247Short}</span>
             </div>
             {/* Inline 'We accept' strip removed from top per feedback Page 6 (Non-blocker #1).
                 Payment logos are still shown via <PaymentBar /> at the bottom. */}
@@ -335,8 +338,8 @@ const Home = () => {
           {carriers.map((carrier) => (
             <Link
               key={carrier.path}
-              to={carrier.path}
-              aria-label={`Refill ${carrier.name}`}
+              to={langPath(carrier.path, lang)}
+              aria-label={`${tr.refillNow} ${carrier.name}`}
               className="group bg-card rounded-lg sm:rounded-xl border border-border shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden active:scale-[0.97]"
             >
               <div className="flex items-center justify-center h-24 sm:h-40 bg-background p-4 sm:p-6">
@@ -357,7 +360,7 @@ const Home = () => {
                   When a logo is present, show a neutral CTA strip instead. */}
               <div className={`${carrier.bg} py-2 sm:py-3 text-center`}>
                 <span className="text-primary-foreground font-bold text-xs sm:text-base">
-                  {carrier.logo ? "Refill Now" : carrier.name}
+                  {carrier.logo ? tr.refillNow : carrier.name}
                 </span>
               </div>
             </Link>
@@ -369,21 +372,21 @@ const Home = () => {
       <section className="bg-muted/40 border-t border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
           <h2 className="text-center text-xl sm:text-2xl font-extrabold text-foreground mb-2">
-            How it works in 4 easy steps
+            {tr.howItWorksTitle}
           </h2>
           <p className="text-center text-sm text-muted-foreground mb-8">
-            Refill any prepaid line in under 60 seconds — no account needed.
+            {tr.howItWorksSubtitle}
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {[
-              { n: "1", title: "Choose a Carrier", icon: ListChecks },
-              { n: "2", title: "Enter your number", icon: Smartphone },
-              { n: "3", title: "Select a plan", icon: MousePointerClick },
-              { n: "4", title: "Pay", icon: CreditCard },
+              { n: "1", title: tr.stepChooseCarrier, icon: ListChecks },
+              { n: "2", title: tr.stepEnterNumber, icon: Smartphone },
+              { n: "3", title: tr.stepSelectPlan, icon: MousePointerClick },
+              { n: "4", title: tr.stepPay, icon: CreditCard },
             ].map((s) => (
               <div key={s.n} className="bg-card rounded-xl border border-border p-4 sm:p-5 text-center shadow-sm">
                 <div className="mx-auto mb-3 inline-flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-cellpay-green/10 text-cellpay-green font-extrabold text-sm sm:text-base">
-                  Step {s.n}
+                  {tr.step} {s.n}
                 </div>
                 <s.icon className="mx-auto h-6 w-6 sm:h-7 sm:w-7 text-cellpay-green mb-2" />
                 <p className="text-sm sm:text-base font-bold text-foreground">{s.title}</p>
@@ -397,27 +400,10 @@ const Home = () => {
       <section className="bg-card border-t border-border">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
           <h2 className="text-center text-xl sm:text-2xl font-extrabold text-foreground mb-6">
-            Frequently Asked Questions
+            {tr.homeFaqTitle}
           </h2>
           <Accordion type="single" collapsible className="w-full">
-            {[
-              {
-                q: "What is CellPay?",
-                a: "CellPay is a fast, secure online payment service that lets you refill any major US prepaid wireless line in seconds — no account required.",
-              },
-              {
-                q: "How does CellPay work?",
-                a: "Pick your carrier, enter the prepaid phone number, choose a refill amount or plan, and pay with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. The refill is applied to the line instantly.",
-              },
-              {
-                q: "Is CellPay for real?",
-                a: "Yes. CellPay has processed payments for thousands of customers across 15+ carriers. Every transaction is processed through trusted, PCI-compliant payment networks.",
-              },
-              {
-                q: "Is CellPay secure?",
-                a: "Absolutely. All payment data is encrypted in transit with TLS, and card data is handled by PCI-DSS-compliant providers. CellPay never stores your full card number on our servers.",
-              },
-            ].map((f, i) => (
+            {tr.homeFaq.map((f, i) => (
               <AccordionItem key={i} value={`home-faq-${i}`}>
                 <AccordionTrigger className="text-left font-bold text-foreground">
                   {f.q}
@@ -431,7 +417,7 @@ const Home = () => {
         </div>
       </section>
 
-      <PaymentBar />
+      <PaymentBar lang={lang} />
       <Footer />
       <LegalBar />
     </div>

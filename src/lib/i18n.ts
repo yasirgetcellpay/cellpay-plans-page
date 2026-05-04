@@ -132,6 +132,24 @@ export interface Translations {
   price: string;
   continueShopping: string;
 
+  // ── Home page ──
+  homeH1: string;
+  homeSubtitle: string;
+  homeRating: string;
+  secureCheckout: string;
+  instantDelivery: string;
+  support247Short: string;
+  refillNow: string;
+  howItWorksTitle: string;
+  howItWorksSubtitle: string;
+  step: string;
+  stepChooseCarrier: string;
+  stepEnterNumber: string;
+  stepSelectPlan: string;
+  stepPay: string;
+  homeFaqTitle: string;
+  homeFaq: { q: string; a: string }[];
+
   // ── CashApp / Callback ──
   processingPayment: string;
   confirmingCashApp: string;
@@ -272,6 +290,28 @@ const en: Translations = {
   paymentFailedDesc: "Your payment could not be completed. Please try again.",
   transactionLabel: "Transaction",
   missingSession: "Missing payment session reference.",
+
+  homeH1: "Refill Any Prepaid Phone in Seconds",
+  homeSubtitle: "Instant top-ups for 15+ carriers · No account required",
+  homeRating: "· 50,000+ customers served",
+  secureCheckout: "Secure Checkout",
+  instantDelivery: "Instant Delivery",
+  support247Short: "24/7 Support",
+  refillNow: "Refill Now",
+  howItWorksTitle: "How it works in 4 easy steps",
+  howItWorksSubtitle: "Refill any prepaid line in under 60 seconds — no account needed.",
+  step: "Step",
+  stepChooseCarrier: "Choose a Carrier",
+  stepEnterNumber: "Enter your number",
+  stepSelectPlan: "Select a plan",
+  stepPay: "Pay",
+  homeFaqTitle: "Frequently Asked Questions",
+  homeFaq: [
+    { q: "What is CellPay?", a: "CellPay is a fast, secure online payment service that lets you refill any major US prepaid wireless line in seconds — no account required." },
+    { q: "How does CellPay work?", a: "Pick your carrier, enter the prepaid phone number, choose a refill amount or plan, and pay with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. The refill is applied to the line instantly." },
+    { q: "Is CellPay for real?", a: "Yes. CellPay has processed payments for thousands of customers across 15+ carriers. Every transaction is processed through trusted, PCI-compliant payment networks." },
+    { q: "Is CellPay secure?", a: "Absolutely. All payment data is encrypted in transit with TLS, and card data is handled by PCI-DSS-compliant providers. CellPay never stores your full card number on our servers." },
+  ],
 };
 
 const es: Translations = {
@@ -403,6 +443,28 @@ const es: Translations = {
   paymentFailedDesc: "No se pudo completar su pago. Por favor inténtelo de nuevo.",
   transactionLabel: "Transacción",
   missingSession: "Falta la referencia de la sesión de pago.",
+
+  homeH1: "Recargue Cualquier Teléfono Prepagado en Segundos",
+  homeSubtitle: "Recargas instantáneas para más de 15 operadores · Sin necesidad de cuenta",
+  homeRating: "· Más de 50,000 clientes atendidos",
+  secureCheckout: "Pago Seguro",
+  instantDelivery: "Entrega Instantánea",
+  support247Short: "Soporte 24/7",
+  refillNow: "Recargar Ahora",
+  howItWorksTitle: "Cómo funciona en 4 sencillos pasos",
+  howItWorksSubtitle: "Recargue cualquier línea prepagada en menos de 60 segundos — sin necesidad de cuenta.",
+  step: "Paso",
+  stepChooseCarrier: "Elija un Operador",
+  stepEnterNumber: "Ingrese su número",
+  stepSelectPlan: "Seleccione un plan",
+  stepPay: "Pague",
+  homeFaqTitle: "Preguntas Frecuentes",
+  homeFaq: [
+    { q: "¿Qué es CellPay?", a: "CellPay es un servicio de pago en línea rápido y seguro que le permite recargar cualquier línea inalámbrica prepagada importante de EE. UU. en segundos, sin necesidad de cuenta." },
+    { q: "¿Cómo funciona CellPay?", a: "Elija su operador, ingrese el número de teléfono prepagado, seleccione un monto o plan de recarga y pague con tarjeta, Apple Pay, Google Pay, PayPal, Klarna o Cash App. La recarga se aplica a la línea al instante." },
+    { q: "¿Es CellPay real?", a: "Sí. CellPay ha procesado pagos para miles de clientes en más de 15 operadores. Cada transacción se procesa a través de redes de pago confiables y compatibles con PCI." },
+    { q: "¿Es CellPay seguro?", a: "Absolutamente. Todos los datos de pago se cifran en tránsito con TLS, y los datos de la tarjeta son manejados por proveedores compatibles con PCI-DSS. CellPay nunca almacena el número completo de su tarjeta en nuestros servidores." },
+  ],
 };
 
 export const t = (lang: Language): Translations => (lang === "es" ? es : en);
