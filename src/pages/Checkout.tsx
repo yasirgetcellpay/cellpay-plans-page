@@ -1232,13 +1232,13 @@ const Checkout = () => {
           {paymentMethod === "card" && (
             <div className="bg-card rounded-xl border border-border p-5 space-y-4">
               <h2 className="font-bold text-foreground mb-1 text-sm flex items-center gap-2">
-                <CreditCard className="h-4 w-4" /> Card Details
+                <CreditCard className="h-4 w-4" /> {tr.cardDetails}
               </h2>
               <div className="grid grid-cols-2 gap-3">
-                <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                <input type="text" placeholder={tr.firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)}
+                <input type="text" placeholder={tr.lastName} value={lastName} onChange={(e) => setLastName(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
@@ -1248,13 +1248,13 @@ const Checkout = () => {
                 {SUPPORTED_COUNTRIES.map((c) => (
                   <option key={c.code} value={c.code}>{c.name}</option>
                 ))}
-                <option value="OTHER">Other</option>
+                <option value="OTHER">{lang === "es" ? "Otro" : "Other"}</option>
               </select>
-              <input type="text" placeholder="Street Address" value={address} onChange={(e) => setAddress(e.target.value)}
+              <input type="text" placeholder={tr.streetAddress} value={address} onChange={(e) => setAddress(e.target.value)}
                 className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                 style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               <div className="grid grid-cols-3 gap-3">
-                <input type="text" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)}
+                <input type="text" placeholder={tr.city} value={city} onChange={(e) => setCity(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 {hasSubdivisions && !regionOther ? (
@@ -1272,17 +1272,17 @@ const Checkout = () => {
                     className="h-11 px-3 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties}
                   >
-                    <option value="">State</option>
+                    <option value="">{tr.state}</option>
                     {subdivisions.map((s) => (
                       <option key={s.code} value={s.code}>{s.code} — {s.name}</option>
                     ))}
-                    <option value="__OTHER__">Other…</option>
+                    <option value="__OTHER__">{lang === "es" ? "Otro…" : "Other…"}</option>
                   </select>
                 ) : (
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder="State / Region"
+                      placeholder={tr.stateProvince}
                       value={regionId}
                       onChange={(e) => setRegionId(e.target.value.toUpperCase().slice(0, 10))}
                       maxLength={10}
@@ -1295,23 +1295,23 @@ const Checkout = () => {
                         onClick={() => { setRegionOther(false); setRegionId(""); }}
                         className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground hover:text-foreground underline"
                       >
-                        list
+                        {lang === "es" ? "lista" : "list"}
                       </button>
                     )}
                   </div>
                 )}
-                <input type="text" placeholder="ZIP" value={cardZip} onChange={(e) => setCardZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
+                <input type="text" placeholder={tr.zip} value={cardZip} onChange={(e) => setCardZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
-              <input type="text" placeholder="Card Number" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} maxLength={19}
+              <input type="text" placeholder={tr.cardNumber} value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} maxLength={19}
                 className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                 style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               <div className="grid grid-cols-2 gap-3">
-                <input type="text" placeholder="MM/YY" value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} maxLength={5}
+                <input type="text" placeholder={tr.expiry} value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} maxLength={5}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                <input type="text" placeholder="CVV" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} maxLength={4}
+                <input type="text" placeholder={tr.cvv} value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} maxLength={4}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
