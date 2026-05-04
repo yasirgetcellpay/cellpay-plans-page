@@ -202,11 +202,10 @@ const Checkout = () => {
     (window as unknown as { __cellpayCheckoutMeta?: Record<string, unknown> }).__cellpayCheckoutMeta = {
       carrierName: state.carrierName,
       carrierSlug: state.carrierSlug,
-      brandColor,
       sessionId: sessionIdRef.current,
     };
     return () => document.body.classList.remove("hide-chat-mobile");
-  }, [state.carrierName, state.carrierSlug, brandColor]);
+  }, [state.carrierName, state.carrierSlug]);
 
   // Load FingerprintJS Pro and capture visitor identifier
   useEffect(() => {
