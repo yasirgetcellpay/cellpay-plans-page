@@ -174,6 +174,8 @@ const Home = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const lang = useLang();
+  const tr = t(lang);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
