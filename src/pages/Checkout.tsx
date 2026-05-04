@@ -560,6 +560,7 @@ const Checkout = () => {
         bill_email: email.trim(),
         country_id: country,
         region_id: normalizeRegionCode(country, regionId) || cardZip,
+        state: normalizeRegionCode(country, regionId),
       },
       browser_info: browserInfoRef.current,
       gclid: getGclid(),
