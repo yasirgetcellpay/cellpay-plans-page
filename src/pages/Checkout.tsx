@@ -531,7 +531,7 @@ const Checkout = () => {
     if (isSuccess) {
       const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
       const params = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
-      navigate(`/order-confirmation?${params.toString()}`);
+      navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
     } else {
       setErrorMsg((result.msg as string) || (result.message as string) || "Transaction failed");
     }
@@ -888,7 +888,7 @@ const Checkout = () => {
           session.completePayment({ status: session.STATUS_SUCCESS });
           const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
           const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
-          navigate(`/order-confirmation?${apParams.toString()}`);
+          navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${apParams.toString()}`);
         } else {
           console.error("[ApplePay] transaction failed", result);
           session.completePayment({ status: session.STATUS_FAILURE });
