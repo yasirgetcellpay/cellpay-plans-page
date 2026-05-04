@@ -372,21 +372,21 @@ const Home = () => {
       <section className="bg-muted/40 border-t border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
           <h2 className="text-center text-xl sm:text-2xl font-extrabold text-foreground mb-2">
-            How it works in 4 easy steps
+            {tr.howItWorksTitle}
           </h2>
           <p className="text-center text-sm text-muted-foreground mb-8">
-            Refill any prepaid line in under 60 seconds — no account needed.
+            {tr.howItWorksSubtitle}
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {[
-              { n: "1", title: "Choose a Carrier", icon: ListChecks },
-              { n: "2", title: "Enter your number", icon: Smartphone },
-              { n: "3", title: "Select a plan", icon: MousePointerClick },
-              { n: "4", title: "Pay", icon: CreditCard },
+              { n: "1", title: tr.stepChooseCarrier, icon: ListChecks },
+              { n: "2", title: tr.stepEnterNumber, icon: Smartphone },
+              { n: "3", title: tr.stepSelectPlan, icon: MousePointerClick },
+              { n: "4", title: tr.stepPay, icon: CreditCard },
             ].map((s) => (
               <div key={s.n} className="bg-card rounded-xl border border-border p-4 sm:p-5 text-center shadow-sm">
                 <div className="mx-auto mb-3 inline-flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-cellpay-green/10 text-cellpay-green font-extrabold text-sm sm:text-base">
-                  Step {s.n}
+                  {tr.step} {s.n}
                 </div>
                 <s.icon className="mx-auto h-6 w-6 sm:h-7 sm:w-7 text-cellpay-green mb-2" />
                 <p className="text-sm sm:text-base font-bold text-foreground">{s.title}</p>
