@@ -1,7 +1,11 @@
-export const PaymentBar = () => (
+import { t, type Language } from "@/lib/i18n";
+
+export const PaymentBar = ({ lang = "en" }: { lang?: Language }) => {
+  const tr = t(lang);
+  return (
   <div className="bg-card py-8 border-t border-border">
     <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8">
-      <span className="font-bold text-muted-foreground uppercase tracking-widest text-sm">We Accept:</span>
+      <span className="font-bold text-muted-foreground uppercase tracking-widest text-sm">{tr.weAccept}</span>
       <div className="flex items-center space-x-4">
         <svg className="h-8 w-12" viewBox="0 0 50 30" aria-label="Visa">
           <rect width="50" height="30" rx="4" fill="hsl(var(--payment-visa))" />
@@ -30,4 +34,5 @@ export const PaymentBar = () => (
       </div>
     </div>
   </div>
-);
+  );
+};
