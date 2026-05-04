@@ -317,15 +317,15 @@ const Home = () => {
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="h-4 w-4 text-cellpay-green" />
-              <span className="font-semibold">Secure Checkout</span>
+              <span className="font-semibold">{tr.secureCheckout}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Zap className="h-4 w-4 text-cellpay-green" />
-              <span className="font-semibold">Instant Delivery</span>
+              <span className="font-semibold">{tr.instantDelivery}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Headphones className="h-4 w-4 text-cellpay-green" />
-              <span className="font-semibold">24/7 Support</span>
+              <span className="font-semibold">{tr.support247Short}</span>
             </div>
             {/* Inline 'We accept' strip removed from top per feedback Page 6 (Non-blocker #1).
                 Payment logos are still shown via <PaymentBar /> at the bottom. */}
