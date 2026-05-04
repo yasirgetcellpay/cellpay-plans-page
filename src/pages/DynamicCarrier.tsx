@@ -10,6 +10,7 @@ import { PlanGrid } from "@/components/PlanGrid";
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
+import { t, type Language } from "@/lib/i18n";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -25,6 +26,7 @@ interface DynamicCarrierProps {
   carrierId: number;
   brandColor: string;
   logo?: string;
+  lang?: Language;
 }
 
 interface NormalizedPlan {
@@ -79,8 +81,10 @@ const DynamicCarrier = ({
   carrierId: initialCarrierId,
   brandColor,
   logo,
+  lang = "en",
 }: DynamicCarrierProps) => {
   const navigate = useNavigate();
+  const tr = t(lang);
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);
