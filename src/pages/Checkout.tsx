@@ -199,8 +199,14 @@ const Checkout = () => {
   useEffect(() => {
     document.body.classList.add("hide-chat-mobile");
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    (window as unknown as { __cellpayCheckoutMeta?: Record<string, unknown> }).__cellpayCheckoutMeta = {
+      carrierName: state.carrierName,
+      carrierSlug: state.carrierSlug,
+      brandColor,
+      sessionId: sessionIdRef.current,
+    };
     return () => document.body.classList.remove("hide-chat-mobile");
-  }, []);
+  }, [state.carrierName, state.carrierSlug, brandColor]);
 
   // Load FingerprintJS Pro and capture visitor identifier
   useEffect(() => {
