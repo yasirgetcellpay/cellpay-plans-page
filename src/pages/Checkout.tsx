@@ -717,7 +717,12 @@ const Checkout = () => {
     const client = new window.google.payments.api.PaymentsClient({ environment: gpayEnv });
     const baseCardMethod = {
       type: "CARD",
-      parameters: { allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"], allowedCardNetworks: allowedNetworks },
+      parameters: {
+        allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+        allowedCardNetworks: allowedNetworks,
+        billingAddressRequired: true,
+        billingAddressParameters: { format: "FULL", phoneNumberRequired: true },
+      },
     };
 
     const ready = await client.isReadyToPay({ apiVersion: 2, apiVersionMinor: 0, allowedPaymentMethods: [baseCardMethod] });
@@ -737,7 +742,18 @@ const Checkout = () => {
       merchantInfo: { merchantId, merchantName },
     });
 
-    const tokenStr = (paymentData.paymentMethodData as Record<string, unknown>)?.tokenizationData as Record<string, unknown>;
+    const pmd = paymentData.paymentMethodData as Record<string, any>;
+    const tokenizationData = pmd?.tokenizationData as Record<string, unknown> | undefined;
+    const rawToken = (tokenizationData?.token as string) || "";
+    let googlePayTokenPayload: string = rawToken;
+    try {
+      // Match reference impl: send JSON.stringify(JSON.parse(token))
+      googlePayTokenPayload = JSON.stringify(JSON.parse(rawToken));
+    } catch {
+      googlePayTokenPayload = rawToken;
+    }
+    const billingAddress = pmd?.info?.billingAddress || null;
+
     const result = await submitTransaction({
       checkout_version: "5.0",
       payment_method: "googlepay",
@@ -754,7 +770,8 @@ const Checkout = () => {
         lastName: lastName.trim() || "User",
         email: email.trim() || "customer@cellpay.us",
       },
-      google_pay_token: tokenStr?.token,
+      google_pay_token: googlePayTokenPayload,
+      gpay_billing_details: billingAddress ? JSON.stringify(billingAddress) : undefined,
       browser_info: browserInfoRef.current,
       gclid: getGclid(),
       kount_ssid: sessionIdRef.current,
