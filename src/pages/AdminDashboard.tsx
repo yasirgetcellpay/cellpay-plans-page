@@ -538,8 +538,11 @@ export default function AdminDashboard() {
             )}
           </CardContent>
         </Card>
-      </main>
-    </div>
+            )}
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 }
 
