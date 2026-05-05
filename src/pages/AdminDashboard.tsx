@@ -298,36 +298,62 @@ export default function AdminDashboard() {
   const fmt$ = (n: number) => n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
   return (
-    <div className="min-h-screen bg-muted/20">
-      <header className="bg-background border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">CellPay Admin</h1>
-            <p className="text-xs text-muted-foreground">Live transaction dashboard</p>
-          </div>
-          <div className="flex gap-2">
-            <Select value={range} onValueChange={setRange}>
-              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {RANGES.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={handleLogout}>Sign out</Button>
-          </div>
-        </div>
-      </header>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-muted/20">
+        <Sidebar collapsible="icon">
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel>CellPay Admin</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {NAV.map((n) => (
+                    <SidebarMenuItem key={n.id}>
+                      <SidebarMenuButton isActive={section === n.id} onClick={() => setSection(n.id)}>
+                        <n.icon className="h-4 w-4" />
+                        <span>{n.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
 
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <KpiCard title="Live visitors" value={String(liveVisitors.length)} sub="active in last 60s" />
-          <KpiCard title="Revenue" value={fmt$(kpis.revenue)} sub={`${kpis.successCount} successful`} />
-          <KpiCard title="Total attempts" value={String(kpis.total)} sub={`${kpis.pending} pending`} />
-          <KpiCard title="Success rate" value={`${kpis.successRate.toFixed(1)}%`} sub={`${kpis.failed} failed`} />
-          <KpiCard title="Avg order value" value={fmt$(kpis.aov)} sub="successful only" />
-        </div>
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="bg-background border-b sticky top-0 z-10">
+            <div className="px-4 py-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <SidebarTrigger />
+                <div>
+                  <h1 className="text-xl font-bold">{NAV.find((n) => n.id === section)?.label}</h1>
+                  <p className="text-xs text-muted-foreground">Live transaction dashboard</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Select value={range} onValueChange={setRange}>
+                  <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {RANGES.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" onClick={handleLogout}>Sign out</Button>
+              </div>
+            </div>
+          </header>
 
-        {/* Live visitors by page */}
+          <main className="flex-1 px-4 py-6 space-y-6 max-w-7xl w-full mx-auto">
+            {section === "overview" && (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <KpiCard title="Live visitors" value={String(liveVisitors.length)} sub="active in last 60s" />
+                <KpiCard title="Revenue" value={fmt$(kpis.revenue)} sub={`${kpis.successCount} successful`} />
+                <KpiCard title="Total attempts" value={String(kpis.total)} sub={`${kpis.pending} pending`} />
+                <KpiCard title="Success rate" value={`${kpis.successRate.toFixed(1)}%`} sub={`${kpis.failed} failed`} />
+                <KpiCard title="Avg order value" value={fmt$(kpis.aov)} sub="successful only" />
+              </div>
+            )}
+
+            {section === "visitors" && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
