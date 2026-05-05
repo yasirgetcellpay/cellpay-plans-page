@@ -31,6 +31,12 @@ const formatPhone = (value: string): string => {
 const Net10 = () => {
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
+  const [resolved, setResolved] = useState<ResolvedPlans>({ fixedPlans: [] });
+
+  useEffect(() => {
+    loadResolvedPlans("net10").then(setResolved).catch((e) => console.warn("Net10 plan load failed", e));
+  }, []);
+
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
   }, []);
@@ -38,7 +44,9 @@ const Net10 = () => {
   const handlePlanSelect = (plan: { price: string }) => {
     const digits = phone.replace(/\D/g, "");
     if (digits.length !== 10) return;
-    navigate("/checkout", { state: { phone, amount: plan.price.replace("$", ""), carrierSlug: "net10", carrierName: "Net10 Wireless", brandColor } });
+    const amount = plan.price.replace("$", "");
+    const picked = pickPlanForAmount(resolved, parseInt(amount, 10));
+    navigate("/checkout", { state: { phone, amount, carrierSlug: "net10", carrierName: "Net10 Wireless", brandColor, carrierId: picked.carrierId, planId: picked.planId, planName: picked.name } });
   };
 
   return (
