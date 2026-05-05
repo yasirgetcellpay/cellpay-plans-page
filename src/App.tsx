@@ -74,7 +74,7 @@ const carrierRoutes: CarrierRouteDef[] = [
   { path: "/pageplus-addon", name: "Page Plus Addon Balance", slug: "pageplusadd", carrierId: 50, brandColor: "hsl(0,70%,50%)", logo: pageplusLogo },
   { path: "/red-pocket", name: "Red Pocket Mobile", slug: "red-pocket-mobile", carrierId: 2, brandColor: "hsl(0,80%,45%)" },
   { path: "/total-wireless", name: "Total Wireless", slug: "total-wireless", carrierId: 79, brandColor: "hsl(200,70%,40%)" },
-  { path: "/verizon-wireless-flexi.html", name: "Verizon Wireless Flexi", slug: "verizon-wireless-flexi", carrierId: 75, brandColor: "hsl(0,100%,45%)", logo: verizonLogo },
+  // Verizon Wireless Flexi intentionally omitted — backend has no carrier entry, served by static Verizon.tsx below.
   { path: "/xbox", name: "XBOX", slug: "xbox", carrierId: 76, brandColor: "hsl(120,60%,40%)" },
 ];
 
