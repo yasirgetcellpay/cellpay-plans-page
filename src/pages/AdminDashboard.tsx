@@ -611,3 +611,25 @@ function StatusBadge({ status }: { status: string }) {
   };
   return <Badge variant="outline" className={map[status] || ""}>{status}</Badge>;
 }
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border rounded p-2 bg-muted/30">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="font-mono break-all">{value}</div>
+    </div>
+  );
+}
+
+function JsonBlock({ title, value }: { title: string; value: string }) {
+  const copy = () => navigator.clipboard.writeText(value);
+  return (
+    <div className="border rounded">
+      <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
+        <span className="font-semibold">{title}</span>
+        <Button size="sm" variant="ghost" onClick={copy}>Copy</Button>
+      </div>
+      <pre className="text-[11px] p-3 overflow-x-auto whitespace-pre-wrap break-all max-h-[300px] overflow-y-auto">{value || "—"}</pre>
+    </div>
+  );
+}
