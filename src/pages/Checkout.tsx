@@ -501,6 +501,7 @@ const Checkout = () => {
 
   const cardDigits = cardNumber.replace(/\D/g, "");
   const expiryDigits = cardExpiry.replace(/\D/g, "");
+  const regionCode = normalizeRegionCode(country, regionId);
   const isCardValid =
     isValidLuhn(cardDigits) &&
     expiryDigits.length === 4 &&
@@ -510,7 +511,11 @@ const Checkout = () => {
     cardZip.length >= 5 &&
     firstName.trim().length > 0 &&
     lastName.trim().length > 0 &&
-    email.includes("@");
+    email.includes("@") &&
+    address.trim().length > 0 &&
+    city.trim().length > 0 &&
+    country.trim().length > 0 &&
+    regionCode.length > 0;
 
   const isEmailValid = email.trim().length > 0 && email.includes("@") && email.includes(".");
 
