@@ -53,6 +53,7 @@ const carrierRoutes: CarrierRouteDef[] = [
   { path: "/s1.html", name: "Simple Mobile", slug: "s1", carrierId: 15, brandColor: "hsl(101,67%,44%)", logo: simpleMobileLogo },
   { path: "/topup-crc.html", name: "Cricket Wireless", slug: "topup-crc", carrierId: 45, brandColor: "hsl(82,60%,42%)", logo: cricketLogo },
   { path: "/metropcs.html", name: "Metro PCS", slug: "metropcs", carrierId: 38, brandColor: "hsl(270,60%,32%)", logo: metroLogo },
+  { path: "/metro-pcs.html", name: "Metro PCS", slug: "metropcs", carrierId: 38, brandColor: "hsl(270,60%,32%)", logo: metroLogo },
   { path: "/tmobile-flexi.html", name: "T-Mobile", slug: "tmobile", carrierId: 43, brandColor: "hsl(330,100%,45%)", logo: tmobileLogo },
   { path: "/topup-at.html", name: "AT&T Prepaid", slug: "topup-at", carrierId: 3, brandColor: "hsl(196,100%,44%)", logo: attLogo },
   { path: "/verizon", name: "Verizon Wireless Prepaid", slug: "verizon", carrierId: 14, brandColor: "hsl(0,100%,45%)", logo: verizonLogo },
