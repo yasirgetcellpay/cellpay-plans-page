@@ -15,11 +15,7 @@ export const PlanGrid = ({
   onSelect,
   popularIndex,
 }: PlanGridProps) => {
-  const isOdd = plans.length % 2 !== 0;
-  const gridPlans = isOdd ? plans.slice(0, -1) : plans;
-  const lastPlan = isOdd ? plans[plans.length - 1] : null;
-
-  const Card = ({ plan, idx }: { plan: Plan; idx: number }) => {
+  const Card = ({ plan, idx, fullRow }: { plan: Plan; idx: number; fullRow?: boolean }) => {
     const isPopular = plan.popular || idx === popularIndex;
     const handleClick = () => onSelect?.(plan);
     return (
