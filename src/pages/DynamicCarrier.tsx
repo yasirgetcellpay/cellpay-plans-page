@@ -535,7 +535,7 @@ const DynamicFAQ = ({
   const tr = t(lang);
   return (
   <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-    <h2 className="text-2xl font-extrabold text-foreground mb-4 text-center">
+    <h2 className="text-2xl font-extrabold text-foreground mb-4 text-left">
       {tr.faqsTitle(carrierName)}
     </h2>
     <Accordion type="single" collapsible className="w-full">
