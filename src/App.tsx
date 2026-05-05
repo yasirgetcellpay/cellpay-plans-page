@@ -206,7 +206,7 @@ const App = () => (
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/returns-policy" element={<ReturnsPolicy />} />
         <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/*" element={<AdminDashboard />} />
 
         {/* Fallback: any unmatched /es/* path → strip /es and redirect to English. */}
         <Route path="/es/*" element={<EsFallback />} />
