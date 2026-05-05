@@ -70,7 +70,7 @@ const carrierRoutes: CarrierRouteDef[] = [
   { path: "/tracfone.html", name: "TracFone", slug: "tracfone", carrierId: 10, brandColor: "hsl(230,70%,30%)", logo: tracfoneLogo },
   { path: "/ultra-mobile.html", name: "Ultra Mobile", slug: "ultra-mobile", carrierId: 25, brandColor: "hsl(270,50%,40%)", logo: ultraLogo },
   // US Cellular intentionally omitted — backend has no carrier entry, served by static USCellular.tsx below.
-  { path: "/att-firstnet", name: "AT&T FirstNet", slug: "topup-af", carrierId: 81, brandColor: "hsl(196,100%,44%)", logo: attLogo },
+  // AT&T FirstNet intentionally omitted — backend has no carrier entry, served by static ATT.tsx below.
   { path: "/pageplus-addon", name: "Page Plus Addon Balance", slug: "pageplusadd", carrierId: 50, brandColor: "hsl(0,70%,50%)", logo: pageplusLogo },
   { path: "/red-pocket", name: "Red Pocket Mobile", slug: "red-pocket-mobile", carrierId: 2, brandColor: "hsl(0,80%,45%)" },
   { path: "/total-wireless", name: "Total Wireless", slug: "total-wireless", carrierId: 79, brandColor: "hsl(200,70%,40%)" },
