@@ -245,6 +245,7 @@ export default function AdminDashboard() {
     return Array.from(map.entries()).sort((a, b) => (b[1].success + b[1].failed) - (a[1].success + a[1].failed));
   }, [filteredForBreakdowns]);
 
+  // Customers = only successful transactions (paying customers for marketing)
   const byCustomer = useMemo(() => {
     type Agg = {
       email: string;
@@ -252,51 +253,72 @@ export default function AdminDashboard() {
       name: string;
       carriers: Set<string>;
       methods: Set<string>;
-      attempts: number;
-      successes: number;
+      orders: number;
       totalSpend: number;
+      firstSeen: string;
       lastSeen: string;
     };
     const map = new Map<string, Agg>();
-    filtered.forEach((l) => {
-      const key = (l.email || l.phone_number || "").toLowerCase();
-      if (!key) return;
-      const cur = map.get(key) || {
-        email: l.email || "",
-        phone: l.phone_number || "",
-        name: [l.first_name, l.last_name].filter(Boolean).join(" "),
-        carriers: new Set<string>(),
-        methods: new Set<string>(),
-        attempts: 0,
-        successes: 0,
-        totalSpend: 0,
-        lastSeen: l.created_at,
-      };
-      cur.attempts += 1;
-      if (l.status === "success") {
-        cur.successes += 1;
+    logs
+      .filter((l) => l.status === "success")
+      .forEach((l) => {
+        const key = (l.email || l.phone_number || "").toLowerCase();
+        if (!key) return;
+        const cur = map.get(key) || {
+          email: l.email || "",
+          phone: l.phone_number || "",
+          name: [l.first_name, l.last_name].filter(Boolean).join(" "),
+          carriers: new Set<string>(),
+          methods: new Set<string>(),
+          orders: 0,
+          totalSpend: 0,
+          firstSeen: l.created_at,
+          lastSeen: l.created_at,
+        };
+        cur.orders += 1;
         cur.totalSpend += Number(l.total) || Number(l.amount) || 0;
-      }
-      const carrierName = carrierLabel(l);
-      if (carrierName) cur.carriers.add(carrierName);
-      if (l.payment_method) cur.methods.add(l.payment_method);
-      if (!cur.email && l.email) cur.email = l.email;
-      if (!cur.phone && l.phone_number) cur.phone = l.phone_number;
-      if (!cur.name) cur.name = [l.first_name, l.last_name].filter(Boolean).join(" ");
-      if (new Date(l.created_at) > new Date(cur.lastSeen)) cur.lastSeen = l.created_at;
-      map.set(key, cur);
-    });
+        const carrierName = carrierLabel(l);
+        if (carrierName) cur.carriers.add(carrierName);
+        if (l.payment_method) cur.methods.add(l.payment_method);
+        if (!cur.email && l.email) cur.email = l.email;
+        if (!cur.phone && l.phone_number) cur.phone = l.phone_number;
+        if (!cur.name) cur.name = [l.first_name, l.last_name].filter(Boolean).join(" ");
+        if (new Date(l.created_at) > new Date(cur.lastSeen)) cur.lastSeen = l.created_at;
+        if (new Date(l.created_at) < new Date(cur.firstSeen)) cur.firstSeen = l.created_at;
+        map.set(key, cur);
+      });
     return Array.from(map.values()).sort((a, b) => b.totalSpend - a.totalSpend);
-  }, [filtered]);
+  }, [logs]);
+
+  const customerCarrierOptions = useMemo(() => {
+    const set = new Set<string>();
+    byCustomer.forEach((c) => c.carriers.forEach((x) => set.add(x)));
+    return Array.from(set).sort();
+  }, [byCustomer]);
 
   const [customerSearch, setCustomerSearch] = useState("");
+  const [customerCarrierFilter, setCustomerCarrierFilter] = useState<string>("all");
+  const [customerRepeatOnly, setCustomerRepeatOnly] = useState(false);
   const filteredCustomers = useMemo(() => {
-    if (!customerSearch) return byCustomer;
-    const s = customerSearch.toLowerCase();
-    return byCustomer.filter((c) =>
-      `${c.email} ${c.phone} ${c.name}`.toLowerCase().includes(s)
-    );
-  }, [byCustomer, customerSearch]);
+    const s = customerSearch.toLowerCase().trim();
+    return byCustomer.filter((c) => {
+      if (customerCarrierFilter !== "all" && !c.carriers.has(customerCarrierFilter)) return false;
+      if (customerRepeatOnly && c.orders < 2) return false;
+      if (s && !`${c.email} ${c.phone} ${c.name} ${Array.from(c.carriers).join(" ")}`.toLowerCase().includes(s)) return false;
+      return true;
+    });
+  }, [byCustomer, customerSearch, customerCarrierFilter, customerRepeatOnly]);
+
+  const customerKpis = useMemo(() => {
+    const total = filteredCustomers.length;
+    const revenue = filteredCustomers.reduce((s, c) => s + c.totalSpend, 0);
+    const orders = filteredCustomers.reduce((s, c) => s + c.orders, 0);
+    const repeat = filteredCustomers.filter((c) => c.orders >= 2).length;
+    const withEmail = filteredCustomers.filter((c) => !!c.email).length;
+    const withPhone = filteredCustomers.filter((c) => !!c.phone).length;
+    const avgSpend = total ? revenue / total : 0;
+    return { total, revenue, orders, repeat, withEmail, withPhone, avgSpend };
+  }, [filteredCustomers]);
 
   const exportCustomersCSV = () => {
     const rows = [
