@@ -49,7 +49,6 @@ export const PlanGrid = ({
         <div className="p-1.5 sm:p-6 flex-grow flex flex-col">
           <div
             className="bg-muted p-1 sm:p-3 rounded text-center font-bold text-[10px] sm:text-base mb-1.5 sm:mb-3 text-foreground"
-            style={{ color: brandColor }}
           >
             {plan.highlight}
           </div>
