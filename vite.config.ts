@@ -18,6 +18,7 @@ const HTML_ROUTES = [
   "s1.html",
   "topup-crc.html",
   "metropcs.html",
+  "metro-pcs.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
