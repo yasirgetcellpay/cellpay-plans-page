@@ -322,16 +322,17 @@ export default function AdminDashboard() {
 
   const exportCustomersCSV = () => {
     const rows = [
-      ["Name", "Email", "Phone", "Carriers", "Methods", "Attempts", "Successes", "Total Spend", "Last Seen"],
+      ["Name", "Email", "Phone", "Carriers", "Payment Methods", "Orders", "Total Spend", "Avg Order", "First Order", "Last Order"],
       ...filteredCustomers.map((c) => [
         c.name,
         c.email,
         c.phone,
         Array.from(c.carriers).join("; "),
         Array.from(c.methods).join("; "),
-        String(c.attempts),
-        String(c.successes),
+        String(c.orders),
         c.totalSpend.toFixed(2),
+        (c.orders ? c.totalSpend / c.orders : 0).toFixed(2),
+        new Date(c.firstSeen).toISOString(),
         new Date(c.lastSeen).toISOString(),
       ]),
     ];
