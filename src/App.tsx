@@ -23,6 +23,8 @@ import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import StraightTalk from "./pages/StraightTalk.tsx";
 import USCellular from "./pages/USCellular.tsx";
+import Verizon from "./pages/Verizon.tsx";
+import ATT from "./pages/ATT.tsx";
 import { Toaster } from "@/components/ui/toaster";
 
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
@@ -68,11 +70,11 @@ const carrierRoutes: CarrierRouteDef[] = [
   { path: "/tracfone.html", name: "TracFone", slug: "tracfone", carrierId: 10, brandColor: "hsl(230,70%,30%)", logo: tracfoneLogo },
   { path: "/ultra-mobile.html", name: "Ultra Mobile", slug: "ultra-mobile", carrierId: 25, brandColor: "hsl(270,50%,40%)", logo: ultraLogo },
   // US Cellular intentionally omitted — backend has no carrier entry, served by static USCellular.tsx below.
-  { path: "/att-firstnet", name: "AT&T FirstNet", slug: "topup-af", carrierId: 81, brandColor: "hsl(196,100%,44%)", logo: attLogo },
+  // AT&T FirstNet intentionally omitted — backend has no carrier entry, served by static ATT.tsx below.
   { path: "/pageplus-addon", name: "Page Plus Addon Balance", slug: "pageplusadd", carrierId: 50, brandColor: "hsl(0,70%,50%)", logo: pageplusLogo },
   { path: "/red-pocket", name: "Red Pocket Mobile", slug: "red-pocket-mobile", carrierId: 2, brandColor: "hsl(0,80%,45%)" },
   { path: "/total-wireless", name: "Total Wireless", slug: "total-wireless", carrierId: 79, brandColor: "hsl(200,70%,40%)" },
-  { path: "/verizon-wireless-flexi.html", name: "Verizon Wireless Flexi", slug: "verizon-wireless-flexi", carrierId: 75, brandColor: "hsl(0,100%,45%)", logo: verizonLogo },
+  // Verizon Wireless Flexi intentionally omitted — backend has no carrier entry, served by static Verizon.tsx below.
   { path: "/xbox", name: "XBOX", slug: "xbox", carrierId: 76, brandColor: "hsl(120,60%,40%)" },
 ];
 
@@ -163,6 +165,18 @@ const App = () => (
         <Route path="/es/us-cellular.html" element={<USCellular />} />
         <Route path="/us-cellular/pay" element={<USCellular />} />
         <Route path="/es/us-cellular/pay" element={<USCellular />} />
+
+        {/* Verizon Wireless Flexi — reuses static Verizon.tsx (no backend carrier entry). */}
+        <Route path="/verizon-wireless-flexi.html" element={<Verizon />} />
+        <Route path="/es/verizon-wireless-flexi.html" element={<Verizon />} />
+        <Route path="/verizon-wireless-flexi/pay" element={<Verizon />} />
+        <Route path="/es/verizon-wireless-flexi/pay" element={<Verizon />} />
+
+        {/* AT&T FirstNet — reuses static ATT.tsx (no backend carrier entry). */}
+        <Route path="/att-firstnet" element={<ATT />} />
+        <Route path="/es/att-firstnet" element={<ATT />} />
+        <Route path="/att-firstnet/pay" element={<ATT />} />
+        <Route path="/es/att-firstnet/pay" element={<ATT />} />
 
 
         {/* Legacy `-espanol` URLs → redirect to canonical /es/* */}
