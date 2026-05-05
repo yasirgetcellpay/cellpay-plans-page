@@ -1,11 +1,12 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Phone, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import attLogo from "@/assets/att-prepaid-logo.webp";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { loadResolvedPlans, pickPlanForAmount, type ResolvedPlans } from "@/lib/resolvePlanId";
 
 const plans = [
   { price: "$100", highlight: "Prepaid Refill" },
@@ -42,6 +43,28 @@ const ATT = () => {
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [resolved, setResolved] = useState<ResolvedPlans>({ fixedPlans: [] });
+
+  useEffect(() => {
+    loadResolvedPlans("topup-at").then(setResolved).catch((e) => console.warn("ATT plan load failed", e));
+  }, []);
+
+  const goCheckout = (amt: number | string) => {
+    const amountNum = typeof amt === "number" ? amt : Number(amt);
+    const picked = pickPlanForAmount(resolved, amountNum);
+    navigate("/checkout", {
+      state: {
+        phone,
+        amount: amt,
+        carrierSlug: "att",
+        carrierName: "AT&T Prepaid",
+        brandColor: BRAND,
+        carrierId: picked.carrierId,
+        planId: picked.planId,
+        planName: picked.name,
+      },
+    });
+  };
 
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
@@ -93,7 +116,7 @@ const ATT = () => {
           {amountNum >= 5 && amountNum <= 300 && (
             <button type="button" onClick={() => {
               if (isValid) {
-                navigate("/checkout", { state: { phone, amount, carrierSlug: "att", carrierName: "AT&T Prepaid", brandColor: BRAND } });
+                goCheckout(amount);
               } else {
                 document.getElementById("checkout-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
               }
@@ -115,7 +138,7 @@ const ATT = () => {
           <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">Agree with AT&amp;T Product Policies and Sales.{" "}<a href="https://www.att.com/legal/terms.attWebsiteTermsOfUse.html" className="underline font-semibold" style={{ color: BRAND }}>View More</a></span>
         </label>
         <div className="flex justify-center">
-          <button type="button" disabled={!isValid} onClick={() => navigate("/checkout", { state: { phone, amount, carrierSlug: "att", carrierName: "AT&T Prepaid", brandColor: BRAND } })} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]" style={{ backgroundColor: BRAND }}>PAY NOW</button>
+          <button type="button" disabled={!isValid} onClick={() => goCheckout(amount)} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]" style={{ backgroundColor: BRAND }}>PAY NOW</button>
         </div>
         <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
       </div>
