@@ -23,6 +23,8 @@ import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import StraightTalk from "./pages/StraightTalk.tsx";
 import USCellular from "./pages/USCellular.tsx";
+import Verizon from "./pages/Verizon.tsx";
+import ATT from "./pages/ATT.tsx";
 import { Toaster } from "@/components/ui/toaster";
 
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
