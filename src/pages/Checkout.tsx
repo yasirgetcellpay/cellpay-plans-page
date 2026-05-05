@@ -777,7 +777,7 @@ const Checkout = () => {
         email: email.trim() || "customer@cellpay.us",
       },
       google_pay_token: googlePayTokenPayload,
-      gpay_billing_details: billingAddress ? JSON.stringify(billingAddress) : undefined,
+      gpay_billing_details: JSON.stringify(billingAddress || {}),
       browser_info: browserInfoRef.current,
       gclid: getGclid(),
       kount_ssid: sessionIdRef.current,
