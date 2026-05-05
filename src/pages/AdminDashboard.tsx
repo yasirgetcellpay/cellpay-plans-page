@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,8 @@ const NAV: { id: Section; label: string; icon: React.ComponentType<{ className?:
   { id: "customers", label: "Customers", icon: Users },
   { id: "transactions", label: "Transactions", icon: Activity },
 ];
+const isSection = (value: string | undefined): value is Section =>
+  !!value && NAV.some((item) => item.id === value);
 
 type TxLog = Tables<"transaction_logs">;
 type Visitor = { session_id: string; path: string; last_seen: string };
@@ -37,18 +39,24 @@ const RANGES = [
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const routeSection = location.pathname.match(/^\/admin\/?([^/]*)/)?.[1];
   const [authChecked, setAuthChecked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [logs, setLogs] = useState<TxLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState("7d");
-  const [section, setSection] = useState<Section>("overview");
+  const [section, setSection] = useState<Section>(() => isSection(routeSection) ? routeSection : "overview");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [methodFilter, setMethodFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [now, setNow] = useState(Date.now());
   const [detailLog, setDetailLog] = useState<TxLog | null>(null);
+
+  useEffect(() => {
+    setSection(isSection(routeSection) ? routeSection : "overview");
+  }, [routeSection]);
 
   // Auth + admin check
   useEffect(() => {
@@ -281,6 +289,11 @@ export default function AdminDashboard() {
     navigate("/admin/login");
   };
 
+  const handleSectionChange = (next: Section) => {
+    setSection(next);
+    navigate(next === "overview" ? "/admin" : `/admin/${next}`);
+  };
+
   if (!authChecked) {
     return <div className="p-8"><Skeleton className="h-32 w-full" /></div>;
   }
@@ -310,7 +323,7 @@ export default function AdminDashboard() {
                 <SidebarMenu>
                   {NAV.map((n) => (
                     <SidebarMenuItem key={n.id}>
-                      <SidebarMenuButton isActive={section === n.id} onClick={() => setSection(n.id)}>
+                      <SidebarMenuButton isActive={section === n.id} onClick={() => handleSectionChange(n.id)}>
                         <n.icon className="h-4 w-4" />
                         <span>{n.label}</span>
                       </SidebarMenuButton>
