@@ -35,6 +35,7 @@ const HTML_ROUTES = [
   "es/s1.html",
   "es/topup-crc.html",
   "es/metropcs.html",
+  "es/metro-pcs.html",
   "es/tmobile-flexi.html",
   "es/topup-at.html",
   "es/boost.html",
