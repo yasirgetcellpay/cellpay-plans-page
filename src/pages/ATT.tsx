@@ -116,7 +116,7 @@ const ATT = () => {
           {amountNum >= 5 && amountNum <= 300 && (
             <button type="button" onClick={() => {
               if (isValid) {
-                navigate("/checkout", { state: { phone, amount, carrierSlug: "att", carrierName: "AT&T Prepaid", brandColor: BRAND } });
+                goCheckout(amount);
               } else {
                 document.getElementById("checkout-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
               }
