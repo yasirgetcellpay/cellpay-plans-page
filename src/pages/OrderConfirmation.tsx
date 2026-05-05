@@ -53,6 +53,28 @@ const OrderConfirmation = () => {
       }
       const txn = (result.transaction || result) as TransactionData;
       setTransaction(txn);
+      try {
+        const amount = Number(txn.amount || 0);
+        const fee = Number(txn.fee || 0);
+        const itemName = txn.carrier?.name || carrierName || "Recharge";
+        const itemId = txn.carrier?.slug || "";
+        const txnId = String(txn.transactionId || txn.hashid || txn.id || "");
+        // @ts-expect-error - dataLayer global
+        window.dataLayer = window.dataLayer || [];
+        // @ts-expect-error - dataLayer global
+        window.dataLayer.push({
+          event: "purchase",
+          ecommerce: {
+            transaction_id: txnId,
+            value: amount + fee,
+            fee,
+            revenue: amount,
+            email: txn.user?.email || "",
+            currency: "USD",
+            items: [{ item_id: itemId, item_name: itemName, price: amount, quantity: 1 }],
+          },
+        });
+      } catch { /* ignore analytics errors */ }
     } catch {
       setError(tr.couldNotLoad);
     } finally {
