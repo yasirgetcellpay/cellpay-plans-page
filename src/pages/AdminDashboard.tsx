@@ -9,6 +9,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tables } from "@/integrations/supabase/types";
+import {
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { LayoutDashboard, Users, Activity, BarChart3, Eye } from "lucide-react";
+
+type Section = "overview" | "visitors" | "breakdowns" | "customers" | "transactions";
+const NAV: { id: Section; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "visitors", label: "Live visitors", icon: Eye },
+  { id: "breakdowns", label: "Breakdowns", icon: BarChart3 },
+  { id: "customers", label: "Customers", icon: Users },
+  { id: "transactions", label: "Transactions", icon: Activity },
+];
 
 type TxLog = Tables<"transaction_logs">;
 type Visitor = { session_id: string; path: string; last_seen: string };
@@ -27,6 +41,7 @@ export default function AdminDashboard() {
   const [logs, setLogs] = useState<TxLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState("7d");
+  const [section, setSection] = useState<Section>("overview");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [methodFilter, setMethodFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
@@ -283,36 +298,62 @@ export default function AdminDashboard() {
   const fmt$ = (n: number) => n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
   return (
-    <div className="min-h-screen bg-muted/20">
-      <header className="bg-background border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">CellPay Admin</h1>
-            <p className="text-xs text-muted-foreground">Live transaction dashboard</p>
-          </div>
-          <div className="flex gap-2">
-            <Select value={range} onValueChange={setRange}>
-              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {RANGES.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={handleLogout}>Sign out</Button>
-          </div>
-        </div>
-      </header>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-muted/20">
+        <Sidebar collapsible="icon">
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel>CellPay Admin</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {NAV.map((n) => (
+                    <SidebarMenuItem key={n.id}>
+                      <SidebarMenuButton isActive={section === n.id} onClick={() => setSection(n.id)}>
+                        <n.icon className="h-4 w-4" />
+                        <span>{n.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
 
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <KpiCard title="Live visitors" value={String(liveVisitors.length)} sub="active in last 60s" />
-          <KpiCard title="Revenue" value={fmt$(kpis.revenue)} sub={`${kpis.successCount} successful`} />
-          <KpiCard title="Total attempts" value={String(kpis.total)} sub={`${kpis.pending} pending`} />
-          <KpiCard title="Success rate" value={`${kpis.successRate.toFixed(1)}%`} sub={`${kpis.failed} failed`} />
-          <KpiCard title="Avg order value" value={fmt$(kpis.aov)} sub="successful only" />
-        </div>
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="bg-background border-b sticky top-0 z-10">
+            <div className="px-4 py-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <SidebarTrigger />
+                <div>
+                  <h1 className="text-xl font-bold">{NAV.find((n) => n.id === section)?.label}</h1>
+                  <p className="text-xs text-muted-foreground">Live transaction dashboard</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Select value={range} onValueChange={setRange}>
+                  <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {RANGES.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" onClick={handleLogout}>Sign out</Button>
+              </div>
+            </div>
+          </header>
 
-        {/* Live visitors by page */}
+          <main className="flex-1 px-4 py-6 space-y-6 max-w-7xl w-full mx-auto">
+            {section === "overview" && (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <KpiCard title="Live visitors" value={String(liveVisitors.length)} sub="active in last 60s" />
+                <KpiCard title="Revenue" value={fmt$(kpis.revenue)} sub={`${kpis.successCount} successful`} />
+                <KpiCard title="Total attempts" value={String(kpis.total)} sub={`${kpis.pending} pending`} />
+                <KpiCard title="Success rate" value={`${kpis.successRate.toFixed(1)}%`} sub={`${kpis.failed} failed`} />
+                <KpiCard title="Avg order value" value={fmt$(kpis.aov)} sub="successful only" />
+              </div>
+            )}
+
+            {section === "visitors" && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
@@ -333,8 +374,9 @@ export default function AdminDashboard() {
             </Table>
           </CardContent>
         </Card>
+            )}
 
-        {/* Breakdowns */}
+            {section === "breakdowns" && (
         <div className="grid md:grid-cols-2 gap-4">
           <Card>
             <CardHeader><CardTitle className="text-base">By carrier</CardTitle></CardHeader>
@@ -365,8 +407,9 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+            )}
 
-        {/* Customers KPI */}
+            {section === "customers" && (
         <Card>
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center gap-3 md:justify-between">
@@ -422,8 +465,9 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+            )}
 
-        {/* Live feed */}
+            {section === "transactions" && (
         <Card>
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center gap-3 md:justify-between">
@@ -494,8 +538,11 @@ export default function AdminDashboard() {
             )}
           </CardContent>
         </Card>
-      </main>
-    </div>
+            )}
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 }
 
