@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, Activity, BarChart3, Eye } from "lucide-react";
+import { LayoutDashboard, Users, Activity, BarChart3, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 
 type Section = "overview" | "visitors" | "breakdowns" | "customers" | "transactions";
 const NAV: { id: Section; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -512,7 +512,7 @@ export default function AdminDashboard() {
             {loading ? (
               <Skeleton className="h-64 w-full" />
             ) : (
-              <div className="overflow-x-auto">
+              <TxScrollTable>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -558,7 +558,7 @@ export default function AdminDashboard() {
                     )}
                   </TableBody>
                 </Table>
-              </div>
+              </TxScrollTable>
             )}
           </CardContent>
         </Card>
@@ -643,6 +643,30 @@ function JsonBlock({ title, value }: { title: string; value: string }) {
         <Button size="sm" variant="ghost" onClick={copy}>Copy</Button>
       </div>
       <pre className="text-[11px] p-3 overflow-x-auto whitespace-pre-wrap break-all max-h-[300px] overflow-y-auto">{value || "—"}</pre>
+    </div>
+  );
+}
+
+function TxScrollTable({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const scroll = (dir: "left" | "right") => {
+    const el = ref.current;
+    if (!el) return;
+    el.scrollBy({ left: dir === "left" ? -400 : 400, behavior: "smooth" });
+  };
+  return (
+    <div className="relative">
+      <div className="flex justify-end gap-2 mb-2 sticky top-0 z-10">
+        <Button size="sm" variant="outline" onClick={() => scroll("left")} aria-label="Scroll left">
+          <ChevronLeft className="h-4 w-4" /> Left
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => scroll("right")} aria-label="Scroll right">
+          Right <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      <div ref={ref} className="overflow-x-auto">
+        {children}
+      </div>
     </div>
   );
 }
