@@ -64,6 +64,10 @@ const HTML_ROUTES = [
   "ultra-mobile-espanol.html",
   "us-cellular-espanol.html",
   "verizon-wireless-flexi-espanol.html",
+  // Admin SPA routes — emit as folder/index.html so self-hosted servers
+  // (which don't do SPA fallback) serve the React app on direct refresh.
+  "admin/index.html",
+  "admin/login/index.html",
 ];
 
 const htmlAliasPlugin = (): Plugin => ({
