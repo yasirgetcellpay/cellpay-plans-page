@@ -249,7 +249,7 @@ export default function AdminDashboard() {
         cur.successes += 1;
         cur.totalSpend += Number(l.total) || Number(l.amount) || 0;
       }
-      const carrierName = l.carrier_name || l.carrier_slug || (l.carrier_id ? `#${l.carrier_id}` : "");
+      const carrierName = carrierLabel(l);
       if (carrierName) cur.carriers.add(carrierName);
       if (l.payment_method) cur.methods.add(l.payment_method);
       if (!cur.email && l.email) cur.email = l.email;
