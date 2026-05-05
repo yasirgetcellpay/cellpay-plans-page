@@ -1,11 +1,12 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import net10Logo from "@/assets/net10-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { loadResolvedPlans, pickPlanForAmount, type ResolvedPlans } from "@/lib/resolvePlanId";
 
 const plans = [
   { price: "$75", highlight: "Unlimited + 10GB Data" },
