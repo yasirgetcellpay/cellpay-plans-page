@@ -393,6 +393,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <div className="flex gap-2">
+                <Button variant="outline" onClick={() => navigate("/")}>← Back to site</Button>
                 <Select value={range} onValueChange={setRange}>
                   <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
