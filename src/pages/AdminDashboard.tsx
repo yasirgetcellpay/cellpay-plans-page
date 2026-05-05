@@ -68,6 +68,7 @@ export default function AdminDashboard() {
   const [section, setSection] = useState<Section>(() => isSection(routeSection) ? routeSection : "overview");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [methodFilter, setMethodFilter] = useState<string>("all");
+  const [carrierFilter, setCarrierFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [now, setNow] = useState(Date.now());
