@@ -1,11 +1,13 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import straightTalkLogo from "@/assets/straight-talk-logo.svg";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { fetchCarrierView, verifyPhone } from "@/services/apiWrapper";
+import { useToast } from "@/hooks/use-toast";
 
 const wirelessPlans = [
   { price: "$65", highlight: "Platinum Unlimited" },
@@ -36,17 +38,101 @@ const formatPhone = (value: string): string => {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 };
 
+interface ApiPlan {
+  plan_id: string;
+  amount: number;
+  name: string;
+  carrierId?: number;
+}
+
+const collectPlans = (data: unknown): Array<Record<string, unknown>> => {
+  const out: Array<Record<string, unknown>> = [];
+  const visit = (n: unknown) => {
+    if (!n || typeof n !== "object") return;
+    if (Array.isArray(n)) { n.forEach(visit); return; }
+    const o = n as Record<string, unknown>;
+    if (Array.isArray(o.plans)) o.plans.forEach((p) => out.push(p as Record<string, unknown>));
+    Object.values(o).forEach(visit);
+  };
+  visit(data);
+  return out;
+};
+
 const StraightTalk = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [phone, setPhone] = useState("");
+  const [apiPlans, setApiPlans] = useState<ApiPlan[]>([]);
+  const [carrierId, setCarrierId] = useState<number | undefined>(undefined);
+  const [verifying, setVerifying] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await fetchCarrierView("straight-talk");
+        const raw = collectPlans(data);
+        const seen = new Set<number>();
+        const normalized: ApiPlan[] = [];
+        for (const p of raw) {
+          const amt = Number(p.amount ?? p.price ?? p.Amount ?? 0);
+          if (!amt || seen.has(amt)) continue;
+          const carrier = p.carrier;
+          const carrierIdNum =
+            typeof carrier === "number" ? carrier
+            : typeof carrier === "string" && carrier !== "" ? Number(carrier)
+            : undefined;
+          normalized.push({
+            plan_id: String(p.plan_id ?? p.planId ?? p.id ?? p.ID ?? ""),
+            amount: amt,
+            name: String(p.name ?? p.Name ?? p.description ?? ""),
+            carrierId: Number.isFinite(carrierIdNum) ? (carrierIdNum as number) : undefined,
+          });
+          seen.add(amt);
+        }
+        setApiPlans(normalized);
+        const dataObj = data as Record<string, unknown>;
+        const cp = dataObj?.carrier_plans as Record<string, unknown> | undefined;
+        const carrierObj = (cp?.carrier ?? dataObj?.carrier) as Record<string, unknown> | undefined;
+        const cid = Number(carrierObj?.id ?? carrierObj?.ID ?? 0);
+        if (cid) setCarrierId(cid);
+      } catch (e) {
+        // Silent — fallback to legacy direct checkout without planId
+        console.error("Straight Talk plan fetch failed", e);
+      }
+    })();
+  }, []);
+
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
   }, []);
 
-  const handlePlanSelect = (plan: { price: string }) => {
+  const handlePlanSelect = async (plan: { price: string }) => {
     const digits = phone.replace(/\D/g, "");
-    if (digits.length !== 10) return;
-    navigate("/checkout", { state: { phone, amount: plan.price.replace("$", ""), carrierSlug: "straight-talk", carrierName: "Straight Talk", brandColor } });
+    if (digits.length !== 10) {
+      toast({ title: "Phone required", description: "Enter a valid 10-digit phone number.", variant: "destructive" });
+      return;
+    }
+    const amount = Number(plan.price.replace("$", ""));
+    setVerifying(true);
+    const verify = await verifyPhone("straight-talk", digits);
+    setVerifying(false);
+    if (!verify.success) {
+      toast({ title: "Invalid phone", description: verify.message || "Please check the phone number.", variant: "destructive" });
+      return;
+    }
+    const matched = apiPlans.find((p) => p.amount === amount);
+    navigate("/checkout", {
+      state: {
+        phone,
+        amount,
+        carrierSlug: "straight-talk",
+        carrierName: "Straight Talk",
+        brandColor,
+        carrierId: matched?.carrierId ?? carrierId,
+        planId: matched?.plan_id || undefined,
+        planName: matched?.name,
+      },
+    });
   };
 
   return (
@@ -73,6 +159,7 @@ const StraightTalk = () => {
               className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(72,74%,44%)] focus:border-transparent text-center" />
           </div>
           <p className="text-[10px] sm:text-xs text-muted-foreground">Enter the phone number you want to recharge</p>
+          {verifying && <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">Verifying…</p>}
         </div>
       </div>
 
