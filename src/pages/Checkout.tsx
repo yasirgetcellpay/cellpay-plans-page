@@ -438,6 +438,7 @@ const Checkout = () => {
   const basePayload = useCallback((): Record<string, unknown> => ({
     phone_number: state?.phone.replace(/\D/g, "") || "",
     carrier_slug: state?.carrierSlug || "",
+    carrier_name: state?.carrierName || "",
     amount: state?.amount || "",
     plan_id: state?.planId,
     carrier_id: validation?.carrier_id || validation?.carrierId,

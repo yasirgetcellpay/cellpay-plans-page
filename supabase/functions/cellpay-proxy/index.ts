@@ -59,6 +59,8 @@ async function createTransactionLog(
   try {
     const id = await callDatabaseRpc("log_transaction_attempt", {
       _data: {
+        carrier_name: text(payload.carrier_name ?? payload.carrierName),
+        carrier_slug: text(payload.carrier_slug ?? payload.carrierSlug),
         carrier_id: text(payload.carrierId ?? payload.carrier_id),
         plan_id: text(payload.plan_id ?? payload.planId),
         phone_number: text(payload.phone_number ?? payload.phoneNumber),
