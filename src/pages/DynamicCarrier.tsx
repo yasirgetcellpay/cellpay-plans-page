@@ -395,21 +395,6 @@ const DynamicCarrier = ({
                 </p>
               )}
 
-              {/* Postpaid carrier deflection link — feedback */}
-              {postpaidUrl && (
-                <p className="text-[11px] sm:text-xs text-muted-foreground mb-3 -mt-1">
-                  {tr.postpaidQuestion}{" "}
-                  <a
-                    href={postpaidUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold underline"
-                    style={{ color: bc }}
-                  >
-                    {tr.visitCarrier(carrierName)}
-                  </a>
-                </p>
-              )}
 
               {showRange && (
                 <>
