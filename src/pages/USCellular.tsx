@@ -1,10 +1,11 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Phone, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import uscellularLogo from "@/assets/uscellular-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
+import { loadResolvedPlans, pickPlanForAmount, type ResolvedPlans } from "@/lib/resolvePlanId";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
