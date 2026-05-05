@@ -27,6 +27,25 @@ const NAV: { id: Section; label: string; icon: React.ComponentType<{ className?:
 const isSection = (value: string | undefined): value is Section =>
   !!value && NAV.some((item) => item.id === value);
 
+// Fallback mapping for carrier_id -> friendly name when carrier_name is missing in older logs
+const CARRIER_ID_NAMES: Record<string, string> = {
+  "3": "AT&T",
+  "6": "Cricket",
+  "14": "Verizon",
+  "15": "Simple Mobile",
+  "25": "Ultra Mobile",
+  "29": "Lyca Mobile",
+  "36": "Boost",
+  "38": "Metro PCS",
+  "43": "T-Mobile",
+  "45": "Tracfone",
+};
+const carrierLabel = (l: { carrier_name?: string | null; carrier_slug?: string | null; carrier_id?: string | null }) =>
+  l.carrier_name ||
+  (l.carrier_id && CARRIER_ID_NAMES[l.carrier_id]) ||
+  l.carrier_slug ||
+  (l.carrier_id ? `Carrier #${l.carrier_id}` : "Unknown");
+
 type TxLog = Tables<"transaction_logs">;
 type Visitor = { session_id: string; path: string; last_seen: string };
 
