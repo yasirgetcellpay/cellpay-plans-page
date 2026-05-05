@@ -573,8 +573,8 @@ const Checkout = () => {
       billing: {
         bill_email: email.trim(),
         country_id: country,
-        region_id: normalizeRegionCode(country, regionId) || cardZip,
-        state: normalizeRegionCode(country, regionId),
+        region_id: regionCode || cardZip,
+        state: regionCode,
       },
       browser_info: browserInfoRef.current,
       gclid: getGclid(),
