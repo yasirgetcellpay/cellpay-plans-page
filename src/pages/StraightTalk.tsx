@@ -1,6 +1,6 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import straightTalkLogo from "@/assets/straight-talk-logo.svg";
@@ -8,25 +8,6 @@ import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
 import { fetchCarrierView, verifyPhone } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
-
-const wirelessPlans = [
-  { price: "$65", highlight: "Platinum Unlimited" },
-  { price: "$55", highlight: "Gold Unlimited" },
-  { price: "$45", highlight: "Silver Unlimited" },
-  { price: "$35", highlight: "Bronze 10GB" },
-];
-
-const broadbandPlans = [
-  { price: "$65", highlight: "Platinum Unlimited" },
-  { price: "$55", highlight: "Gold Unlimited" },
-  { price: "$45", highlight: "Silver Unlimited" },
-  { price: "$35", highlight: "10 GB" },
-];
-
-const addonPlans = [
-  { price: "$10", highlight: "2GB Data Add-On" },
-  { price: "$10", highlight: "Global Calling Add-On" },
-];
 
 const brandColor = "hsl(72,74%,44%)";
 
@@ -39,23 +20,23 @@ const formatPhone = (value: string): string => {
 };
 
 interface ApiPlan {
-  plan_id: string;
+  planId: string;
   amount: number;
-  name: string;
-  carrierId?: number;
+  description: string;
+  carrierId: number;
+  category: "wireless" | "broadband" | "addon";
 }
 
-const collectPlans = (data: unknown): Array<Record<string, unknown>> => {
-  const out: Array<Record<string, unknown>> = [];
-  const visit = (n: unknown) => {
-    if (!n || typeof n !== "object") return;
-    if (Array.isArray(n)) { n.forEach(visit); return; }
-    const o = n as Record<string, unknown>;
-    if (Array.isArray(o.plans)) o.plans.forEach((p) => out.push(p as Record<string, unknown>));
-    Object.values(o).forEach(visit);
-  };
-  visit(data);
-  return out;
+interface DisplayPlan {
+  price: string;
+  highlight: string;
+  planId: string;
+  carrierId: number;
+}
+
+const shortName = (desc: string, fallback: string): string => {
+  const first = desc.split(",")[0]?.trim() || fallback;
+  return first.length > 28 ? first.slice(0, 28) + "…" : first;
 };
 
 const StraightTalk = () => {
@@ -63,56 +44,82 @@ const StraightTalk = () => {
   const { toast } = useToast();
   const [phone, setPhone] = useState("");
   const [apiPlans, setApiPlans] = useState<ApiPlan[]>([]);
-  const [carrierId, setCarrierId] = useState<number | undefined>(undefined);
   const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
         const data = await fetchCarrierView("straight-talk");
-        const raw = collectPlans(data);
-        const seen = new Set<number>();
-        const normalized: ApiPlan[] = [];
-        for (const p of raw) {
-          const amt = Number(p.amount ?? p.price ?? p.Amount ?? 0);
-          if (!amt || seen.has(amt)) continue;
-          const carrier = p.carrier;
-          const carrierIdNum =
-            typeof carrier === "number" ? carrier
-            : typeof carrier === "string" && carrier !== "" ? Number(carrier)
-            : undefined;
-          normalized.push({
-            plan_id: String(p.plan_id ?? p.planId ?? p.id ?? p.ID ?? ""),
-            amount: amt,
-            name: String(p.name ?? p.Name ?? p.description ?? ""),
-            carrierId: Number.isFinite(carrierIdNum) ? (carrierIdNum as number) : undefined,
-          });
-          seen.add(amt);
-        }
-        setApiPlans(normalized);
         const dataObj = data as Record<string, unknown>;
-        const cp = dataObj?.carrier_plans as Record<string, unknown> | undefined;
-        const carrierObj = (cp?.carrier ?? dataObj?.carrier) as Record<string, unknown> | undefined;
-        const cid = Number(carrierObj?.id ?? carrierObj?.ID ?? 0);
-        if (cid) setCarrierId(cid);
+        const cp = dataObj.carrier_plans;
+        if (!Array.isArray(cp)) return;
+        const normalized: ApiPlan[] = cp
+          .map((p) => {
+            const o = p as Record<string, unknown>;
+            const planId = String(o.planId ?? o.plan_id ?? o.id ?? o.ID ?? "");
+            const amount = Number(o.amount ?? 0);
+            const carrierId = Number(o.carrier ?? 0);
+            const description = String(o.description ?? "");
+            let category: ApiPlan["category"] = "wireless";
+            if (/^broadband-/i.test(planId)) category = "broadband";
+            else if (/^addon-/i.test(planId)) category = "addon";
+            return { planId, amount, description, carrierId, category };
+          })
+          .filter((p) => p.planId && p.amount > 0);
+        setApiPlans(normalized);
       } catch (e) {
-        // Silent — fallback to legacy direct checkout without planId
         console.error("Straight Talk plan fetch failed", e);
       }
     })();
   }, []);
 
+  const wirelessPlans = useMemo<DisplayPlan[]>(
+    () =>
+      apiPlans
+        .filter((p) => p.category === "wireless")
+        .map((p) => ({
+          price: `$${p.amount}`,
+          highlight: shortName(p.description, `$${p.amount} Refill`),
+          planId: p.planId,
+          carrierId: p.carrierId,
+        })),
+    [apiPlans]
+  );
+  const broadbandPlans = useMemo<DisplayPlan[]>(
+    () =>
+      apiPlans
+        .filter((p) => p.category === "broadband")
+        .map((p) => ({
+          price: `$${p.amount}`,
+          highlight: shortName(p.description, `$${p.amount} Broadband`),
+          planId: p.planId,
+          carrierId: p.carrierId,
+        })),
+    [apiPlans]
+  );
+  const addonPlans = useMemo<DisplayPlan[]>(
+    () =>
+      apiPlans
+        .filter((p) => p.category === "addon")
+        .map((p) => ({
+          price: `$${p.amount}`,
+          highlight: shortName(p.description, `$${p.amount} Add-On`),
+          planId: p.planId,
+          carrierId: p.carrierId,
+        })),
+    [apiPlans]
+  );
+
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
   }, []);
 
-  const handlePlanSelect = async (plan: { price: string }) => {
+  const goToCheckout = async (plan: DisplayPlan) => {
     const digits = phone.replace(/\D/g, "");
     if (digits.length !== 10) {
       toast({ title: "Phone required", description: "Enter a valid 10-digit phone number.", variant: "destructive" });
       return;
     }
-    const amount = Number(plan.price.replace("$", ""));
     setVerifying(true);
     const verify = await verifyPhone("straight-talk", digits);
     setVerifying(false);
@@ -120,7 +127,7 @@ const StraightTalk = () => {
       toast({ title: "Invalid phone", description: verify.message || "Please check the phone number.", variant: "destructive" });
       return;
     }
-    const matched = apiPlans.find((p) => p.amount === amount);
+    const amount = Number(plan.price.replace("$", ""));
     navigate("/checkout", {
       state: {
         phone,
@@ -128,11 +135,19 @@ const StraightTalk = () => {
         carrierSlug: "straight-talk",
         carrierName: "Straight Talk",
         brandColor,
-        carrierId: matched?.carrierId ?? carrierId,
-        planId: matched?.plan_id || undefined,
-        planName: matched?.name,
+        carrierId: plan.carrierId,
+        planId: plan.planId,
+        planName: plan.highlight,
       },
     });
+  };
+
+  // PlanGrid passes back the full plan object — adapter keeps planId/carrierId.
+  const onSelect = (p: { price: string; highlight: string }) => {
+    const dp = [...wirelessPlans, ...broadbandPlans, ...addonPlans].find(
+      (x) => x.price === p.price && x.highlight === p.highlight
+    );
+    if (dp) goToCheckout(dp);
   };
 
   return (
@@ -163,20 +178,32 @@ const StraightTalk = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-        <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 px-2">Wireless Plans</h3>
-      </div>
-      <PlanGrid plans={wirelessPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={handlePlanSelect} />
+      {wirelessPlans.length > 0 && (
+        <>
+          <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+            <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 px-2">Wireless Plans</h3>
+          </div>
+          <PlanGrid plans={wirelessPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={onSelect} />
+        </>
+      )}
 
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-        <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 px-2">Broadband Plans</h3>
-      </div>
-      <PlanGrid plans={broadbandPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={handlePlanSelect} />
+      {broadbandPlans.length > 0 && (
+        <>
+          <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+            <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 px-2">Broadband Plans</h3>
+          </div>
+          <PlanGrid plans={broadbandPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={onSelect} />
+        </>
+      )}
 
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-        <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 px-2">Add-On Plans</h3>
-      </div>
-      <PlanGrid plans={addonPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={handlePlanSelect} />
+      {addonPlans.length > 0 && (
+        <>
+          <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+            <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 px-2">Add-On Plans</h3>
+          </div>
+          <PlanGrid plans={addonPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={onSelect} />
+        </>
+      )}
 
       <PaymentBar />
       <CarrierFooter brandColor={brandColor} carrierName="Straight Talk" />
