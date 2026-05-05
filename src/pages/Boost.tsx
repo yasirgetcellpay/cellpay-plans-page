@@ -25,6 +25,11 @@ const Boost = () => {
   const [confirmed, setConfirmed] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [resolved, setResolved] = useState<ResolvedPlans>({ fixedPlans: [] });
+
+  useEffect(() => {
+    loadResolvedPlans("boost").then(setResolved).catch((e) => console.warn("Boost plan load failed", e));
+  }, []);
 
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
