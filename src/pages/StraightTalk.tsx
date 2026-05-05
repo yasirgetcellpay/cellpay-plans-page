@@ -179,30 +179,30 @@ const StraightTalk = () => {
       </div>
 
       {wirelessPlans.length > 0 && (
-        <>
-          <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-            <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 px-2">Wireless Plans</h3>
+        <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 mb-4">
+          <div className="bg-muted/40 border border-border rounded-xl p-3 sm:p-5">
+            <h3 className="text-sm sm:text-base font-extrabold text-foreground mb-3 px-1">Wireless Plans</h3>
+            <PlanGrid plans={wirelessPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={onSelect} />
           </div>
-          <PlanGrid plans={wirelessPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={onSelect} />
-        </>
+        </section>
       )}
 
       {broadbandPlans.length > 0 && (
-        <>
-          <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-            <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 px-2">Broadband Plans</h3>
+        <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 mb-4">
+          <div className="bg-muted/40 border border-border rounded-xl p-3 sm:p-5">
+            <h3 className="text-sm sm:text-base font-extrabold text-foreground mb-3 px-1">Broadband Plans</h3>
+            <PlanGrid plans={broadbandPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={onSelect} />
           </div>
-          <PlanGrid plans={broadbandPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={onSelect} />
-        </>
+        </section>
       )}
 
       {addonPlans.length > 0 && (
-        <>
-          <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-            <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2 px-2">Add-On Plans</h3>
+        <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 mb-4">
+          <div className="bg-muted/40 border border-border rounded-xl p-3 sm:p-5">
+            <h3 className="text-sm sm:text-base font-extrabold text-foreground mb-3 px-1">Add-On Plans</h3>
+            <PlanGrid plans={addonPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={onSelect} />
           </div>
-          <PlanGrid plans={addonPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={onSelect} />
-        </>
+        </section>
       )}
 
       <PaymentBar />

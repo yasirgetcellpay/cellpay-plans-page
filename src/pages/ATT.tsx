@@ -127,20 +127,20 @@ const ATT = () => {
 
       <PlanGrid plans={plans} brandColor={BRAND} onSelect={(plan) => setAmount(plan.price.replace("$", ""))} />
 
-      <div id="checkout-section" className="max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
-        <p className="text-xs sm:text-sm font-bold text-foreground mb-2 mt-2">Important</p>
-        <label className="flex items-start gap-2 mb-3 cursor-pointer">
-          <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: BRAND }} />
-          <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">I have confirmed that I entered the correct phone number. I understand that this sale is final as the minutes cannot be removed nor transferred once loaded to the phone number I have provided above.</span>
-        </label>
-        <label className="flex items-start gap-2 mb-6 cursor-pointer">
-          <input type="checkbox" checked={agreedTerms} onChange={(e) => setAgreedTerms(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: BRAND }} />
-          <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">Agree with AT&amp;T Product Policies and Sales.{" "}<a href="https://www.att.com/legal/terms.attWebsiteTermsOfUse.html" className="underline font-semibold" style={{ color: BRAND }}>View More</a></span>
-        </label>
-        <div className="flex justify-center">
-          <button type="button" disabled={!isValid} onClick={() => goCheckout(amount)} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]" style={{ backgroundColor: BRAND }}>PAY NOW</button>
+      <div id="checkout-section" className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
+        <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6">
+          <p className="text-xs sm:text-sm font-bold text-foreground mb-3">Important</p>
+          <label className="flex items-start gap-2 mb-3 cursor-pointer">
+            <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: BRAND }} />
+            <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">I have confirmed that I entered the correct phone number. I understand that this sale is final as the minutes cannot be removed nor transferred once loaded to the phone number I have provided above.</span>
+          </label>
+          <label className="flex items-start gap-2 mb-4 cursor-pointer">
+            <input type="checkbox" checked={agreedTerms} onChange={(e) => setAgreedTerms(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: BRAND }} />
+            <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">Agree with AT&amp;T Product Policies and Sales.{" "}<a href="https://www.att.com/legal/terms.attWebsiteTermsOfUse.html" className="underline font-semibold" style={{ color: BRAND }}>View More</a></span>
+          </label>
+          <button type="button" disabled={!isValid} onClick={() => goCheckout(amount)} className="w-full h-[44px] sm:h-[48px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]" style={{ backgroundColor: BRAND }}>PAY NOW</button>
+          <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
         </div>
-        <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
       </div>
 
       <PaymentBar />
