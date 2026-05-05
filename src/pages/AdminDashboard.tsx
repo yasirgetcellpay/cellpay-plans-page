@@ -41,6 +41,7 @@ export default function AdminDashboard() {
   const [logs, setLogs] = useState<TxLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState("7d");
+  const [section, setSection] = useState<Section>("overview");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [methodFilter, setMethodFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
