@@ -9,6 +9,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tables } from "@/integrations/supabase/types";
+import {
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { LayoutDashboard, Users, Activity, BarChart3, Eye } from "lucide-react";
+
+type Section = "overview" | "visitors" | "breakdowns" | "customers" | "transactions";
+const NAV: { id: Section; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "visitors", label: "Live visitors", icon: Eye },
+  { id: "breakdowns", label: "Breakdowns", icon: BarChart3 },
+  { id: "customers", label: "Customers", icon: Users },
+  { id: "transactions", label: "Transactions", icon: Activity },
+];
 
 type TxLog = Tables<"transaction_logs">;
 type Visitor = { session_id: string; path: string; last_seen: string };
