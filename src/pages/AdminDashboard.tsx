@@ -505,12 +505,14 @@ export default function AdminDashboard() {
                     <TableRow>
                       <TableHead>Time</TableHead>
                       <TableHead>Carrier</TableHead>
+                      <TableHead>Refill</TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>Customer</TableHead>
                       <TableHead>Method</TableHead>
                       <TableHead className="text-right">Amount</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Error / Hashid</TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -518,6 +520,10 @@ export default function AdminDashboard() {
                       <TableRow key={l.id}>
                         <TableCell className="text-xs whitespace-nowrap">{new Date(l.created_at).toLocaleString()}</TableCell>
                         <TableCell className="text-xs">{l.carrier_name || l.carrier_slug || (l.carrier_id ? `#${l.carrier_id}` : "—")}</TableCell>
+                        <TableCell className="text-xs font-mono">
+                          <div>plan: {l.plan_id || "—"}</div>
+                          <div className="text-muted-foreground">carrier: {l.carrier_id || "—"}</div>
+                        </TableCell>
                         <TableCell className="text-xs">{l.phone_number || "—"}</TableCell>
                         <TableCell className="text-xs">
                           <div>{[l.first_name, l.last_name].filter(Boolean).join(" ") || "—"}</div>
@@ -529,10 +535,13 @@ export default function AdminDashboard() {
                         <TableCell className="text-xs max-w-[260px] truncate" title={l.error_message || l.hashid || ""}>
                           {l.status === "success" ? (l.hashid || l.transaction_id || "") : (l.error_message || "")}
                         </TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="outline" onClick={() => setDetailLog(l)}>View JSON</Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {filtered.length === 0 && (
-                      <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No transactions match the filters.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No transactions match the filters.</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
