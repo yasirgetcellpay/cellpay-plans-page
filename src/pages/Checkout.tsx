@@ -519,7 +519,26 @@ const Checkout = () => {
 
   const isEmailValid = email.trim().length > 0 && email.includes("@") && email.includes(".");
 
-  const canSubmit = agreedTerms && !submitting && isEmailValid && (paymentMethod === "card" ? isCardValid : true) && (!autoPay || autoPayTerms);
+  // Per-method required-field validation. Every payment method requires email + phone (already provided).
+  const isKlarnaValid =
+    klarnaFirstName.trim().length > 0 &&
+    klarnaLastName.trim().length > 0 &&
+    klarnaPhone.replace(/\D/g, "").length >= 10 &&
+    klarnaAddress.trim().length > 0 &&
+    klarnaCity.trim().length > 0 &&
+    klarnaState.trim().length > 0 &&
+    klarnaCountry.trim().length > 0 &&
+    klarnaZip.length >= 5;
+
+  let methodValid = true;
+  switch (paymentMethod) {
+    case "card": methodValid = isCardValid; break;
+    case "klarna": methodValid = isKlarnaValid; break;
+    // paypal/applepay/googlepay/plaid/cashapp collect their own details via SDK popups
+    default: methodValid = true;
+  }
+
+  const canSubmit = agreedTerms && !submitting && isEmailValid && methodValid && (!autoPay || autoPayTerms);
 
   const handleResult = (raw: Record<string, unknown>) => {
     // Unwrap double-nested { data: { data: { status, message, transactionId } } }
