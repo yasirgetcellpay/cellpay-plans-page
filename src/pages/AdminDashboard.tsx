@@ -174,6 +174,7 @@ export default function AdminDashboard() {
     return logs.filter((l) => {
       if (statusFilter !== "all" && l.status !== statusFilter) return false;
       if (methodFilter !== "all" && l.payment_method !== methodFilter) return false;
+      if (carrierFilter !== "all" && carrierLabel(l) !== carrierFilter) return false;
       if (search) {
         const s = search.toLowerCase();
         const blob = `${l.email || ""} ${l.phone_number || ""} ${l.first_name || ""} ${l.last_name || ""} ${l.hashid || ""} ${l.transaction_id || ""}`.toLowerCase();
@@ -181,7 +182,21 @@ export default function AdminDashboard() {
       }
       return true;
     });
-  }, [logs, statusFilter, methodFilter, search]);
+  }, [logs, statusFilter, methodFilter, carrierFilter, search]);
+
+  // For breakdowns we ignore the status filter so success/failed columns are always visible
+  const filteredForBreakdowns = useMemo(() => {
+    return logs.filter((l) => {
+      if (methodFilter !== "all" && l.payment_method !== methodFilter) return false;
+      if (carrierFilter !== "all" && carrierLabel(l) !== carrierFilter) return false;
+      if (search) {
+        const s = search.toLowerCase();
+        const blob = `${l.email || ""} ${l.phone_number || ""} ${l.first_name || ""} ${l.last_name || ""} ${l.hashid || ""} ${l.transaction_id || ""}`.toLowerCase();
+        if (!blob.includes(s)) return false;
+      }
+      return true;
+    });
+  }, [logs, methodFilter, carrierFilter, search]);
 
   const kpis = useMemo(() => {
     const total = filtered.length;
@@ -195,28 +210,40 @@ export default function AdminDashboard() {
   }, [filtered]);
 
   const byCarrier = useMemo(() => {
-    const map = new Map<string, { count: number; revenue: number }>();
-    filtered.forEach((l) => {
+    const map = new Map<string, { success: number; failed: number; pending: number; revenue: number }>();
+    filteredForBreakdowns.forEach((l) => {
       const k = carrierLabel(l);
-      const cur = map.get(k) || { count: 0, revenue: 0 };
-      cur.count += 1;
-      if (l.status === "success") cur.revenue += Number(l.total) || Number(l.amount) || 0;
+      const cur = map.get(k) || { success: 0, failed: 0, pending: 0, revenue: 0 };
+      if (l.status === "success") {
+        cur.success += 1;
+        cur.revenue += Number(l.total) || Number(l.amount) || 0;
+      } else if (l.status === "failed") {
+        cur.failed += 1;
+      } else {
+        cur.pending += 1;
+      }
       map.set(k, cur);
     });
     return Array.from(map.entries()).sort((a, b) => b[1].revenue - a[1].revenue);
-  }, [filtered]);
+  }, [filteredForBreakdowns]);
 
   const byMethod = useMemo(() => {
-    const map = new Map<string, { count: number; revenue: number }>();
-    filtered.forEach((l) => {
+    const map = new Map<string, { success: number; failed: number; pending: number; revenue: number }>();
+    filteredForBreakdowns.forEach((l) => {
       const k = l.payment_method || "unknown";
-      const cur = map.get(k) || { count: 0, revenue: 0 };
-      cur.count += 1;
-      if (l.status === "success") cur.revenue += Number(l.total) || Number(l.amount) || 0;
+      const cur = map.get(k) || { success: 0, failed: 0, pending: 0, revenue: 0 };
+      if (l.status === "success") {
+        cur.success += 1;
+        cur.revenue += Number(l.total) || Number(l.amount) || 0;
+      } else if (l.status === "failed") {
+        cur.failed += 1;
+      } else {
+        cur.pending += 1;
+      }
       map.set(k, cur);
     });
-    return Array.from(map.entries()).sort((a, b) => b[1].count - a[1].count);
-  }, [filtered]);
+    return Array.from(map.entries()).sort((a, b) => (b[1].success + b[1].failed) - (a[1].success + a[1].failed));
+  }, [filteredForBreakdowns]);
 
   const byCustomer = useMemo(() => {
     type Agg = {
