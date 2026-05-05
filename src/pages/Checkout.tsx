@@ -1104,8 +1104,39 @@ const Checkout = () => {
 
 
 
+  const validateBeforeSubmit = (): string | null => {
+    if (!isEmailValid) return "Please enter a valid email address.";
+    if (!agreedTerms) return "Please accept the terms and conditions.";
+    if (autoPay && !autoPayTerms) return "Please accept the auto-pay terms.";
+    if (paymentMethod === "card") {
+      if (!firstName.trim()) return "First name is required.";
+      if (!lastName.trim()) return "Last name is required.";
+      if (!address.trim()) return "Street address is required.";
+      if (!city.trim()) return "City is required.";
+      if (!country.trim()) return "Country is required.";
+      if (!regionCode) return "State / region is required.";
+      if (cardZip.length < 5) return "ZIP code is required.";
+      if (!isValidLuhn(cardDigits)) return "Card number is invalid.";
+      if (expiryDigits.length !== 4) return "Card expiry is required.";
+      if (cardCvv.length < 3) return "CVV is required.";
+    }
+    if (paymentMethod === "klarna") {
+      if (!klarnaFirstName.trim()) return "Klarna: first name is required.";
+      if (!klarnaLastName.trim()) return "Klarna: last name is required.";
+      if (klarnaPhone.replace(/\D/g, "").length < 10) return "Klarna: valid phone is required.";
+      if (!klarnaAddress.trim()) return "Klarna: street address is required.";
+      if (!klarnaCity.trim()) return "Klarna: city is required.";
+      if (!klarnaState.trim()) return "Klarna: state is required.";
+      if (!klarnaCountry.trim()) return "Klarna: country is required.";
+      if (klarnaZip.length < 5) return "Klarna: ZIP is required.";
+    }
+    return null;
+  };
+
   // ─── Main handler ───
   const handlePlaceOrder = async () => {
+    const validationErr = validateBeforeSubmit();
+    if (validationErr) { setErrorMsg(validationErr); return; }
     if (!canSubmit) return;
     setSubmitting(true);
     setErrorMsg(null);
