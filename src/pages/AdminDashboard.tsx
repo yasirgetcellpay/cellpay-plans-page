@@ -173,6 +173,86 @@ export default function AdminDashboard() {
     return Array.from(map.entries()).sort((a, b) => b[1].count - a[1].count);
   }, [filtered]);
 
+  const byCustomer = useMemo(() => {
+    type Agg = {
+      email: string;
+      phone: string;
+      name: string;
+      carriers: Set<string>;
+      methods: Set<string>;
+      attempts: number;
+      successes: number;
+      totalSpend: number;
+      lastSeen: string;
+    };
+    const map = new Map<string, Agg>();
+    filtered.forEach((l) => {
+      const key = (l.email || l.phone_number || "").toLowerCase();
+      if (!key) return;
+      const cur = map.get(key) || {
+        email: l.email || "",
+        phone: l.phone_number || "",
+        name: [l.first_name, l.last_name].filter(Boolean).join(" "),
+        carriers: new Set<string>(),
+        methods: new Set<string>(),
+        attempts: 0,
+        successes: 0,
+        totalSpend: 0,
+        lastSeen: l.created_at,
+      };
+      cur.attempts += 1;
+      if (l.status === "success") {
+        cur.successes += 1;
+        cur.totalSpend += Number(l.total) || Number(l.amount) || 0;
+      }
+      const carrierName = l.carrier_name || l.carrier_slug || (l.carrier_id ? `#${l.carrier_id}` : "");
+      if (carrierName) cur.carriers.add(carrierName);
+      if (l.payment_method) cur.methods.add(l.payment_method);
+      if (!cur.email && l.email) cur.email = l.email;
+      if (!cur.phone && l.phone_number) cur.phone = l.phone_number;
+      if (!cur.name) cur.name = [l.first_name, l.last_name].filter(Boolean).join(" ");
+      if (new Date(l.created_at) > new Date(cur.lastSeen)) cur.lastSeen = l.created_at;
+      map.set(key, cur);
+    });
+    return Array.from(map.values()).sort((a, b) => b.totalSpend - a.totalSpend);
+  }, [filtered]);
+
+  const [customerSearch, setCustomerSearch] = useState("");
+  const filteredCustomers = useMemo(() => {
+    if (!customerSearch) return byCustomer;
+    const s = customerSearch.toLowerCase();
+    return byCustomer.filter((c) =>
+      `${c.email} ${c.phone} ${c.name}`.toLowerCase().includes(s)
+    );
+  }, [byCustomer, customerSearch]);
+
+  const exportCustomersCSV = () => {
+    const rows = [
+      ["Name", "Email", "Phone", "Carriers", "Methods", "Attempts", "Successes", "Total Spend", "Last Seen"],
+      ...filteredCustomers.map((c) => [
+        c.name,
+        c.email,
+        c.phone,
+        Array.from(c.carriers).join("; "),
+        Array.from(c.methods).join("; "),
+        String(c.attempts),
+        String(c.successes),
+        c.totalSpend.toFixed(2),
+        new Date(c.lastSeen).toISOString(),
+      ]),
+    ];
+    const csv = rows
+      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `customers-${range}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const methodOptions = useMemo(() => {
     const set = new Set<string>();
     logs.forEach((l) => l.payment_method && set.add(l.payment_method));
