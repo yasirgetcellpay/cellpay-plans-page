@@ -68,6 +68,7 @@ export default function AdminDashboard() {
   const [section, setSection] = useState<Section>(() => isSection(routeSection) ? routeSection : "overview");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [methodFilter, setMethodFilter] = useState<string>("all");
+  const [carrierFilter, setCarrierFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [now, setNow] = useState(Date.now());
@@ -173,6 +174,7 @@ export default function AdminDashboard() {
     return logs.filter((l) => {
       if (statusFilter !== "all" && l.status !== statusFilter) return false;
       if (methodFilter !== "all" && l.payment_method !== methodFilter) return false;
+      if (carrierFilter !== "all" && carrierLabel(l) !== carrierFilter) return false;
       if (search) {
         const s = search.toLowerCase();
         const blob = `${l.email || ""} ${l.phone_number || ""} ${l.first_name || ""} ${l.last_name || ""} ${l.hashid || ""} ${l.transaction_id || ""}`.toLowerCase();
@@ -180,7 +182,21 @@ export default function AdminDashboard() {
       }
       return true;
     });
-  }, [logs, statusFilter, methodFilter, search]);
+  }, [logs, statusFilter, methodFilter, carrierFilter, search]);
+
+  // For breakdowns we ignore the status filter so success/failed columns are always visible
+  const filteredForBreakdowns = useMemo(() => {
+    return logs.filter((l) => {
+      if (methodFilter !== "all" && l.payment_method !== methodFilter) return false;
+      if (carrierFilter !== "all" && carrierLabel(l) !== carrierFilter) return false;
+      if (search) {
+        const s = search.toLowerCase();
+        const blob = `${l.email || ""} ${l.phone_number || ""} ${l.first_name || ""} ${l.last_name || ""} ${l.hashid || ""} ${l.transaction_id || ""}`.toLowerCase();
+        if (!blob.includes(s)) return false;
+      }
+      return true;
+    });
+  }, [logs, methodFilter, carrierFilter, search]);
 
   const kpis = useMemo(() => {
     const total = filtered.length;
@@ -194,28 +210,40 @@ export default function AdminDashboard() {
   }, [filtered]);
 
   const byCarrier = useMemo(() => {
-    const map = new Map<string, { count: number; revenue: number }>();
-    filtered.forEach((l) => {
+    const map = new Map<string, { success: number; failed: number; pending: number; revenue: number }>();
+    filteredForBreakdowns.forEach((l) => {
       const k = carrierLabel(l);
-      const cur = map.get(k) || { count: 0, revenue: 0 };
-      cur.count += 1;
-      if (l.status === "success") cur.revenue += Number(l.total) || Number(l.amount) || 0;
+      const cur = map.get(k) || { success: 0, failed: 0, pending: 0, revenue: 0 };
+      if (l.status === "success") {
+        cur.success += 1;
+        cur.revenue += Number(l.total) || Number(l.amount) || 0;
+      } else if (l.status === "failed") {
+        cur.failed += 1;
+      } else {
+        cur.pending += 1;
+      }
       map.set(k, cur);
     });
     return Array.from(map.entries()).sort((a, b) => b[1].revenue - a[1].revenue);
-  }, [filtered]);
+  }, [filteredForBreakdowns]);
 
   const byMethod = useMemo(() => {
-    const map = new Map<string, { count: number; revenue: number }>();
-    filtered.forEach((l) => {
+    const map = new Map<string, { success: number; failed: number; pending: number; revenue: number }>();
+    filteredForBreakdowns.forEach((l) => {
       const k = l.payment_method || "unknown";
-      const cur = map.get(k) || { count: 0, revenue: 0 };
-      cur.count += 1;
-      if (l.status === "success") cur.revenue += Number(l.total) || Number(l.amount) || 0;
+      const cur = map.get(k) || { success: 0, failed: 0, pending: 0, revenue: 0 };
+      if (l.status === "success") {
+        cur.success += 1;
+        cur.revenue += Number(l.total) || Number(l.amount) || 0;
+      } else if (l.status === "failed") {
+        cur.failed += 1;
+      } else {
+        cur.pending += 1;
+      }
       map.set(k, cur);
     });
-    return Array.from(map.entries()).sort((a, b) => b[1].count - a[1].count);
-  }, [filtered]);
+    return Array.from(map.entries()).sort((a, b) => (b[1].success + b[1].failed) - (a[1].success + a[1].failed));
+  }, [filteredForBreakdowns]);
 
   const byCustomer = useMemo(() => {
     type Agg = {
@@ -413,29 +441,39 @@ export default function AdminDashboard() {
             {section === "breakdowns" && (
         <div className="grid md:grid-cols-2 gap-4">
           <Card>
-            <CardHeader><CardTitle className="text-base">By carrier</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base">By carrier <span className="text-xs font-normal text-muted-foreground">(click a row to view transactions)</span></CardTitle></CardHeader>
             <CardContent>
               <Table>
-                <TableHeader><TableRow><TableHead>Carrier</TableHead><TableHead className="text-right">Count</TableHead><TableHead className="text-right">Revenue</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Carrier</TableHead><TableHead className="text-right">Success</TableHead><TableHead className="text-right">Failed</TableHead><TableHead className="text-right">Revenue</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {byCarrier.slice(0, 10).map(([k, v]) => (
-                    <TableRow key={k}><TableCell>{k}</TableCell><TableCell className="text-right">{v.count}</TableCell><TableCell className="text-right">{fmt$(v.revenue)}</TableCell></TableRow>
+                  {byCarrier.slice(0, 20).map(([k, v]) => (
+                    <TableRow key={k} className="cursor-pointer" onClick={() => { setCarrierFilter(k); setMethodFilter("all"); setStatusFilter("all"); setSearch(""); handleSectionChange("transactions"); }}>
+                      <TableCell>{k}</TableCell>
+                      <TableCell className="text-right text-green-600 font-medium">{v.success}</TableCell>
+                      <TableCell className="text-right text-red-600 font-medium">{v.failed}</TableCell>
+                      <TableCell className="text-right">{fmt$(v.revenue)}</TableCell>
+                    </TableRow>
                   ))}
-                  {byCarrier.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
+                  {byCarrier.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader><CardTitle className="text-base">By payment method</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base">By payment method <span className="text-xs font-normal text-muted-foreground">(click a row to view transactions)</span></CardTitle></CardHeader>
             <CardContent>
               <Table>
-                <TableHeader><TableRow><TableHead>Method</TableHead><TableHead className="text-right">Count</TableHead><TableHead className="text-right">Revenue</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Method</TableHead><TableHead className="text-right">Success</TableHead><TableHead className="text-right">Failed</TableHead><TableHead className="text-right">Revenue</TableHead></TableRow></TableHeader>
                 <TableBody>
                   {byMethod.map(([k, v]) => (
-                    <TableRow key={k}><TableCell>{k}</TableCell><TableCell className="text-right">{v.count}</TableCell><TableCell className="text-right">{fmt$(v.revenue)}</TableCell></TableRow>
+                    <TableRow key={k} className="cursor-pointer" onClick={() => { setMethodFilter(k); setCarrierFilter("all"); setStatusFilter("all"); setSearch(""); handleSectionChange("transactions"); }}>
+                      <TableCell>{k}</TableCell>
+                      <TableCell className="text-right text-green-600 font-medium">{v.success}</TableCell>
+                      <TableCell className="text-right text-red-600 font-medium">{v.failed}</TableCell>
+                      <TableCell className="text-right">{fmt$(v.revenue)}</TableCell>
+                    </TableRow>
                   ))}
-                  {byMethod.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
+                  {byMethod.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </CardContent>
@@ -522,6 +560,13 @@ export default function AdminDashboard() {
                   <SelectContent>
                     <SelectItem value="all">All methods</SelectItem>
                     {methodOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={carrierFilter} onValueChange={setCarrierFilter}>
+                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="Carrier" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All carriers</SelectItem>
+                    {byCarrier.map(([k]) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
