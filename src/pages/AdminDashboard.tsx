@@ -552,6 +552,40 @@ export default function AdminDashboard() {
             )}
           </main>
         </div>
+
+        <Dialog open={!!detailLog} onOpenChange={(o) => !o && setDetailLog(null)}>
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Transaction details</DialogTitle>
+            </DialogHeader>
+            {detailLog && (
+              <div className="space-y-4 text-xs">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <Info label="Time" value={new Date(detailLog.created_at).toLocaleString()} />
+                  <Info label="Status" value={detailLog.status} />
+                  <Info label="Method" value={detailLog.payment_method || "—"} />
+                  <Info label="Card" value={detailLog.card_type || "—"} />
+                  <Info label="Carrier" value={detailLog.carrier_name || detailLog.carrier_slug || "—"} />
+                  <Info label="Carrier ID" value={detailLog.carrier_id || "—"} />
+                  <Info label="Plan ID" value={detailLog.plan_id || "—"} />
+                  <Info label="Phone" value={detailLog.phone_number || "—"} />
+                  <Info label="Email" value={detailLog.email || "—"} />
+                  <Info label="Name" value={[detailLog.first_name, detailLog.last_name].filter(Boolean).join(" ") || "—"} />
+                  <Info label="Amount" value={fmt$(Number(detailLog.amount) || 0)} />
+                  <Info label="Total" value={fmt$(Number(detailLog.total) || 0)} />
+                  <Info label="Hashid" value={detailLog.hashid || "—"} />
+                  <Info label="Txn ID" value={detailLog.transaction_id || "—"} />
+                  <Info label="Source IP" value={detailLog.source_ip || "—"} />
+                </div>
+                {detailLog.error_message && (
+                  <JsonBlock title="Error" value={detailLog.error_message} />
+                )}
+                <JsonBlock title="Request / Metadata" value={JSON.stringify(detailLog.metadata ?? {}, null, 2)} />
+                <JsonBlock title="Raw Response" value={JSON.stringify(detailLog.raw_response ?? {}, null, 2)} />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </SidebarProvider>
   );
