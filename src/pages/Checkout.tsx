@@ -752,7 +752,13 @@ const Checkout = () => {
     } catch {
       googlePayTokenPayload = rawToken;
     }
-    const billingAddress = pmd?.info?.billingAddress || null;
+    const billingAddress =
+      pmd?.info?.billingAddress ||
+      (pmd as any)?.billingAddress ||
+      (paymentData as any)?.billingAddress ||
+      null;
+    console.log("[GooglePay] paymentMethodData:", pmd);
+    console.log("[GooglePay] billingAddress:", billingAddress);
 
     const result = await submitTransaction({
       checkout_version: "5.0",
@@ -771,7 +777,7 @@ const Checkout = () => {
         email: email.trim() || "customer@cellpay.us",
       },
       google_pay_token: googlePayTokenPayload,
-      gpay_billing_details: billingAddress ? JSON.stringify(billingAddress) : undefined,
+      gpay_billing_details: JSON.stringify(billingAddress || {}),
       browser_info: browserInfoRef.current,
       gclid: getGclid(),
       kount_ssid: sessionIdRef.current,
