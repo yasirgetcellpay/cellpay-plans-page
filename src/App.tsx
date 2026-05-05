@@ -21,6 +21,7 @@ import ReturnsPolicy from "./pages/ReturnsPolicy.tsx";
 import AdminLogin from "./pages/AdminLogin.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import StraightTalk from "./pages/StraightTalk.tsx";
 import { Toaster } from "@/components/ui/toaster";
 
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
