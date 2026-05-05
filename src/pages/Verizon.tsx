@@ -111,10 +111,8 @@ const Verizon = () => {
           <p className="text-[10px] sm:text-xs text-muted-foreground">Or select a plan below</p>
           {amountNum >= 10 && amountNum <= 150 && (
             <button type="button" onClick={() => {
-              if (phoneDigits.length !== 10) {
-                return;
-              }
-              navigate("/checkout", { state: { phone, amount, carrierSlug: "verizon", carrierName: "Verizon", brandColor: BRAND } });
+              if (phoneDigits.length !== 10) return;
+              goCheckout(amount);
             }} disabled={phoneDigits.length !== 10} className="mt-4 w-full h-10 sm:h-11 rounded-lg text-primary-foreground font-bold text-sm sm:text-base transition-colors active:scale-[0.97] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" style={{ backgroundColor: BRAND }}>PAY NOW</button>
           )}
         </div>
