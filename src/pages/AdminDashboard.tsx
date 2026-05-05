@@ -152,7 +152,7 @@ export default function AdminDashboard() {
   const byCarrier = useMemo(() => {
     const map = new Map<string, { count: number; revenue: number }>();
     filtered.forEach((l) => {
-      const k = l.carrier_name || l.carrier_slug || "Unknown";
+      const k = l.carrier_name || l.carrier_slug || (l.carrier_id ? `Carrier #${l.carrier_id}` : "Unknown");
       const cur = map.get(k) || { count: 0, revenue: 0 };
       cur.count += 1;
       if (l.status === "success") cur.revenue += Number(l.total) || Number(l.amount) || 0;
@@ -334,7 +334,7 @@ export default function AdminDashboard() {
                     {filtered.slice(0, 200).map((l) => (
                       <TableRow key={l.id}>
                         <TableCell className="text-xs whitespace-nowrap">{new Date(l.created_at).toLocaleString()}</TableCell>
-                        <TableCell className="text-xs">{l.carrier_name || l.carrier_slug || "—"}</TableCell>
+                        <TableCell className="text-xs">{l.carrier_name || l.carrier_slug || (l.carrier_id ? `#${l.carrier_id}` : "—")}</TableCell>
                         <TableCell className="text-xs">{l.phone_number || "—"}</TableCell>
                         <TableCell className="text-xs">
                           <div>{[l.first_name, l.last_name].filter(Boolean).join(" ") || "—"}</div>

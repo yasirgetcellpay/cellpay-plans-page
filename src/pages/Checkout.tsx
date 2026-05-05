@@ -571,6 +571,8 @@ const Checkout = () => {
       total: validation?.total ?? Number(state.amount),
       phone_number: state.phone.replace(/\D/g, ""),
       carrierId: validation?.carrier_id || validation?.carrierId || state.planId,
+      carrier_slug: state.carrierSlug,
+      carrier_name: state.carrierName,
       plan_id: state.planId ? String(state.planId) : undefined,
       agree_desktop: true,
       payment: {
@@ -650,6 +652,8 @@ const Checkout = () => {
               total: validation?.total ?? Number(state.amount),
               phone_number: state.phone.replace(/\D/g, ""),
               carrierId: validation?.carrier_id || validation?.carrierId,
+              carrier_slug: state.carrierSlug,
+              carrier_name: state.carrierName,
               plan_id: state.planId ? String(state.planId) : undefined,
               agree_desktop: true,
               payment: {
@@ -734,6 +738,8 @@ const Checkout = () => {
       total: validation?.total ?? Number(state.amount),
       phone_number: state.phone.replace(/\D/g, ""),
       carrierId: validation?.carrier_id || validation?.carrierId,
+      carrier_slug: state.carrierSlug,
+      carrier_name: state.carrierName,
       plan_id: state.planId ? String(state.planId) : undefined,
       agree_desktop: true,
       payment: {
@@ -878,6 +884,8 @@ const Checkout = () => {
           total: validation?.total ?? Number(state.amount),
           phone_number: state.phone.replace(/\D/g, ""),
           carrierId: validation?.carrier_id || validation?.carrierId,
+          carrier_slug: state.carrierSlug,
+          carrier_name: state.carrierName,
           plan_id: state.planId ? String(state.planId) : undefined,
           agree_desktop: true,
           payment: {
@@ -952,6 +960,8 @@ const Checkout = () => {
     total: validation?.total ?? Number(state.amount),
     phone_number: state.phone.replace(/\D/g, ""),
     carrierId: validation?.carrier_id || validation?.carrierId,
+    carrier_slug: state.carrierSlug,
+    carrier_name: state.carrierName,
     plan_id: state.planId ? String(state.planId) : undefined,
     agree_desktop: true,
     payment: {
@@ -1061,6 +1071,8 @@ const Checkout = () => {
       amount: validation?.amount ?? Number(state.amount),
       phone_number: state.phone.replace(/\D/g, ""),
       carrierId: validation?.carrier_id || validation?.carrierId,
+      carrier_slug: state.carrierSlug,
+      carrier_name: state.carrierName,
       plan_id: state.planId ? String(state.planId) : undefined,
       agree_desktop: true,
       cashapp_return_url: cashappReturnUrl,
