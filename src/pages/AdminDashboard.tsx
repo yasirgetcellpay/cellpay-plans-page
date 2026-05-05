@@ -597,7 +597,7 @@ export default function AdminDashboard() {
                   <Info label="Status" value={detailLog.status} />
                   <Info label="Method" value={detailLog.payment_method || "—"} />
                   <Info label="Card" value={detailLog.card_type || "—"} />
-                  <Info label="Carrier" value={detailLog.carrier_name || detailLog.carrier_slug || "—"} />
+                  <Info label="Carrier" value={carrierLabel(detailLog)} />
                   <Info label="Carrier ID" value={detailLog.carrier_id || "—"} />
                   <Info label="Plan ID" value={detailLog.plan_id || "—"} />
                   <Info label="Phone" value={detailLog.phone_number || "—"} />
