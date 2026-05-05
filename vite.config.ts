@@ -72,13 +72,42 @@ const htmlAliasPlugin = (): Plugin => ({
   closeBundle() {
     const outDir = path.resolve(__dirname, "dist");
     const indexPath = path.join(outDir, "index.html");
-    if (!fs.existsSync(indexPath)) return;
+    if (!fs.existsSync(indexPath)) {
+      throw new Error(
+        "[html-route-aliases] dist/index.html is missing — cannot emit alias HTML files.",
+      );
+    }
     const html = fs.readFileSync(indexPath, "utf-8");
     for (const route of HTML_ROUTES) {
       const dest = path.join(outDir, route);
       fs.mkdirSync(path.dirname(dest), { recursive: true });
       fs.writeFileSync(dest, html);
     }
+
+    // Build regression check: every route in HTML_ROUTES must exist in dist/
+    // with non-empty HTML content. Fails the build if anything is missing so
+    // we can never silently ship a 404 for an advertised landing page again.
+    const missing: string[] = [];
+    const empty: string[] = [];
+    for (const route of HTML_ROUTES) {
+      const dest = path.join(outDir, route);
+      if (!fs.existsSync(dest)) {
+        missing.push(route);
+        continue;
+      }
+      const stat = fs.statSync(dest);
+      if (stat.size === 0) empty.push(route);
+    }
+    if (missing.length || empty.length) {
+      const lines: string[] = ["[html-route-aliases] Build regression check FAILED."];
+      if (missing.length) lines.push(`  Missing: ${missing.join(", ")}`);
+      if (empty.length) lines.push(`  Empty:   ${empty.join(", ")}`);
+      throw new Error(lines.join("\n"));
+    }
+    // eslint-disable-next-line no-console
+    console.log(
+      `[html-route-aliases] Verified ${HTML_ROUTES.length} alias HTML routes in dist/.`,
+    );
   },
 });
 
