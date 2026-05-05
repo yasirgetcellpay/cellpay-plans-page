@@ -1241,10 +1241,10 @@ const Checkout = () => {
                 <CreditCard className="h-4 w-4" /> {tr.cardDetails}
               </h2>
               <div className="grid grid-cols-2 gap-3">
-                <input type="text" placeholder={tr.firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                <input type="text" required placeholder={`${tr.firstName} *`} value={firstName} onChange={(e) => setFirstName(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                <input type="text" placeholder={tr.lastName} value={lastName} onChange={(e) => setLastName(e.target.value)}
+                <input type="text" required placeholder={`${tr.lastName} *`} value={lastName} onChange={(e) => setLastName(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
