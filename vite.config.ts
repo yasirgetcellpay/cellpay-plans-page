@@ -68,6 +68,10 @@ const HTML_ROUTES = [
   // (which don't do SPA fallback) serve the React app on direct refresh.
   "admin/index.html",
   "admin/login/index.html",
+  "admin/visitors/index.html",
+  "admin/breakdowns/index.html",
+  "admin/customers/index.html",
+  "admin/transactions/index.html",
 ];
 
 const htmlAliasPlugin = (): Plugin => ({
