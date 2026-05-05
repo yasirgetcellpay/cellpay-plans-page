@@ -21,6 +21,11 @@ const USCellular = () => {
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [resolved, setResolved] = useState<ResolvedPlans>({ fixedPlans: [] });
+
+  useEffect(() => {
+    loadResolvedPlans("uscellular").then(setResolved).catch((e) => console.warn("USCellular plan load failed", e));
+  }, []);
 
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
