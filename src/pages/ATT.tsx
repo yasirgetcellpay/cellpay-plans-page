@@ -90,12 +90,15 @@ const ATT = () => {
               className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" style={{ "--tw-ring-color": BRAND } as React.CSSProperties} />
           </div>
           <p className="text-[10px] sm:text-xs text-muted-foreground">Or select a plan below</p>
+          {phoneDigits.length === 10 && amountNum >= 5 && amountNum <= 300 && (
+            <button type="button" onClick={() => document.getElementById("checkout-section")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="mt-4 w-full h-10 sm:h-11 rounded-lg text-primary-foreground font-bold text-sm sm:text-base transition-colors active:scale-[0.97] hover:opacity-90" style={{ backgroundColor: BRAND }}>Continue →</button>
+          )}
         </div>
       </div>
 
       <PlanGrid plans={plans} brandColor={BRAND} onSelect={(plan) => setAmount(plan.price.replace("$", ""))} />
 
-      <div className="max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
+      <div id="checkout-section" className="max-w-[420px] mx-auto px-4 pb-8 sm:pb-12">
         <p className="text-xs sm:text-sm font-bold text-foreground mb-2 mt-2">Important</p>
         <label className="flex items-start gap-2 mb-3 cursor-pointer">
           <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: BRAND }} />
