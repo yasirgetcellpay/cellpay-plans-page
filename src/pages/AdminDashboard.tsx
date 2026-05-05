@@ -374,8 +374,9 @@ export default function AdminDashboard() {
             </Table>
           </CardContent>
         </Card>
+            )}
 
-        {/* Breakdowns */}
+            {section === "breakdowns" && (
         <div className="grid md:grid-cols-2 gap-4">
           <Card>
             <CardHeader><CardTitle className="text-base">By carrier</CardTitle></CardHeader>
