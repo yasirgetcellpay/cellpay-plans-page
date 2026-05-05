@@ -166,6 +166,18 @@ const App = () => (
         <Route path="/us-cellular/pay" element={<USCellular />} />
         <Route path="/es/us-cellular/pay" element={<USCellular />} />
 
+        {/* Verizon Wireless Flexi — reuses static Verizon.tsx (no backend carrier entry). */}
+        <Route path="/verizon-wireless-flexi.html" element={<Verizon />} />
+        <Route path="/es/verizon-wireless-flexi.html" element={<Verizon />} />
+        <Route path="/verizon-wireless-flexi/pay" element={<Verizon />} />
+        <Route path="/es/verizon-wireless-flexi/pay" element={<Verizon />} />
+
+        {/* AT&T FirstNet — reuses static ATT.tsx (no backend carrier entry). */}
+        <Route path="/att-firstnet" element={<ATT />} />
+        <Route path="/es/att-firstnet" element={<ATT />} />
+        <Route path="/att-firstnet/pay" element={<ATT />} />
+        <Route path="/es/att-firstnet/pay" element={<ATT />} />
+
 
         {/* Legacy `-espanol` URLs → redirect to canonical /es/* */}
         {legacyEspanolRedirects.map(([from, to]) => (
