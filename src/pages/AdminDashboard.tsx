@@ -562,6 +562,13 @@ export default function AdminDashboard() {
                     {methodOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                <Select value={carrierFilter} onValueChange={setCarrierFilter}>
+                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="Carrier" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All carriers</SelectItem>
+                    {byCarrier.map(([k]) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardHeader>
