@@ -512,7 +512,7 @@ export default function AdminDashboard() {
             {loading ? (
               <Skeleton className="h-64 w-full" />
             ) : (
-              <div className="overflow-x-auto">
+              <TxScrollTable>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -558,6 +558,7 @@ export default function AdminDashboard() {
                     )}
                   </TableBody>
                 </Table>
+              </TxScrollTable>
               </div>
             )}
           </CardContent>
