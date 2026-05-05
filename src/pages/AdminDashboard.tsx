@@ -559,7 +559,6 @@ export default function AdminDashboard() {
                   </TableBody>
                 </Table>
               </TxScrollTable>
-              </div>
             )}
           </CardContent>
         </Card>
