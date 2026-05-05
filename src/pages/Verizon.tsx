@@ -131,7 +131,7 @@ const Verizon = () => {
           <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">Agree with Verizon Product Policies and Sales.{" "}<a href="https://www.verizon.com/support/prepaid-terms-conditions/" className="underline font-semibold" style={{ color: BRAND }}>View More</a></span>
         </label>
         <div className="flex justify-center">
-          <button type="button" disabled={!isValid} onClick={() => navigate("/checkout", { state: { phone, amount, carrierSlug: "verizon", carrierName: "Verizon", brandColor: BRAND } })} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]" style={{ backgroundColor: BRAND }}>PAY NOW</button>
+          <button type="button" disabled={!isValid} onClick={() => goCheckout(amount)} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]" style={{ backgroundColor: BRAND }}>PAY NOW</button>
         </div>
         <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
       </div>
