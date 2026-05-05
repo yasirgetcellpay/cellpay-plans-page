@@ -333,33 +333,31 @@ const Home = () => {
         </div>
       </section>
 
-      <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6 max-w-3xl w-full">
+      <main className="flex-1 flex items-center justify-center px-3 py-4 sm:py-6">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3 max-w-6xl w-full">
           {carriers.map((carrier) => (
             <Link
               key={carrier.path}
               to={langPath(carrier.path, lang)}
               aria-label={`${tr.refillNow} ${carrier.name}`}
-              className="group bg-card rounded-lg sm:rounded-xl border border-border shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden active:scale-[0.97]"
+              className="group bg-card rounded-lg border border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden active:scale-[0.97]"
             >
-              <div className="flex items-center justify-center h-24 sm:h-40 bg-background p-4 sm:p-6">
+              <div className="flex items-center justify-center h-16 sm:h-20 bg-background p-2 sm:p-3">
                 {carrier.logo ? (
                   <img
                     src={carrier.logo}
                     alt={carrier.name}
                     loading="lazy"
-                    className="max-h-10 sm:max-h-16 max-w-[80%] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                    className="max-h-8 sm:max-h-10 max-w-[80%] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
-                  <span className="text-sm sm:text-xl font-extrabold text-foreground group-hover:scale-105 transition-transform duration-300">
+                  <span className="text-xs sm:text-sm font-extrabold text-foreground group-hover:scale-105 transition-transform duration-300 text-center">
                     {carrier.name}
                   </span>
                 )}
               </div>
-              {/* Only show name strip when there is NO logo (avoid duplicate label) — feedback #7.
-                  When a logo is present, show a neutral CTA strip instead. */}
-              <div className={`${carrier.bg} py-2 sm:py-3 text-center`}>
-                <span className="text-primary-foreground font-bold text-xs sm:text-base">
+              <div className={`${carrier.bg} py-1.5 sm:py-2 text-center px-1`}>
+                <span className="text-primary-foreground font-bold text-[10px] sm:text-xs leading-tight block truncate">
                   {carrier.logo ? tr.refillNow : carrier.name}
                 </span>
               </div>
