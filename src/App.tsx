@@ -117,36 +117,37 @@ const App = () => (
         <Route path="/" element={<Home />} />
         <Route path="/es" element={<Home />} />
 
-        {/* Carrier pages — English + /es/ mirrors */}
-        {carrierRoutes.flatMap((c) => [
-          <Route
-            key={`en-${c.path}`}
-            path={c.path}
-            element={
-              <DynamicCarrier
-                carrierName={c.name}
-                carrierSlug={c.slug}
-                carrierId={c.carrierId}
-                brandColor={c.brandColor}
-                logo={c.logo}
-              />
-            }
-          />,
-          <Route
-            key={`es-${c.path}`}
-            path={`/es${c.path}`}
-            element={
-              <DynamicCarrier
-                lang="es"
-                carrierName={c.name}
-                carrierSlug={c.slug}
-                carrierId={c.carrierId}
-                brandColor={c.brandColor}
-                logo={c.logo}
-              />
-            }
-          />,
-        ])}
+        {/* Carrier pages — English + /es/ mirrors, plus /{slug}/pay aliases */}
+        {carrierRoutes.flatMap((c) => {
+          // Derive a clean slug from the canonical path: strip leading "/" and trailing ".html"
+          const cleanSlug = c.path.replace(/^\//, "").replace(/\.html$/, "");
+          const payPath = `/${cleanSlug}/pay`;
+          const renderEn = (
+            <DynamicCarrier
+              carrierName={c.name}
+              carrierSlug={c.slug}
+              carrierId={c.carrierId}
+              brandColor={c.brandColor}
+              logo={c.logo}
+            />
+          );
+          const renderEs = (
+            <DynamicCarrier
+              lang="es"
+              carrierName={c.name}
+              carrierSlug={c.slug}
+              carrierId={c.carrierId}
+              brandColor={c.brandColor}
+              logo={c.logo}
+            />
+          );
+          return [
+            <Route key={`en-${c.path}`} path={c.path} element={renderEn} />,
+            <Route key={`es-${c.path}`} path={`/es${c.path}`} element={renderEs} />,
+            <Route key={`en-pay-${c.path}`} path={payPath} element={renderEn} />,
+            <Route key={`es-pay-${c.path}`} path={`/es${payPath}`} element={renderEs} />,
+          ];
+        })}
 
         {/* Legacy `-espanol` URLs → redirect to canonical /es/* */}
         {legacyEspanolRedirects.map(([from, to]) => (
