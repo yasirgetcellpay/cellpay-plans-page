@@ -21,6 +21,7 @@ import ReturnsPolicy from "./pages/ReturnsPolicy.tsx";
 import AdminLogin from "./pages/AdminLogin.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import StraightTalk from "./pages/StraightTalk.tsx";
 import { Toaster } from "@/components/ui/toaster";
 
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
@@ -58,7 +59,7 @@ const carrierRoutes: CarrierRouteDef[] = [
   { path: "/topup-at.html", name: "AT&T Prepaid", slug: "topup-at", carrierId: 3, brandColor: "hsl(196,100%,44%)", logo: attLogo },
   { path: "/verizon", name: "Verizon Wireless Prepaid", slug: "verizon", carrierId: 14, brandColor: "hsl(0,100%,45%)", logo: verizonLogo },
   { path: "/boost.html", name: "Boost Mobile", slug: "boost", carrierId: 36, brandColor: "hsl(27,100%,50%)", logo: boostLogo },
-  { path: "/straight-talk.html", name: "Straight Talk", slug: "straight-talk", carrierId: 0, brandColor: "hsl(72,74%,44%)", logo: straightTalkLogo },
+  // Straight Talk intentionally omitted — backend has no carrier entry, served by static StraightTalk.tsx below.
   { path: "/h2o.html", name: "H2O Wireless", slug: "h2o", carrierId: 6, brandColor: "hsl(195,85%,50%)", logo: h2oLogo },
   { path: "/lyca.html", name: "Lyca Mobile", slug: "lyca", carrierId: 29, brandColor: "hsl(220,50%,22%)", logo: lycaLogo },
   { path: "/net10.html", name: "Net10 Wireless", slug: "net10", carrierId: 7, brandColor: "hsl(195,100%,50%)", logo: net10Logo },
@@ -149,6 +150,13 @@ const App = () => (
             <Route key={`es-pay-${c.path}`} path={`/es${payPath}`} element={renderEs} />,
           ];
         })}
+
+        {/* Straight Talk — static hardcoded page (no backend carrier entry). */}
+        <Route path="/straight-talk.html" element={<StraightTalk />} />
+        <Route path="/es/straight-talk.html" element={<StraightTalk />} />
+        <Route path="/straight-talk/pay" element={<StraightTalk />} />
+        <Route path="/es/straight-talk/pay" element={<StraightTalk />} />
+
 
         {/* Legacy `-espanol` URLs → redirect to canonical /es/* */}
         {legacyEspanolRedirects.map(([from, to]) => (
