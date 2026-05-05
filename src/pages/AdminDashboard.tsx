@@ -441,29 +441,39 @@ export default function AdminDashboard() {
             {section === "breakdowns" && (
         <div className="grid md:grid-cols-2 gap-4">
           <Card>
-            <CardHeader><CardTitle className="text-base">By carrier</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base">By carrier <span className="text-xs font-normal text-muted-foreground">(click a row to view transactions)</span></CardTitle></CardHeader>
             <CardContent>
               <Table>
-                <TableHeader><TableRow><TableHead>Carrier</TableHead><TableHead className="text-right">Count</TableHead><TableHead className="text-right">Revenue</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Carrier</TableHead><TableHead className="text-right">Success</TableHead><TableHead className="text-right">Failed</TableHead><TableHead className="text-right">Revenue</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {byCarrier.slice(0, 10).map(([k, v]) => (
-                    <TableRow key={k}><TableCell>{k}</TableCell><TableCell className="text-right">{v.count}</TableCell><TableCell className="text-right">{fmt$(v.revenue)}</TableCell></TableRow>
+                  {byCarrier.slice(0, 20).map(([k, v]) => (
+                    <TableRow key={k} className="cursor-pointer" onClick={() => { setCarrierFilter(k); setMethodFilter("all"); setStatusFilter("all"); setSearch(""); handleSectionChange("transactions"); }}>
+                      <TableCell>{k}</TableCell>
+                      <TableCell className="text-right text-green-600 font-medium">{v.success}</TableCell>
+                      <TableCell className="text-right text-red-600 font-medium">{v.failed}</TableCell>
+                      <TableCell className="text-right">{fmt$(v.revenue)}</TableCell>
+                    </TableRow>
                   ))}
-                  {byCarrier.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
+                  {byCarrier.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader><CardTitle className="text-base">By payment method</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base">By payment method <span className="text-xs font-normal text-muted-foreground">(click a row to view transactions)</span></CardTitle></CardHeader>
             <CardContent>
               <Table>
-                <TableHeader><TableRow><TableHead>Method</TableHead><TableHead className="text-right">Count</TableHead><TableHead className="text-right">Revenue</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Method</TableHead><TableHead className="text-right">Success</TableHead><TableHead className="text-right">Failed</TableHead><TableHead className="text-right">Revenue</TableHead></TableRow></TableHeader>
                 <TableBody>
                   {byMethod.map(([k, v]) => (
-                    <TableRow key={k}><TableCell>{k}</TableCell><TableCell className="text-right">{v.count}</TableCell><TableCell className="text-right">{fmt$(v.revenue)}</TableCell></TableRow>
+                    <TableRow key={k} className="cursor-pointer" onClick={() => { setMethodFilter(k); setCarrierFilter("all"); setStatusFilter("all"); setSearch(""); handleSectionChange("transactions"); }}>
+                      <TableCell>{k}</TableCell>
+                      <TableCell className="text-right text-green-600 font-medium">{v.success}</TableCell>
+                      <TableCell className="text-right text-red-600 font-medium">{v.failed}</TableCell>
+                      <TableCell className="text-right">{fmt$(v.revenue)}</TableCell>
+                    </TableRow>
                   ))}
-                  {byMethod.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
+                  {byMethod.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </CardContent>
