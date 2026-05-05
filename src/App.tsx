@@ -151,6 +151,13 @@ const App = () => (
           ];
         })}
 
+        {/* Straight Talk — static hardcoded page (no backend carrier entry). */}
+        <Route path="/straight-talk.html" element={<StraightTalk />} />
+        <Route path="/es/straight-talk.html" element={<StraightTalk />} />
+        <Route path="/straight-talk/pay" element={<StraightTalk />} />
+        <Route path="/es/straight-talk/pay" element={<StraightTalk />} />
+
+
         {/* Legacy `-espanol` URLs → redirect to canonical /es/* */}
         {legacyEspanolRedirects.map(([from, to]) => (
           <Route key={from} path={from} element={<Navigate to={to} replace />} />
