@@ -407,8 +407,9 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+            )}
 
-        {/* Customers KPI */}
+            {section === "customers" && (
         <Card>
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center gap-3 md:justify-between">
