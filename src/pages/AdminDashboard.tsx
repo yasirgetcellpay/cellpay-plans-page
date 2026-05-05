@@ -245,6 +245,7 @@ export default function AdminDashboard() {
     return Array.from(map.entries()).sort((a, b) => (b[1].success + b[1].failed) - (a[1].success + a[1].failed));
   }, [filteredForBreakdowns]);
 
+  // Customers = only successful transactions (paying customers for marketing)
   const byCustomer = useMemo(() => {
     type Agg = {
       email: string;
@@ -252,64 +253,86 @@ export default function AdminDashboard() {
       name: string;
       carriers: Set<string>;
       methods: Set<string>;
-      attempts: number;
-      successes: number;
+      orders: number;
       totalSpend: number;
+      firstSeen: string;
       lastSeen: string;
     };
     const map = new Map<string, Agg>();
-    filtered.forEach((l) => {
-      const key = (l.email || l.phone_number || "").toLowerCase();
-      if (!key) return;
-      const cur = map.get(key) || {
-        email: l.email || "",
-        phone: l.phone_number || "",
-        name: [l.first_name, l.last_name].filter(Boolean).join(" "),
-        carriers: new Set<string>(),
-        methods: new Set<string>(),
-        attempts: 0,
-        successes: 0,
-        totalSpend: 0,
-        lastSeen: l.created_at,
-      };
-      cur.attempts += 1;
-      if (l.status === "success") {
-        cur.successes += 1;
+    logs
+      .filter((l) => l.status === "success")
+      .forEach((l) => {
+        const key = (l.email || l.phone_number || "").toLowerCase();
+        if (!key) return;
+        const cur = map.get(key) || {
+          email: l.email || "",
+          phone: l.phone_number || "",
+          name: [l.first_name, l.last_name].filter(Boolean).join(" "),
+          carriers: new Set<string>(),
+          methods: new Set<string>(),
+          orders: 0,
+          totalSpend: 0,
+          firstSeen: l.created_at,
+          lastSeen: l.created_at,
+        };
+        cur.orders += 1;
         cur.totalSpend += Number(l.total) || Number(l.amount) || 0;
-      }
-      const carrierName = carrierLabel(l);
-      if (carrierName) cur.carriers.add(carrierName);
-      if (l.payment_method) cur.methods.add(l.payment_method);
-      if (!cur.email && l.email) cur.email = l.email;
-      if (!cur.phone && l.phone_number) cur.phone = l.phone_number;
-      if (!cur.name) cur.name = [l.first_name, l.last_name].filter(Boolean).join(" ");
-      if (new Date(l.created_at) > new Date(cur.lastSeen)) cur.lastSeen = l.created_at;
-      map.set(key, cur);
-    });
+        const carrierName = carrierLabel(l);
+        if (carrierName) cur.carriers.add(carrierName);
+        if (l.payment_method) cur.methods.add(l.payment_method);
+        if (!cur.email && l.email) cur.email = l.email;
+        if (!cur.phone && l.phone_number) cur.phone = l.phone_number;
+        if (!cur.name) cur.name = [l.first_name, l.last_name].filter(Boolean).join(" ");
+        if (new Date(l.created_at) > new Date(cur.lastSeen)) cur.lastSeen = l.created_at;
+        if (new Date(l.created_at) < new Date(cur.firstSeen)) cur.firstSeen = l.created_at;
+        map.set(key, cur);
+      });
     return Array.from(map.values()).sort((a, b) => b.totalSpend - a.totalSpend);
-  }, [filtered]);
+  }, [logs]);
+
+  const customerCarrierOptions = useMemo(() => {
+    const set = new Set<string>();
+    byCustomer.forEach((c) => c.carriers.forEach((x) => set.add(x)));
+    return Array.from(set).sort();
+  }, [byCustomer]);
 
   const [customerSearch, setCustomerSearch] = useState("");
+  const [customerCarrierFilter, setCustomerCarrierFilter] = useState<string>("all");
+  const [customerRepeatOnly, setCustomerRepeatOnly] = useState(false);
   const filteredCustomers = useMemo(() => {
-    if (!customerSearch) return byCustomer;
-    const s = customerSearch.toLowerCase();
-    return byCustomer.filter((c) =>
-      `${c.email} ${c.phone} ${c.name}`.toLowerCase().includes(s)
-    );
-  }, [byCustomer, customerSearch]);
+    const s = customerSearch.toLowerCase().trim();
+    return byCustomer.filter((c) => {
+      if (customerCarrierFilter !== "all" && !c.carriers.has(customerCarrierFilter)) return false;
+      if (customerRepeatOnly && c.orders < 2) return false;
+      if (s && !`${c.email} ${c.phone} ${c.name} ${Array.from(c.carriers).join(" ")}`.toLowerCase().includes(s)) return false;
+      return true;
+    });
+  }, [byCustomer, customerSearch, customerCarrierFilter, customerRepeatOnly]);
+
+  const customerKpis = useMemo(() => {
+    const total = filteredCustomers.length;
+    const revenue = filteredCustomers.reduce((s, c) => s + c.totalSpend, 0);
+    const orders = filteredCustomers.reduce((s, c) => s + c.orders, 0);
+    const repeat = filteredCustomers.filter((c) => c.orders >= 2).length;
+    const withEmail = filteredCustomers.filter((c) => !!c.email).length;
+    const withPhone = filteredCustomers.filter((c) => !!c.phone).length;
+    const avgSpend = total ? revenue / total : 0;
+    return { total, revenue, orders, repeat, withEmail, withPhone, avgSpend };
+  }, [filteredCustomers]);
 
   const exportCustomersCSV = () => {
     const rows = [
-      ["Name", "Email", "Phone", "Carriers", "Methods", "Attempts", "Successes", "Total Spend", "Last Seen"],
+      ["Name", "Email", "Phone", "Carriers", "Payment Methods", "Orders", "Total Spend", "Avg Order", "First Order", "Last Order"],
       ...filteredCustomers.map((c) => [
         c.name,
         c.email,
         c.phone,
         Array.from(c.carriers).join("; "),
         Array.from(c.methods).join("; "),
-        String(c.attempts),
-        String(c.successes),
+        String(c.orders),
         c.totalSpend.toFixed(2),
+        (c.orders ? c.totalSpend / c.orders : 0).toFixed(2),
+        new Date(c.firstSeen).toISOString(),
         new Date(c.lastSeen).toISOString(),
       ]),
     ];
@@ -483,61 +506,98 @@ export default function AdminDashboard() {
             )}
 
             {section === "customers" && (
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center gap-3 md:justify-between">
-              <CardTitle className="text-base">
-                Customers <span className="text-xs font-normal text-muted-foreground">({filteredCustomers.length} unique • spend in selected range)</span>
-              </CardTitle>
-              <div className="flex flex-wrap gap-2">
-                <Input
-                  placeholder="Search name, email, phone..."
-                  value={customerSearch}
-                  onChange={(e) => setCustomerSearch(e.target.value)}
-                  className="w-[260px]"
-                />
-                <Button variant="outline" onClick={exportCustomersCSV}>Export CSV</Button>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {[
+              { label: "Customers", value: customerKpis.total.toLocaleString() },
+              { label: "Revenue", value: fmt$(customerKpis.revenue) },
+              { label: "Orders", value: customerKpis.orders.toLocaleString() },
+              { label: "Avg Spend", value: fmt$(customerKpis.avgSpend) },
+              { label: "Repeat Buyers", value: `${customerKpis.repeat} (${customerKpis.total ? Math.round((customerKpis.repeat / customerKpis.total) * 100) : 0}%)` },
+              { label: "With Email", value: customerKpis.withEmail.toLocaleString() },
+              { label: "With Phone", value: customerKpis.withPhone.toLocaleString() },
+            ].map((k) => (
+              <Card key={k.label}>
+                <CardContent className="p-3">
+                  <div className="text-xs text-muted-foreground">{k.label}</div>
+                  <div className="text-lg font-semibold mt-1">{k.value}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col md:flex-row md:items-center gap-3 md:justify-between">
+                <CardTitle className="text-base">
+                  Paying Customers <span className="text-xs font-normal text-muted-foreground">({filteredCustomers.length} unique • successful orders only)</span>
+                </CardTitle>
+                <div className="flex flex-wrap gap-2">
+                  <Input
+                    placeholder="Search name, email, phone, carrier..."
+                    value={customerSearch}
+                    onChange={(e) => setCustomerSearch(e.target.value)}
+                    className="w-[260px]"
+                  />
+                  <Select value={customerCarrierFilter} onValueChange={setCustomerCarrierFilter}>
+                    <SelectTrigger className="w-[160px]"><SelectValue placeholder="Carrier" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All carriers</SelectItem>
+                      {customerCarrierOptions.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant={customerRepeatOnly ? "default" : "outline"}
+                    onClick={() => setCustomerRepeatOnly((v) => !v)}
+                  >
+                    Repeat only
+                  </Button>
+                  <Button variant="outline" onClick={exportCustomersCSV}>Export CSV</Button>
+                </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Carriers</TableHead>
-                    <TableHead>Methods</TableHead>
-                    <TableHead className="text-right">Orders</TableHead>
-                    <TableHead className="text-right">Total Spend</TableHead>
-                    <TableHead>Last Activity</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCustomers.slice(0, 200).map((c) => (
-                    <TableRow key={`${c.email}-${c.phone}`}>
-                      <TableCell className="text-xs">{c.name || "—"}</TableCell>
-                      <TableCell className="text-xs">{c.email || "—"}</TableCell>
-                      <TableCell className="text-xs">{c.phone || "—"}</TableCell>
-                      <TableCell className="text-xs max-w-[180px] truncate" title={Array.from(c.carriers).join(", ")}>
-                        {Array.from(c.carriers).join(", ") || "—"}
-                      </TableCell>
-                      <TableCell className="text-xs">{Array.from(c.methods).join(", ") || "—"}</TableCell>
-                      <TableCell className="text-right text-xs">{c.successes}/{c.attempts}</TableCell>
-                      <TableCell className="text-right text-xs font-semibold">{fmt$(c.totalSpend)}</TableCell>
-                      <TableCell className="text-xs whitespace-nowrap">{new Date(c.lastSeen).toLocaleString()}</TableCell>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Carriers</TableHead>
+                      <TableHead>Methods</TableHead>
+                      <TableHead className="text-right">Orders</TableHead>
+                      <TableHead className="text-right">Total Spend</TableHead>
+                      <TableHead className="text-right">Avg</TableHead>
+                      <TableHead>Last Order</TableHead>
                     </TableRow>
-                  ))}
-                  {filteredCustomers.length === 0 && (
-                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No customers in this range.</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCustomers.slice(0, 500).map((c) => (
+                      <TableRow key={`${c.email}-${c.phone}`}>
+                        <TableCell className="text-xs">{c.name || "—"}</TableCell>
+                        <TableCell className="text-xs">{c.email || "—"}</TableCell>
+                        <TableCell className="text-xs">{c.phone || "—"}</TableCell>
+                        <TableCell className="text-xs max-w-[180px] truncate" title={Array.from(c.carriers).join(", ")}>
+                          {Array.from(c.carriers).join(", ") || "—"}
+                        </TableCell>
+                        <TableCell className="text-xs">{Array.from(c.methods).join(", ") || "—"}</TableCell>
+                        <TableCell className="text-right text-xs">{c.orders}</TableCell>
+                        <TableCell className="text-right text-xs font-semibold">{fmt$(c.totalSpend)}</TableCell>
+                        <TableCell className="text-right text-xs">{fmt$(c.orders ? c.totalSpend / c.orders : 0)}</TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">{new Date(c.lastSeen).toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                    {filteredCustomers.length === 0 && (
+                      <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">No paying customers in this range.</TableCell></TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
             )}
 
             {section === "transactions" && (
