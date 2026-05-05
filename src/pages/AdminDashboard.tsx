@@ -27,6 +27,25 @@ const NAV: { id: Section; label: string; icon: React.ComponentType<{ className?:
 const isSection = (value: string | undefined): value is Section =>
   !!value && NAV.some((item) => item.id === value);
 
+// Fallback mapping for carrier_id -> friendly name when carrier_name is missing in older logs
+const CARRIER_ID_NAMES: Record<string, string> = {
+  "3": "AT&T",
+  "6": "Cricket",
+  "14": "Verizon",
+  "15": "Simple Mobile",
+  "25": "Ultra Mobile",
+  "29": "Lyca Mobile",
+  "36": "Boost",
+  "38": "Metro PCS",
+  "43": "T-Mobile",
+  "45": "Tracfone",
+};
+const carrierLabel = (l: { carrier_name?: string | null; carrier_slug?: string | null; carrier_id?: string | null }) =>
+  l.carrier_name ||
+  (l.carrier_id && CARRIER_ID_NAMES[l.carrier_id]) ||
+  l.carrier_slug ||
+  (l.carrier_id ? `Carrier #${l.carrier_id}` : "Unknown");
+
 type TxLog = Tables<"transaction_logs">;
 type Visitor = { session_id: string; path: string; last_seen: string };
 
@@ -177,7 +196,7 @@ export default function AdminDashboard() {
   const byCarrier = useMemo(() => {
     const map = new Map<string, { count: number; revenue: number }>();
     filtered.forEach((l) => {
-      const k = l.carrier_name || l.carrier_slug || (l.carrier_id ? `Carrier #${l.carrier_id}` : "Unknown");
+      const k = carrierLabel(l);
       const cur = map.get(k) || { count: 0, revenue: 0 };
       cur.count += 1;
       if (l.status === "success") cur.revenue += Number(l.total) || Number(l.amount) || 0;
@@ -230,7 +249,7 @@ export default function AdminDashboard() {
         cur.successes += 1;
         cur.totalSpend += Number(l.total) || Number(l.amount) || 0;
       }
-      const carrierName = l.carrier_name || l.carrier_slug || (l.carrier_id ? `#${l.carrier_id}` : "");
+      const carrierName = carrierLabel(l);
       if (carrierName) cur.carriers.add(carrierName);
       if (l.payment_method) cur.methods.add(l.payment_method);
       if (!cur.email && l.email) cur.email = l.email;
@@ -532,7 +551,7 @@ export default function AdminDashboard() {
                     {filtered.slice(0, 200).map((l) => (
                       <TableRow key={l.id}>
                         <TableCell className="text-xs whitespace-nowrap">{new Date(l.created_at).toLocaleString()}</TableCell>
-                        <TableCell className="text-xs">{l.carrier_name || l.carrier_slug || (l.carrier_id ? `#${l.carrier_id}` : "—")}</TableCell>
+                        <TableCell className="text-xs">{carrierLabel(l)}</TableCell>
                         <TableCell className="text-xs font-mono">
                           <div>plan: {l.plan_id || "—"}</div>
                           <div className="text-muted-foreground">carrier: {l.carrier_id || "—"}</div>
@@ -578,7 +597,7 @@ export default function AdminDashboard() {
                   <Info label="Status" value={detailLog.status} />
                   <Info label="Method" value={detailLog.payment_method || "—"} />
                   <Info label="Card" value={detailLog.card_type || "—"} />
-                  <Info label="Carrier" value={detailLog.carrier_name || detailLog.carrier_slug || "—"} />
+                  <Info label="Carrier" value={carrierLabel(detailLog)} />
                   <Info label="Carrier ID" value={detailLog.carrier_id || "—"} />
                   <Info label="Plan ID" value={detailLog.plan_id || "—"} />
                   <Info label="Phone" value={detailLog.phone_number || "—"} />
