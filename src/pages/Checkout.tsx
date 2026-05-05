@@ -752,7 +752,13 @@ const Checkout = () => {
     } catch {
       googlePayTokenPayload = rawToken;
     }
-    const billingAddress = pmd?.info?.billingAddress || null;
+    const billingAddress =
+      pmd?.info?.billingAddress ||
+      (pmd as any)?.billingAddress ||
+      (paymentData as any)?.billingAddress ||
+      null;
+    console.log("[GooglePay] paymentMethodData:", pmd);
+    console.log("[GooglePay] billingAddress:", billingAddress);
 
     const result = await submitTransaction({
       checkout_version: "5.0",
