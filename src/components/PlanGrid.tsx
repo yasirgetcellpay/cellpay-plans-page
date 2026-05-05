@@ -15,11 +15,7 @@ export const PlanGrid = ({
   onSelect,
   popularIndex,
 }: PlanGridProps) => {
-  const isOdd = plans.length % 2 !== 0;
-  const gridPlans = isOdd ? plans.slice(0, -1) : plans;
-  const lastPlan = isOdd ? plans[plans.length - 1] : null;
-
-  const Card = ({ plan, idx }: { plan: Plan; idx: number }) => {
+  const Card = ({ plan, idx, fullRow }: { plan: Plan; idx: number; fullRow?: boolean }) => {
     const isPopular = plan.popular || idx === popularIndex;
     const handleClick = () => onSelect?.(plan);
     return (
@@ -69,17 +65,30 @@ export const PlanGrid = ({
   return (
     <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pb-6">
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-        {gridPlans.map((plan, i) => (
-          <Card key={i} plan={plan} idx={i} />
-        ))}
+        {plans.map((plan, i) => {
+          // If total is odd, make the LAST item span the full row so it doesn't sit alone
+          const isLast = i === plans.length - 1;
+          const isOrphan = isLast && plans.length % 2 !== 0;
+          // On 2-col grid: span 2 if orphan. On 3-col grid: span remaining cols.
+          const remainder3 = plans.length % 3;
+          return (
+            <div
+              key={i}
+              className={
+                isOrphan
+                  ? remainder3 === 1
+                    ? "col-span-2 lg:col-span-3"
+                    : remainder3 === 2
+                    ? "col-span-2 lg:col-span-1"
+                    : "col-span-2"
+                  : ""
+              }
+            >
+              <Card plan={plan} idx={i} />
+            </div>
+          );
+        })}
       </div>
-      {lastPlan && (
-        <div className="flex justify-center mt-2 sm:mt-4">
-          <div className="w-[calc(50%-4px)] sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-16px)]">
-            <Card plan={lastPlan} idx={plans.length - 1} />
-          </div>
-        </div>
-      )}
     </section>
   );
 };

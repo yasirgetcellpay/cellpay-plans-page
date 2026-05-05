@@ -52,7 +52,7 @@ const Boost = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex justify-center h-14 sm:h-20 items-center">
             <BackButton />
-            <img src={boostLogo} alt="Boost Mobile" className="h-[40px] sm:h-[56px] w-auto" />
+            <img src={boostLogo} alt="Boost Mobile" className="h-[32px] sm:h-[44px] w-auto object-contain" />
           </div>
         </div>
       </nav>

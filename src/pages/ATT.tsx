@@ -87,7 +87,7 @@ const ATT = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex justify-center h-14 sm:h-20 items-center">
             <BackButton />
-            <img src={attLogo} alt="AT&T Prepaid" className="h-[48px] sm:h-[64px] w-auto object-contain" />
+            <img src={attLogo} alt="AT&T Prepaid" className="h-[32px] sm:h-[44px] w-auto object-contain" />
           </div>
         </div>
       </nav>

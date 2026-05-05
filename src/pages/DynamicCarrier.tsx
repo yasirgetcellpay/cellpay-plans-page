@@ -335,7 +335,7 @@ const DynamicCarrier = ({
           <div className="relative flex justify-center h-14 sm:h-20 items-center">
             <BackButton />
             {logo ? (
-              <img src={logo} alt={carrierName} className="h-[40px] sm:h-[56px] w-auto" />
+              <img src={logo} alt={carrierName} className="h-[32px] sm:h-[44px] w-auto object-contain" />
             ) : (
               <span className="text-xl sm:text-2xl font-extrabold" style={{ color: bc }}>{carrierName}</span>
             )}
@@ -535,7 +535,7 @@ const DynamicFAQ = ({
   const tr = t(lang);
   return (
   <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-    <h2 className="text-2xl font-extrabold text-foreground mb-4 text-center">
+    <h2 className="text-2xl font-extrabold text-foreground mb-4 text-left">
       {tr.faqsTitle(carrierName)}
     </h2>
     <Accordion type="single" collapsible className="w-full">
