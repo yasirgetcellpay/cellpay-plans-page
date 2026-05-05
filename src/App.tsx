@@ -158,6 +158,12 @@ const App = () => (
         <Route path="/straight-talk/pay" element={<StraightTalk />} />
         <Route path="/es/straight-talk/pay" element={<StraightTalk />} />
 
+        {/* US Cellular — static hardcoded page (no backend carrier entry). */}
+        <Route path="/us-cellular.html" element={<USCellular />} />
+        <Route path="/es/us-cellular.html" element={<USCellular />} />
+        <Route path="/us-cellular/pay" element={<USCellular />} />
+        <Route path="/es/us-cellular/pay" element={<USCellular />} />
+
 
         {/* Legacy `-espanol` URLs → redirect to canonical /es/* */}
         {legacyEspanolRedirects.map(([from, to]) => (
