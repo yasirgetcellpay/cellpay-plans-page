@@ -646,3 +646,27 @@ function JsonBlock({ title, value }: { title: string; value: string }) {
     </div>
   );
 }
+
+function TxScrollTable({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const scroll = (dir: "left" | "right") => {
+    const el = ref.current;
+    if (!el) return;
+    el.scrollBy({ left: dir === "left" ? -400 : 400, behavior: "smooth" });
+  };
+  return (
+    <div className="relative">
+      <div className="flex justify-end gap-2 mb-2 sticky top-0 z-10">
+        <Button size="sm" variant="outline" onClick={() => scroll("left")} aria-label="Scroll left">
+          <ChevronLeft className="h-4 w-4" /> Left
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => scroll("right")} aria-label="Scroll right">
+          Right <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      <div ref={ref} className="overflow-x-auto">
+        {children}
+      </div>
+    </div>
+  );
+}
