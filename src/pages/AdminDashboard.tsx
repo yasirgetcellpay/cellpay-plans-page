@@ -152,7 +152,7 @@ export default function AdminDashboard() {
   const byCarrier = useMemo(() => {
     const map = new Map<string, { count: number; revenue: number }>();
     filtered.forEach((l) => {
-      const k = l.carrier_name || l.carrier_slug || "Unknown";
+      const k = l.carrier_name || l.carrier_slug || (l.carrier_id ? `Carrier #${l.carrier_id}` : "Unknown");
       const cur = map.get(k) || { count: 0, revenue: 0 };
       cur.count += 1;
       if (l.status === "success") cur.revenue += Number(l.total) || Number(l.amount) || 0;
