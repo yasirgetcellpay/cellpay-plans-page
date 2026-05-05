@@ -14,7 +14,8 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, Activity, BarChart3, Eye } from "lucide-react";
+import { LayoutDashboard, Users, Activity, BarChart3, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef } from "react";
 
 type Section = "overview" | "visitors" | "breakdowns" | "customers" | "transactions";
 const NAV: { id: Section; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
