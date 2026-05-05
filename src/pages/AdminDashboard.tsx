@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tables } from "@/integrations/supabase/types";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -47,6 +48,7 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState("");
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [now, setNow] = useState(Date.now());
+  const [detailLog, setDetailLog] = useState<TxLog | null>(null);
 
   // Auth + admin check
   useEffect(() => {
@@ -503,12 +505,14 @@ export default function AdminDashboard() {
                     <TableRow>
                       <TableHead>Time</TableHead>
                       <TableHead>Carrier</TableHead>
+                      <TableHead>Refill</TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>Customer</TableHead>
                       <TableHead>Method</TableHead>
                       <TableHead className="text-right">Amount</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Error / Hashid</TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -516,6 +520,10 @@ export default function AdminDashboard() {
                       <TableRow key={l.id}>
                         <TableCell className="text-xs whitespace-nowrap">{new Date(l.created_at).toLocaleString()}</TableCell>
                         <TableCell className="text-xs">{l.carrier_name || l.carrier_slug || (l.carrier_id ? `#${l.carrier_id}` : "—")}</TableCell>
+                        <TableCell className="text-xs font-mono">
+                          <div>plan: {l.plan_id || "—"}</div>
+                          <div className="text-muted-foreground">carrier: {l.carrier_id || "—"}</div>
+                        </TableCell>
                         <TableCell className="text-xs">{l.phone_number || "—"}</TableCell>
                         <TableCell className="text-xs">
                           <div>{[l.first_name, l.last_name].filter(Boolean).join(" ") || "—"}</div>
@@ -527,10 +535,13 @@ export default function AdminDashboard() {
                         <TableCell className="text-xs max-w-[260px] truncate" title={l.error_message || l.hashid || ""}>
                           {l.status === "success" ? (l.hashid || l.transaction_id || "") : (l.error_message || "")}
                         </TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="outline" onClick={() => setDetailLog(l)}>View JSON</Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {filtered.length === 0 && (
-                      <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No transactions match the filters.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No transactions match the filters.</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
@@ -541,6 +552,40 @@ export default function AdminDashboard() {
             )}
           </main>
         </div>
+
+        <Dialog open={!!detailLog} onOpenChange={(o) => !o && setDetailLog(null)}>
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Transaction details</DialogTitle>
+            </DialogHeader>
+            {detailLog && (
+              <div className="space-y-4 text-xs">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <Info label="Time" value={new Date(detailLog.created_at).toLocaleString()} />
+                  <Info label="Status" value={detailLog.status} />
+                  <Info label="Method" value={detailLog.payment_method || "—"} />
+                  <Info label="Card" value={detailLog.card_type || "—"} />
+                  <Info label="Carrier" value={detailLog.carrier_name || detailLog.carrier_slug || "—"} />
+                  <Info label="Carrier ID" value={detailLog.carrier_id || "—"} />
+                  <Info label="Plan ID" value={detailLog.plan_id || "—"} />
+                  <Info label="Phone" value={detailLog.phone_number || "—"} />
+                  <Info label="Email" value={detailLog.email || "—"} />
+                  <Info label="Name" value={[detailLog.first_name, detailLog.last_name].filter(Boolean).join(" ") || "—"} />
+                  <Info label="Amount" value={fmt$(Number(detailLog.amount) || 0)} />
+                  <Info label="Total" value={fmt$(Number(detailLog.total) || 0)} />
+                  <Info label="Hashid" value={detailLog.hashid || "—"} />
+                  <Info label="Txn ID" value={detailLog.transaction_id || "—"} />
+                  <Info label="Source IP" value={detailLog.source_ip || "—"} />
+                </div>
+                {detailLog.error_message && (
+                  <JsonBlock title="Error" value={detailLog.error_message} />
+                )}
+                <JsonBlock title="Request / Metadata" value={JSON.stringify(detailLog.metadata ?? {}, null, 2)} />
+                <JsonBlock title="Raw Response" value={JSON.stringify(detailLog.raw_response ?? {}, null, 2)} />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </SidebarProvider>
   );
@@ -565,4 +610,26 @@ function StatusBadge({ status }: { status: string }) {
     pending: "bg-yellow-500/15 text-yellow-700 border-yellow-500/30",
   };
   return <Badge variant="outline" className={map[status] || ""}>{status}</Badge>;
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border rounded p-2 bg-muted/30">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="font-mono break-all">{value}</div>
+    </div>
+  );
+}
+
+function JsonBlock({ title, value }: { title: string; value: string }) {
+  const copy = () => navigator.clipboard.writeText(value);
+  return (
+    <div className="border rounded">
+      <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
+        <span className="font-semibold">{title}</span>
+        <Button size="sm" variant="ghost" onClick={copy}>Copy</Button>
+      </div>
+      <pre className="text-[11px] p-3 overflow-x-auto whitespace-pre-wrap break-all max-h-[300px] overflow-y-auto">{value || "—"}</pre>
+    </div>
+  );
 }
