@@ -465,8 +465,9 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+            )}
 
-        {/* Live feed */}
+            {section === "transactions" && (
         <Card>
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center gap-3 md:justify-between">
