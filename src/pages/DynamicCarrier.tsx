@@ -301,12 +301,6 @@ const DynamicCarrier = ({
       toast({ title: msg, description: msg, variant: "destructive" });
       return;
     }
-    if (!confirmed) {
-      const msg = tr.confirmRequired;
-      setInlineError(msg);
-      toast({ title: msg, description: msg, variant: "destructive" });
-      return;
-    }
     setVerifying(true);
     const verify = await verifyPhone(carrierSlug, phoneDigits);
     setVerifying(false);
