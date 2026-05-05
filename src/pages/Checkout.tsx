@@ -34,6 +34,13 @@ interface LocationState {
 
 type PaymentMethod = "card" | "paypal" | "plaid" | "googlepay" | "applepay" | "klarna" | "cashapp";
 
+// Normalize a US phone number for the carrier API: strip non-digits and a leading "1" country code.
+function normalizePhone(input: string): string {
+  let d = (input || "").replace(/\D/g, "");
+  if (d.length === 11 && d.startsWith("1")) d = d.slice(1);
+  return d;
+}
+
 declare global {
   interface Window {
     Plaid?: {
@@ -291,7 +298,7 @@ const Checkout = () => {
         const [result, config] = await Promise.all([
           validateRecharge(
             state.carrierSlug,
-            state.phone.replace(/\D/g, ""),
+            normalizePhone(state.phone),
             state.planId,
             Number(state.amount)
           ),
@@ -354,7 +361,7 @@ const Checkout = () => {
       },
       createOrder: async () => {
         const orderPayload = {
-          phone_number: state.phone.replace(/\D/g, ""),
+          phone_number: normalizePhone(state.phone),
           carrierId: validation?.carrier_id || validation?.carrierId,
           plan_id: state.planId ? String(state.planId) : undefined,
           amount: validation?.amount ?? Number(state.amount),
@@ -436,7 +443,7 @@ const Checkout = () => {
   }, [paypalReady, paymentMethod, validation]);
 
   const basePayload = useCallback((): Record<string, unknown> => ({
-    phone_number: state?.phone.replace(/\D/g, "") || "",
+    phone_number: normalizePhone(state?.phone || "") || "",
     carrier_slug: state?.carrierSlug || "",
     carrier_name: state?.carrierName || "",
     amount: state?.amount || "",
@@ -569,7 +576,7 @@ const Checkout = () => {
       payment_method: "cardpayment",
       amount: validation?.amount ?? Number(state.amount),
       total: validation?.total ?? Number(state.amount),
-      phone_number: state.phone.replace(/\D/g, ""),
+      phone_number: normalizePhone(state.phone),
       carrierId: validation?.carrier_id || validation?.carrierId || state.planId,
       carrier_slug: state.carrierSlug,
       carrier_name: state.carrierName,
@@ -623,7 +630,7 @@ const Checkout = () => {
     }
 
     const tokenResp = await createPlaidLinkToken({
-      phone_number: state.phone.replace(/\D/g, ""),
+      phone_number: normalizePhone(state.phone),
       carrierId: validation?.carrier_id || validation?.carrierId,
       plan_id: state.planId ? String(state.planId) : undefined,
       amount: validation?.amount ?? Number(state.amount),
@@ -650,7 +657,7 @@ const Checkout = () => {
               payment_method: "plaid",
               amount: validation?.amount ?? Number(state.amount),
               total: validation?.total ?? Number(state.amount),
-              phone_number: state.phone.replace(/\D/g, ""),
+              phone_number: normalizePhone(state.phone),
               carrierId: validation?.carrier_id || validation?.carrierId,
               carrier_slug: state.carrierSlug,
               carrier_name: state.carrierName,
@@ -736,7 +743,7 @@ const Checkout = () => {
       payment_method: "googlepay",
       amount: validation?.amount ?? Number(state.amount),
       total: validation?.total ?? Number(state.amount),
-      phone_number: state.phone.replace(/\D/g, ""),
+      phone_number: normalizePhone(state.phone),
       carrierId: validation?.carrier_id || validation?.carrierId,
       carrier_slug: state.carrierSlug,
       carrier_name: state.carrierName,
@@ -882,7 +889,7 @@ const Checkout = () => {
           payment_method: "applepay",
           amount: validation?.amount ?? Number(state.amount),
           total: validation?.total ?? Number(state.amount),
-          phone_number: state.phone.replace(/\D/g, ""),
+          phone_number: normalizePhone(state.phone),
           carrierId: validation?.carrier_id || validation?.carrierId,
           carrier_slug: state.carrierSlug,
           carrier_name: state.carrierName,
@@ -958,7 +965,7 @@ const Checkout = () => {
     payment_method: "klarna",
     amount: validation?.amount ?? Number(state.amount),
     total: validation?.total ?? Number(state.amount),
-    phone_number: state.phone.replace(/\D/g, ""),
+    phone_number: normalizePhone(state.phone),
     carrierId: validation?.carrier_id || validation?.carrierId,
     carrier_slug: state.carrierSlug,
     carrier_name: state.carrierName,
@@ -995,7 +1002,7 @@ const Checkout = () => {
     }
 
     const sessionResp = await createKlarnaSession({
-      phone_number: state.phone.replace(/\D/g, ""),
+      phone_number: normalizePhone(state.phone),
       carrierId: validation?.carrier_id || validation?.carrierId,
       plan_id: state.planId ? String(state.planId) : undefined,
       amount: validation?.total ?? Number(state.amount),
@@ -1069,7 +1076,7 @@ const Checkout = () => {
       checkout_version: "5.0",
       payment_method: "pockyt",
       amount: validation?.amount ?? Number(state.amount),
-      phone_number: state.phone.replace(/\D/g, ""),
+      phone_number: normalizePhone(state.phone),
       carrierId: validation?.carrier_id || validation?.carrierId,
       carrier_slug: state.carrierSlug,
       carrier_name: state.carrierName,
