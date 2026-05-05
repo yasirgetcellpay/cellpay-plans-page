@@ -34,6 +34,13 @@ interface LocationState {
 
 type PaymentMethod = "card" | "paypal" | "plaid" | "googlepay" | "applepay" | "klarna" | "cashapp";
 
+// Normalize a US phone number for the carrier API: strip non-digits and a leading "1" country code.
+function normalizePhone(input: string): string {
+  let d = (input || "").replace(/\D/g, "");
+  if (d.length === 11 && d.startsWith("1")) d = d.slice(1);
+  return d;
+}
+
 declare global {
   interface Window {
     Plaid?: {
