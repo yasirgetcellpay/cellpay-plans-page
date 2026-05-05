@@ -250,6 +250,7 @@ const DynamicCarrier = ({
 
   const phoneDigits = phone.replace(/\D/g, "");
   const amountNum = amount ? parseInt(amount, 10) : 0;
+  const rangeAmountValid = amountNum >= rangeMin && amountNum <= rangeMax;
 
   const handlePlanSelect = (plan: { price: string; highlight: string }) => {
     setAmount(plan.price.replace("$", ""));
@@ -427,6 +428,18 @@ const DynamicCarrier = ({
                       style={{ "--tw-ring-color": bc } as React.CSSProperties}
                     />
                   </div>
+                  {rangeAmountValid && (
+                    <button
+                      type="button"
+                      onClick={handlePay}
+                      disabled={verifying}
+                      className="mt-3 w-full h-10 sm:h-11 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm sm:text-base transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
+                      style={{ backgroundColor: bc }}
+                    >
+                      {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
+                      {verifying ? tr.verifying : tr.payNow}
+                    </button>
+                  )}
                   <p className="text-[10px] sm:text-xs text-muted-foreground">
                     {showFixedPlans ? tr.orSelectPlanBelow : tr.enterAmount}
                   </p>
