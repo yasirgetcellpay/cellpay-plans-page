@@ -39,6 +39,28 @@ const Verizon = () => {
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [resolved, setResolved] = useState<ResolvedPlans>({ fixedPlans: [] });
+
+  useEffect(() => {
+    loadResolvedPlans("verizon").then(setResolved).catch((e) => console.warn("Verizon plan load failed", e));
+  }, []);
+
+  const goCheckout = (amt: number | string) => {
+    const amountNum = typeof amt === "number" ? amt : Number(amt);
+    const picked = pickPlanForAmount(resolved, amountNum);
+    navigate("/checkout", {
+      state: {
+        phone,
+        amount: amt,
+        carrierSlug: "verizon",
+        carrierName: "Verizon",
+        brandColor: BRAND,
+        carrierId: picked.carrierId,
+        planId: picked.planId,
+        planName: picked.name,
+      },
+    });
+  };
 
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
