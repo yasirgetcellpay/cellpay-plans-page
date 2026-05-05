@@ -506,61 +506,98 @@ export default function AdminDashboard() {
             )}
 
             {section === "customers" && (
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center gap-3 md:justify-between">
-              <CardTitle className="text-base">
-                Customers <span className="text-xs font-normal text-muted-foreground">({filteredCustomers.length} unique • spend in selected range)</span>
-              </CardTitle>
-              <div className="flex flex-wrap gap-2">
-                <Input
-                  placeholder="Search name, email, phone..."
-                  value={customerSearch}
-                  onChange={(e) => setCustomerSearch(e.target.value)}
-                  className="w-[260px]"
-                />
-                <Button variant="outline" onClick={exportCustomersCSV}>Export CSV</Button>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {[
+              { label: "Customers", value: customerKpis.total.toLocaleString() },
+              { label: "Revenue", value: fmt$(customerKpis.revenue) },
+              { label: "Orders", value: customerKpis.orders.toLocaleString() },
+              { label: "Avg Spend", value: fmt$(customerKpis.avgSpend) },
+              { label: "Repeat Buyers", value: `${customerKpis.repeat} (${customerKpis.total ? Math.round((customerKpis.repeat / customerKpis.total) * 100) : 0}%)` },
+              { label: "With Email", value: customerKpis.withEmail.toLocaleString() },
+              { label: "With Phone", value: customerKpis.withPhone.toLocaleString() },
+            ].map((k) => (
+              <Card key={k.label}>
+                <CardContent className="p-3">
+                  <div className="text-xs text-muted-foreground">{k.label}</div>
+                  <div className="text-lg font-semibold mt-1">{k.value}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col md:flex-row md:items-center gap-3 md:justify-between">
+                <CardTitle className="text-base">
+                  Paying Customers <span className="text-xs font-normal text-muted-foreground">({filteredCustomers.length} unique • successful orders only)</span>
+                </CardTitle>
+                <div className="flex flex-wrap gap-2">
+                  <Input
+                    placeholder="Search name, email, phone, carrier..."
+                    value={customerSearch}
+                    onChange={(e) => setCustomerSearch(e.target.value)}
+                    className="w-[260px]"
+                  />
+                  <Select value={customerCarrierFilter} onValueChange={setCustomerCarrierFilter}>
+                    <SelectTrigger className="w-[160px]"><SelectValue placeholder="Carrier" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All carriers</SelectItem>
+                      {customerCarrierOptions.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant={customerRepeatOnly ? "default" : "outline"}
+                    onClick={() => setCustomerRepeatOnly((v) => !v)}
+                  >
+                    Repeat only
+                  </Button>
+                  <Button variant="outline" onClick={exportCustomersCSV}>Export CSV</Button>
+                </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Carriers</TableHead>
-                    <TableHead>Methods</TableHead>
-                    <TableHead className="text-right">Orders</TableHead>
-                    <TableHead className="text-right">Total Spend</TableHead>
-                    <TableHead>Last Activity</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCustomers.slice(0, 200).map((c) => (
-                    <TableRow key={`${c.email}-${c.phone}`}>
-                      <TableCell className="text-xs">{c.name || "—"}</TableCell>
-                      <TableCell className="text-xs">{c.email || "—"}</TableCell>
-                      <TableCell className="text-xs">{c.phone || "—"}</TableCell>
-                      <TableCell className="text-xs max-w-[180px] truncate" title={Array.from(c.carriers).join(", ")}>
-                        {Array.from(c.carriers).join(", ") || "—"}
-                      </TableCell>
-                      <TableCell className="text-xs">{Array.from(c.methods).join(", ") || "—"}</TableCell>
-                      <TableCell className="text-right text-xs">{c.successes}/{c.attempts}</TableCell>
-                      <TableCell className="text-right text-xs font-semibold">{fmt$(c.totalSpend)}</TableCell>
-                      <TableCell className="text-xs whitespace-nowrap">{new Date(c.lastSeen).toLocaleString()}</TableCell>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Carriers</TableHead>
+                      <TableHead>Methods</TableHead>
+                      <TableHead className="text-right">Orders</TableHead>
+                      <TableHead className="text-right">Total Spend</TableHead>
+                      <TableHead className="text-right">Avg</TableHead>
+                      <TableHead>Last Order</TableHead>
                     </TableRow>
-                  ))}
-                  {filteredCustomers.length === 0 && (
-                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No customers in this range.</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCustomers.slice(0, 500).map((c) => (
+                      <TableRow key={`${c.email}-${c.phone}`}>
+                        <TableCell className="text-xs">{c.name || "—"}</TableCell>
+                        <TableCell className="text-xs">{c.email || "—"}</TableCell>
+                        <TableCell className="text-xs">{c.phone || "—"}</TableCell>
+                        <TableCell className="text-xs max-w-[180px] truncate" title={Array.from(c.carriers).join(", ")}>
+                          {Array.from(c.carriers).join(", ") || "—"}
+                        </TableCell>
+                        <TableCell className="text-xs">{Array.from(c.methods).join(", ") || "—"}</TableCell>
+                        <TableCell className="text-right text-xs">{c.orders}</TableCell>
+                        <TableCell className="text-right text-xs font-semibold">{fmt$(c.totalSpend)}</TableCell>
+                        <TableCell className="text-right text-xs">{fmt$(c.orders ? c.totalSpend / c.orders : 0)}</TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">{new Date(c.lastSeen).toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                    {filteredCustomers.length === 0 && (
+                      <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">No paying customers in this range.</TableCell></TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
             )}
 
             {section === "transactions" && (
