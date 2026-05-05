@@ -48,6 +48,7 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState("");
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [now, setNow] = useState(Date.now());
+  const [detailLog, setDetailLog] = useState<TxLog | null>(null);
 
   // Auth + admin check
   useEffect(() => {
