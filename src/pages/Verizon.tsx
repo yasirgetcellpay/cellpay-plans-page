@@ -86,6 +86,9 @@ const Verizon = () => {
               className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" style={{ "--tw-ring-color": BRAND } as React.CSSProperties} />
           </div>
           <p className="text-[10px] sm:text-xs text-muted-foreground">Or select a plan below</p>
+          {phoneDigits.length === 10 && amountNum >= 10 && amountNum <= 150 && (
+            <button type="button" onClick={() => document.getElementById("checkout-section")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="mt-4 w-full h-10 sm:h-11 rounded-lg text-primary-foreground font-bold text-sm sm:text-base transition-colors active:scale-[0.97] hover:opacity-90" style={{ backgroundColor: BRAND }}>Continue →</button>
+          )}
         </div>
       </div>
 
