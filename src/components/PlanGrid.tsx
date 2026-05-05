@@ -65,24 +65,20 @@ export const PlanGrid = ({
     <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pb-6">
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
         {plans.map((plan, i) => {
-          // If total is odd, make the LAST item span the full row so it doesn't sit alone
           const isLast = i === plans.length - 1;
-          const isOrphan = isLast && plans.length % 2 !== 0;
-          // On 2-col grid: span 2 if orphan. On 3-col grid: span remaining cols.
-          const remainder3 = plans.length % 3;
+          // Orphan on 2-col (mobile/tablet) only when length is odd
+          const orphan2 = isLast && plans.length % 2 !== 0;
+          // Orphan on 3-col (desktop) when last row would have 1 item
+          const rem3 = plans.length % 3;
+          const orphan3 = isLast && rem3 === 1;
+          // Build span classes per breakpoint
+          const cls = [
+            orphan2 ? "col-span-2" : "",
+            // reset to 1 col on lg unless orphan there
+            orphan3 ? "lg:col-span-3" : "lg:col-span-1",
+          ].filter(Boolean).join(" ");
           return (
-            <div
-              key={i}
-              className={
-                isOrphan
-                  ? remainder3 === 1
-                    ? "col-span-2 lg:col-span-3"
-                    : remainder3 === 2
-                    ? "col-span-2 lg:col-span-1"
-                    : "col-span-2"
-                  : ""
-              }
-            >
+            <div key={i} className={cls}>
               <Card plan={plan} idx={i} />
             </div>
           );
