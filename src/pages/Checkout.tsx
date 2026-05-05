@@ -501,6 +501,7 @@ const Checkout = () => {
 
   const cardDigits = cardNumber.replace(/\D/g, "");
   const expiryDigits = cardExpiry.replace(/\D/g, "");
+  const regionCode = normalizeRegionCode(country, regionId);
   const isCardValid =
     isValidLuhn(cardDigits) &&
     expiryDigits.length === 4 &&
@@ -510,7 +511,11 @@ const Checkout = () => {
     cardZip.length >= 5 &&
     firstName.trim().length > 0 &&
     lastName.trim().length > 0 &&
-    email.includes("@");
+    email.includes("@") &&
+    address.trim().length > 0 &&
+    city.trim().length > 0 &&
+    country.trim().length > 0 &&
+    regionCode.length > 0;
 
   const isEmailValid = email.trim().length > 0 && email.includes("@") && email.includes(".");
 
@@ -568,8 +573,8 @@ const Checkout = () => {
       billing: {
         bill_email: email.trim(),
         country_id: country,
-        region_id: normalizeRegionCode(country, regionId) || cardZip,
-        state: normalizeRegionCode(country, regionId),
+        region_id: regionCode || cardZip,
+        state: regionCode,
       },
       browser_info: browserInfoRef.current,
       gclid: getGclid(),
@@ -1236,10 +1241,10 @@ const Checkout = () => {
                 <CreditCard className="h-4 w-4" /> {tr.cardDetails}
               </h2>
               <div className="grid grid-cols-2 gap-3">
-                <input type="text" placeholder={tr.firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                <input type="text" required placeholder={`${tr.firstName} *`} value={firstName} onChange={(e) => setFirstName(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                <input type="text" placeholder={tr.lastName} value={lastName} onChange={(e) => setLastName(e.target.value)}
+                <input type="text" required placeholder={`${tr.lastName} *`} value={lastName} onChange={(e) => setLastName(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
@@ -1251,11 +1256,11 @@ const Checkout = () => {
                 ))}
                 <option value="OTHER">{lang === "es" ? "Otro" : "Other"}</option>
               </select>
-              <input type="text" placeholder={tr.streetAddress} value={address} onChange={(e) => setAddress(e.target.value)}
+              <input type="text" required placeholder={`${tr.streetAddress} *`} value={address} onChange={(e) => setAddress(e.target.value)}
                 className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                 style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               <div className="grid grid-cols-3 gap-3">
-                <input type="text" placeholder={tr.city} value={city} onChange={(e) => setCity(e.target.value)}
+                <input type="text" required placeholder={`${tr.city} *`} value={city} onChange={(e) => setCity(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 {hasSubdivisions && !regionOther ? (
