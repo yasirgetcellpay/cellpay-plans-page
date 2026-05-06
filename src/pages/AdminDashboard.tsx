@@ -115,6 +115,14 @@ export default function AdminDashboard() {
       }
       const { data } = await q;
       setLogs((data as TxLog[]) || []);
+      // Unique visitor sessions in the same range (approx funnel top)
+      let vq = supabase.from("page_visitors").select("session_id", { count: "exact", head: true });
+      if (r.hours > 0) {
+        const since = new Date(Date.now() - r.hours * 3600 * 1000).toISOString();
+        vq = vq.gte("last_seen", since);
+      }
+      const { count: vCount } = await vq;
+      setPeriodVisitors(vCount || 0);
       setLoading(false);
     };
     fetchLogs();
