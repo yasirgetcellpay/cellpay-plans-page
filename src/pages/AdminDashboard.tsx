@@ -330,6 +330,108 @@ export default function AdminDashboard() {
     return { total, revenue, orders, repeat, withEmail, withPhone, avgSpend };
   }, [filteredCustomers]);
 
+  // ===== Marketing & funnel insights =====
+  const insights = useMemo(() => {
+    const success = logs.filter((l) => l.status === "success");
+    const failed = logs.filter((l) => l.status === "failed");
+    const attempts = success.length + failed.length;
+
+    const visitorToAttempt = periodVisitors ? (attempts / periodVisitors) * 100 : 0;
+    const attemptToSuccess = attempts ? (success.length / attempts) * 100 : 0;
+    const visitorToSuccess = periodVisitors ? (success.length / periodVisitors) * 100 : 0;
+
+    const customerKeys = new Map<string, number>();
+    success.forEach((l) => {
+      const k = (l.email || l.phone_number || "").toLowerCase();
+      if (!k) return;
+      customerKeys.set(k, (customerKeys.get(k) || 0) + 1);
+    });
+    const repeatCustomers = Array.from(customerKeys.values()).filter((n) => n >= 2).length;
+    const newCustomers = Array.from(customerKeys.values()).filter((n) => n === 1).length;
+    const repeatRate = customerKeys.size ? (repeatCustomers / customerKeys.size) * 100 : 0;
+
+    const totalRevenue = success.reduce((s, l) => s + (Number(l.total) || Number(l.amount) || 0), 0);
+    const clv = customerKeys.size ? totalRevenue / customerKeys.size : 0;
+    const avgOrdersPerCustomer = customerKeys.size ? success.length / customerKeys.size : 0;
+
+    const failMap = new Map<string, number>();
+    failed.forEach((l) => {
+      const reason = (l.error_message || "Unknown").slice(0, 80);
+      failMap.set(reason, (failMap.get(reason) || 0) + 1);
+    });
+    const topFailures = Array.from(failMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+    const hourly = new Array(24).fill(0) as number[];
+    success.forEach((l) => { hourly[new Date(l.created_at).getHours()] += 1; });
+    const peakHour = hourly.indexOf(Math.max(...hourly));
+
+    const dowNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dow = new Array(7).fill(0) as number[];
+    success.forEach((l) => { dow[new Date(l.created_at).getDay()] += 1; });
+    const peakDay = dowNames[dow.indexOf(Math.max(...dow))];
+
+    const planMap = new Map<string, { count: number; revenue: number }>();
+    success.forEach((l) => {
+      const k = `${carrierLabel(l)} • plan ${l.plan_id || "—"}`;
+      const cur = planMap.get(k) || { count: 0, revenue: 0 };
+      cur.count += 1;
+      cur.revenue += Number(l.total) || Number(l.amount) || 0;
+      planMap.set(k, cur);
+    });
+    const topPlans = Array.from(planMap.entries()).sort((a, b) => b[1].revenue - a[1].revenue).slice(0, 10);
+
+    const methodStats = new Map<string, { ok: number; fail: number }>();
+    [...success, ...failed].forEach((l) => {
+      const k = l.payment_method || "unknown";
+      const cur = methodStats.get(k) || { ok: 0, fail: 0 };
+      if (l.status === "success") cur.ok += 1; else cur.fail += 1;
+      methodStats.set(k, cur);
+    });
+    const methodConv = Array.from(methodStats.entries())
+      .map(([k, v]) => ({ method: k, rate: v.ok + v.fail ? (v.ok / (v.ok + v.fail)) * 100 : 0, total: v.ok + v.fail }))
+      .sort((a, b) => b.total - a.total);
+
+    const carrierStats = new Map<string, { ok: number; fail: number; revenue: number }>();
+    [...success, ...failed].forEach((l) => {
+      const k = carrierLabel(l);
+      const cur = carrierStats.get(k) || { ok: 0, fail: 0, revenue: 0 };
+      if (l.status === "success") { cur.ok += 1; cur.revenue += Number(l.total) || Number(l.amount) || 0; }
+      else cur.fail += 1;
+      carrierStats.set(k, cur);
+    });
+    const carrierConv = Array.from(carrierStats.entries())
+      .map(([k, v]) => ({ carrier: k, rate: v.ok + v.fail ? (v.ok / (v.ok + v.fail)) * 100 : 0, total: v.ok + v.fail, revenue: v.revenue }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10);
+
+    const uniqueEmails = new Set(success.map((l) => (l.email || "").toLowerCase()).filter(Boolean)).size;
+    const uniquePhones = new Set(success.map((l) => l.phone_number).filter(Boolean)).size;
+
+    const domainMap = new Map<string, number>();
+    success.forEach((l) => {
+      const d = (l.email || "").split("@")[1]?.toLowerCase();
+      if (d) domainMap.set(d, (domainMap.get(d) || 0) + 1);
+    });
+    const topDomains = Array.from(domainMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+    const areaMap = new Map<string, number>();
+    success.forEach((l) => {
+      const digits = (l.phone_number || "").replace(/\D/g, "");
+      const area = digits.length >= 10 ? digits.slice(-10, -7) : "";
+      if (area) areaMap.set(area, (areaMap.get(area) || 0) + 1);
+    });
+    const topAreas = Array.from(areaMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+    return {
+      visitorToAttempt, attemptToSuccess, visitorToSuccess,
+      newCustomers, repeatCustomers, repeatRate, clv, avgOrdersPerCustomer,
+      topFailures, hourly, peakHour, dow, peakDay, dowNames,
+      topPlans, methodConv, carrierConv,
+      uniqueEmails, uniquePhones, topDomains, topAreas,
+      attempts, successCount: success.length, failedCount: failed.length,
+    };
+  }, [logs, periodVisitors]);
+
   const exportCustomersCSV = () => {
     const rows = [
       ["Name", "Email", "Phone", "Carriers", "Payment Methods", "Orders", "Total Spend", "Avg Order", "First Order", "Last Order"],
