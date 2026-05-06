@@ -14,11 +14,12 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, Activity, BarChart3, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Users, Activity, BarChart3, Eye, ChevronLeft, ChevronRight, TrendingUp } from "lucide-react";
 
-type Section = "overview" | "visitors" | "breakdowns" | "customers" | "transactions";
+type Section = "overview" | "insights" | "visitors" | "breakdowns" | "customers" | "transactions";
 const NAV: { id: Section; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "insights", label: "Insights", icon: TrendingUp },
   { id: "visitors", label: "Live visitors", icon: Eye },
   { id: "breakdowns", label: "Breakdowns", icon: BarChart3 },
   { id: "customers", label: "Customers", icon: Users },
@@ -73,6 +74,7 @@ export default function AdminDashboard() {
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [now, setNow] = useState(Date.now());
   const [detailLog, setDetailLog] = useState<TxLog | null>(null);
+  const [periodVisitors, setPeriodVisitors] = useState<number>(0);
 
   useEffect(() => {
     setSection(isSection(routeSection) ? routeSection : "overview");
@@ -113,6 +115,14 @@ export default function AdminDashboard() {
       }
       const { data } = await q;
       setLogs((data as TxLog[]) || []);
+      // Unique visitor sessions in the same range (approx funnel top)
+      let vq = supabase.from("page_visitors").select("session_id", { count: "exact", head: true });
+      if (r.hours > 0) {
+        const since = new Date(Date.now() - r.hours * 3600 * 1000).toISOString();
+        vq = vq.gte("last_seen", since);
+      }
+      const { count: vCount } = await vq;
+      setPeriodVisitors(vCount || 0);
       setLoading(false);
     };
     fetchLogs();
@@ -320,6 +330,108 @@ export default function AdminDashboard() {
     return { total, revenue, orders, repeat, withEmail, withPhone, avgSpend };
   }, [filteredCustomers]);
 
+  // ===== Marketing & funnel insights =====
+  const insights = useMemo(() => {
+    const success = logs.filter((l) => l.status === "success");
+    const failed = logs.filter((l) => l.status === "failed");
+    const attempts = success.length + failed.length;
+
+    const visitorToAttempt = periodVisitors ? (attempts / periodVisitors) * 100 : 0;
+    const attemptToSuccess = attempts ? (success.length / attempts) * 100 : 0;
+    const visitorToSuccess = periodVisitors ? (success.length / periodVisitors) * 100 : 0;
+
+    const customerKeys = new Map<string, number>();
+    success.forEach((l) => {
+      const k = (l.email || l.phone_number || "").toLowerCase();
+      if (!k) return;
+      customerKeys.set(k, (customerKeys.get(k) || 0) + 1);
+    });
+    const repeatCustomers = Array.from(customerKeys.values()).filter((n) => n >= 2).length;
+    const newCustomers = Array.from(customerKeys.values()).filter((n) => n === 1).length;
+    const repeatRate = customerKeys.size ? (repeatCustomers / customerKeys.size) * 100 : 0;
+
+    const totalRevenue = success.reduce((s, l) => s + (Number(l.total) || Number(l.amount) || 0), 0);
+    const clv = customerKeys.size ? totalRevenue / customerKeys.size : 0;
+    const avgOrdersPerCustomer = customerKeys.size ? success.length / customerKeys.size : 0;
+
+    const failMap = new Map<string, number>();
+    failed.forEach((l) => {
+      const reason = (l.error_message || "Unknown").slice(0, 80);
+      failMap.set(reason, (failMap.get(reason) || 0) + 1);
+    });
+    const topFailures = Array.from(failMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+    const hourly = new Array(24).fill(0) as number[];
+    success.forEach((l) => { hourly[new Date(l.created_at).getHours()] += 1; });
+    const peakHour = hourly.indexOf(Math.max(...hourly));
+
+    const dowNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dow = new Array(7).fill(0) as number[];
+    success.forEach((l) => { dow[new Date(l.created_at).getDay()] += 1; });
+    const peakDay = dowNames[dow.indexOf(Math.max(...dow))];
+
+    const planMap = new Map<string, { count: number; revenue: number }>();
+    success.forEach((l) => {
+      const k = `${carrierLabel(l)} • plan ${l.plan_id || "—"}`;
+      const cur = planMap.get(k) || { count: 0, revenue: 0 };
+      cur.count += 1;
+      cur.revenue += Number(l.total) || Number(l.amount) || 0;
+      planMap.set(k, cur);
+    });
+    const topPlans = Array.from(planMap.entries()).sort((a, b) => b[1].revenue - a[1].revenue).slice(0, 10);
+
+    const methodStats = new Map<string, { ok: number; fail: number }>();
+    [...success, ...failed].forEach((l) => {
+      const k = l.payment_method || "unknown";
+      const cur = methodStats.get(k) || { ok: 0, fail: 0 };
+      if (l.status === "success") cur.ok += 1; else cur.fail += 1;
+      methodStats.set(k, cur);
+    });
+    const methodConv = Array.from(methodStats.entries())
+      .map(([k, v]) => ({ method: k, rate: v.ok + v.fail ? (v.ok / (v.ok + v.fail)) * 100 : 0, total: v.ok + v.fail }))
+      .sort((a, b) => b.total - a.total);
+
+    const carrierStats = new Map<string, { ok: number; fail: number; revenue: number }>();
+    [...success, ...failed].forEach((l) => {
+      const k = carrierLabel(l);
+      const cur = carrierStats.get(k) || { ok: 0, fail: 0, revenue: 0 };
+      if (l.status === "success") { cur.ok += 1; cur.revenue += Number(l.total) || Number(l.amount) || 0; }
+      else cur.fail += 1;
+      carrierStats.set(k, cur);
+    });
+    const carrierConv = Array.from(carrierStats.entries())
+      .map(([k, v]) => ({ carrier: k, rate: v.ok + v.fail ? (v.ok / (v.ok + v.fail)) * 100 : 0, total: v.ok + v.fail, revenue: v.revenue }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10);
+
+    const uniqueEmails = new Set(success.map((l) => (l.email || "").toLowerCase()).filter(Boolean)).size;
+    const uniquePhones = new Set(success.map((l) => l.phone_number).filter(Boolean)).size;
+
+    const domainMap = new Map<string, number>();
+    success.forEach((l) => {
+      const d = (l.email || "").split("@")[1]?.toLowerCase();
+      if (d) domainMap.set(d, (domainMap.get(d) || 0) + 1);
+    });
+    const topDomains = Array.from(domainMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+    const areaMap = new Map<string, number>();
+    success.forEach((l) => {
+      const digits = (l.phone_number || "").replace(/\D/g, "");
+      const area = digits.length >= 10 ? digits.slice(-10, -7) : "";
+      if (area) areaMap.set(area, (areaMap.get(area) || 0) + 1);
+    });
+    const topAreas = Array.from(areaMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+    return {
+      visitorToAttempt, attemptToSuccess, visitorToSuccess,
+      newCustomers, repeatCustomers, repeatRate, clv, avgOrdersPerCustomer,
+      topFailures, hourly, peakHour, dow, peakDay, dowNames,
+      topPlans, methodConv, carrierConv,
+      uniqueEmails, uniquePhones, topDomains, topAreas,
+      attempts, successCount: success.length, failedCount: failed.length,
+    };
+  }, [logs, periodVisitors]);
+
   const exportCustomersCSV = () => {
     const rows = [
       ["Name", "Email", "Phone", "Carriers", "Payment Methods", "Orders", "Total Spend", "Avg Order", "First Order", "Last Order"],
@@ -430,12 +542,154 @@ export default function AdminDashboard() {
 
           <main className="flex-1 px-4 py-6 space-y-6 max-w-7xl w-full mx-auto">
             {section === "overview" && (
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <KpiCard title="Live visitors" value={String(liveVisitors.length)} sub="active in last 60s" />
-                <KpiCard title="Revenue" value={fmt$(kpis.revenue)} sub={`${kpis.successCount} successful`} />
-                <KpiCard title="Total attempts" value={String(kpis.total)} sub={`${kpis.pending} pending`} />
-                <KpiCard title="Success rate" value={`${kpis.successRate.toFixed(1)}%`} sub={`${kpis.failed} failed`} />
-                <KpiCard title="Avg order value" value={fmt$(kpis.aov)} sub="successful only" />
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                  <KpiCard title="Live visitors" value={String(liveVisitors.length)} sub="active in last 60s" />
+                  <KpiCard title="Visitors (range)" value={periodVisitors.toLocaleString()} sub="unique sessions" />
+                  <KpiCard title="Revenue" value={fmt$(kpis.revenue)} sub={`${kpis.successCount} successful`} />
+                  <KpiCard title="Conversion" value={`${insights.visitorToSuccess.toFixed(2)}%`} sub="visitor → paid" />
+                  <KpiCard title="Checkout success" value={`${insights.attemptToSuccess.toFixed(1)}%`} sub={`${kpis.failed} failed`} />
+                  <KpiCard title="Avg order value" value={fmt$(kpis.aov)} sub="successful only" />
+                  <KpiCard title="Repeat rate" value={`${insights.repeatRate.toFixed(1)}%`} sub={`${insights.repeatCustomers} repeat`} />
+                </div>
+              </>
+            )}
+
+            {section === "insights" && (
+              <div className="space-y-6">
+                {/* Funnel */}
+                <Card>
+                  <CardHeader><CardTitle className="text-base">Conversion funnel</CardTitle></CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <FunnelStep label="Visitors" value={periodVisitors.toLocaleString()} sub="unique sessions in range" />
+                      <FunnelStep label="Checkout attempts" value={insights.attempts.toLocaleString()} sub={`${insights.visitorToAttempt.toFixed(2)}% of visitors`} />
+                      <FunnelStep label="Paid customers" value={insights.successCount.toLocaleString()} sub={`${insights.visitorToSuccess.toFixed(2)}% of visitors • ${insights.attemptToSuccess.toFixed(1)}% of attempts`} />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Customer KPIs */}
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  <KpiCard title="New customers" value={insights.newCustomers.toLocaleString()} sub="1 order in range" />
+                  <KpiCard title="Repeat customers" value={insights.repeatCustomers.toLocaleString()} sub={`${insights.repeatRate.toFixed(1)}% of buyers`} />
+                  <KpiCard title="Customer LTV" value={fmt$(insights.clv)} sub="avg spend / buyer" />
+                  <KpiCard title="Orders / customer" value={insights.avgOrdersPerCustomer.toFixed(2)} sub="repeat purchase index" />
+                  <KpiCard title="Reachable emails" value={insights.uniqueEmails.toLocaleString()} sub="unique buyer emails" />
+                  <KpiCard title="Reachable phones" value={insights.uniquePhones.toLocaleString()} sub="unique buyer phones" />
+                </div>
+
+                {/* When customers buy */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">Best time of day <span className="text-xs font-normal text-muted-foreground">(peak {insights.peakHour}:00)</span></CardTitle></CardHeader>
+                    <CardContent>
+                      <BarRow items={insights.hourly.map((v, i) => ({ label: `${i}:00`, value: v }))} />
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">Best day of week <span className="text-xs font-normal text-muted-foreground">(peak {insights.peakDay})</span></CardTitle></CardHeader>
+                    <CardContent>
+                      <BarRow items={insights.dow.map((v, i) => ({ label: insights.dowNames[i], value: v }))} />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Plans + Carrier conversion */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">Top refill plans by revenue</CardTitle></CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader><TableRow><TableHead>Plan</TableHead><TableHead className="text-right">Sold</TableHead><TableHead className="text-right">Revenue</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                          {insights.topPlans.map(([k, v]) => (
+                            <TableRow key={k}><TableCell className="text-xs">{k}</TableCell><TableCell className="text-right text-xs">{v.count}</TableCell><TableCell className="text-right text-xs font-semibold">{fmt$(v.revenue)}</TableCell></TableRow>
+                          ))}
+                          {insights.topPlans.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">Carrier conversion</CardTitle></CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader><TableRow><TableHead>Carrier</TableHead><TableHead className="text-right">Attempts</TableHead><TableHead className="text-right">Conv %</TableHead><TableHead className="text-right">Revenue</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                          {insights.carrierConv.map((c) => (
+                            <TableRow key={c.carrier}><TableCell className="text-xs">{c.carrier}</TableCell><TableCell className="text-right text-xs">{c.total}</TableCell><TableCell className="text-right text-xs">{c.rate.toFixed(1)}%</TableCell><TableCell className="text-right text-xs font-semibold">{fmt$(c.revenue)}</TableCell></TableRow>
+                          ))}
+                          {insights.carrierConv.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Payment method conversion + failure reasons */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">Payment method conversion</CardTitle></CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader><TableRow><TableHead>Method</TableHead><TableHead className="text-right">Attempts</TableHead><TableHead className="text-right">Success %</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                          {insights.methodConv.map((m) => (
+                            <TableRow key={m.method}><TableCell className="text-xs">{m.method}</TableCell><TableCell className="text-right text-xs">{m.total}</TableCell><TableCell className="text-right text-xs">{m.rate.toFixed(1)}%</TableCell></TableRow>
+                          ))}
+                          {insights.methodConv.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">Top failure reasons</CardTitle></CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader><TableRow><TableHead>Reason</TableHead><TableHead className="text-right">Count</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                          {insights.topFailures.map(([k, v]) => (
+                            <TableRow key={k}><TableCell className="text-xs">{k}</TableCell><TableCell className="text-right text-xs">{v}</TableCell></TableRow>
+                          ))}
+                          {insights.topFailures.length === 0 && <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">No failures 🎉</TableCell></TableRow>}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Geo & email domain */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">Top email domains</CardTitle></CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader><TableRow><TableHead>Domain</TableHead><TableHead className="text-right">Customers</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                          {insights.topDomains.map(([k, v]) => (
+                            <TableRow key={k}><TableCell className="text-xs">{k}</TableCell><TableCell className="text-right text-xs">{v}</TableCell></TableRow>
+                          ))}
+                          {insights.topDomains.length === 0 && <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">Top US area codes <span className="text-xs font-normal text-muted-foreground">(geo signal from phone)</span></CardTitle></CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader><TableRow><TableHead>Area code</TableHead><TableHead className="text-right">Customers</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                          {insights.topAreas.map(([k, v]) => (
+                            <TableRow key={k}><TableCell className="text-xs">{k}</TableCell><TableCell className="text-right text-xs">{v}</TableCell></TableRow>
+                          ))}
+                          {insights.topAreas.length === 0 && <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">No data</TableCell></TableRow>}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             )}
 
@@ -799,6 +1053,33 @@ function TxScrollTable({ children }: { children: React.ReactNode }) {
       <div ref={ref} className="overflow-x-auto rounded-md border">
         {children}
       </div>
+    </div>
+  );
+}
+
+function FunnelStep({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-lg border bg-background p-4">
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-2xl font-bold mt-1">{value}</div>
+      {sub && <div className="text-xs text-muted-foreground mt-1">{sub}</div>}
+    </div>
+  );
+}
+
+function BarRow({ items }: { items: { label: string; value: number }[] }) {
+  const max = Math.max(1, ...items.map((i) => i.value));
+  return (
+    <div className="space-y-1">
+      {items.map((i) => (
+        <div key={i.label} className="flex items-center gap-2 text-xs">
+          <div className="w-12 text-muted-foreground">{i.label}</div>
+          <div className="flex-1 h-3 bg-muted rounded overflow-hidden">
+            <div className="h-full bg-primary" style={{ width: `${(i.value / max) * 100}%` }} />
+          </div>
+          <div className="w-10 text-right tabular-nums">{i.value}</div>
+        </div>
+      ))}
     </div>
   );
 }
