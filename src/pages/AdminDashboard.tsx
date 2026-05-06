@@ -1056,3 +1056,30 @@ function TxScrollTable({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+function FunnelStep({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-lg border bg-background p-4">
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-2xl font-bold mt-1">{value}</div>
+      {sub && <div className="text-xs text-muted-foreground mt-1">{sub}</div>}
+    </div>
+  );
+}
+
+function BarRow({ items }: { items: { label: string; value: number }[] }) {
+  const max = Math.max(1, ...items.map((i) => i.value));
+  return (
+    <div className="space-y-1">
+      {items.map((i) => (
+        <div key={i.label} className="flex items-center gap-2 text-xs">
+          <div className="w-12 text-muted-foreground">{i.label}</div>
+          <div className="flex-1 h-3 bg-muted rounded overflow-hidden">
+            <div className="h-full bg-primary" style={{ width: `${(i.value / max) * 100}%` }} />
+          </div>
+          <div className="w-10 text-right tabular-nums">{i.value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
