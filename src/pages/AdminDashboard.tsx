@@ -74,6 +74,7 @@ export default function AdminDashboard() {
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [now, setNow] = useState(Date.now());
   const [detailLog, setDetailLog] = useState<TxLog | null>(null);
+  const [periodVisitors, setPeriodVisitors] = useState<number>(0);
 
   useEffect(() => {
     setSection(isSection(routeSection) ? routeSection : "overview");
