@@ -14,11 +14,12 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, Activity, BarChart3, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Users, Activity, BarChart3, Eye, ChevronLeft, ChevronRight, TrendingUp } from "lucide-react";
 
-type Section = "overview" | "visitors" | "breakdowns" | "customers" | "transactions";
+type Section = "overview" | "insights" | "visitors" | "breakdowns" | "customers" | "transactions";
 const NAV: { id: Section; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "insights", label: "Insights", icon: TrendingUp },
   { id: "visitors", label: "Live visitors", icon: Eye },
   { id: "breakdowns", label: "Breakdowns", icon: BarChart3 },
   { id: "customers", label: "Customers", icon: Users },
