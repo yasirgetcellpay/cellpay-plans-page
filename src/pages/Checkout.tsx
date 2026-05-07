@@ -1140,8 +1140,17 @@ const Checkout = () => {
       return;
     }
 
-    // Direct response (no redirect needed)
-    handleResult(raw);
+    // Cash App requires the customer to complete payment in the Pockyt-hosted
+    // flow. Without a HostedURL we have NOT received payment confirmation —
+    // never mark as success here. Surface the API error instead so the user
+    // can retry.
+    const errMsg =
+      (result.message as string) ||
+      (result.msg as string) ||
+      (raw.message as string) ||
+      "Cash App Pay is currently unavailable. Please try another payment method.";
+    setErrorMsg(errMsg);
+    try { sessionStorage.removeItem("cashapp_return_ctx"); } catch { /* ignore */ }
   };
 
 
