@@ -46,26 +46,30 @@ const CashAppReturn = () => {
       if (cancelledRef.current) return;
       try {
         const result = await fetchPockytSessionStatus(sessionId);
-        const internalStatus = String(result.internal_status || "").toLowerCase();
+        const internalStatus = String(result.internal_status || result.status || "").toLowerCase();
         const txnId = (result.transaction_id || result.transactionId || "") as string;
         const apiMsg = (result.message as string) || "";
 
-        if (txnId) {
+        const successStatuses = ["success", "completed", "paid", "captured", "approved"];
+        const failureStatuses = ["failed", "declined", "cancelled", "canceled", "expired", "voided", "error"];
+
+        // Only treat as success if BOTH the status confirms payment AND we have a transaction id.
+        // A txnId alone is not enough — Pockyt assigns one when the session is created.
+        if (txnId && successStatuses.includes(internalStatus)) {
           goSuccess(String(txnId));
           return;
         }
 
-        const retryStatuses = ["processing", "inprogress", "in_progress", "in-progress", "retry", "pending", ""];
-        if (retryStatuses.includes(internalStatus)) {
-          setStatus("processing");
-          if (apiMsg) setMessage(apiMsg);
-          timerRef.current = window.setTimeout(poll, POLL_INTERVAL_MS);
+        if (failureStatuses.includes(internalStatus)) {
+          setStatus("failed");
+          setMessage(apiMsg || `Payment ${internalStatus}.`);
           return;
         }
 
-        // Any other terminal status without a transaction id is treated as failure
-        setStatus("failed");
-        setMessage(apiMsg || `Payment ${internalStatus}.`);
+        // Anything else (processing, pending, unknown, or success-without-txn) → keep polling
+        setStatus("processing");
+        if (apiMsg) setMessage(apiMsg);
+        timerRef.current = window.setTimeout(poll, POLL_INTERVAL_MS);
       } catch (err) {
         // Transient error — keep polling
         const msg = err instanceof Error ? err.message : "Network error";
