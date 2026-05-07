@@ -1099,6 +1099,7 @@ const Checkout = () => {
       checkout_version: "5.0",
       payment_method: "pockyt",
       amount: validation?.amount ?? Number(state.amount),
+      total: validation?.total ?? Number(state.amount),
       phone_number: normalizePhone(state.phone),
       carrierId: validation?.carrier_id || validation?.carrierId,
       carrier_slug: state.carrierSlug,
