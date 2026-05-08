@@ -34,10 +34,14 @@ interface LocationState {
 
 type PaymentMethod = "card" | "paypal" | "plaid" | "googlepay" | "applepay" | "klarna" | "cashapp";
 
-// Normalize a US phone number for the carrier API: strip non-digits and a leading "1" country code.
+// Normalize a US phone number for the carrier API: strip non-digits and any
+// leading "1" country code(s). For US numbers we always want the trailing 10 digits.
 function normalizePhone(input: string): string {
   let d = (input || "").replace(/\D/g, "");
-  if (d.length === 11 && d.startsWith("1")) d = d.slice(1);
+  // Strip any leading "1" country code prefix while we still have more than 10 digits.
+  while (d.length > 10 && d.startsWith("1")) d = d.slice(1);
+  // Final safety net: if it's still longer than 10 digits, keep only the last 10.
+  if (d.length > 10) d = d.slice(-10);
   return d;
 }
 
