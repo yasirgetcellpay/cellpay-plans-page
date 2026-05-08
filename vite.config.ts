@@ -64,6 +64,13 @@ const HTML_ROUTES = [
   "ultra-mobile-espanol.html",
   "us-cellular-espanol.html",
   "verizon-wireless-flexi-espanol.html",
+  // Legacy Google Ads landing URL — served as SPA so AmountRedirect can run
+  "amount.php",
+  // H2O alt paths used by older Google Ads campaigns
+  "h2o-wireless/index.html",
+  "h2o-wireless/bill-payment/index.html",
+  // PagePlus path-style alias
+  "pageplus/index.html",
   // Admin SPA routes — emit as folder/index.html so self-hosted servers
   // (which don't do SPA fallback) serve the React app on direct refresh.
   "admin/index.html",

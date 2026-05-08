@@ -21,6 +21,7 @@ import ReturnsPolicy from "./pages/ReturnsPolicy.tsx";
 import AdminLogin from "./pages/AdminLogin.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import AmountRedirect from "./pages/AmountRedirect.tsx";
 import StraightTalk from "./pages/StraightTalk.tsx";
 import USCellular from "./pages/USCellular.tsx";
 import Verizon from "./pages/Verizon.tsx";
@@ -177,6 +178,27 @@ const App = () => (
         <Route path="/es/att-firstnet" element={<ATT />} />
         <Route path="/att-firstnet/pay" element={<ATT />} />
         <Route path="/es/att-firstnet/pay" element={<ATT />} />
+
+        {/* Legacy Google Ads landing URLs — keep working for crawlers/bots */}
+        <Route path="/amount.php" element={<AmountRedirect />} />
+        {/* H2O Wireless legacy/alt paths (handle both '+' and '-' separators) */}
+        {(["/h2o-wireless", "/h2o+wireless", "/h2o-wireless/bill+payment", "/h2o-wireless/bill-payment", "/h2o+wireless/bill+payment"]).map((p) => (
+          <Route
+            key={p}
+            path={p}
+            element={
+              <DynamicCarrier
+                carrierName="H2O Wireless"
+                carrierSlug="h2o"
+                carrierId={6}
+                brandColor="hsl(195,85%,50%)"
+                logo={h2oLogo}
+              />
+            }
+          />
+        ))}
+        {/* PagePlus path-style alias */}
+        <Route path="/pageplus" element={<Navigate to="/pageplus.html" replace />} />
 
 
         {/* Legacy `-espanol` URLs → redirect to canonical /es/* */}
