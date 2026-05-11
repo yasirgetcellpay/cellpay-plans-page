@@ -84,6 +84,26 @@ const HTML_ROUTES = [
   "admin/transactions/index.html",
 ];
 
+// Legacy per-amount product URLs from the old PHP site, e.g. /40-topup-at-prepaid-refill.html.
+// These are still indexed by Google Merchant Center. Emit static shells so the host returns
+// 200 (not 404), then App.tsx CatchAll redirects them client-side to the category page.
+const LEGACY_AMOUNT_SLUGS = [
+  "topup-at", "metropcs", "boost", "tmobile-flexi", "topup-crc",
+  "s1", "verizon-wireless-flexi", "h2o", "lyca", "net10",
+  "pageplus", "tracfone", "ultra-mobile", "us-cellular", "straight-talk",
+  "red-pocket-mobile", "total-wireless",
+];
+const LEGACY_AMOUNT_VALUES = [
+  5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
+  55, 60, 65, 70, 75, 80, 85, 90, 95, 100,
+  110, 115, 120, 125, 150, 175, 200, 225, 250, 300,
+];
+for (const slug of LEGACY_AMOUNT_SLUGS) {
+  for (const amt of LEGACY_AMOUNT_VALUES) {
+    HTML_ROUTES.push(`${amt}-${slug}-prepaid-refill.html`);
+  }
+}
+
 const htmlAliasPlugin = (): Plugin => ({
   name: "lovable-html-route-aliases",
   apply: "build",
