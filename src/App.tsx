@@ -199,6 +199,30 @@ const App = () => (
         ))}
         {/* PagePlus path-style alias */}
         <Route path="/pageplus" element={<Navigate to="/pageplus.html" replace />} />
+        {/* Legacy Red Pocket .html URL — render same DynamicCarrier so bots get real content (200, not 404) */}
+        <Route
+          path="/red-pocket-mobile.html"
+          element={
+            <DynamicCarrier
+              carrierName="Red Pocket Mobile"
+              carrierSlug="red-pocket-mobile"
+              carrierId={2}
+              brandColor="hsl(0,80%,45%)"
+            />
+          }
+        />
+        <Route
+          path="/es/red-pocket-mobile.html"
+          element={
+            <DynamicCarrier
+              lang="es"
+              carrierName="Red Pocket Mobile"
+              carrierSlug="red-pocket-mobile"
+              carrierId={2}
+              brandColor="hsl(0,80%,45%)"
+            />
+          }
+        />
 
 
         {/* Legacy `-espanol` URLs → redirect to canonical /es/* */}
