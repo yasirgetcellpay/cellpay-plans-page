@@ -182,8 +182,6 @@ const App = () => (
 
         {/* Legacy Google Ads landing URLs — keep working for crawlers/bots */}
         <Route path="/amount.php" element={<AmountRedirect />} />
-        {/* Legacy per-amount product URLs from old PHP site → redirect to category page */}
-        <Route path="/:legacy(\\d+-.+-prepaid-refill\\.html)" element={<LegacyAmountRedirect />} />
         {/* H2O Wireless legacy/alt paths (handle both '+' and '-' separators) */}
         {(["/h2o-wireless", "/h2o+wireless", "/h2o-wireless/bill+payment", "/h2o-wireless/bill-payment", "/h2o+wireless/bill+payment"]).map((p) => (
           <Route
