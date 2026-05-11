@@ -1,11 +1,26 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { applySeoHead } from "@/lib/seo";
 
 const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
+    // Tell crawlers not to index soft-404 pages
+    let robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    const original = robots?.getAttribute("content") ?? null;
+    if (!robots) {
+      robots = document.createElement("meta");
+      robots.setAttribute("name", "robots");
+      document.head.appendChild(robots);
+    }
+    robots.setAttribute("content", "noindex,follow");
+    applySeoHead({ title: "Page Not Found | CellPay" });
+    return () => {
+      if (original !== null) robots!.setAttribute("content", original);
+      else robots!.setAttribute("content", "index,follow,max-image-preview:large,max-snippet:-1");
+    };
   }, [location.pathname]);
 
   return (
