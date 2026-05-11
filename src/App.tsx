@@ -257,7 +257,7 @@ const App = () => (
 
         {/* Fallback: any unmatched /es/* path → strip /es and redirect to English. */}
         <Route path="/es/*" element={<EsFallback />} />
-        <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<CatchAll />} />
       </Routes>
       <Toaster />
     </BrowserRouter>
