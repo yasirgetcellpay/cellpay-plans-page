@@ -116,6 +116,16 @@ const EsFallback = () => {
   return <Navigate to={`${stripped}${search}${hash}`} replace />;
 };
 
+/** Catch-all: detect legacy /{amount}-{slug}-prepaid-refill.html URLs from the old PHP site
+ *  and redirect them to the matching carrier category page. Otherwise render NotFound. */
+const CatchAll = () => {
+  const { pathname } = useLocation();
+  if (/^\/\d+-.+-prepaid-refill\.html$/i.test(pathname)) {
+    return <LegacyAmountRedirect />;
+  }
+  return <NotFound />;
+};
+
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
