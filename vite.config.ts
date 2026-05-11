@@ -116,10 +116,193 @@ const htmlAliasPlugin = (): Plugin => ({
       );
     }
     const html = fs.readFileSync(indexPath, "utf-8");
+
+    // Per-route SEO metadata for static alias HTML files.
+    // Bots and social scrapers read the static HTML before JS runs, so each
+    // alias must ship its own <title>, description, canonical, OG, hreflang,
+    // and (for legacy redirect shells) noindex,follow.
+    const SITE = "https://refill.cellpay.us";
+    type Meta = {
+      title: string;
+      description: string;
+      noindex?: boolean;
+      lang?: string;
+      enPath?: string; // for hreflang pairing
+      esPath?: string;
+    };
+    const CARRIER_META: Record<string, { title: string; description: string }> = {
+      "topup-at.html":             { title: "AT&T Prepaid Refill — Instant Top-Up | CellPay",        description: "Recharge your AT&T Prepaid phone instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "boost.html":                { title: "Boost Mobile Refill — Instant Top-Up | CellPay",        description: "Recharge Boost Mobile online instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "topup-crc.html":            { title: "Cricket Wireless Refill — Instant Top-Up | CellPay",    description: "Recharge Cricket Wireless instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "h2o.html":                  { title: "H2O Wireless Refill — Instant Top-Up | CellPay",        description: "Recharge H2O Wireless instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "lyca.html":                 { title: "Lycamobile Refill — Instant Top-Up | CellPay",          description: "Recharge Lycamobile instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "metropcs.html":             { title: "Metro by T-Mobile Refill — Instant Top-Up | CellPay",   description: "Recharge Metro by T-Mobile instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "metro-pcs.html":            { title: "Metro PCS Refill — Instant Top-Up | CellPay",           description: "Recharge Metro PCS instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "net10.html":                { title: "Net10 Wireless Refill — Instant Top-Up | CellPay",      description: "Recharge Net10 Wireless instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "pageplus.html":             { title: "Page Plus Cellular Refill — Instant Top-Up | CellPay",  description: "Recharge Page Plus Cellular instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "s1.html":                   { title: "Simple Mobile Refill — Instant Top-Up | CellPay",       description: "Recharge Simple Mobile instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "tmobile-flexi.html":        { title: "T-Mobile Prepaid Refill — Instant Top-Up | CellPay",    description: "Recharge T-Mobile Prepaid instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "tracfone.html":             { title: "TracFone Refill — Instant Top-Up | CellPay",            description: "Recharge TracFone instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "ultra-mobile.html":         { title: "Ultra Mobile Refill — Instant Top-Up | CellPay",        description: "Recharge Ultra Mobile instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "us-cellular.html":          { title: "US Cellular Refill — Instant Top-Up | CellPay",         description: "Recharge US Cellular instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "verizon-wireless-flexi.html": { title: "Verizon Prepaid Refill — Instant Top-Up | CellPay",   description: "Recharge Verizon Prepaid instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "straight-talk.html":        { title: "Straight Talk Refill — Instant Top-Up | CellPay",       description: "Recharge Straight Talk instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "red-pocket-mobile.html":    { title: "Red Pocket Mobile Refill — Instant Top-Up | CellPay",   description: "Recharge Red Pocket Mobile instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+    };
+    const ES_TITLE_PREFIX: Record<string, string> = {};
+    const buildMeta = (route: string): Meta => {
+      // Legacy per-amount redirect shells: noindex,follow
+      if (/^\d+-.+-prepaid-refill\.html$/.test(route)) {
+        return {
+          title: "Prepaid Refill | CellPay",
+          description: "Recharge your prepaid phone instantly with CellPay.",
+          noindex: true,
+          lang: "en",
+        };
+      }
+      // Espanol legacy aliases: noindex,follow (they redirect to /es/*)
+      if (route.endsWith("-espanol.html")) {
+        return {
+          title: "Recarga de Teléfono Prepago | CellPay",
+          description: "Recarga tu teléfono prepago al instante con CellPay.",
+          noindex: true,
+          lang: "es",
+        };
+      }
+      // amount.php legacy
+      if (route === "amount.php") {
+        return {
+          title: "Recarga de Teléfono | CellPay",
+          description: "Elige tu operador para recargar tu teléfono prepago.",
+          noindex: true,
+          lang: "en",
+        };
+      }
+      // Admin shells: noindex
+      if (route.startsWith("admin/")) {
+        return {
+          title: "Admin | CellPay",
+          description: "CellPay administration.",
+          noindex: true,
+          lang: "en",
+        };
+      }
+      // Spanish carrier mirror
+      if (route.startsWith("es/")) {
+        const base = route.slice(3);
+        const meta = CARRIER_META[base];
+        if (meta) {
+          return {
+            title: meta.title.replace(" | CellPay", " — Español | CellPay"),
+            description: "Recarga al instante. Planes de 30 días, pago seguro, sin comisiones, entrega en segundos.",
+            lang: "es",
+            esPath: "/" + route,
+            enPath: "/" + base,
+          };
+        }
+      }
+      // English carrier
+      const meta = CARRIER_META[route];
+      if (meta) {
+        return {
+          ...meta,
+          lang: "en",
+          enPath: "/" + route,
+          esPath: "/es/" + route,
+        };
+      }
+      // Path-style aliases (h2o-wireless/, pageplus/)
+      if (route === "h2o-wireless/index.html" || route === "h2o-wireless/bill-payment/index.html") {
+        return { ...CARRIER_META["h2o.html"], lang: "en" };
+      }
+      if (route === "pageplus/index.html") {
+        return { ...CARRIER_META["pageplus.html"], lang: "en" };
+      }
+      return {
+        title: "Mobile Recharge & Prepaid Refills Online | CellPay",
+        description: "Recharge any US prepaid carrier instantly with CellPay.",
+        lang: "en",
+      };
+    };
+
+    const escAttr = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    const renderHtml = (route: string): string => {
+      const meta = buildMeta(route);
+      const url = `${SITE}/${route.replace(/\/index\.html$/, "/")}`;
+      let out = html;
+
+      // <html lang="...">
+      out = out.replace(/<html\s+lang="[^"]*"/i, `<html lang="${meta.lang || "en"}"`);
+
+      // <title>
+      out = out.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escAttr(meta.title)}</title>`);
+
+      // meta description
+      out = out.replace(
+        /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
+        `<meta name="description" content="${escAttr(meta.description)}" />`,
+      );
+
+      // canonical
+      out = out.replace(
+        /<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i,
+        `<link rel="canonical" href="${url}" />`,
+      );
+
+      // og:url, og:title, og:description
+      out = out.replace(
+        /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i,
+        `<meta property="og:url" content="${url}" />`,
+      );
+      out = out.replace(
+        /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i,
+        `<meta property="og:title" content="${escAttr(meta.title)}" />`,
+      );
+      out = out.replace(
+        /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i,
+        `<meta property="og:description" content="${escAttr(meta.description)}" />`,
+      );
+      out = out.replace(
+        /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/i,
+        `<meta name="twitter:title" content="${escAttr(meta.title)}" />`,
+      );
+      out = out.replace(
+        /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/i,
+        `<meta name="twitter:description" content="${escAttr(meta.description)}" />`,
+      );
+
+      // robots — only override when we want noindex
+      if (meta.noindex) {
+        out = out.replace(
+          /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i,
+          `<meta name="robots" content="noindex,follow" />`,
+        );
+        // If no robots tag existed, inject one
+        if (!/name="robots"/i.test(out)) {
+          out = out.replace(/<\/head>/i, `  <meta name="robots" content="noindex,follow" />\n  </head>`);
+        }
+      }
+
+      // hreflang pairing
+      const extras: string[] = [];
+      if (meta.enPath && meta.esPath) {
+        extras.push(`<link rel="alternate" hreflang="en" href="${SITE}${meta.enPath}" />`);
+        extras.push(`<link rel="alternate" hreflang="es" href="${SITE}${meta.esPath}" />`);
+        extras.push(`<link rel="alternate" hreflang="x-default" href="${SITE}${meta.enPath}" />`);
+      }
+      if (extras.length) {
+        out = out.replace(/<\/head>/i, `  ${extras.join("\n  ")}\n  </head>`);
+      }
+
+      return out;
+    };
+
     for (const route of HTML_ROUTES) {
       const dest = path.join(outDir, route);
       fs.mkdirSync(path.dirname(dest), { recursive: true });
-      fs.writeFileSync(dest, html);
+      fs.writeFileSync(dest, renderHtml(route));
     }
 
     // Build regression check: every route in HTML_ROUTES must exist in dist/
