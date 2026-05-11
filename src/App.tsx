@@ -22,6 +22,7 @@ import AdminLogin from "./pages/AdminLogin.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AmountRedirect from "./pages/AmountRedirect.tsx";
+import LegacyAmountRedirect from "./pages/LegacyAmountRedirect.tsx";
 import StraightTalk from "./pages/StraightTalk.tsx";
 import USCellular from "./pages/USCellular.tsx";
 import Verizon from "./pages/Verizon.tsx";
