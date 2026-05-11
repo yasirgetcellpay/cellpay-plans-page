@@ -71,6 +71,9 @@ const HTML_ROUTES = [
   "h2o-wireless/bill-payment/index.html",
   // PagePlus path-style alias
   "pageplus/index.html",
+  // Red Pocket legacy .html URL (alias to /red-pocket SPA route)
+  "red-pocket-mobile.html",
+  "es/red-pocket-mobile.html",
   // Admin SPA routes — emit as folder/index.html so self-hosted servers
   // (which don't do SPA fallback) serve the React app on direct refresh.
   "admin/index.html",
