@@ -22,6 +22,7 @@ import AdminLogin from "./pages/AdminLogin.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AmountRedirect from "./pages/AmountRedirect.tsx";
+import LegacyAmountRedirect from "./pages/LegacyAmountRedirect.tsx";
 import StraightTalk from "./pages/StraightTalk.tsx";
 import USCellular from "./pages/USCellular.tsx";
 import Verizon from "./pages/Verizon.tsx";
@@ -113,6 +114,16 @@ const EsFallback = () => {
   const { pathname, search, hash } = useLocation();
   const stripped = pathname.replace(/^\/es(?=\/|$)/, "") || "/";
   return <Navigate to={`${stripped}${search}${hash}`} replace />;
+};
+
+/** Catch-all: detect legacy /{amount}-{slug}-prepaid-refill.html URLs from the old PHP site
+ *  and redirect them to the matching carrier category page. Otherwise render NotFound. */
+const CatchAll = () => {
+  const { pathname } = useLocation();
+  if (/^\/\d+-.+-prepaid-refill\.html$/i.test(pathname)) {
+    return <LegacyAmountRedirect />;
+  }
+  return <NotFound />;
 };
 
 const App = () => (
@@ -256,7 +267,7 @@ const App = () => (
 
         {/* Fallback: any unmatched /es/* path → strip /es and redirect to English. */}
         <Route path="/es/*" element={<EsFallback />} />
-        <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<CatchAll />} />
       </Routes>
       <Toaster />
     </BrowserRouter>
