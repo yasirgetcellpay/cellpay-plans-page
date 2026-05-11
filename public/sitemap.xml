@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://refill.cellpay.us/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://refill.cellpay.us/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
   <url><loc>https://refill.cellpay.us/about-us</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://refill.cellpay.us/contact-us</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://refill.cellpay.us/faq</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
@@ -9,24 +14,132 @@
   <url><loc>https://refill.cellpay.us/terms-and-conditions</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://refill.cellpay.us/returns-policy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 
-  <url><loc>https://refill.cellpay.us/topup-at.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url>
+    <loc>https://refill.cellpay.us/topup-at.html</loc>
+    <changefreq>weekly</changefreq><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/topup-at.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/topup-at.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/topup-at.html"/>
+  </url>
   <url><loc>https://refill.cellpay.us/att-firstnet</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://refill.cellpay.us/boost.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://refill.cellpay.us/topup-crc.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://refill.cellpay.us/h2o.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://refill.cellpay.us/lyca.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://refill.cellpay.us/metropcs.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://refill.cellpay.us/net10.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://refill.cellpay.us/pageplus.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url>
+    <loc>https://refill.cellpay.us/boost.html</loc>
+    <changefreq>weekly</changefreq><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/boost.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/boost.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/boost.html"/>
+  </url>
+  <url>
+    <loc>https://refill.cellpay.us/topup-crc.html</loc>
+    <changefreq>weekly</changefreq><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/topup-crc.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/topup-crc.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/topup-crc.html"/>
+  </url>
+  <url>
+    <loc>https://refill.cellpay.us/h2o.html</loc>
+    <changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/h2o.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/h2o.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/h2o.html"/>
+  </url>
+  <url>
+    <loc>https://refill.cellpay.us/lyca.html</loc>
+    <changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/lyca.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/lyca.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/lyca.html"/>
+  </url>
+  <url>
+    <loc>https://refill.cellpay.us/metropcs.html</loc>
+    <changefreq>weekly</changefreq><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/metropcs.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/metropcs.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/metropcs.html"/>
+  </url>
+  <url>
+    <loc>https://refill.cellpay.us/net10.html</loc>
+    <changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/net10.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/net10.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/net10.html"/>
+  </url>
+  <url>
+    <loc>https://refill.cellpay.us/pageplus.html</loc>
+    <changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/pageplus.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/pageplus.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/pageplus.html"/>
+  </url>
   <url><loc>https://refill.cellpay.us/pageplus-addon</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://refill.cellpay.us/red-pocket</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://refill.cellpay.us/s1.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://refill.cellpay.us/tmobile-flexi.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://refill.cellpay.us/red-pocket-mobile.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url>
+    <loc>https://refill.cellpay.us/s1.html</loc>
+    <changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/s1.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/s1.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/s1.html"/>
+  </url>
+  <url>
+    <loc>https://refill.cellpay.us/tmobile-flexi.html</loc>
+    <changefreq>weekly</changefreq><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/tmobile-flexi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/tmobile-flexi.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/tmobile-flexi.html"/>
+  </url>
   <url><loc>https://refill.cellpay.us/total-wireless</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://refill.cellpay.us/tracfone.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://refill.cellpay.us/ultra-mobile.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://refill.cellpay.us/us-cellular.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url>
+    <loc>https://refill.cellpay.us/tracfone.html</loc>
+    <changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/tracfone.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/tracfone.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/tracfone.html"/>
+  </url>
+  <url>
+    <loc>https://refill.cellpay.us/ultra-mobile.html</loc>
+    <changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/ultra-mobile.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/ultra-mobile.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/ultra-mobile.html"/>
+  </url>
+  <url>
+    <loc>https://refill.cellpay.us/us-cellular.html</loc>
+    <changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/us-cellular.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/us-cellular.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/us-cellular.html"/>
+  </url>
   <url><loc>https://refill.cellpay.us/verizon</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://refill.cellpay.us/verizon-wireless-flexi.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://refill.cellpay.us/straight-talk.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url>
+    <loc>https://refill.cellpay.us/verizon-wireless-flexi.html</loc>
+    <changefreq>weekly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/verizon-wireless-flexi.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/verizon-wireless-flexi.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/verizon-wireless-flexi.html"/>
+  </url>
+  <url>
+    <loc>https://refill.cellpay.us/straight-talk.html</loc>
+    <changefreq>weekly</changefreq><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/straight-talk.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/straight-talk.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/straight-talk.html"/>
+  </url>
+
+  <!-- Spanish carrier mirrors -->
+  <url><loc>https://refill.cellpay.us/es/topup-at.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/boost.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/topup-crc.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/h2o.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/lyca.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/metropcs.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/net10.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/pageplus.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/s1.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/tmobile-flexi.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/tracfone.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/ultra-mobile.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/us-cellular.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/verizon-wireless-flexi.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://refill.cellpay.us/es/straight-talk.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
 </urlset>
