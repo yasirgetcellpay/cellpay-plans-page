@@ -41,10 +41,10 @@ const PrivacyPolicy = () => (
         <p>We use essential cookies to maintain your session and improve site functionality. We do not use tracking cookies for advertising purposes.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">6. Your Rights</h2>
-        <p>You may request access to, correction of, or deletion of your personal data by contacting us at support@cellpay.us.</p>
+        <p>You may request access to, correction of, or deletion of your personal data by contacting us at support@getcellpay.com.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">7. Contact</h2>
-        <p>For privacy-related inquiries, email us at <strong>support@cellpay.us</strong>.</p>
+        <p>For privacy-related inquiries, email us at <strong>support@getcellpay.com</strong>.</p>
       </div>
     </main>
     <CarrierFooter brandColor="hsl(101,67%,44%)" carrierName="CellPay" />

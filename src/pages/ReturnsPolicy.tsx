@@ -29,7 +29,7 @@ const ReturnsPolicy = () => (
         </ul>
 
         <h2 className="text-lg font-bold text-foreground pt-3">How to Request a Refund</h2>
-        <p>Email us at <strong>support@cellpay.us</strong> with the following information:</p>
+        <p>Email us at <strong>support@getcellpay.com</strong> with the following information:</p>
         <ul className="list-disc list-inside space-y-1">
           <li>Your phone number</li>
           <li>Carrier name</li>
@@ -40,7 +40,7 @@ const ReturnsPolicy = () => (
         <p className="pt-2">Refund requests are reviewed within 3–5 business days. Approved refunds will be credited to the original payment method within 5–10 business days.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">Contact</h2>
-        <p>For refund inquiries, email <strong>support@cellpay.us</strong>.</p>
+        <p>For refund inquiries, email <strong>support@getcellpay.com</strong>.</p>
       </div>
     </main>
     <CarrierFooter brandColor="hsl(101,67%,44%)" carrierName="CellPay" />
