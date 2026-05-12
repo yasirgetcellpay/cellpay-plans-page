@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { callProxy } from "@/services/apiWrapper";
 import { Footer } from "@/components/Footer";
@@ -33,6 +33,32 @@ const OrderConfirmation = () => {
   const [transaction, setTransaction] = useState<TransactionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const enhancedPushedRef = useRef(false);
+
+  const formatE164 = (phone?: string): string => {
+    if (!phone) return "";
+    const d = phone.replace(/\D/g, "");
+    if (d.length === 10) return `+1${d}`;
+    if (d.length === 11 && d.startsWith("1")) return `+${d}`;
+    if (d.length > 11 && d.length <= 15) return `+${d}`;
+    return "";
+  };
+
+  useEffect(() => {
+    if (enhancedPushedRef.current) return;
+    if (!transaction) return;
+    const email = transaction.user?.email?.trim().toLowerCase() || "";
+    const phone = formatE164(transaction.phone_number);
+    if (!email && !phone) return;
+    enhancedPushedRef.current = true;
+    // @ts-expect-error - dataLayer global
+    window.dataLayer = window.dataLayer || [];
+    // @ts-expect-error - dataLayer global
+    window.dataLayer.push({
+      event: lang === "es" ? "conversion_enhanced_es" : "conversion_enhanced_en",
+      enhanced_conversion_data: { email, phone_number: phone },
+    });
+  }, [transaction, lang]);
 
   useEffect(() => {
     if (!hashid) {
