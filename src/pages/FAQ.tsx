@@ -16,7 +16,7 @@ const faqs = [
   { q: "What payment methods do you accept?", a: "We accept Visa, Mastercard, American Express, Discover, and Apple Pay." },
   { q: "Do I need to create an account?", a: "No, you can recharge as a guest. However, creating an account lets you track your order history and speeds up future transactions." },
   { q: "Can I get a refund?", a: "Once a refill is processed, it cannot be reversed. Please double-check your phone number and plan before confirming. See our Returns & Refunds Policy for more details." },
-  { q: "I didn't receive my refill. What should I do?", a: "First, wait 5 minutes and check your account balance. If the credit hasn't been applied, contact us at support@cellpay.us with your transaction details." },
+  { q: "I didn't receive my refill. What should I do?", a: "First, wait 5 minutes and check your account balance. If the credit hasn't been applied, contact us at support@getcellpay.com with your transaction details." },
   { q: "Is CellPay affiliated with any carrier?", a: "No. CellPay is an independent authorized payment processor. All carrier names and trademarks are property of their respective owners." },
 ];
 

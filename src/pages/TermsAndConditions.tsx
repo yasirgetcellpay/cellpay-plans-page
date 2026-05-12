@@ -37,7 +37,7 @@ const TermsAndConditions = () => (
         <p>We reserve the right to update these terms at any time. Continued use of CellPay after changes constitutes acceptance of the updated terms.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">10. Contact</h2>
-        <p>Questions about these terms? Email us at <strong>support@cellpay.us</strong>.</p>
+        <p>Questions about these terms? Email us at <strong>support@getcellpay.com</strong>.</p>
       </div>
     </main>
     <CarrierFooter brandColor="hsl(101,67%,44%)" carrierName="CellPay" />

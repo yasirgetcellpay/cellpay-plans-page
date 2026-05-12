@@ -33,7 +33,7 @@ const HowToUse = () => (
         <ul className="list-disc list-inside space-y-2 text-muted-foreground">
           <li>Double-check your phone number before paying — refills are non-reversible.</li>
           <li>Create an account to track your orders and speed up future refills.</li>
-          <li>Contact us at support@cellpay.us if you experience any issues.</li>
+          <li>Contact us at support@getcellpay.com if you experience any issues.</li>
         </ul>
       </div>
     </main>

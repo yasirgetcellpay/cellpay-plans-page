@@ -13,7 +13,7 @@ const ContactUs = () => (
         <div className="bg-card border border-border rounded-lg p-6 space-y-4">
           <div>
             <h3 className="font-bold text-foreground">Email Support</h3>
-            <p>support@cellpay.us</p>
+            <p>support@getcellpay.com</p>
           </div>
           <div>
             <h3 className="font-bold text-foreground">Business Hours</h3>
