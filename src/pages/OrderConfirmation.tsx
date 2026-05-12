@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { callProxy } from "@/services/apiWrapper";
 import { Footer } from "@/components/Footer";
