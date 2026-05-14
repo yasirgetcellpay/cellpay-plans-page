@@ -5,7 +5,11 @@
     <loc>https://refill.cellpay.us/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/"/>
   </url>
+  <url><loc>https://refill.cellpay.us/es</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
   <url><loc>https://refill.cellpay.us/about-us</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://refill.cellpay.us/contact-us</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://refill.cellpay.us/faq</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
