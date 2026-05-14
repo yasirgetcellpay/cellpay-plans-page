@@ -1,0 +1,38 @@
+# CellPay
+
+> Instant online prepaid mobile recharge for 15+ US wireless carriers. Secure checkout, no fees, refills delivered in seconds.
+
+CellPay is a US-based prepaid wireless top-up service. Customers select a carrier, enter their phone number, choose a plan or amount, and pay securely. Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, Boost Mobile, Straight Talk, TracFone, H2O, Lyca, Net10, Page Plus, Red Pocket, Simple Mobile, Ultra Mobile, and US Cellular. Each carrier page is available in English and Spanish.
+
+## Pages
+
+- [Home](/): Browse all supported prepaid carriers and start a refill.
+- [About Us](/about-us): What CellPay is and the carriers it serves.
+- [How to Use](/how-to-use): Step-by-step guide to recharging a prepaid line.
+- [FAQ](/faq): Common questions about refills, payments, and delivery times.
+- [Contact Us](/contact-us): Email support and business hours.
+
+## Carriers
+
+- [AT&T PrePaid](/topup-at.html): Refill AT&T PrePaid plans and add-ons.
+- [T-Mobile Prepaid](/tmobile-flexi.html): T-Mobile prepaid refills and plans.
+- [Verizon Prepaid](/verizon-wireless-flexi.html): Verizon prepaid plan refills.
+- [Metro by T-Mobile](/metropcs.html): Metro PCS monthly plan refills.
+- [Cricket Wireless](/topup-crc.html): Cricket prepaid plan refills.
+- [Boost Mobile](/boost.html): Boost Mobile prepaid refills.
+- [Straight Talk](/straight-talk.html): Straight Talk service plan refills.
+- [TracFone](/tracfone.html): TracFone airtime and plan refills.
+- [Simple Mobile](/s1.html): Simple Mobile prepaid plan refills.
+- [H2O Wireless](/h2o.html): H2O prepaid plan refills.
+- [Lyca Mobile](/lyca.html): Lyca Mobile prepaid plan refills.
+- [Net10](/net10.html): Net10 Wireless prepaid refills.
+- [Page Plus](/pageplus.html): Page Plus Cellular prepaid refills.
+- [Red Pocket Mobile](/red-pocket-mobile.html): Red Pocket prepaid plan refills.
+- [Ultra Mobile](/ultra-mobile.html): Ultra Mobile prepaid plan refills.
+- [US Cellular](/us-cellular.html): US Cellular prepaid plan refills.
+
+## Optional
+
+- [Privacy Policy](/privacy-policy): How customer data is collected and used.
+- [Terms & Conditions](/terms-and-conditions): Service terms and payment rules.
+- [Returns & Refunds](/returns-policy): When refunds may be considered.

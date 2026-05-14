@@ -1,7 +1,18 @@
+import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CarrierFooter } from "@/components/CarrierFooter";
+import { applySeoHead } from "@/lib/seo";
 
-const PrivacyPolicy = () => (
+const PrivacyPolicy = () => {
+  useEffect(() => {
+    applySeoHead({
+      title: "Privacy Policy — CellPay",
+      description:
+        "How CellPay collects, uses, and protects customer information when you purchase a prepaid mobile refill: data we collect, how we share it, and your choices.",
+      path: "/privacy-policy",
+    });
+  }, []);
+  return (
   <div className="min-h-screen flex flex-col bg-background">
     <Navbar />
     <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -49,6 +60,7 @@ const PrivacyPolicy = () => (
     </main>
     <CarrierFooter brandColor="hsl(101,67%,44%)" carrierName="CellPay" />
   </div>
-);
+  );
+};
 
 export default PrivacyPolicy;

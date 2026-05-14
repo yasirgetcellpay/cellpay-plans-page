@@ -1,7 +1,18 @@
+import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CarrierFooter } from "@/components/CarrierFooter";
+import { applySeoHead } from "@/lib/seo";
 
-const ReturnsPolicy = () => (
+const ReturnsPolicy = () => {
+  useEffect(() => {
+    applySeoHead({
+      title: "Returns & Refunds Policy — CellPay",
+      description:
+        "When CellPay considers refunds for prepaid refills: failed transactions, duplicate charges, system errors, and what scenarios are non-refundable.",
+      path: "/returns-policy",
+    });
+  }, []);
+  return (
   <div className="min-h-screen flex flex-col bg-background">
     <Navbar />
     <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -45,6 +56,7 @@ const ReturnsPolicy = () => (
     </main>
     <CarrierFooter brandColor="hsl(101,67%,44%)" carrierName="CellPay" />
   </div>
-);
+  );
+};
 
 export default ReturnsPolicy;
