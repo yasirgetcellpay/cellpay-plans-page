@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CarrierFooter } from "@/components/CarrierFooter";
+import { applySeoHead } from "@/lib/seo";
 import {
   Accordion,
   AccordionContent,
