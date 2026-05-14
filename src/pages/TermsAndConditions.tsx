@@ -1,7 +1,18 @@
+import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CarrierFooter } from "@/components/CarrierFooter";
+import { applySeoHead } from "@/lib/seo";
 
-const TermsAndConditions = () => (
+const TermsAndConditions = () => {
+  useEffect(() => {
+    applySeoHead({
+      title: "Terms & Conditions — CellPay",
+      description:
+        "The terms governing your use of CellPay: services, pricing, payment, refill delivery, refund rules, account responsibilities, and limitations of liability.",
+      path: "/terms-and-conditions",
+    });
+  }, []);
+  return (
   <div className="min-h-screen flex flex-col bg-background">
     <Navbar />
     <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

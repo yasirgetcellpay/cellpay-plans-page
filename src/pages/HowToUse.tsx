@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CarrierFooter } from "@/components/CarrierFooter";
+import { applySeoHead } from "@/lib/seo";
 
 const steps = [
   { num: "1", title: "Choose Your Carrier", desc: "Browse our home page and select your prepaid wireless carrier from the list of supported providers." },
@@ -9,7 +11,16 @@ const steps = [
   { num: "5", title: "Instant Recharge", desc: "Your prepaid account is topped up instantly. You'll receive a confirmation with your transaction details." },
 ];
 
-const HowToUse = () => (
+const HowToUse = () => {
+  useEffect(() => {
+    applySeoHead({
+      title: "How to Refill a Prepaid Phone Online — CellPay Guide",
+      description:
+        "Step-by-step guide to recharging a US prepaid phone with CellPay: pick a carrier, enter the number, choose a plan, pay securely, and get an instant top-up.",
+      path: "/how-to-use",
+    });
+  }, []);
+  return (
   <div className="min-h-screen flex flex-col bg-background">
     <Navbar />
     <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
