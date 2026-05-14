@@ -146,4 +146,14 @@
   <url><loc>https://refill.cellpay.us/es/us-cellular.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://refill.cellpay.us/es/verizon-wireless-flexi.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://refill.cellpay.us/es/straight-talk.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+
+  <!-- /pay variants for carriers with explicit /pay routes -->
+  <url><loc>https://refill.cellpay.us/straight-talk/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://refill.cellpay.us/es/straight-talk/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://refill.cellpay.us/us-cellular/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://refill.cellpay.us/es/us-cellular/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://refill.cellpay.us/verizon-wireless-flexi/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://refill.cellpay.us/es/verizon-wireless-flexi/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://refill.cellpay.us/att-firstnet/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://refill.cellpay.us/es/att-firstnet/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
 </urlset>
