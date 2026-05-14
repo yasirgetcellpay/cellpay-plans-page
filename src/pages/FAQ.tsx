@@ -22,22 +22,42 @@ const faqs = [
   { q: "Is CellPay affiliated with any carrier?", a: "No. CellPay is an independent authorized payment processor. All carrier names and trademarks are property of their respective owners." },
 ];
 
-const FAQ = () => (
-  <div className="min-h-screen flex flex-col bg-background">
-    <Navbar />
-    <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-extrabold text-foreground mb-6">Frequently Asked Questions</h1>
-      <Accordion type="single" collapsible className="w-full">
-        {faqs.map((faq, i) => (
-          <AccordionItem key={i} value={`faq-${i}`}>
-            <AccordionTrigger className="text-left font-bold text-foreground">{faq.q}</AccordionTrigger>
-            <AccordionContent className="text-muted-foreground">{faq.a}</AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
-    </main>
-    <CarrierFooter brandColor="hsl(101,67%,44%)" carrierName="CellPay" />
-  </div>
-);
+const FAQ = () => {
+  useEffect(() => {
+    applySeoHead({
+      title: "Prepaid Refill FAQ — CellPay Help & Answers",
+      description:
+        "Answers to the most common questions about CellPay prepaid refills: supported carriers, payment methods, delivery time, refunds, and account help.",
+      path: "/faq",
+      schema: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqs.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      }),
+    });
+  }, []);
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="text-3xl font-extrabold text-foreground mb-6">Frequently Asked Questions</h1>
+        <Accordion type="single" collapsible className="w-full">
+          {faqs.map((faq, i) => (
+            <AccordionItem key={i} value={`faq-${i}`}>
+              <AccordionTrigger className="text-left font-bold text-foreground">{faq.q}</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">{faq.a}</AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </main>
+      <CarrierFooter brandColor="hsl(101,67%,44%)" carrierName="CellPay" />
+    </div>
+  );
+};
 
 export default FAQ;
