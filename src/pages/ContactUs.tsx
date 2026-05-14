@@ -47,6 +47,7 @@ const ContactUs = () => {
     </main>
     <CarrierFooter brandColor="hsl(101,67%,44%)" carrierName="CellPay" />
   </div>
-);
+  );
+};
 
 export default ContactUs;
