@@ -24,6 +24,15 @@ const Index = () => {
     setPhone(formatPhone(e.target.value));
   }, []);
 
+  useEffect(() => {
+    applySeoHead({
+      title: "Mobile Recharge & Prepaid Refills Online | CellPay",
+      description:
+        "Recharge any US prepaid carrier instantly — AT&T, T-Mobile, Metro, Cricket, Verizon, Boost & more. Secure checkout, no fees, instant delivery.",
+      path: "/",
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
       <Navbar />
