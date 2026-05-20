@@ -9,4 +9,4 @@ Disallow: /order-confirmation
 Disallow: /profile
 Disallow: /orders
 
-Sitemap: https://refill.cellpay.us/sitemap.xml
+Sitemap: https://cellpay-plans-page.lovable.app/sitemap.xml
