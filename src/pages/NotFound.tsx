@@ -16,7 +16,11 @@ const NotFound = () => {
       document.head.appendChild(robots);
     }
     robots.setAttribute("content", "noindex,follow");
-    applySeoHead({ title: "Page Not Found | CellPay" });
+    applySeoHead({
+      title: "Page Not Found | CellPay",
+      description:
+        "The page you're looking for doesn't exist. Head back to CellPay to recharge any US prepaid carrier — AT&T, T-Mobile, Metro, Verizon, Boost and more.",
+    });
     return () => {
       if (original !== null) robots!.setAttribute("content", original);
       else robots!.setAttribute("content", "index,follow,max-image-preview:large,max-snippet:-1");
