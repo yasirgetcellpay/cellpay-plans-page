@@ -64,6 +64,8 @@ export interface SeoHeadData {
   path?: string;
   /** Optional second JSON-LD blob (e.g. FAQPage alongside Product). */
   schemaSecondary?: string;
+  /** Absolute URL to the image for og:image / twitter:image. */
+  image?: string;
 }
 
 export function applySeoHead(data: SeoHeadData) {
@@ -83,6 +85,11 @@ export function applySeoHead(data: SeoHeadData) {
   const url = `${SITE_ORIGIN}${path}`;
   upsertCanonical(url);
   upsertProperty("og:url", url);
+
+  if (data.image) {
+    upsertProperty("og:image", data.image);
+    upsertMeta("twitter:image", data.image);
+  }
 
   if (data.schema !== undefined) upsertJsonLd(data.schema || "", "primary");
   if (data.schemaSecondary !== undefined) upsertJsonLd(data.schemaSecondary || "", "secondary");
