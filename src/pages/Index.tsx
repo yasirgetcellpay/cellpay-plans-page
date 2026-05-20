@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Phone } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
@@ -6,6 +6,7 @@ import { SmartphonePlans } from "@/components/SmartphonePlans";
 import { PaymentBar } from "@/components/PaymentBar";
 import { Footer } from "@/components/Footer";
 import { LegalBar } from "@/components/LegalBar";
+import { applySeoHead } from "@/lib/seo";
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
 
 const formatPhone = (value: string): string => {
