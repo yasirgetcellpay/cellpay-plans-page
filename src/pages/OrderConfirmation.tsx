@@ -6,6 +6,7 @@ import { PaymentBar } from "@/components/PaymentBar";
 import { LegalBar } from "@/components/LegalBar";
 import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 import { useLang, t, langPath } from "@/lib/i18n";
+import { applySeoHead } from "@/lib/seo";
 
 interface TransactionData {
   id?: number;
@@ -59,6 +60,29 @@ const OrderConfirmation = () => {
       enhanced_conversion_data: { email, phone_number: phone },
     });
   }, [transaction, lang]);
+
+  useEffect(() => {
+    const carrier = carrierName || transaction?.carrier?.name || "prepaid";
+    applySeoHead({
+      title: `Order Confirmation | CellPay`,
+      description: `Your ${carrier} refill order has been received. View your CellPay receipt, transaction details, and delivery status for this prepaid recharge.`.slice(
+        0,
+        160,
+      ),
+    });
+    // Confirmation pages should not be indexed
+    let robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    const original = robots?.getAttribute("content") ?? null;
+    if (!robots) {
+      robots = document.createElement("meta");
+      robots.setAttribute("name", "robots");
+      document.head.appendChild(robots);
+    }
+    robots.setAttribute("content", "noindex,follow");
+    return () => {
+      if (original !== null) robots!.setAttribute("content", original);
+    };
+  }, [carrierName, transaction?.carrier?.name]);
 
   useEffect(() => {
     if (!hashid) {

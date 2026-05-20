@@ -19,6 +19,7 @@ import {
   type ValidationResult,
 } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
+import { applySeoHead } from "@/lib/seo";
 import { getGclid } from "@/lib/tracking";
 import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib/subdivisions";
 import { useLang, t } from "@/lib/i18n";
@@ -218,6 +219,15 @@ const Checkout = () => {
       carrierSlug: state.carrierSlug,
       sessionId: sessionIdRef.current,
     };
+    const carrier = state.carrierName ? `${state.carrierName} ` : "";
+    applySeoHead({
+      title: `Secure ${carrier}Checkout | CellPay`.slice(0, 60),
+      description:
+        `Complete your ${state.carrierName || "prepaid"} refill securely on CellPay. Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or bank — instant delivery, no hidden fees.`.slice(
+          0,
+          160,
+        ),
+    });
     return () => document.body.classList.remove("hide-chat-mobile");
   }, [state.carrierName, state.carrierSlug]);
 
