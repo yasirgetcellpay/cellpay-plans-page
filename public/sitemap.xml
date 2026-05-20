@@ -81,7 +81,7 @@
   </url>
   <url><loc>https://refill.cellpay.us/pageplus-addon</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://refill.cellpay.us/red-pocket</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://refill.cellpay.us/red-pocket-mobile.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  
   <url>
     <loc>https://refill.cellpay.us/s1.html</loc>
     <changefreq>weekly</changefreq><priority>0.8</priority>
