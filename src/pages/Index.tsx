@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Phone } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
@@ -6,6 +6,7 @@ import { SmartphonePlans } from "@/components/SmartphonePlans";
 import { PaymentBar } from "@/components/PaymentBar";
 import { Footer } from "@/components/Footer";
 import { LegalBar } from "@/components/LegalBar";
+import { applySeoHead } from "@/lib/seo";
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
 
 const formatPhone = (value: string): string => {
@@ -21,6 +22,15 @@ const Index = () => {
 
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPhone(formatPhone(e.target.value));
+  }, []);
+
+  useEffect(() => {
+    applySeoHead({
+      title: "Mobile Recharge & Prepaid Refills Online | CellPay",
+      description:
+        "Recharge any US prepaid carrier instantly — AT&T, T-Mobile, Metro, Cricket, Verizon, Boost & more. Secure checkout, no fees, instant delivery.",
+      path: "/",
+    });
   }, []);
 
   return (
