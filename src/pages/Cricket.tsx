@@ -1,10 +1,11 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Phone, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import cricketLogo from "@/assets/cricket-logo.webp";
 import { PaymentBar } from "@/components/PaymentBar";
+import { applySeoHead } from "@/lib/seo";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -15,6 +16,7 @@ const formatPhone = (value: string): string => {
 };
 
 const Cricket = () => {
+  useEffect(() => { applySeoHead({ title: 'Cricket Wireless Refill Online | CellPay', description: 'Pay your Cricket Wireless prepaid bill online with CellPay. Instant, secure refills delivered straight to your Cricket phone number.' }); }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");

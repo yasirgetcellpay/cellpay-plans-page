@@ -1,11 +1,12 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import pageplusLogo from "@/assets/pageplus-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { applySeoHead } from "@/lib/seo";
 
 const plans = [
   { price: "$80", highlight: "PayGO Plan" },
@@ -30,6 +31,7 @@ const formatPhone = (value: string): string => {
 };
 
 const PagePlus = () => {
+  useEffect(() => { applySeoHead({ title: 'Page Plus Cellular Refill Online | CellPay', description: 'Top up Page Plus Cellular prepaid plans with CellPay. Secure online refills delivered instantly to your Page Plus number.' }); }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

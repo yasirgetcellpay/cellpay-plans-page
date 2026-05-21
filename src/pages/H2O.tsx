@@ -1,11 +1,12 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import h2oLogo from "@/assets/h2o-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { applySeoHead } from "@/lib/seo";
 
 const plans = [
   { price: "$100", highlight: "Unlimited Talk/Text/Data" },
@@ -29,6 +30,7 @@ const formatPhone = (value: string): string => {
 };
 
 const H2O = () => {
+  useEffect(() => { applySeoHead({ title: 'H2O Wireless Refill Online | CellPay', description: 'Recharge H2O Wireless prepaid plans online with CellPay. Instant refills from $10 to $100, sent securely to your H2O number.' }); }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

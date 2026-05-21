@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import uscellularLogo from "@/assets/uscellular-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { loadResolvedPlans, pickPlanForAmount, type ResolvedPlans } from "@/lib/resolvePlanId";
+import { applySeoHead } from "@/lib/seo";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -16,6 +17,7 @@ const formatPhone = (value: string): string => {
 };
 
 const USCellular = () => {
+  useEffect(() => { applySeoHead({ title: 'US Cellular Prepaid Refill Online | CellPay', description: 'Pay your US Cellular bill online with CellPay. Fast and secure prepaid refills from $5 to $100, sent instantly to your number.' }); }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");

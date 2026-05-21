@@ -1,11 +1,12 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { applySeoHead } from "@/lib/seo";
 
 const plans = [
   { price: "$64", highlight: "Ultra Mobile RTR" },
@@ -32,6 +33,7 @@ const formatPhone = (value: string): string => {
 };
 
 const UltraMobile = () => {
+  useEffect(() => { applySeoHead({ title: 'Ultra Mobile Refill Online | CellPay', description: 'Top up Ultra Mobile prepaid plans with CellPay. Secure online recharge with international calling, delivered to your number instantly.' }); }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

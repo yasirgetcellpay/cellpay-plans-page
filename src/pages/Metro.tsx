@@ -1,10 +1,11 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Phone, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import metroLogo from "@/assets/metro-logo.svg";
 import { PaymentBar } from "@/components/PaymentBar";
+import { applySeoHead } from "@/lib/seo";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -15,6 +16,7 @@ const formatPhone = (value: string): string => {
 };
 
 const Metro = () => {
+  useEffect(() => { applySeoHead({ title: 'Metro by T-Mobile Refill Online | CellPay', description: 'Pay your Metro by T-Mobile bill online with CellPay. Fast, secure prepaid refills delivered instantly to your Metro number.' }); }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
