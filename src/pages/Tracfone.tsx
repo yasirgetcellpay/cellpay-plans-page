@@ -1,11 +1,12 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { applySeoHead } from "@/lib/seo";
 
 const plans = [
   { price: "$19.99", highlight: "60 Min Talk/Text/Web" },
@@ -30,6 +31,7 @@ const formatPhone = (value: string): string => {
 };
 
 const Tracfone = () => {
+  useEffect(() => { applySeoHead({ title: 'Tracfone Refill Online | CellPay', description: 'Recharge your Tracfone prepaid plan online with CellPay. Instant, secure refills delivered directly to your Tracfone number.' }); }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

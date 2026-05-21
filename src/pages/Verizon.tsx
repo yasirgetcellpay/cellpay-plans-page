@@ -7,6 +7,7 @@ import verizonLogo from "@/assets/verizon-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
 import { loadResolvedPlans, pickPlanForAmount, type ResolvedPlans } from "@/lib/resolvePlanId";
+import { applySeoHead } from "@/lib/seo";
 
 const plans = [
   { price: "$80", highlight: "Prepaid Refill" },
@@ -34,6 +35,7 @@ const formatPhone = (value: string): string => {
 const BRAND = "hsl(0,100%,45%)";
 
 const Verizon = () => {
+  useEffect(() => { applySeoHead({ title: 'Verizon Prepaid Refill Online | CellPay', description: 'Refill your Verizon Prepaid phone online with CellPay. Secure, instant top-up delivered straight to your Verizon number.' }); }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");

@@ -7,6 +7,7 @@ import net10Logo from "@/assets/net10-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
 import { loadResolvedPlans, pickPlanForAmount, type ResolvedPlans } from "@/lib/resolvePlanId";
+import { applySeoHead } from "@/lib/seo";
 
 const plans = [
   { price: "$75", highlight: "Unlimited + 10GB Data" },
@@ -29,6 +30,7 @@ const formatPhone = (value: string): string => {
 };
 
 const Net10 = () => {
+  useEffect(() => { applySeoHead({ title: 'Net10 Wireless Refill Online | CellPay', description: 'Refill Net10 Wireless prepaid plans online with CellPay. Instant secure top-up sent directly to your Net10 phone number.' }); }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [resolved, setResolved] = useState<ResolvedPlans>({ fixedPlans: [] });

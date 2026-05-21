@@ -7,6 +7,7 @@ import attLogo from "@/assets/att-prepaid-logo.webp";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
 import { loadResolvedPlans, pickPlanForAmount, type ResolvedPlans } from "@/lib/resolvePlanId";
+import { applySeoHead } from "@/lib/seo";
 
 const plans = [
   { price: "$100", highlight: "Prepaid Refill" },
@@ -38,6 +39,7 @@ const formatPhone = (value: string): string => {
 const BRAND = "hsl(196,100%,44%)";
 
 const ATT = () => {
+  useEffect(() => { applySeoHead({ title: 'AT&T Prepaid Refill Online | CellPay', description: 'Refill your AT&T Prepaid phone instantly with CellPay. Secure online top-up from $5 to $300, sent directly to your number in seconds.' }); }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");

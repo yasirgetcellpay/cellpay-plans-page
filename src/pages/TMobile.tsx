@@ -1,11 +1,12 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Phone, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import tmobileLogo from "@/assets/tmobile-logo.svg";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
+import { applySeoHead } from "@/lib/seo";
 
 const plans = [
   { price: "$100", highlight: "Prepaid Refill" },
@@ -30,6 +31,7 @@ const formatPhone = (value: string): string => {
 const BRAND = "hsl(330,100%,45%)";
 
 const TMobile = () => {
+  useEffect(() => { applySeoHead({ title: 'T-Mobile Prepaid Refill Online | CellPay', description: 'Pay your T-Mobile prepaid bill online with CellPay. Secure, instant refills delivered straight to your T-Mobile phone number.' }); }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");

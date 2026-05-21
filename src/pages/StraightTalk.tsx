@@ -8,6 +8,7 @@ import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
 import { fetchCarrierView, verifyPhone } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
+import { applySeoHead } from "@/lib/seo";
 
 const brandColor = "hsl(72,74%,44%)";
 
@@ -40,6 +41,7 @@ const shortName = (desc: string, fallback: string): string => {
 };
 
 const StraightTalk = () => {
+  useEffect(() => { applySeoHead({ title: 'Straight Talk Prepaid Refill Online | CellPay', description: 'Refill Straight Talk Wireless plans online with CellPay. Secure, instant top-up delivered directly to your Straight Talk phone.' }); }, []);
   const navigate = useNavigate();
   const { toast } = useToast();
   const [phone, setPhone] = useState("");

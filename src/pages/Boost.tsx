@@ -8,6 +8,7 @@ import { PaymentBar } from "@/components/PaymentBar";
 import { verifyPhone } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
 import { loadResolvedPlans, pickPlanForAmount, type ResolvedPlans } from "@/lib/resolvePlanId";
+import { applySeoHead } from "@/lib/seo";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -18,6 +19,7 @@ const formatPhone = (value: string): string => {
 };
 
 const Boost = () => {
+  useEffect(() => { applySeoHead({ title: 'Boost Mobile Refill Online | CellPay', description: 'Top up Boost Mobile prepaid plans fast with CellPay. Secure online recharge with instant delivery to your Boost phone number.' }); }, []);
   const navigate = useNavigate();
   const { toast } = useToast();
   const [phone, setPhone] = useState("");
