@@ -15,6 +15,68 @@ import {
   CricketQuickPayContent,
   CRICKET_QUICK_PAY_FAQ_SCHEMA,
 } from "@/components/CricketQuickPayContent";
+import {
+  CarrierLongFormContent,
+  ATT_PREPAID_CONFIG,
+  STRAIGHT_TALK_CONFIG,
+  VERIZON_CONFIG,
+  ATT_FAQ_SCHEMA,
+  STRAIGHT_TALK_FAQ_SCHEMA,
+  VERIZON_FAQ_SCHEMA,
+  type CarrierLongFormConfig,
+} from "@/components/CarrierLongFormContent";
+
+/** Slug → long-form SEO content + FAQPage JSON-LD overrides. */
+const LONG_FORM_BY_SLUG: Record<
+  string,
+  { config: CarrierLongFormConfig; schema: string; seo: { title: string; description: string; keywords: string } }
+> = {
+  "topup-at": {
+    config: ATT_PREPAID_CONFIG,
+    schema: ATT_FAQ_SCHEMA,
+    seo: {
+      title: "AT&T Prepaid Refill — Pay Your AT&T Bill Online | CellPay",
+      description:
+        "Refill any AT&T Prepaid phone in seconds. No login, all major cards & wallets, instant confirmation. Pay your AT&T Prepaid bill online now on CellPay.",
+      keywords:
+        "at&t prepaid refill, pay att prepaid bill online, att prepaid payment, att refill, att prepaid top up, att bill pay",
+    },
+  },
+  "straight-talk": {
+    config: STRAIGHT_TALK_CONFIG,
+    schema: STRAIGHT_TALK_FAQ_SCHEMA,
+    seo: {
+      title: "Straight Talk Refill — Pay Your Straight Talk Bill Online | CellPay",
+      description:
+        "Refill any Straight Talk Wireless phone in seconds. No login, no refill card, all major cards & wallets. Pay your Straight Talk bill online now on CellPay.",
+      keywords:
+        "straight talk refill, pay straight talk bill online, straight talk payment, straight talk service plan, straight talk top up, straight talk wireless refill",
+    },
+  },
+  straighttalk: {
+    config: STRAIGHT_TALK_CONFIG,
+    schema: STRAIGHT_TALK_FAQ_SCHEMA,
+    seo: {
+      title: "Straight Talk Refill — Pay Your Straight Talk Bill Online | CellPay",
+      description:
+        "Refill any Straight Talk Wireless phone in seconds. No login, no refill card, all major cards & wallets. Pay your Straight Talk bill online now on CellPay.",
+      keywords:
+        "straight talk refill, pay straight talk bill online, straight talk payment, straight talk service plan, straight talk top up, straight talk wireless refill",
+    },
+  },
+  verizon: {
+    config: VERIZON_CONFIG,
+    schema: VERIZON_FAQ_SCHEMA,
+    seo: {
+      title: "Verizon Prepaid Refill — Pay Your Verizon Bill Online | CellPay",
+      description:
+        "Refill any Verizon Prepaid phone in seconds. No My Verizon login, all major cards & wallets, instant confirmation. Pay your Verizon Prepaid bill online on CellPay.",
+      keywords:
+        "verizon prepaid refill, pay verizon prepaid bill online, verizon refill, verizon prepaid payment, verizon prepaid top up, verizon wireless bill pay",
+    },
+  },
+};
+
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
