@@ -15,6 +15,68 @@ import {
   CricketQuickPayContent,
   CRICKET_QUICK_PAY_FAQ_SCHEMA,
 } from "@/components/CricketQuickPayContent";
+import {
+  CarrierLongFormContent,
+  ATT_PREPAID_CONFIG,
+  STRAIGHT_TALK_CONFIG,
+  VERIZON_CONFIG,
+  ATT_FAQ_SCHEMA,
+  STRAIGHT_TALK_FAQ_SCHEMA,
+  VERIZON_FAQ_SCHEMA,
+  type CarrierLongFormConfig,
+} from "@/components/CarrierLongFormContent";
+
+/** Slug → long-form SEO content + FAQPage JSON-LD overrides. */
+const LONG_FORM_BY_SLUG: Record<
+  string,
+  { config: CarrierLongFormConfig; schema: string; seo: { title: string; description: string; keywords: string } }
+> = {
+  "topup-at": {
+    config: ATT_PREPAID_CONFIG,
+    schema: ATT_FAQ_SCHEMA,
+    seo: {
+      title: "AT&T Prepaid Refill — Pay Your AT&T Bill Online | CellPay",
+      description:
+        "Refill any AT&T Prepaid phone in seconds. No login, all major cards & wallets, instant confirmation. Pay your AT&T Prepaid bill online now on CellPay.",
+      keywords:
+        "at&t prepaid refill, pay att prepaid bill online, att prepaid payment, att refill, att prepaid top up, att bill pay",
+    },
+  },
+  "straight-talk": {
+    config: STRAIGHT_TALK_CONFIG,
+    schema: STRAIGHT_TALK_FAQ_SCHEMA,
+    seo: {
+      title: "Straight Talk Refill — Pay Your Straight Talk Bill Online | CellPay",
+      description:
+        "Refill any Straight Talk Wireless phone in seconds. No login, no refill card, all major cards & wallets. Pay your Straight Talk bill online now on CellPay.",
+      keywords:
+        "straight talk refill, pay straight talk bill online, straight talk payment, straight talk service plan, straight talk top up, straight talk wireless refill",
+    },
+  },
+  straighttalk: {
+    config: STRAIGHT_TALK_CONFIG,
+    schema: STRAIGHT_TALK_FAQ_SCHEMA,
+    seo: {
+      title: "Straight Talk Refill — Pay Your Straight Talk Bill Online | CellPay",
+      description:
+        "Refill any Straight Talk Wireless phone in seconds. No login, no refill card, all major cards & wallets. Pay your Straight Talk bill online now on CellPay.",
+      keywords:
+        "straight talk refill, pay straight talk bill online, straight talk payment, straight talk service plan, straight talk top up, straight talk wireless refill",
+    },
+  },
+  verizon: {
+    config: VERIZON_CONFIG,
+    schema: VERIZON_FAQ_SCHEMA,
+    seo: {
+      title: "Verizon Prepaid Refill — Pay Your Verizon Bill Online | CellPay",
+      description:
+        "Refill any Verizon Prepaid phone in seconds. No My Verizon login, all major cards & wallets, instant confirmation. Pay your Verizon Prepaid bill online on CellPay.",
+      keywords:
+        "verizon prepaid refill, pay verizon prepaid bill online, verizon refill, verizon prepaid payment, verizon prepaid top up, verizon wireless bill pay",
+    },
+  },
+};
+
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -194,6 +256,19 @@ const DynamicCarrier = ({
             schemaSecondary: CRICKET_QUICK_PAY_FAQ_SCHEMA,
           });
         }
+
+        // AT&T / Straight Talk / Verizon long-form SEO override (keyword-focused title,
+        // description, keywords + FAQPage JSON-LD mirroring the on-page FAQ).
+        const longForm = LONG_FORM_BY_SLUG[carrierSlug];
+        if (longForm && lang !== "es") {
+          applySeoHead({
+            title: longForm.seo.title,
+            description: longForm.seo.description,
+            keywords: longForm.seo.keywords,
+            schemaSecondary: longForm.schema,
+          });
+        }
+
 
         // Plans: support both `carrier_plans` (range/custom amount) and `fixed_plans` (fixed buttons).
         // `fixed_plans` may live at the response root OR nested inside `carrier_plans.fixed_plans`.
@@ -523,6 +598,18 @@ const DynamicCarrier = ({
           {carrierSlug === "topup-crc" && lang !== "es" && (
             <CricketQuickPayContent brandColor={bc} />
           )}
+
+          {/* AT&T / Straight Talk / Verizon long-form content: refill steps,
+              supported plans, keyword-focused headings, and extended FAQ. */}
+          {LONG_FORM_BY_SLUG[carrierSlug] && lang !== "es" && (
+            <CarrierLongFormContent
+              brandColor={bc}
+              config={LONG_FORM_BY_SLUG[carrierSlug].config}
+              idPrefix={carrierSlug}
+            />
+          )}
+
+
 
           {/* FAQs from API */}
           {faqs.length > 0 && (
