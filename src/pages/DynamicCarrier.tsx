@@ -257,6 +257,19 @@ const DynamicCarrier = ({
           });
         }
 
+        // AT&T / Straight Talk / Verizon long-form SEO override (keyword-focused title,
+        // description, keywords + FAQPage JSON-LD mirroring the on-page FAQ).
+        const longForm = LONG_FORM_BY_SLUG[carrierSlug];
+        if (longForm && lang !== "es") {
+          applySeoHead({
+            title: longForm.seo.title,
+            description: longForm.seo.description,
+            keywords: longForm.seo.keywords,
+            schemaSecondary: longForm.schema,
+          });
+        }
+
+
         // Plans: support both `carrier_plans` (range/custom amount) and `fixed_plans` (fixed buttons).
         // `fixed_plans` may live at the response root OR nested inside `carrier_plans.fixed_plans`.
         const cp = data.carrier_plans;
