@@ -257,6 +257,20 @@ const DynamicCarrier = ({
           });
         }
 
+        // Metro PCS SEO override — lead with the head term "metro pcs pay bill"
+        // (74K/mo, currently ranking #1) and reinforce variants to defend the spot.
+        if (carrierSlug === "metropcs" && lang !== "es") {
+          applySeoHead({
+            title: "Metro PCS Pay Bill Online — Pay Metro by T-Mobile Bill | CellPay",
+            description:
+              "Metro PCS pay bill online in seconds. Pay your Metro by T-Mobile prepaid bill with any card or wallet — no login, no fees, instant confirmation on CellPay.",
+            keywords:
+              "metro pcs pay bill, metropcs pay bill, pay metro pcs bill, metro pcs payment, metro by t-mobile pay bill, metro pcs refill, metropcs bill pay online",
+          });
+          setHeading("Metro PCS Pay Bill Online");
+          setSubheading("Pay your Metro by T-Mobile prepaid bill in seconds — no login required.");
+        }
+
         // AT&T / Straight Talk / Verizon long-form SEO override (keyword-focused title,
         // description, keywords + FAQPage JSON-LD mirroring the on-page FAQ).
         const longForm = LONG_FORM_BY_SLUG[carrierSlug];
