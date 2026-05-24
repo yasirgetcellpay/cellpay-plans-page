@@ -39,7 +39,12 @@ const formatPhone = (value: string): string => {
 const BRAND = "hsl(196,100%,44%)";
 
 const ATT = () => {
-  useEffect(() => { applySeoHead({ title: 'AT&T Prepaid Refill Online | CellPay', description: 'Refill your AT&T Prepaid phone instantly with CellPay. Secure online top-up from $5 to $300, sent directly to your number in seconds.' }); }, []);
+  useEffect(() => {
+    const isEs = typeof window !== "undefined" && window.location.pathname.startsWith("/es");
+    applySeoHead(isEs
+      ? { title: 'Recarga AT&T Prepago en Línea | CellPay', description: 'Recarga tu teléfono AT&T Prepaid al instante con CellPay. Recarga en línea segura desde $5 hasta $300, enviada directamente a tu número.' }
+      : { title: 'AT&T Prepaid Refill Online | CellPay', description: 'Refill your AT&T Prepaid phone instantly with CellPay. Secure online top-up from $5 to $300, sent directly to your number in seconds.' });
+  }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
