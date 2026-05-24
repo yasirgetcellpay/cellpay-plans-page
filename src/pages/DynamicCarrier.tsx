@@ -182,6 +182,19 @@ const DynamicCarrier = ({
           "";
         applySeoHead({ title, description, keywords, schema });
 
+        // Cricket-specific SEO override — tightens metadata around the
+        // "cricket quick pay" head term to push from position 2 → 1.
+        if (carrierSlug === "topup-crc" && lang !== "es") {
+          applySeoHead({
+            title: "Cricket Quick Pay — Pay Your Cricket Bill Online | CellPay",
+            description:
+              "Cricket Quick Pay on CellPay: refill any Cricket Wireless phone in seconds. No login, all major cards & wallets, instant confirmation. Pay your Cricket bill online now.",
+            keywords:
+              "cricket quick pay, cricket wireless quick pay, pay cricket bill online, cricket bill pay, cricket refill, cricket wireless payment",
+            schemaSecondary: CRICKET_QUICK_PAY_FAQ_SCHEMA,
+          });
+        }
+
         // Plans: support both `carrier_plans` (range/custom amount) and `fixed_plans` (fixed buttons).
         // `fixed_plans` may live at the response root OR nested inside `carrier_plans.fixed_plans`.
         const cp = data.carrier_plans;
