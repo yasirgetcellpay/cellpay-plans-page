@@ -17,7 +17,12 @@ const formatPhone = (value: string): string => {
 };
 
 const USCellular = () => {
-  useEffect(() => { applySeoHead({ title: 'US Cellular Prepaid Refill Online | CellPay', description: 'Pay your US Cellular bill online with CellPay. Fast and secure prepaid refills from $5 to $100, sent instantly to your number.' }); }, []);
+  useEffect(() => {
+    const isEs = typeof window !== "undefined" && window.location.pathname.startsWith("/es");
+    applySeoHead(isEs
+      ? { title: 'Recarga US Cellular en Línea | CellPay', description: 'Paga tu factura US Cellular en línea con CellPay. Recargas prepagadas rápidas y seguras desde $5 hasta $100, enviadas al instante.' }
+      : { title: 'US Cellular Prepaid Refill Online | CellPay', description: 'Pay your US Cellular bill online with CellPay. Fast and secure prepaid refills from $5 to $100, sent instantly to your number.' });
+  }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");

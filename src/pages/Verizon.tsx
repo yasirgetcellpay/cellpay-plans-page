@@ -35,7 +35,12 @@ const formatPhone = (value: string): string => {
 const BRAND = "hsl(0,100%,45%)";
 
 const Verizon = () => {
-  useEffect(() => { applySeoHead({ title: 'Verizon Prepaid Refill Online | CellPay', description: 'Refill your Verizon Prepaid phone online with CellPay. Secure, instant top-up delivered straight to your Verizon number.' }); }, []);
+  useEffect(() => {
+    const isEs = typeof window !== "undefined" && window.location.pathname.startsWith("/es");
+    applySeoHead(isEs
+      ? { title: 'Recarga Verizon Prepago en Línea | CellPay', description: 'Recarga tu teléfono Verizon Prepaid en línea con CellPay. Recarga instantánea y segura enviada directamente a tu número Verizon.' }
+      : { title: 'Verizon Prepaid Refill Online | CellPay', description: 'Refill your Verizon Prepaid phone online with CellPay. Secure, instant top-up delivered straight to your Verizon number.' });
+  }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
