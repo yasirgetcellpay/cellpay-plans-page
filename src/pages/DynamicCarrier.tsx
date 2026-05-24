@@ -599,6 +599,18 @@ const DynamicCarrier = ({
             <CricketQuickPayContent brandColor={bc} />
           )}
 
+          {/* AT&T / Straight Talk / Verizon long-form content: refill steps,
+              supported plans, keyword-focused headings, and extended FAQ. */}
+          {LONG_FORM_BY_SLUG[carrierSlug] && lang !== "es" && (
+            <CarrierLongFormContent
+              brandColor={bc}
+              config={LONG_FORM_BY_SLUG[carrierSlug].config}
+              idPrefix={carrierSlug}
+            />
+          )}
+
+
+
           {/* FAQs from API */}
           {faqs.length > 0 && (
             <DynamicFAQ faqs={faqs} carrierName={carrierName} brandColor={bc} lang={lang} />
