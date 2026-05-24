@@ -366,6 +366,26 @@ const Home = () => {
         </div>
       </main>
 
+      {/* Popular carrier quick links — keyword-rich internal anchors for SEO authority flow */}
+      <section className="bg-background border-t border-border">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 text-center">
+          <p className="text-sm sm:text-base text-foreground leading-relaxed">
+            <span className="font-bold">Popular refills: </span>
+            <Link to={langPath("/metropcs.html", lang)} className="text-cellpay-green font-semibold hover:underline">
+              Metro PCS pay bill online
+            </Link>
+            <span className="text-muted-foreground"> · </span>
+            <Link to={langPath("/topup-crc.html", lang)} className="text-cellpay-green font-semibold hover:underline">
+              Cricket Wireless quick pay
+            </Link>
+            <span className="text-muted-foreground"> · </span>
+            <Link to={langPath("/boost.html", lang)} className="text-cellpay-green font-semibold hover:underline">
+              Boost Mobile pay bill online
+            </Link>
+          </p>
+        </div>
+      </section>
+
       {/* How it works — feedback Page 7 #3 */}
       <section className="bg-muted/40 border-t border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
