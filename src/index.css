@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap');
+/* Font loaded via <link> in index.html with display=swap; avoid duplicate blocking @import */
 
 @tailwind base;
 @tailwind components;
