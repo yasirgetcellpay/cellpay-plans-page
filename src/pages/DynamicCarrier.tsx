@@ -517,6 +517,13 @@ const DynamicCarrier = ({
             </div>
           )}
 
+          {/* Cricket-only long-form content: payment steps + extended FAQ.
+              Rendered above the API FAQ block to give the page the depth
+              required to outrank competing Cricket Quick Pay results. */}
+          {carrierSlug === "topup-crc" && lang !== "es" && (
+            <CricketQuickPayContent brandColor={bc} />
+          )}
+
           {/* FAQs from API */}
           {faqs.length > 0 && (
             <DynamicFAQ faqs={faqs} carrierName={carrierName} brandColor={bc} lang={lang} />
