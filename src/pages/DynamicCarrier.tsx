@@ -11,6 +11,10 @@ import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
 import { t, type Language } from "@/lib/i18n";
+import {
+  CricketQuickPayContent,
+  CRICKET_QUICK_PAY_FAQ_SCHEMA,
+} from "@/components/CricketQuickPayContent";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -177,6 +181,19 @@ const DynamicCarrier = ({
           (seoSrc.seo_schema as string) ||
           "";
         applySeoHead({ title, description, keywords, schema });
+
+        // Cricket-specific SEO override — tightens metadata around the
+        // "cricket quick pay" head term to push from position 2 → 1.
+        if (carrierSlug === "topup-crc" && lang !== "es") {
+          applySeoHead({
+            title: "Cricket Quick Pay — Pay Your Cricket Bill Online | CellPay",
+            description:
+              "Cricket Quick Pay on CellPay: refill any Cricket Wireless phone in seconds. No login, all major cards & wallets, instant confirmation. Pay your Cricket bill online now.",
+            keywords:
+              "cricket quick pay, cricket wireless quick pay, pay cricket bill online, cricket bill pay, cricket refill, cricket wireless payment",
+            schemaSecondary: CRICKET_QUICK_PAY_FAQ_SCHEMA,
+          });
+        }
 
         // Plans: support both `carrier_plans` (range/custom amount) and `fixed_plans` (fixed buttons).
         // `fixed_plans` may live at the response root OR nested inside `carrier_plans.fixed_plans`.
@@ -498,6 +515,13 @@ const DynamicCarrier = ({
                 {verifying ? tr.verifying : tr.payNow}
               </button>
             </div>
+          )}
+
+          {/* Cricket-only long-form content: payment steps + extended FAQ.
+              Rendered above the API FAQ block to give the page the depth
+              required to outrank competing Cricket Quick Pay results. */}
+          {carrierSlug === "topup-crc" && lang !== "es" && (
+            <CricketQuickPayContent brandColor={bc} />
           )}
 
           {/* FAQs from API */}
