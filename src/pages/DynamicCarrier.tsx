@@ -11,6 +11,10 @@ import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
 import { t, type Language } from "@/lib/i18n";
+import {
+  CricketQuickPayContent,
+  CRICKET_QUICK_PAY_FAQ_SCHEMA,
+} from "@/components/CricketQuickPayContent";
 
 const formatPhone = (value: string): string => {
   const digits = value.replace(/\D/g, "").slice(0, 10);
