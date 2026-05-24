@@ -291,8 +291,8 @@ const en: Translations = {
   transactionLabel: "Transaction",
   missingSession: "Missing payment session reference.",
 
-  homeH1: "Refill Any Prepaid Phone in Seconds",
-  homeSubtitle: "Instant top-ups for 15+ carriers · No account required",
+  homeH1: "Mobile Recharge & Prepaid Phone Refills Online",
+  homeSubtitle: "Instant CellPay top-ups for 15+ US carriers · No account required",
   homeRating: "· 50,000+ customers served",
   secureCheckout: "Secure Checkout",
   instantDelivery: "Instant Delivery",
