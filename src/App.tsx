@@ -59,7 +59,7 @@ const carrierRoutes: CarrierRouteDef[] = [
   { path: "/s1.html", name: "Simple Mobile", slug: "s1", carrierId: 15, brandColor: "hsl(101,67%,44%)", logo: simpleMobileLogo },
   { path: "/topup-crc.html", name: "Cricket Wireless", slug: "topup-crc", carrierId: 45, brandColor: "hsl(82,60%,42%)", logo: cricketLogo },
   { path: "/metropcs.html", name: "Metro PCS", slug: "metropcs", carrierId: 38, brandColor: "hsl(270,60%,32%)", logo: metroLogo },
-  { path: "/metro-pcs.html", name: "Metro PCS", slug: "metropcs", carrierId: 38, brandColor: "hsl(270,60%,32%)", logo: metroLogo },
+  // /metro-pcs.html intentionally omitted — redirected to /metropcs.html below to avoid duplicate content.
   { path: "/tmobile-flexi.html", name: "T-Mobile", slug: "tmobile", carrierId: 43, brandColor: "hsl(330,100%,45%)", logo: tmobileLogo },
   { path: "/topup-at.html", name: "AT&T Prepaid", slug: "topup-at", carrierId: 3, brandColor: "hsl(196,100%,44%)", logo: attLogo },
   { path: "/verizon", name: "Verizon Wireless Prepaid", slug: "verizon", carrierId: 14, brandColor: "hsl(0,100%,45%)", logo: verizonLogo },
@@ -161,34 +161,35 @@ const App = () => (
           return [
             <Route key={`en-${c.path}`} path={c.path} element={renderEn} />,
             <Route key={`es-${c.path}`} path={`/es${c.path}`} element={renderEs} />,
-            <Route key={`en-pay-${c.path}`} path={payPath} element={renderEn} />,
-            <Route key={`es-pay-${c.path}`} path={`/es${payPath}`} element={renderEs} />,
+            // /{slug}/pay aliases → redirect to canonical carrier page (avoid duplicate-content SEO flags)
+            <Route key={`en-pay-${c.path}`} path={payPath} element={<Navigate to={c.path} replace />} />,
+            <Route key={`es-pay-${c.path}`} path={`/es${payPath}`} element={<Navigate to={`/es${c.path}`} replace />} />,
           ];
         })}
 
         {/* Straight Talk — static hardcoded page (no backend carrier entry). */}
         <Route path="/straight-talk.html" element={<StraightTalk />} />
         <Route path="/es/straight-talk.html" element={<StraightTalk />} />
-        <Route path="/straight-talk/pay" element={<StraightTalk />} />
-        <Route path="/es/straight-talk/pay" element={<StraightTalk />} />
+        <Route path="/straight-talk/pay" element={<Navigate to="/straight-talk.html" replace />} />
+        <Route path="/es/straight-talk/pay" element={<Navigate to="/es/straight-talk.html" replace />} />
 
         {/* US Cellular — static hardcoded page (no backend carrier entry). */}
         <Route path="/us-cellular.html" element={<USCellular />} />
         <Route path="/es/us-cellular.html" element={<USCellular />} />
-        <Route path="/us-cellular/pay" element={<USCellular />} />
-        <Route path="/es/us-cellular/pay" element={<USCellular />} />
+        <Route path="/us-cellular/pay" element={<Navigate to="/us-cellular.html" replace />} />
+        <Route path="/es/us-cellular/pay" element={<Navigate to="/es/us-cellular.html" replace />} />
 
         {/* Verizon Wireless Flexi — reuses static Verizon.tsx (no backend carrier entry). */}
         <Route path="/verizon-wireless-flexi.html" element={<Verizon />} />
         <Route path="/es/verizon-wireless-flexi.html" element={<Verizon />} />
-        <Route path="/verizon-wireless-flexi/pay" element={<Verizon />} />
-        <Route path="/es/verizon-wireless-flexi/pay" element={<Verizon />} />
+        <Route path="/verizon-wireless-flexi/pay" element={<Navigate to="/verizon-wireless-flexi.html" replace />} />
+        <Route path="/es/verizon-wireless-flexi/pay" element={<Navigate to="/es/verizon-wireless-flexi.html" replace />} />
 
         {/* AT&T FirstNet — reuses static ATT.tsx (no backend carrier entry). */}
         <Route path="/att-firstnet" element={<ATT />} />
         <Route path="/es/att-firstnet" element={<ATT />} />
-        <Route path="/att-firstnet/pay" element={<ATT />} />
-        <Route path="/es/att-firstnet/pay" element={<ATT />} />
+        <Route path="/att-firstnet/pay" element={<Navigate to="/att-firstnet" replace />} />
+        <Route path="/es/att-firstnet/pay" element={<Navigate to="/es/att-firstnet" replace />} />
 
         {/* Legacy Google Ads landing URLs — keep working for crawlers/bots */}
         <Route path="/amount.php" element={<AmountRedirect />} />
@@ -210,6 +211,9 @@ const App = () => (
         ))}
         {/* PagePlus path-style alias */}
         <Route path="/pageplus" element={<Navigate to="/pageplus.html" replace />} />
+        {/* Metro PCS legacy alias → canonical /metropcs.html */}
+        <Route path="/metro-pcs.html" element={<Navigate to="/metropcs.html" replace />} />
+        <Route path="/es/metro-pcs.html" element={<Navigate to="/es/metropcs.html" replace />} />
         {/* Legacy Red Pocket .html URL — render same DynamicCarrier so bots get real content (200, not 404) */}
         <Route
           path="/red-pocket-mobile.html"
