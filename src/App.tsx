@@ -161,8 +161,9 @@ const App = () => (
           return [
             <Route key={`en-${c.path}`} path={c.path} element={renderEn} />,
             <Route key={`es-${c.path}`} path={`/es${c.path}`} element={renderEs} />,
-            <Route key={`en-pay-${c.path}`} path={payPath} element={renderEn} />,
-            <Route key={`es-pay-${c.path}`} path={`/es${payPath}`} element={renderEs} />,
+            // /{slug}/pay aliases → redirect to canonical carrier page (avoid duplicate-content SEO flags)
+            <Route key={`en-pay-${c.path}`} path={payPath} element={<Navigate to={c.path} replace />} />,
+            <Route key={`es-pay-${c.path}`} path={`/es${payPath}`} element={<Navigate to={`/es${c.path}`} replace />} />,
           ];
         })}
 
