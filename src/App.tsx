@@ -170,26 +170,26 @@ const App = () => (
         {/* Straight Talk — static hardcoded page (no backend carrier entry). */}
         <Route path="/straight-talk.html" element={<StraightTalk />} />
         <Route path="/es/straight-talk.html" element={<StraightTalk />} />
-        <Route path="/straight-talk/pay" element={<StraightTalk />} />
-        <Route path="/es/straight-talk/pay" element={<StraightTalk />} />
+        <Route path="/straight-talk/pay" element={<Navigate to="/straight-talk.html" replace />} />
+        <Route path="/es/straight-talk/pay" element={<Navigate to="/es/straight-talk.html" replace />} />
 
         {/* US Cellular — static hardcoded page (no backend carrier entry). */}
         <Route path="/us-cellular.html" element={<USCellular />} />
         <Route path="/es/us-cellular.html" element={<USCellular />} />
-        <Route path="/us-cellular/pay" element={<USCellular />} />
-        <Route path="/es/us-cellular/pay" element={<USCellular />} />
+        <Route path="/us-cellular/pay" element={<Navigate to="/us-cellular.html" replace />} />
+        <Route path="/es/us-cellular/pay" element={<Navigate to="/es/us-cellular.html" replace />} />
 
         {/* Verizon Wireless Flexi — reuses static Verizon.tsx (no backend carrier entry). */}
         <Route path="/verizon-wireless-flexi.html" element={<Verizon />} />
         <Route path="/es/verizon-wireless-flexi.html" element={<Verizon />} />
-        <Route path="/verizon-wireless-flexi/pay" element={<Verizon />} />
-        <Route path="/es/verizon-wireless-flexi/pay" element={<Verizon />} />
+        <Route path="/verizon-wireless-flexi/pay" element={<Navigate to="/verizon-wireless-flexi.html" replace />} />
+        <Route path="/es/verizon-wireless-flexi/pay" element={<Navigate to="/es/verizon-wireless-flexi.html" replace />} />
 
         {/* AT&T FirstNet — reuses static ATT.tsx (no backend carrier entry). */}
         <Route path="/att-firstnet" element={<ATT />} />
         <Route path="/es/att-firstnet" element={<ATT />} />
-        <Route path="/att-firstnet/pay" element={<ATT />} />
-        <Route path="/es/att-firstnet/pay" element={<ATT />} />
+        <Route path="/att-firstnet/pay" element={<Navigate to="/att-firstnet" replace />} />
+        <Route path="/es/att-firstnet/pay" element={<Navigate to="/es/att-firstnet" replace />} />
 
         {/* Legacy Google Ads landing URLs — keep working for crawlers/bots */}
         <Route path="/amount.php" element={<AmountRedirect />} />
