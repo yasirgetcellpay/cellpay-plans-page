@@ -1,164 +1,326 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<?xml version='1.0' encoding='utf-8'?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://refill.cellpay.us/</loc>
+    <loc>https://cellpay-plans-page.lovable.app/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/"/>
-  </url>
-  <url><loc>https://refill.cellpay.us/es</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>https://refill.cellpay.us/about-us</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
-  <url><loc>https://refill.cellpay.us/contact-us</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
-  <url><loc>https://refill.cellpay.us/faq</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://refill.cellpay.us/how-to-use</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
-  <url><loc>https://refill.cellpay.us/privacy-policy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://refill.cellpay.us/terms-and-conditions</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://refill.cellpay.us/returns-policy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://refill.cellpay.us/amount.php</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
-
-  <url>
-    <loc>https://refill.cellpay.us/topup-at.html</loc>
-    <changefreq>weekly</changefreq><priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/topup-at.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/topup-at.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/topup-at.html"/>
-  </url>
-  <url><loc>https://refill.cellpay.us/att-firstnet</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://refill.cellpay.us/es/att-firstnet</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/pageplus</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/red-pocket-mobile.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/red-pocket-mobile.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url>
-    <loc>https://refill.cellpay.us/boost.html</loc>
-    <changefreq>weekly</changefreq><priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/boost.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/boost.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/boost.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/" />
   </url>
   <url>
-    <loc>https://refill.cellpay.us/topup-crc.html</loc>
-    <changefreq>weekly</changefreq><priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/topup-crc.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/topup-crc.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/topup-crc.html"/>
+    <loc>https://cellpay-plans-page.lovable.app/es</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://refill.cellpay.us/h2o.html</loc>
-    <changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/h2o.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/h2o.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/h2o.html"/>
+    <loc>https://cellpay-plans-page.lovable.app/about-us</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://refill.cellpay.us/lyca.html</loc>
-    <changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/lyca.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/lyca.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/lyca.html"/>
+    <loc>https://cellpay-plans-page.lovable.app/contact-us</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://refill.cellpay.us/metropcs.html</loc>
-    <changefreq>weekly</changefreq><priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/metropcs.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/metropcs.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/metropcs.html"/>
+    <loc>https://cellpay-plans-page.lovable.app/faq</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://refill.cellpay.us/net10.html</loc>
-    <changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/net10.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/net10.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/net10.html"/>
+    <loc>https://cellpay-plans-page.lovable.app/how-to-use</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://refill.cellpay.us/pageplus.html</loc>
-    <changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/pageplus.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/pageplus.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/pageplus.html"/>
-  </url>
-  <url><loc>https://refill.cellpay.us/pageplus-addon</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://refill.cellpay.us/red-pocket</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  
-  <url>
-    <loc>https://refill.cellpay.us/s1.html</loc>
-    <changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/s1.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/s1.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/s1.html"/>
+    <loc>https://cellpay-plans-page.lovable.app/privacy-policy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://refill.cellpay.us/tmobile-flexi.html</loc>
-    <changefreq>weekly</changefreq><priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/tmobile-flexi.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/tmobile-flexi.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/tmobile-flexi.html"/>
-  </url>
-  <url><loc>https://refill.cellpay.us/total-wireless</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url>
-    <loc>https://refill.cellpay.us/tracfone.html</loc>
-    <changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/tracfone.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/tracfone.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/tracfone.html"/>
+    <loc>https://cellpay-plans-page.lovable.app/terms-and-conditions</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://refill.cellpay.us/ultra-mobile.html</loc>
-    <changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/ultra-mobile.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/ultra-mobile.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/ultra-mobile.html"/>
+    <loc>https://cellpay-plans-page.lovable.app/returns-policy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://refill.cellpay.us/us-cellular.html</loc>
-    <changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/us-cellular.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/us-cellular.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/us-cellular.html"/>
-  </url>
-  <url><loc>https://refill.cellpay.us/verizon</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
-  <url>
-    <loc>https://refill.cellpay.us/verizon-wireless-flexi.html</loc>
-    <changefreq>weekly</changefreq><priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/verizon-wireless-flexi.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/verizon-wireless-flexi.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/verizon-wireless-flexi.html"/>
+    <loc>https://cellpay-plans-page.lovable.app/amount.php</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://refill.cellpay.us/straight-talk.html</loc>
-    <changefreq>weekly</changefreq><priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://refill.cellpay.us/straight-talk.html"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://refill.cellpay.us/es/straight-talk.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/straight-talk.html"/>
+    <loc>https://cellpay-plans-page.lovable.app/att-firstnet</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
-
-  <!-- Spanish carrier mirrors -->
-  <url><loc>https://refill.cellpay.us/es/topup-at.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/boost.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/topup-crc.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/h2o.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/lyca.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/metropcs.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/net10.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/pageplus.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/s1.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/tmobile-flexi.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/tracfone.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/ultra-mobile.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/us-cellular.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/verizon-wireless-flexi.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://refill.cellpay.us/es/straight-talk.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-
-  <!-- /pay variants for carriers with explicit /pay routes -->
-  <url><loc>https://refill.cellpay.us/straight-talk/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://refill.cellpay.us/es/straight-talk/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://refill.cellpay.us/us-cellular/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://refill.cellpay.us/es/us-cellular/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://refill.cellpay.us/verizon-wireless-flexi/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://refill.cellpay.us/es/verizon-wireless-flexi/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://refill.cellpay.us/att-firstnet/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://refill.cellpay.us/es/att-firstnet/pay</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/att-firstnet</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/pageplus</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/red-pocket-mobile.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/red-pocket-mobile.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/metropcs.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/metropcs.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es/metropcs.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/metropcs.html" />
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/net10.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/net10.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es/net10.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/net10.html" />
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/pageplus.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/pageplus.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es/pageplus.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/pageplus.html" />
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/pageplus-addon</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/red-pocket</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/s1.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/s1.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es/s1.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/s1.html" />
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/tmobile-flexi.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/tmobile-flexi.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es/tmobile-flexi.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/tmobile-flexi.html" />
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/total-wireless</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/tracfone.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/tracfone.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es/tracfone.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/tracfone.html" />
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/ultra-mobile.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/ultra-mobile.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es/ultra-mobile.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/ultra-mobile.html" />
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/us-cellular.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/us-cellular.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es/us-cellular.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/us-cellular.html" />
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/verizon</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/verizon-wireless-flexi.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/verizon-wireless-flexi.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es/verizon-wireless-flexi.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/verizon-wireless-flexi.html" />
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/straight-talk.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/straight-talk.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es/straight-talk.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/straight-talk.html" />
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/topup-at.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/boost.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/topup-crc.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/h2o.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/lyca.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/metropcs.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/net10.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/pageplus.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/s1.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/tmobile-flexi.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/tracfone.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/ultra-mobile.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/us-cellular.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/verizon-wireless-flexi.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/straight-talk.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/straight-talk/pay</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/straight-talk/pay</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/us-cellular/pay</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/us-cellular/pay</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/verizon-wireless-flexi/pay</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/verizon-wireless-flexi/pay</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/att-firstnet/pay</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/att-firstnet/pay</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/checkout</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/checkout</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/payment-callback</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/payment-callback</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/order-confirmation</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/order-confirmation</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
 </urlset>
