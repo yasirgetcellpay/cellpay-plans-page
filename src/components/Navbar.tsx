@@ -41,6 +41,9 @@ export const Navbar = () => {
               <button
                 onClick={() => setDropdownOpen((p) => !p)}
                 className="flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-muted"
+                aria-label="Account menu"
+                aria-haspopup="menu"
+                aria-expanded={dropdownOpen}
               >
                 <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center">
                   <User className="h-3.5 w-3.5 text-primary" />

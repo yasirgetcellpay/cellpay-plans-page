@@ -46,6 +46,7 @@ export const AccountDropdown = () => {
         <button
           onClick={() => setDropdownOpen((open) => !open)}
           className="flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-muted"
+          aria-label="Account menu"
           aria-haspopup="menu"
           aria-expanded={dropdownOpen}
         >
