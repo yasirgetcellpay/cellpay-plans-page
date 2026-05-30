@@ -338,7 +338,7 @@ const Home = () => {
 
       <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 max-w-3xl w-full">
-          {carriers.map((carrier) => (
+          {carriers.map((carrier, idx) => (
             <Link
               key={carrier.path}
               to={langPath(carrier.path, lang)}
@@ -350,7 +350,11 @@ const Home = () => {
                   <img
                     src={carrier.logo}
                     alt={carrier.name}
-                    loading="lazy"
+                    width="160"
+                    height="64"
+                    loading={idx < 6 ? "eager" : "lazy"}
+                    fetchPriority={idx < 6 ? "high" : "auto"}
+                    decoding="async"
                     className="max-h-10 sm:max-h-16 max-w-[80%] w-auto object-contain group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
