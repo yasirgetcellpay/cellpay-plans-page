@@ -23,16 +23,16 @@ const ContactUs = () => {
         </p>
         <div className="bg-card border border-border rounded-lg p-6 space-y-4">
           <div>
-            <h3 className="font-bold text-foreground">Email Support</h3>
+            <h2 className="text-base font-bold text-foreground">Email Support</h2>
             <p>support@getcellpay.com</p>
           </div>
           <div>
-            <h3 className="font-bold text-foreground">Business Hours</h3>
+            <h2 className="text-base font-bold text-foreground">Business Hours</h2>
             <p>Monday – Friday: 9:00 AM – 6:00 PM (EST)</p>
             <p>Saturday – Sunday: 10:00 AM – 4:00 PM (EST)</p>
           </div>
           <div>
-            <h3 className="font-bold text-foreground">Response Time</h3>
+            <h2 className="text-base font-bold text-foreground">Response Time</h2>
             <p>We typically respond within 24 hours on business days.</p>
           </div>
         </div>
