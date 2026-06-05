@@ -1319,7 +1319,7 @@ const Checkout = () => {
 
           <div className="bg-card rounded-xl border border-border p-5">
             <h2 className="font-bold text-foreground mb-3 text-sm">{tr.contactInformation}</h2>
-            <input type="email" placeholder={tr.emailPlaceholder} value={email} onChange={(e) => setEmail(e.target.value)}
+            <input type="email" placeholder={tr.emailPlaceholder} aria-label={tr.emailPlaceholder} value={email} onChange={(e) => setEmail(e.target.value)}
               className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
               style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
             {email.length > 0 && !email.includes("@") && (
@@ -1357,14 +1357,14 @@ const Checkout = () => {
                 <CreditCard className="h-4 w-4" /> {tr.cardDetails}
               </h2>
               <div className="grid grid-cols-2 gap-3">
-                <input type="text" required placeholder={`${tr.firstName} *`} value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                <input type="text" required placeholder={`${tr.firstName} *`} aria-label={tr.firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                <input type="text" required placeholder={`${tr.lastName} *`} value={lastName} onChange={(e) => setLastName(e.target.value)}
+                <input type="text" required placeholder={`${tr.lastName} *`} aria-label={tr.lastName} value={lastName} onChange={(e) => setLastName(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
-              <select value={country} onChange={(e) => { setCountry(e.target.value); setRegionId(""); setRegionOther(false); }}
+              <select aria-label={tr.country} value={country} onChange={(e) => { setCountry(e.target.value); setRegionId(""); setRegionOther(false); }}
                 className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                 style={{ "--tw-ring-color": brandColor } as React.CSSProperties}>
                 {SUPPORTED_COUNTRIES.map((c) => (
@@ -1372,15 +1372,16 @@ const Checkout = () => {
                 ))}
                 <option value="OTHER">{lang === "es" ? "Otro" : "Other"}</option>
               </select>
-              <input type="text" required placeholder={`${tr.streetAddress} *`} value={address} onChange={(e) => setAddress(e.target.value)}
+              <input type="text" required placeholder={`${tr.streetAddress} *`} aria-label={tr.streetAddress} value={address} onChange={(e) => setAddress(e.target.value)}
                 className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                 style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               <div className="grid grid-cols-3 gap-3">
-                <input type="text" required placeholder={`${tr.city} *`} value={city} onChange={(e) => setCity(e.target.value)}
+                <input type="text" required placeholder={`${tr.city} *`} aria-label={tr.city} value={city} onChange={(e) => setCity(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 {hasSubdivisions && !regionOther ? (
                   <select
+                    aria-label={tr.stateProvince}
                     value={regionId}
                     onChange={(e) => {
                       const v = e.target.value;
@@ -1405,6 +1406,7 @@ const Checkout = () => {
                     <input
                       type="text"
                       placeholder={tr.stateProvince}
+                      aria-label={tr.stateProvince}
                       value={regionId}
                       onChange={(e) => setRegionId(e.target.value.toUpperCase().slice(0, 10))}
                       maxLength={10}
@@ -1422,18 +1424,18 @@ const Checkout = () => {
                     )}
                   </div>
                 )}
-                <input type="text" placeholder={tr.zip} value={cardZip} onChange={(e) => setCardZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
+                <input type="text" placeholder={tr.zip} aria-label={tr.zip} value={cardZip} onChange={(e) => setCardZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
-              <input type="text" placeholder={tr.cardNumber} value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} maxLength={19}
+              <input type="text" placeholder={tr.cardNumber} aria-label={tr.cardNumber} value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} maxLength={19}
                 className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                 style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               <div className="grid grid-cols-2 gap-3">
-                <input type="text" placeholder={tr.expiry} value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} maxLength={5}
+                <input type="text" placeholder={tr.expiry} aria-label={tr.expiry} value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} maxLength={5}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                <input type="text" placeholder={tr.cvv} value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} maxLength={4}
+                <input type="text" placeholder={tr.cvv} aria-label={tr.cvv} value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} maxLength={4}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
