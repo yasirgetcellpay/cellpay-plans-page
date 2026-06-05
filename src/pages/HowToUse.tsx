@@ -33,7 +33,7 @@ const HowToUse = () => {
               {s.num}
             </div>
             <div>
-              <h3 className="font-bold text-foreground text-lg">{s.title}</h3>
+              <h2 className="font-bold text-foreground text-lg">{s.title}</h2>
               <p className="text-muted-foreground">{s.desc}</p>
             </div>
           </div>

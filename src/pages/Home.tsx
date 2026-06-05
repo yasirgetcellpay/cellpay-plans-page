@@ -349,7 +349,7 @@ const Home = () => {
                 {carrier.logo ? (
                   <img
                     src={carrier.logo}
-                    alt={carrier.name}
+                    alt={`${carrier.name} prepaid refill logo`}
                     width="160"
                     height="64"
                     loading={idx < 6 ? "eager" : "lazy"}
