@@ -441,7 +441,7 @@ const DynamicCarrier = ({
           <div className="relative flex justify-center h-14 sm:h-20 items-center">
             <BackButton />
             {logo ? (
-              <img src={logo} alt={carrierName} className="h-[32px] sm:h-[44px] w-auto object-contain" />
+              <img src={logo} alt={`${carrierName} prepaid refill logo`} className="h-[32px] sm:h-[44px] w-auto object-contain" />
             ) : (
               <span className="text-xl sm:text-2xl font-extrabold" style={{ color: bc }}>{carrierName}</span>
             )}
@@ -470,16 +470,19 @@ const DynamicCarrier = ({
           {/* Phone + Amount */}
           <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">
             <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">
-              <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
+              <label htmlFor="carrier-phone-input" className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
                 {tr.enterPhoneLabel(carrierName)}
               </label>
               <div className="relative mb-3">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                 <input
+                  id="carrier-phone-input"
+                  name="phone"
                   type="tel"
                   value={phone}
                   onChange={handlePhoneChange}
                   placeholder={tr.phonePlaceholder}
+                  aria-label={tr.enterPhoneLabel(carrierName)}
                   className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
                   style={{ "--tw-ring-color": bc } as React.CSSProperties}
                 />
@@ -498,17 +501,20 @@ const DynamicCarrier = ({
 
               {showRange && (
                 <>
-                  <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
+                  <label htmlFor="carrier-amount-input" className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
                     {tr.selectAmount}
                   </label>
                   <div className="relative mb-1">
                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                     <input
+                      id="carrier-amount-input"
+                      name="amount"
                       type="text"
                       inputMode="numeric"
                       value={amount}
                       onChange={handleAmountChange}
                       placeholder={tr.amountPlaceholder(rangeMin, rangeMax)}
+                      aria-label={tr.selectAmount}
                       className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
                       style={{ "--tw-ring-color": bc } as React.CSSProperties}
                     />
