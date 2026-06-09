@@ -46,7 +46,7 @@ const LONG_FORM_BY_SLUG: Record<
     config: STRAIGHT_TALK_CONFIG,
     schema: STRAIGHT_TALK_FAQ_SCHEMA,
     seo: {
-      title: "Straight Talk Refill — Pay Your Straight Talk Bill Online | CellPay",
+      title: "Straight Talk Refill — Pay Bill Online | CellPay",
       description:
         "Refill any Straight Talk Wireless phone in seconds. No login, no refill card, all major cards & wallets. Pay your Straight Talk bill online now on CellPay.",
       keywords:
@@ -57,7 +57,7 @@ const LONG_FORM_BY_SLUG: Record<
     config: STRAIGHT_TALK_CONFIG,
     schema: STRAIGHT_TALK_FAQ_SCHEMA,
     seo: {
-      title: "Straight Talk Refill — Pay Your Straight Talk Bill Online | CellPay",
+      title: "Straight Talk Refill — Pay Bill Online | CellPay",
       description:
         "Refill any Straight Talk Wireless phone in seconds. No login, no refill card, all major cards & wallets. Pay your Straight Talk bill online now on CellPay.",
       keywords:
@@ -68,7 +68,7 @@ const LONG_FORM_BY_SLUG: Record<
     config: VERIZON_CONFIG,
     schema: VERIZON_FAQ_SCHEMA,
     seo: {
-      title: "Verizon Prepaid Refill — Pay Your Verizon Bill Online | CellPay",
+      title: "Verizon Prepaid Refill — Pay Bill Online | CellPay",
       description:
         "Refill any Verizon Prepaid phone in seconds. No My Verizon login, all major cards & wallets, instant confirmation. Pay your Verizon Prepaid bill online on CellPay.",
       keywords:
@@ -261,7 +261,7 @@ const DynamicCarrier = ({
         // (74K/mo, currently ranking #1) and reinforce variants to defend the spot.
         if (carrierSlug === "metropcs" && lang !== "es") {
           applySeoHead({
-            title: "Metro PCS Pay Bill Online — Pay Metro by T-Mobile Bill | CellPay",
+            title: "Metro PCS Refill — Pay Metro by T-Mobile | CellPay",
             description:
               "Metro PCS pay bill online in seconds. Pay your Metro by T-Mobile prepaid bill with any card or wallet — no login, no fees, instant confirmation on CellPay.",
             keywords:
