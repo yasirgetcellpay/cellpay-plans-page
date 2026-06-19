@@ -11,6 +11,7 @@ import OrderConfirmation from "./pages/OrderConfirmation.tsx";
 import CashAppReturn from "./pages/CashAppReturn.tsx";
 import Profile from "./pages/Profile.tsx";
 import Orders from "./pages/Orders.tsx";
+import ForgotPassword from "./pages/ForgotPassword.tsx";
 import AboutUs from "./pages/AboutUs.tsx";
 import ContactUs from "./pages/ContactUs.tsx";
 import FAQ from "./pages/FAQ.tsx";
@@ -259,6 +260,10 @@ const App = () => (
         {/* Account & content pages */}
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/forgot" element={<Navigate to="/forgot-password" replace />} />
+        <Route path="/es/forgot-password" element={<ForgotPassword />} />
+        <Route path="/es/forgot" element={<Navigate to="/es/forgot-password" replace />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/faq" element={<FAQ />} />
