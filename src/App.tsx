@@ -118,12 +118,21 @@ const EsFallback = () => {
   return <Navigate to={`${stripped}${search}${hash}`} replace />;
 };
 
-/** Catch-all: detect legacy /{amount}-{slug}-prepaid-refill.html URLs from the old PHP site
- *  and redirect them to the matching carrier category page. Otherwise render NotFound. */
+/** Catch-all:
+ *  1) Legacy /{amount}-{slug}-prepaid-refill.html → LegacyAmountRedirect
+ *  2) Generic /{slug}-espanol(.html)? or /{slug}-espanol/  → strip "-espanol" and redirect to /es/{slug}(.html)
+ *  3) Otherwise render NotFound. */
 const CatchAll = () => {
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
   if (/^\/\d+-.+-prepaid-refill\.html$/i.test(pathname)) {
     return <LegacyAmountRedirect />;
+  }
+  // Match /<slug>-espanol or /<slug>-espanol.html with optional trailing slash
+  const esp = pathname.match(/^\/(.+?)-espanol(\.html)?\/?$/i);
+  if (esp) {
+    const slug = esp[1];
+    const ext = esp[2] || "";
+    return <Navigate to={`/es/${slug}${ext}${search}${hash}`} replace />;
   }
   return <NotFound />;
 };
