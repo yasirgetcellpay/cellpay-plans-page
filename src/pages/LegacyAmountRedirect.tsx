@@ -34,9 +34,14 @@ const LegacyAmountRedirect = () => {
   const { pathname, search } = useLocation();
   // Match /{amount}-{slug}-prepaid-refill.html  (slug may contain hyphens)
   const m = pathname.match(/^\/(\d+)-(.+)-prepaid-refill\.html$/i);
+  const amount = m?.[1] ?? "";
   const slug = m?.[2]?.toLowerCase() ?? "";
   const target = SLUG_TO_PATH[slug] || "/";
-  const to = `${target}${search || ""}`;
+  // Forward amount as a query param so the carrier page can prepopulate it.
+  const params = new URLSearchParams(search || "");
+  if (amount && target !== "/") params.set("amount", amount);
+  const qs = params.toString();
+  const to = qs ? `${target}?${qs}` : target;
 
   return (
     <>
