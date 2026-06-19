@@ -118,6 +118,19 @@ const EsFallback = () => {
   return <Navigate to={`${stripped}${search}${hash}`} replace />;
 };
 
+/** Friendly slug → canonical carrier slug mapping for legacy/marketing URLs. */
+const SLUG_ALIASES: Record<string, string> = {
+  cricket: "topup-crc",
+  att: "topup-at",
+  "at-t": "topup-at",
+  "simple-mobile": "s1",
+  simple: "s1",
+  metro: "metropcs",
+  "metro-pcs": "metropcs",
+  tmobile: "tmobile-flexi",
+  "t-mobile": "tmobile-flexi",
+};
+
 /** Catch-all:
  *  1) Legacy /{amount}-{slug}-prepaid-refill.html → LegacyAmountRedirect
  *  2) Generic /{slug}-espanol(.html)? or /{slug}-espanol/  → strip "-espanol" and redirect to /es/{slug}(.html)
@@ -130,7 +143,8 @@ const CatchAll = () => {
   // Match /<slug>-espanol or /<slug>-espanol.html with optional trailing slash
   const esp = pathname.match(/^\/(.+?)-espanol(\.html)?\/?$/i);
   if (esp) {
-    const slug = esp[1];
+    const rawSlug = esp[1].toLowerCase();
+    const slug = SLUG_ALIASES[rawSlug] || rawSlug;
     const ext = esp[2] || "";
     return <Navigate to={`/es/${slug}${ext}${search}${hash}`} replace />;
   }
