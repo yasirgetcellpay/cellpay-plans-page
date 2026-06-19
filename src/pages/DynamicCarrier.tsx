@@ -4,7 +4,7 @@ import { AccountDropdown } from "@/components/AccountDropdown";
 import { useState, useCallback, useEffect } from "react";
 import { Phone, DollarSign, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { PaymentBar } from "@/components/PaymentBar";
 import { PlanGrid } from "@/components/PlanGrid";
 import { FAQSection } from "@/components/FAQSection";
@@ -150,6 +150,7 @@ const DynamicCarrier = ({
   lang = "en",
 }: DynamicCarrierProps) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const tr = t(lang);
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
@@ -353,6 +354,27 @@ const DynamicCarrier = ({
     })();
     return () => { cancelled = true; };
   }, [carrierSlug]);
+
+  // Prefill amount from URL (?amount=60) — used by legacy /{amount}-{slug}-prepaid-refill.html redirects.
+  // Runs after plans load so we can clamp to range or match an existing fixed plan.
+  useEffect(() => {
+    if (loading) return;
+    const raw = searchParams.get("amount");
+    if (!raw) return;
+    const n = parseInt(raw, 10);
+    if (!Number.isFinite(n) || n <= 0) return;
+    if (showRange) {
+      const clamped = Math.min(Math.max(n, rangeMin), rangeMax);
+      setAmount(String(clamped));
+    } else if (showFixedPlans && plans.length > 0) {
+      const match = plans.find((p) => p.amount === n);
+      if (match) setAmount(String(match.amount));
+    } else {
+      setAmount(String(n));
+    }
+    // Only run once after initial load; ignore changes to searchParams afterwards.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   const phoneDigits = phone.replace(/\D/g, "");
   const amountNum = amount ? parseInt(amount, 10) : 0;
