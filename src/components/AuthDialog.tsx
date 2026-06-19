@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -137,6 +138,18 @@ export function AuthDialog({ open, onOpenChange, initialMode = "login" }: Props)
             {mode === "login" ? "Log In" : "Sign Up"}
           </Button>
         </form>
+
+        {mode === "login" && (
+          <div className="text-center text-sm mt-1">
+            <Link
+              to="/forgot-password"
+              onClick={() => onOpenChange(false)}
+              className="text-muted-foreground hover:text-primary hover:underline"
+            >
+              Forgot your password?
+            </Link>
+          </div>
+        )}
 
         <div className="text-center text-sm text-muted-foreground mt-2">
           {mode === "login" ? (
