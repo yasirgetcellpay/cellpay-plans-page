@@ -266,12 +266,19 @@ const App = () => (
         <Route path="/es/forgot-password" element={<ForgotPassword />} />
         <Route path="/es/forgot" element={<Navigate to="/es/forgot-password" replace />} />
         <Route path="/about-us" element={<AboutUs />} />
+        <Route path="/about-us.html" element={<Navigate to="/about-us" replace />} />
         <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/contact-us.html" element={<Navigate to="/contact-us" replace />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/faq.html" element={<Navigate to="/faq" replace />} />
         <Route path="/how-to-use" element={<HowToUse />} />
+        <Route path="/how-to-use.html" element={<Navigate to="/how-to-use" replace />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/privacy-policy.html" element={<Navigate to="/privacy-policy" replace />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+        <Route path="/terms-and-conditions.html" element={<Navigate to="/terms-and-conditions" replace />} />
         <Route path="/returns-policy" element={<ReturnsPolicy />} />
+        <Route path="/returns-policy.html" element={<Navigate to="/returns-policy" replace />} />
         <Route path="/digital-millennium-copyright-act-dmca-compliance.html" element={<DMCA />} />
         <Route path="/es/digital-millennium-copyright-act-dmca-compliance.html" element={<DMCA />} />
         <Route path="/admin/login" element={<AdminLogin />} />
