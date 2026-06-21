@@ -188,7 +188,7 @@ const StraightTalk = () => {
       {wirelessPlans.length > 0 && (
         <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 mb-4">
           <div className="bg-muted/40 border border-border rounded-xl p-3 sm:p-5">
-            <h3 className="text-sm sm:text-base font-extrabold text-foreground mb-3 px-1">Wireless Plans</h3>
+            <h2 className="text-sm sm:text-base font-extrabold text-foreground mb-3 px-1">Wireless Plans</h2>
             <PlanGrid plans={wirelessPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={onSelect} />
           </div>
         </section>
@@ -197,7 +197,7 @@ const StraightTalk = () => {
       {broadbandPlans.length > 0 && (
         <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 mb-4">
           <div className="bg-muted/40 border border-border rounded-xl p-3 sm:p-5">
-            <h3 className="text-sm sm:text-base font-extrabold text-foreground mb-3 px-1">Broadband Plans</h3>
+            <h2 className="text-sm sm:text-base font-extrabold text-foreground mb-3 px-1">Broadband Plans</h2>
             <PlanGrid plans={broadbandPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={onSelect} />
           </div>
         </section>
@@ -206,7 +206,7 @@ const StraightTalk = () => {
       {addonPlans.length > 0 && (
         <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 mb-4">
           <div className="bg-muted/40 border border-border rounded-xl p-3 sm:p-5">
-            <h3 className="text-sm sm:text-base font-extrabold text-foreground mb-3 px-1">Add-On Plans</h3>
+            <h2 className="text-sm sm:text-base font-extrabold text-foreground mb-3 px-1">Add-On Plans</h2>
             <PlanGrid plans={addonPlans} brandColor={brandColor} textOnBrand="text-foreground" onSelect={onSelect} />
           </div>
         </section>
