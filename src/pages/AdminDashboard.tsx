@@ -936,6 +936,7 @@ export default function AdminDashboard() {
                     {filtered.slice(0, 200).map((l) => (
                       <TableRow key={l.id}>
                         <TableCell className="text-xs whitespace-nowrap">{new Date(l.created_at).toLocaleString()}</TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">{domainOf(l)}</TableCell>
                         <TableCell className="text-xs">{carrierLabel(l)}</TableCell>
                         <TableCell className="text-xs font-mono">
                           <div>plan: {l.plan_id || "—"}</div>
