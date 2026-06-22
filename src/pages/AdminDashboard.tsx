@@ -14,7 +14,22 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, Activity, BarChart3, Eye, ChevronLeft, ChevronRight, TrendingUp } from "lucide-react";
+import { LayoutDashboard, Users, Activity, BarChart3, Eye, ChevronLeft, ChevronRight, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import {
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip,
+  BarChart, Bar, PieChart, Pie, Cell, Legend as RLegend,
+} from "recharts";
+
+const CHART_COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--payment-amex))",
+  "hsl(var(--payment-discover))",
+  "hsl(var(--payment-mastercard-red))",
+  "hsl(var(--badge-best))",
+  "hsl(var(--plan-tier-2))",
+  "hsl(var(--payment-paypal-light))",
+  "hsl(var(--payment-mastercard-orange))",
+];
 
 type Section = "overview" | "insights" | "visitors" | "breakdowns" | "customers" | "transactions";
 const NAV: { id: Section; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
