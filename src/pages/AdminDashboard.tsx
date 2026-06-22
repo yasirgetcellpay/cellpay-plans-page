@@ -920,6 +920,7 @@ export default function AdminDashboard() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Time</TableHead>
+                      <TableHead>Domain</TableHead>
                       <TableHead>Carrier</TableHead>
                       <TableHead>Refill</TableHead>
                       <TableHead>Phone</TableHead>
