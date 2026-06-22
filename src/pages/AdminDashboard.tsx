@@ -901,6 +901,13 @@ export default function AdminDashboard() {
                     {byCarrier.map(([k]) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                <Select value={domainFilter} onValueChange={setDomainFilter}>
+                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="Domain" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All domains</SelectItem>
+                    {domainOptions.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardHeader>
