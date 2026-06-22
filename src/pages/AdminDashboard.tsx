@@ -464,6 +464,100 @@ export default function AdminDashboard() {
     };
   }, [logs, periodVisitors]);
 
+  // ===== Visual analytics (charts, heatmap, splits, deltas) =====
+  const viz = useMemo(() => {
+    const rangeObj = RANGES.find((x) => x.value === range)!;
+    const useHourly = rangeObj.value === "1d";
+    const success = logs.filter((l) => l.status === "success");
+    const failed = logs.filter((l) => l.status === "failed");
+
+    // Time series buckets
+    const now = Date.now();
+    const buckets: { key: string; label: string; ts: number; revenue: number; orders: number; failed: number }[] = [];
+    if (useHourly) {
+      for (let i = 23; i >= 0; i--) {
+        const d = new Date(now - i * 3600_000);
+        d.setMinutes(0, 0, 0);
+        buckets.push({ key: d.toISOString(), label: `${d.getHours()}h`, ts: d.getTime(), revenue: 0, orders: 0, failed: 0 });
+      }
+    } else {
+      const days = rangeObj.value === "all" ? 30 : rangeObj.hours / 24;
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(now - i * 86400_000);
+        d.setHours(0, 0, 0, 0);
+        buckets.push({ key: d.toISOString().slice(0, 10), label: `${d.getMonth() + 1}/${d.getDate()}`, ts: d.getTime(), revenue: 0, orders: 0, failed: 0 });
+      }
+    }
+    const bucketIdx = (ts: number) => {
+      if (useHourly) {
+        const d = new Date(ts); d.setMinutes(0, 0, 0);
+        return buckets.findIndex((b) => b.ts === d.getTime());
+      }
+      const d = new Date(ts); d.setHours(0, 0, 0, 0);
+      return buckets.findIndex((b) => b.ts === d.getTime());
+    };
+    success.forEach((l) => {
+      const i = bucketIdx(new Date(l.created_at).getTime());
+      if (i >= 0) { buckets[i].revenue += Number(l.total) || Number(l.amount) || 0; buckets[i].orders += 1; }
+    });
+    failed.forEach((l) => {
+      const i = bucketIdx(new Date(l.created_at).getTime());
+      if (i >= 0) buckets[i].failed += 1;
+    });
+
+    // WoW-style delta: split current range in half
+    const mid = buckets.length ? buckets[Math.floor(buckets.length / 2)].ts : 0;
+    const firstHalf = success.filter((l) => new Date(l.created_at).getTime() < mid);
+    const secondHalf = success.filter((l) => new Date(l.created_at).getTime() >= mid);
+    const sumRev = (arr: typeof success) => arr.reduce((s, l) => s + (Number(l.total) || Number(l.amount) || 0), 0);
+    const revFirst = sumRev(firstHalf);
+    const revSecond = sumRev(secondHalf);
+    const revenueDelta = revFirst ? ((revSecond - revFirst) / revFirst) * 100 : 0;
+    const ordersDelta = firstHalf.length ? ((secondHalf.length - firstHalf.length) / firstHalf.length) * 100 : 0;
+
+    // Hour × Day heatmap (success orders)
+    const heat: number[][] = Array.from({ length: 7 }, () => new Array(24).fill(0));
+    success.forEach((l) => {
+      const d = new Date(l.created_at);
+      heat[d.getDay()][d.getHours()] += 1;
+    });
+    const heatMax = Math.max(1, ...heat.flat());
+
+    // Card type mix
+    const cardMap = new Map<string, number>();
+    success.forEach((l) => {
+      if (!l.card_type) return;
+      const k = l.card_type.toUpperCase();
+      cardMap.set(k, (cardMap.get(k) || 0) + 1);
+    });
+    const cardMix = Array.from(cardMap.entries()).map(([name, value]) => ({ name, value }));
+
+    // Domain split (revenue per source domain)
+    const domMap = new Map<string, { revenue: number; orders: number }>();
+    success.forEach((l) => {
+      const k = domainOf(l);
+      const cur = domMap.get(k) || { revenue: 0, orders: 0 };
+      cur.revenue += Number(l.total) || Number(l.amount) || 0;
+      cur.orders += 1;
+      domMap.set(k, cur);
+    });
+    const domainSplit = Array.from(domMap.entries())
+      .map(([name, v]) => ({ name, revenue: v.revenue, orders: v.orders }))
+      .sort((a, b) => b.revenue - a.revenue);
+
+    // New vs repeat customers (donut)
+    const newVsRepeat = [
+      { name: "New", value: insights.newCustomers },
+      { name: "Repeat", value: insights.repeatCustomers },
+    ].filter((x) => x.value > 0);
+
+    // Revenue per visitor
+    const rpv = periodVisitors ? sumRev(success) / periodVisitors : 0;
+
+    return { series: buckets, revenueDelta, ordersDelta, heat, heatMax, cardMix, domainSplit, newVsRepeat, rpv };
+  }, [logs, range, periodVisitors, insights.newCustomers, insights.repeatCustomers]);
+
+
   const exportCustomersCSV = () => {
     const rows = [
       ["Name", "Email", "Phone", "Carriers", "Payment Methods", "Orders", "Total Spend", "Avg Order", "First Order", "Last Order"],
