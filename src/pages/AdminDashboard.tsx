@@ -1250,6 +1250,84 @@ function KpiCard({ title, value, sub }: { title: string; value: string; sub?: st
   );
 }
 
+function HeroKpi({ title, value, sub, delta, accent = "primary" }: { title: string; value: string; sub?: string; delta?: number; accent?: "primary" | "blue" | "orange" | "purple" }) {
+  const accentMap: Record<string, string> = {
+    primary: "from-primary/15 to-transparent",
+    blue: "from-[hsl(var(--payment-amex))]/15 to-transparent",
+    orange: "from-[hsl(var(--payment-discover))]/15 to-transparent",
+    purple: "from-[hsl(var(--badge-best))]/15 to-transparent",
+  };
+  const dotMap: Record<string, string> = {
+    primary: "bg-primary",
+    blue: "bg-[hsl(var(--payment-amex))]",
+    orange: "bg-[hsl(var(--payment-discover))]",
+    purple: "bg-[hsl(var(--badge-best))]",
+  };
+  const hasDelta = typeof delta === "number" && isFinite(delta);
+  const up = (delta || 0) >= 0;
+  return (
+    <Card className={`relative overflow-hidden bg-gradient-to-br ${accentMap[accent]}`}>
+      <div className={`absolute top-3 right-3 h-2 w-2 rounded-full ${dotMap[accent]}`} />
+      <CardContent className="pt-6">
+        <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">{title}</p>
+        <p className="text-3xl font-bold mt-1 tracking-tight">{value}</p>
+        <div className="flex items-center gap-2 mt-2">
+          {hasDelta && (
+            <span className={`inline-flex items-center gap-0.5 text-xs font-semibold ${up ? "text-green-600" : "text-red-600"}`}>
+              {up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+              {Math.abs(delta!).toFixed(1)}%
+            </span>
+          )}
+          {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function Heatmap({ data, max, dowNames }: { data: number[][]; max: number; dowNames: string[] }) {
+  return (
+    <div className="overflow-x-auto">
+      <div className="inline-block min-w-full">
+        <div className="flex items-center gap-1 mb-1 pl-10">
+          {Array.from({ length: 24 }).map((_, h) => (
+            <div key={h} className="w-4 text-[9px] text-muted-foreground text-center tabular-nums">
+              {h % 3 === 0 ? h : ""}
+            </div>
+          ))}
+        </div>
+        {data.map((row, d) => (
+          <div key={d} className="flex items-center gap-1 mb-1">
+            <div className="w-9 text-[10px] text-muted-foreground uppercase">{dowNames[d]}</div>
+            {row.map((v, h) => {
+              const intensity = max ? v / max : 0;
+              return (
+                <div
+                  key={h}
+                  title={`${dowNames[d]} ${h}:00 — ${v} orders`}
+                  className="w-4 h-4 rounded-sm"
+                  style={{
+                    backgroundColor: v === 0
+                      ? "hsl(var(--muted))"
+                      : `hsl(var(--primary) / ${0.15 + intensity * 0.85})`,
+                  }}
+                />
+              );
+            })}
+          </div>
+        ))}
+        <div className="flex items-center gap-2 mt-3 pl-10 text-[10px] text-muted-foreground">
+          <span>Less</span>
+          {[0.15, 0.35, 0.55, 0.75, 1].map((o) => (
+            <div key={o} className="w-4 h-3 rounded-sm" style={{ backgroundColor: `hsl(var(--primary) / ${o})` }} />
+          ))}
+          <span>More</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     success: "bg-green-500/15 text-green-700 border-green-500/30",
