@@ -668,18 +668,138 @@ export default function AdminDashboard() {
 
           <main className="flex-1 px-4 py-6 space-y-6 max-w-7xl w-full mx-auto">
             {section === "overview" && (
-              <>
+              <div className="space-y-6">
+                {/* Hero KPI strip with deltas */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <HeroKpi title="Revenue" value={fmt$(kpis.revenue)} delta={viz.revenueDelta} sub={`${kpis.successCount} orders`} accent="primary" />
+                  <HeroKpi title="Orders" value={kpis.successCount.toLocaleString()} delta={viz.ordersDelta} sub={`${kpis.failed} failed`} accent="blue" />
+                  <HeroKpi title="Revenue / visitor" value={fmt$(viz.rpv)} sub={`${periodVisitors.toLocaleString()} visitors`} accent="orange" />
+                  <HeroKpi title="Conversion" value={`${insights.visitorToSuccess.toFixed(2)}%`} sub={`AOV ${fmt$(kpis.aov)}`} accent="purple" />
+                </div>
+
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                   <KpiCard title="Live visitors" value={String(liveVisitors.length)} sub="active in last 60s" />
                   <KpiCard title="Visitors (range)" value={periodVisitors.toLocaleString()} sub="unique sessions" />
-                  <KpiCard title="Revenue" value={fmt$(kpis.revenue)} sub={`${kpis.successCount} successful`} />
-                  <KpiCard title="Conversion" value={`${insights.visitorToSuccess.toFixed(2)}%`} sub="visitor → paid" />
                   <KpiCard title="Checkout success" value={`${insights.attemptToSuccess.toFixed(1)}%`} sub={`${kpis.failed} failed`} />
                   <KpiCard title="Avg order value" value={fmt$(kpis.aov)} sub="successful only" />
                   <KpiCard title="Repeat rate" value={`${insights.repeatRate.toFixed(1)}%`} sub={`${insights.repeatCustomers} repeat`} />
+                  <KpiCard title="Customer LTV" value={fmt$(insights.clv)} sub="avg per buyer" />
+                  <KpiCard title="Pending" value={String(kpis.pending)} sub="awaiting resolution" />
                 </div>
-              </>
+
+                {/* Revenue trend */}
+                <Card className="overflow-hidden">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                    <CardTitle className="text-base">Revenue & orders trend</CardTitle>
+                    <span className="text-xs text-muted-foreground">{range === "1d" ? "Hourly · last 24h" : `Daily · ${range}`}</span>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[280px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={viz.series} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="gradRev" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.45} />
+                              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                            </linearGradient>
+                            <linearGradient id="gradOrd" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="hsl(var(--payment-amex))" stopOpacity={0.35} />
+                              <stop offset="100%" stopColor="hsl(var(--payment-amex))" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                          <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+                          <YAxis yAxisId="rev" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v >= 1000 ? (v / 1000).toFixed(1) + "k" : v}`} />
+                          <YAxis yAxisId="ord" orientation="right" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+                          <RTooltip
+                            contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                            formatter={(value: number, name: string) => name === "revenue" ? [fmt$(value), "Revenue"] : [value, name === "orders" ? "Orders" : "Failed"]}
+                          />
+                          <Area yAxisId="rev" type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#gradRev)" />
+                          <Area yAxisId="ord" type="monotone" dataKey="orders" stroke="hsl(var(--payment-amex))" strokeWidth={2} fill="url(#gradOrd)" />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Heatmap + Card mix */}
+                <div className="grid lg:grid-cols-3 gap-4">
+                  <Card className="lg:col-span-2">
+                    <CardHeader><CardTitle className="text-base">Sales heatmap <span className="text-xs font-normal text-muted-foreground">(day × hour, successful orders)</span></CardTitle></CardHeader>
+                    <CardContent>
+                      <Heatmap data={viz.heat} max={viz.heatMax} dowNames={insights.dowNames} />
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">Card type mix</CardTitle></CardHeader>
+                    <CardContent>
+                      {viz.cardMix.length === 0 ? (
+                        <div className="text-sm text-muted-foreground py-8 text-center">No card data yet</div>
+                      ) : (
+                        <div className="h-[220px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie data={viz.cardMix} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3}>
+                                {viz.cardMix.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                              </Pie>
+                              <RTooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
+                              <RLegend wrapperStyle={{ fontSize: 11 }} />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Domain split + New vs Repeat */}
+                <div className="grid lg:grid-cols-3 gap-4">
+                  <Card className="lg:col-span-2">
+                    <CardHeader><CardTitle className="text-base">Revenue by source domain</CardTitle></CardHeader>
+                    <CardContent>
+                      {viz.domainSplit.length === 0 ? (
+                        <div className="text-sm text-muted-foreground py-8 text-center">No data</div>
+                      ) : (
+                        <div className="h-[220px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={viz.domainSplit} layout="vertical" margin={{ left: 20 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                              <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `$${v >= 1000 ? (v / 1000).toFixed(1) + "k" : v}`} />
+                              <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} width={140} />
+                              <RTooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number, n: string) => n === "revenue" ? [fmt$(v), "Revenue"] : [v, "Orders"]} />
+                              <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[0, 6, 6, 0]} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">New vs repeat buyers</CardTitle></CardHeader>
+                    <CardContent>
+                      {viz.newVsRepeat.length === 0 ? (
+                        <div className="text-sm text-muted-foreground py-8 text-center">No buyers yet</div>
+                      ) : (
+                        <div className="h-[220px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie data={viz.newVsRepeat} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3}>
+                                <Cell fill="hsl(var(--payment-amex))" />
+                                <Cell fill="hsl(var(--primary))" />
+                              </Pie>
+                              <RTooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
+                              <RLegend wrapperStyle={{ fontSize: 11 }} />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
             )}
+
 
             {section === "insights" && (
               <div className="space-y-6">
