@@ -14,7 +14,22 @@ import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, Activity, BarChart3, Eye, ChevronLeft, ChevronRight, TrendingUp } from "lucide-react";
+import { LayoutDashboard, Users, Activity, BarChart3, Eye, ChevronLeft, ChevronRight, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import {
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip,
+  BarChart, Bar, PieChart, Pie, Cell, Legend as RLegend,
+} from "recharts";
+
+const CHART_COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--payment-amex))",
+  "hsl(var(--payment-discover))",
+  "hsl(var(--payment-mastercard-red))",
+  "hsl(var(--badge-best))",
+  "hsl(var(--plan-tier-2))",
+  "hsl(var(--payment-paypal-light))",
+  "hsl(var(--payment-mastercard-orange))",
+];
 
 type Section = "overview" | "insights" | "visitors" | "breakdowns" | "customers" | "transactions";
 const NAV: { id: Section; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -449,6 +464,100 @@ export default function AdminDashboard() {
     };
   }, [logs, periodVisitors]);
 
+  // ===== Visual analytics (charts, heatmap, splits, deltas) =====
+  const viz = useMemo(() => {
+    const rangeObj = RANGES.find((x) => x.value === range)!;
+    const useHourly = rangeObj.value === "1d";
+    const success = logs.filter((l) => l.status === "success");
+    const failed = logs.filter((l) => l.status === "failed");
+
+    // Time series buckets
+    const now = Date.now();
+    const buckets: { key: string; label: string; ts: number; revenue: number; orders: number; failed: number }[] = [];
+    if (useHourly) {
+      for (let i = 23; i >= 0; i--) {
+        const d = new Date(now - i * 3600_000);
+        d.setMinutes(0, 0, 0);
+        buckets.push({ key: d.toISOString(), label: `${d.getHours()}h`, ts: d.getTime(), revenue: 0, orders: 0, failed: 0 });
+      }
+    } else {
+      const days = rangeObj.value === "all" ? 30 : rangeObj.hours / 24;
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(now - i * 86400_000);
+        d.setHours(0, 0, 0, 0);
+        buckets.push({ key: d.toISOString().slice(0, 10), label: `${d.getMonth() + 1}/${d.getDate()}`, ts: d.getTime(), revenue: 0, orders: 0, failed: 0 });
+      }
+    }
+    const bucketIdx = (ts: number) => {
+      if (useHourly) {
+        const d = new Date(ts); d.setMinutes(0, 0, 0);
+        return buckets.findIndex((b) => b.ts === d.getTime());
+      }
+      const d = new Date(ts); d.setHours(0, 0, 0, 0);
+      return buckets.findIndex((b) => b.ts === d.getTime());
+    };
+    success.forEach((l) => {
+      const i = bucketIdx(new Date(l.created_at).getTime());
+      if (i >= 0) { buckets[i].revenue += Number(l.total) || Number(l.amount) || 0; buckets[i].orders += 1; }
+    });
+    failed.forEach((l) => {
+      const i = bucketIdx(new Date(l.created_at).getTime());
+      if (i >= 0) buckets[i].failed += 1;
+    });
+
+    // WoW-style delta: split current range in half
+    const mid = buckets.length ? buckets[Math.floor(buckets.length / 2)].ts : 0;
+    const firstHalf = success.filter((l) => new Date(l.created_at).getTime() < mid);
+    const secondHalf = success.filter((l) => new Date(l.created_at).getTime() >= mid);
+    const sumRev = (arr: typeof success) => arr.reduce((s, l) => s + (Number(l.total) || Number(l.amount) || 0), 0);
+    const revFirst = sumRev(firstHalf);
+    const revSecond = sumRev(secondHalf);
+    const revenueDelta = revFirst ? ((revSecond - revFirst) / revFirst) * 100 : 0;
+    const ordersDelta = firstHalf.length ? ((secondHalf.length - firstHalf.length) / firstHalf.length) * 100 : 0;
+
+    // Hour × Day heatmap (success orders)
+    const heat: number[][] = Array.from({ length: 7 }, () => new Array(24).fill(0));
+    success.forEach((l) => {
+      const d = new Date(l.created_at);
+      heat[d.getDay()][d.getHours()] += 1;
+    });
+    const heatMax = Math.max(1, ...heat.flat());
+
+    // Card type mix
+    const cardMap = new Map<string, number>();
+    success.forEach((l) => {
+      if (!l.card_type) return;
+      const k = l.card_type.toUpperCase();
+      cardMap.set(k, (cardMap.get(k) || 0) + 1);
+    });
+    const cardMix = Array.from(cardMap.entries()).map(([name, value]) => ({ name, value }));
+
+    // Domain split (revenue per source domain)
+    const domMap = new Map<string, { revenue: number; orders: number }>();
+    success.forEach((l) => {
+      const k = domainOf(l);
+      const cur = domMap.get(k) || { revenue: 0, orders: 0 };
+      cur.revenue += Number(l.total) || Number(l.amount) || 0;
+      cur.orders += 1;
+      domMap.set(k, cur);
+    });
+    const domainSplit = Array.from(domMap.entries())
+      .map(([name, v]) => ({ name, revenue: v.revenue, orders: v.orders }))
+      .sort((a, b) => b.revenue - a.revenue);
+
+    // New vs repeat customers (donut)
+    const newVsRepeat = [
+      { name: "New", value: insights.newCustomers },
+      { name: "Repeat", value: insights.repeatCustomers },
+    ].filter((x) => x.value > 0);
+
+    // Revenue per visitor
+    const rpv = periodVisitors ? sumRev(success) / periodVisitors : 0;
+
+    return { series: buckets, revenueDelta, ordersDelta, heat, heatMax, cardMix, domainSplit, newVsRepeat, rpv };
+  }, [logs, range, periodVisitors, insights.newCustomers, insights.repeatCustomers]);
+
+
   const exportCustomersCSV = () => {
     const rows = [
       ["Name", "Email", "Phone", "Carriers", "Payment Methods", "Orders", "Total Spend", "Avg Order", "First Order", "Last Order"],
@@ -559,18 +668,138 @@ export default function AdminDashboard() {
 
           <main className="flex-1 px-4 py-6 space-y-6 max-w-7xl w-full mx-auto">
             {section === "overview" && (
-              <>
+              <div className="space-y-6">
+                {/* Hero KPI strip with deltas */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <HeroKpi title="Revenue" value={fmt$(kpis.revenue)} delta={viz.revenueDelta} sub={`${kpis.successCount} orders`} accent="primary" />
+                  <HeroKpi title="Orders" value={kpis.successCount.toLocaleString()} delta={viz.ordersDelta} sub={`${kpis.failed} failed`} accent="blue" />
+                  <HeroKpi title="Revenue / visitor" value={fmt$(viz.rpv)} sub={`${periodVisitors.toLocaleString()} visitors`} accent="orange" />
+                  <HeroKpi title="Conversion" value={`${insights.visitorToSuccess.toFixed(2)}%`} sub={`AOV ${fmt$(kpis.aov)}`} accent="purple" />
+                </div>
+
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                   <KpiCard title="Live visitors" value={String(liveVisitors.length)} sub="active in last 60s" />
                   <KpiCard title="Visitors (range)" value={periodVisitors.toLocaleString()} sub="unique sessions" />
-                  <KpiCard title="Revenue" value={fmt$(kpis.revenue)} sub={`${kpis.successCount} successful`} />
-                  <KpiCard title="Conversion" value={`${insights.visitorToSuccess.toFixed(2)}%`} sub="visitor → paid" />
                   <KpiCard title="Checkout success" value={`${insights.attemptToSuccess.toFixed(1)}%`} sub={`${kpis.failed} failed`} />
                   <KpiCard title="Avg order value" value={fmt$(kpis.aov)} sub="successful only" />
                   <KpiCard title="Repeat rate" value={`${insights.repeatRate.toFixed(1)}%`} sub={`${insights.repeatCustomers} repeat`} />
+                  <KpiCard title="Customer LTV" value={fmt$(insights.clv)} sub="avg per buyer" />
+                  <KpiCard title="Pending" value={String(kpis.pending)} sub="awaiting resolution" />
                 </div>
-              </>
+
+                {/* Revenue trend */}
+                <Card className="overflow-hidden">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                    <CardTitle className="text-base">Revenue & orders trend</CardTitle>
+                    <span className="text-xs text-muted-foreground">{range === "1d" ? "Hourly · last 24h" : `Daily · ${range}`}</span>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[280px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={viz.series} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="gradRev" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.45} />
+                              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                            </linearGradient>
+                            <linearGradient id="gradOrd" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="hsl(var(--payment-amex))" stopOpacity={0.35} />
+                              <stop offset="100%" stopColor="hsl(var(--payment-amex))" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                          <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+                          <YAxis yAxisId="rev" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v >= 1000 ? (v / 1000).toFixed(1) + "k" : v}`} />
+                          <YAxis yAxisId="ord" orientation="right" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+                          <RTooltip
+                            contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                            formatter={(value: number, name: string) => name === "revenue" ? [fmt$(value), "Revenue"] : [value, name === "orders" ? "Orders" : "Failed"]}
+                          />
+                          <Area yAxisId="rev" type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#gradRev)" />
+                          <Area yAxisId="ord" type="monotone" dataKey="orders" stroke="hsl(var(--payment-amex))" strokeWidth={2} fill="url(#gradOrd)" />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Heatmap + Card mix */}
+                <div className="grid lg:grid-cols-3 gap-4">
+                  <Card className="lg:col-span-2">
+                    <CardHeader><CardTitle className="text-base">Sales heatmap <span className="text-xs font-normal text-muted-foreground">(day × hour, successful orders)</span></CardTitle></CardHeader>
+                    <CardContent>
+                      <Heatmap data={viz.heat} max={viz.heatMax} dowNames={insights.dowNames} />
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">Card type mix</CardTitle></CardHeader>
+                    <CardContent>
+                      {viz.cardMix.length === 0 ? (
+                        <div className="text-sm text-muted-foreground py-8 text-center">No card data yet</div>
+                      ) : (
+                        <div className="h-[220px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie data={viz.cardMix} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3}>
+                                {viz.cardMix.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                              </Pie>
+                              <RTooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
+                              <RLegend wrapperStyle={{ fontSize: 11 }} />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Domain split + New vs Repeat */}
+                <div className="grid lg:grid-cols-3 gap-4">
+                  <Card className="lg:col-span-2">
+                    <CardHeader><CardTitle className="text-base">Revenue by source domain</CardTitle></CardHeader>
+                    <CardContent>
+                      {viz.domainSplit.length === 0 ? (
+                        <div className="text-sm text-muted-foreground py-8 text-center">No data</div>
+                      ) : (
+                        <div className="h-[220px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={viz.domainSplit} layout="vertical" margin={{ left: 20 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                              <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `$${v >= 1000 ? (v / 1000).toFixed(1) + "k" : v}`} />
+                              <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} width={140} />
+                              <RTooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number, n: string) => n === "revenue" ? [fmt$(v), "Revenue"] : [v, "Orders"]} />
+                              <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[0, 6, 6, 0]} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">New vs repeat buyers</CardTitle></CardHeader>
+                    <CardContent>
+                      {viz.newVsRepeat.length === 0 ? (
+                        <div className="text-sm text-muted-foreground py-8 text-center">No buyers yet</div>
+                      ) : (
+                        <div className="h-[220px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie data={viz.newVsRepeat} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3}>
+                                <Cell fill="hsl(var(--payment-amex))" />
+                                <Cell fill="hsl(var(--primary))" />
+                              </Pie>
+                              <RTooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
+                              <RLegend wrapperStyle={{ fontSize: 11 }} />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
             )}
+
 
             {section === "insights" && (
               <div className="space-y-6">
@@ -1018,6 +1247,84 @@ function KpiCard({ title, value, sub }: { title: string; value: string; sub?: st
         {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
       </CardContent>
     </Card>
+  );
+}
+
+function HeroKpi({ title, value, sub, delta, accent = "primary" }: { title: string; value: string; sub?: string; delta?: number; accent?: "primary" | "blue" | "orange" | "purple" }) {
+  const accentMap: Record<string, string> = {
+    primary: "from-primary/15 to-transparent",
+    blue: "from-[hsl(var(--payment-amex))]/15 to-transparent",
+    orange: "from-[hsl(var(--payment-discover))]/15 to-transparent",
+    purple: "from-[hsl(var(--badge-best))]/15 to-transparent",
+  };
+  const dotMap: Record<string, string> = {
+    primary: "bg-primary",
+    blue: "bg-[hsl(var(--payment-amex))]",
+    orange: "bg-[hsl(var(--payment-discover))]",
+    purple: "bg-[hsl(var(--badge-best))]",
+  };
+  const hasDelta = typeof delta === "number" && isFinite(delta);
+  const up = (delta || 0) >= 0;
+  return (
+    <Card className={`relative overflow-hidden bg-gradient-to-br ${accentMap[accent]}`}>
+      <div className={`absolute top-3 right-3 h-2 w-2 rounded-full ${dotMap[accent]}`} />
+      <CardContent className="pt-6">
+        <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">{title}</p>
+        <p className="text-3xl font-bold mt-1 tracking-tight">{value}</p>
+        <div className="flex items-center gap-2 mt-2">
+          {hasDelta && (
+            <span className={`inline-flex items-center gap-0.5 text-xs font-semibold ${up ? "text-green-600" : "text-red-600"}`}>
+              {up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+              {Math.abs(delta!).toFixed(1)}%
+            </span>
+          )}
+          {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function Heatmap({ data, max, dowNames }: { data: number[][]; max: number; dowNames: string[] }) {
+  return (
+    <div className="overflow-x-auto">
+      <div className="inline-block min-w-full">
+        <div className="flex items-center gap-1 mb-1 pl-10">
+          {Array.from({ length: 24 }).map((_, h) => (
+            <div key={h} className="w-4 text-[9px] text-muted-foreground text-center tabular-nums">
+              {h % 3 === 0 ? h : ""}
+            </div>
+          ))}
+        </div>
+        {data.map((row, d) => (
+          <div key={d} className="flex items-center gap-1 mb-1">
+            <div className="w-9 text-[10px] text-muted-foreground uppercase">{dowNames[d]}</div>
+            {row.map((v, h) => {
+              const intensity = max ? v / max : 0;
+              return (
+                <div
+                  key={h}
+                  title={`${dowNames[d]} ${h}:00 — ${v} orders`}
+                  className="w-4 h-4 rounded-sm"
+                  style={{
+                    backgroundColor: v === 0
+                      ? "hsl(var(--muted))"
+                      : `hsl(var(--primary) / ${0.15 + intensity * 0.85})`,
+                  }}
+                />
+              );
+            })}
+          </div>
+        ))}
+        <div className="flex items-center gap-2 mt-3 pl-10 text-[10px] text-muted-foreground">
+          <span>Less</span>
+          {[0.15, 0.35, 0.55, 0.75, 1].map((o) => (
+            <div key={o} className="w-4 h-3 rounded-sm" style={{ backgroundColor: `hsl(var(--primary) / ${o})` }} />
+          ))}
+          <span>More</span>
+        </div>
+      </div>
+    </div>
   );
 }
 
