@@ -181,11 +181,26 @@ export default function AdminDashboard() {
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [liveVisitors]);
 
+  const domainOf = (l: TxLog): string => {
+    const m = (l.metadata as Record<string, unknown> | null) || {};
+    const h = typeof m.caller_host === "string" ? m.caller_host.toLowerCase() : "";
+    if (!h) return "unknown";
+    if (h.includes("lovable")) return "preview";
+    return h.replace(/^www\./, "");
+  };
+
+  const domainOptions = useMemo(() => {
+    const set = new Set<string>();
+    logs.forEach((l) => set.add(domainOf(l)));
+    return Array.from(set).sort();
+  }, [logs]);
+
   const filtered = useMemo(() => {
     return logs.filter((l) => {
       if (statusFilter !== "all" && l.status !== statusFilter) return false;
       if (methodFilter !== "all" && l.payment_method !== methodFilter) return false;
       if (carrierFilter !== "all" && carrierLabel(l) !== carrierFilter) return false;
+      if (domainFilter !== "all" && domainOf(l) !== domainFilter) return false;
       if (search) {
         const s = search.toLowerCase();
         const blob = `${l.email || ""} ${l.phone_number || ""} ${l.first_name || ""} ${l.last_name || ""} ${l.hashid || ""} ${l.transaction_id || ""}`.toLowerCase();
@@ -193,13 +208,14 @@ export default function AdminDashboard() {
       }
       return true;
     });
-  }, [logs, statusFilter, methodFilter, carrierFilter, search]);
+  }, [logs, statusFilter, methodFilter, carrierFilter, domainFilter, search]);
 
   // For breakdowns we ignore the status filter so success/failed columns are always visible
   const filteredForBreakdowns = useMemo(() => {
     return logs.filter((l) => {
       if (methodFilter !== "all" && l.payment_method !== methodFilter) return false;
       if (carrierFilter !== "all" && carrierLabel(l) !== carrierFilter) return false;
+      if (domainFilter !== "all" && domainOf(l) !== domainFilter) return false;
       if (search) {
         const s = search.toLowerCase();
         const blob = `${l.email || ""} ${l.phone_number || ""} ${l.first_name || ""} ${l.last_name || ""} ${l.hashid || ""} ${l.transaction_id || ""}`.toLowerCase();
@@ -207,7 +223,7 @@ export default function AdminDashboard() {
       }
       return true;
     });
-  }, [logs, methodFilter, carrierFilter, search]);
+  }, [logs, methodFilter, carrierFilter, domainFilter, search]);
 
   const kpis = useMemo(() => {
     const total = filtered.length;
