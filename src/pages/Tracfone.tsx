@@ -23,7 +23,7 @@ const plans = [
 const brandColor = "hsl(230,70%,30%)";
 
 const formatPhone = (value: string): string => {
-  const digits = value.replace(/\D/g, "").slice(0, 10);
+  let raw = value.replace(/\D/g, ""); if (raw.length === 11 && raw.startsWith("1")) raw = raw.slice(1); if (raw.length >= 10 && raw.startsWith("1")) raw = raw.slice(1); const digits = raw.slice(0, 10);
   if (digits.length === 0) return "";
   if (digits.length <= 3) return `(${digits}`;
   if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
