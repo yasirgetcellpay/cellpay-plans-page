@@ -70,6 +70,7 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [methodFilter, setMethodFilter] = useState<string>("all");
   const [carrierFilter, setCarrierFilter] = useState<string>("all");
+  const [domainFilter, setDomainFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [now, setNow] = useState(Date.now());
@@ -180,11 +181,26 @@ export default function AdminDashboard() {
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [liveVisitors]);
 
+  const domainOf = (l: TxLog): string => {
+    const m = (l.metadata as Record<string, unknown> | null) || {};
+    const h = typeof m.caller_host === "string" ? m.caller_host.toLowerCase() : "";
+    if (!h) return "unknown";
+    if (h.includes("lovable")) return "preview";
+    return h.replace(/^www\./, "");
+  };
+
+  const domainOptions = useMemo(() => {
+    const set = new Set<string>();
+    logs.forEach((l) => set.add(domainOf(l)));
+    return Array.from(set).sort();
+  }, [logs]);
+
   const filtered = useMemo(() => {
     return logs.filter((l) => {
       if (statusFilter !== "all" && l.status !== statusFilter) return false;
       if (methodFilter !== "all" && l.payment_method !== methodFilter) return false;
       if (carrierFilter !== "all" && carrierLabel(l) !== carrierFilter) return false;
+      if (domainFilter !== "all" && domainOf(l) !== domainFilter) return false;
       if (search) {
         const s = search.toLowerCase();
         const blob = `${l.email || ""} ${l.phone_number || ""} ${l.first_name || ""} ${l.last_name || ""} ${l.hashid || ""} ${l.transaction_id || ""}`.toLowerCase();
@@ -192,13 +208,14 @@ export default function AdminDashboard() {
       }
       return true;
     });
-  }, [logs, statusFilter, methodFilter, carrierFilter, search]);
+  }, [logs, statusFilter, methodFilter, carrierFilter, domainFilter, search]);
 
   // For breakdowns we ignore the status filter so success/failed columns are always visible
   const filteredForBreakdowns = useMemo(() => {
     return logs.filter((l) => {
       if (methodFilter !== "all" && l.payment_method !== methodFilter) return false;
       if (carrierFilter !== "all" && carrierLabel(l) !== carrierFilter) return false;
+      if (domainFilter !== "all" && domainOf(l) !== domainFilter) return false;
       if (search) {
         const s = search.toLowerCase();
         const blob = `${l.email || ""} ${l.phone_number || ""} ${l.first_name || ""} ${l.last_name || ""} ${l.hashid || ""} ${l.transaction_id || ""}`.toLowerCase();
@@ -206,7 +223,7 @@ export default function AdminDashboard() {
       }
       return true;
     });
-  }, [logs, methodFilter, carrierFilter, search]);
+  }, [logs, methodFilter, carrierFilter, domainFilter, search]);
 
   const kpis = useMemo(() => {
     const total = filtered.length;
@@ -884,6 +901,13 @@ export default function AdminDashboard() {
                     {byCarrier.map(([k]) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                <Select value={domainFilter} onValueChange={setDomainFilter}>
+                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="Domain" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All domains</SelectItem>
+                    {domainOptions.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardHeader>
@@ -896,6 +920,7 @@ export default function AdminDashboard() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Time</TableHead>
+                      <TableHead>Domain</TableHead>
                       <TableHead>Carrier</TableHead>
                       <TableHead>Refill</TableHead>
                       <TableHead>Phone</TableHead>
@@ -911,6 +936,7 @@ export default function AdminDashboard() {
                     {filtered.slice(0, 200).map((l) => (
                       <TableRow key={l.id}>
                         <TableCell className="text-xs whitespace-nowrap">{new Date(l.created_at).toLocaleString()}</TableCell>
+                        <TableCell className="text-xs whitespace-nowrap">{domainOf(l)}</TableCell>
                         <TableCell className="text-xs">{carrierLabel(l)}</TableCell>
                         <TableCell className="text-xs font-mono">
                           <div>plan: {l.plan_id || "—"}</div>
@@ -933,7 +959,7 @@ export default function AdminDashboard() {
                       </TableRow>
                     ))}
                     {filtered.length === 0 && (
-                      <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No transactions match the filters.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-8">No transactions match the filters.</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
