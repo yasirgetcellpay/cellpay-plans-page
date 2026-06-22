@@ -959,7 +959,7 @@ export default function AdminDashboard() {
                       </TableRow>
                     ))}
                     {filtered.length === 0 && (
-                      <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No transactions match the filters.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-8">No transactions match the filters.</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
