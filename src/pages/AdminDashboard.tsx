@@ -124,19 +124,27 @@ export default function AdminDashboard() {
     const fetchLogs = async () => {
       setLoading(true);
       const r = RANGES.find((x) => x.value === range)!;
-      let q = supabase.from("transaction_logs").select("*").order("created_at", { ascending: false }).limit(1000);
-      if (r.hours > 0) {
-        const since = new Date(Date.now() - r.hours * 3600 * 1000).toISOString();
-        q = q.gte("created_at", since);
+      const since = r.hours > 0 ? new Date(Date.now() - r.hours * 3600 * 1000).toISOString() : null;
+      // Paginate to bypass the 1000-row Supabase cap so each range returns ALL its rows.
+      const PAGE = 1000;
+      const MAX_PAGES = 60; // up to 60k rows
+      const all: TxLog[] = [];
+      for (let i = 0; i < MAX_PAGES; i++) {
+        let q = supabase
+          .from("transaction_logs")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .range(i * PAGE, i * PAGE + PAGE - 1);
+        if (since) q = q.gte("created_at", since);
+        const { data, error } = await q;
+        if (error || !data) break;
+        all.push(...(data as TxLog[]));
+        if (data.length < PAGE) break;
       }
-      const { data } = await q;
-      setLogs((data as TxLog[]) || []);
+      setLogs(all);
       // Unique visitor sessions in the same range (approx funnel top)
       let vq = supabase.from("page_visitors").select("session_id", { count: "exact", head: true });
-      if (r.hours > 0) {
-        const since = new Date(Date.now() - r.hours * 3600 * 1000).toISOString();
-        vq = vq.gte("last_seen", since);
-      }
+      if (since) vq = vq.gte("last_seen", since);
       const { count: vCount } = await vq;
       setPeriodVisitors(vCount || 0);
       setLoading(false);
