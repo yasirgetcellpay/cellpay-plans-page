@@ -215,6 +215,20 @@ const App = () => (
         <Route path="/verizon-wireless-flexi/pay" element={<Navigate to="/verizon-wireless-flexi.html" replace />} />
         <Route path="/es/verizon-wireless-flexi/pay" element={<Navigate to="/es/verizon-wireless-flexi.html" replace />} />
 
+        {/* Legacy carrier URL aliases → canonical carrier pages */}
+        <Route path="/verizon.html" element={<Navigate to="/verizon" replace />} />
+        <Route path="/es/verizon.html" element={<Navigate to="/es/verizon" replace />} />
+        <Route path="/tmobile.html" element={<Navigate to="/tmobile-flexi.html" replace />} />
+        <Route path="/es/tmobile.html" element={<Navigate to="/es/tmobile-flexi.html" replace />} />
+        <Route path="/bmobile.html" element={<Navigate to="/boost.html" replace />} />
+        <Route path="/es/bmobile.html" element={<Navigate to="/es/boost.html" replace />} />
+        <Route path="/total-wireless.html" element={<Navigate to="/total-wireless" replace />} />
+        <Route path="/es/total-wireless.html" element={<Navigate to="/es/total-wireless" replace />} />
+        <Route path="/users/login" element={<Navigate to="/login" replace />} />
+        <Route path="/users/login/" element={<Navigate to="/login" replace />} />
+        <Route path="/es/users/login" element={<Navigate to="/es/login" replace />} />
+
+
         {/* AT&T FirstNet — reuses static ATT.tsx (no backend carrier entry). */}
         <Route path="/att-firstnet" element={<ATT />} />
         <Route path="/es/att-firstnet" element={<ATT />} />
