@@ -307,6 +307,9 @@ const App = () => (
         <Route path="/terms-and-conditions.html" element={<Navigate to="/terms-and-conditions" replace />} />
         <Route path="/returns-policy" element={<ReturnsPolicy />} />
         <Route path="/returns-policy.html" element={<Navigate to="/returns-policy" replace />} />
+        <Route path="/returns-and-refunds-policy" element={<Navigate to="/returns-policy" replace />} />
+        <Route path="/returns-and-refunds-policy.html" element={<Navigate to="/returns-policy" replace />} />
+        <Route path="/es/returns-and-refunds-policy.html" element={<Navigate to="/returns-policy" replace />} />
         <Route path="/digital-millennium-copyright-act-dmca-compliance.html" element={<DMCA />} />
         <Route path="/es/digital-millennium-copyright-act-dmca-compliance.html" element={<DMCA />} />
         <Route path="/admin/login" element={<AdminLogin />} />
