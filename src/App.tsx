@@ -21,6 +21,7 @@ import TermsAndConditions from "./pages/TermsAndConditions.tsx";
 import ReturnsPolicy from "./pages/ReturnsPolicy.tsx";
 import DMCA from "./pages/DMCA.tsx";
 import AdminLogin from "./pages/AdminLogin.tsx";
+import Login from "./pages/Login.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AmountRedirect from "./pages/AmountRedirect.tsx";
@@ -306,6 +307,16 @@ const App = () => (
         <Route path="/es/digital-millennium-copyright-act-dmca-compliance.html" element={<DMCA />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/*" element={<AdminDashboard />} />
+
+        {/* Customer login/register (matches legacy cellpay.us URLs) */}
+        <Route path="/login" element={<Login mode="login" />} />
+        <Route path="/register" element={<Login mode="register" />} />
+        <Route path="/customer/account/login" element={<Login mode="login" />} />
+        <Route path="/customer/account/login/" element={<Login mode="login" />} />
+        <Route path="/customer/account/create" element={<Login mode="register" />} />
+        <Route path="/customer/account/create/" element={<Login mode="register" />} />
+        <Route path="/es/login" element={<Login mode="login" />} />
+        <Route path="/es/customer/account/login" element={<Login mode="login" />} />
 
         {/* Fallback: any unmatched /es/* path → strip /es and redirect to English. */}
         <Route path="/es/*" element={<EsFallback />} />
