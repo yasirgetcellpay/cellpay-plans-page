@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { AuthDialog } from "@/components/AuthDialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { setSeoHead } from "@/lib/seo";
+import { applySeoHead } from "@/lib/seo";
 
 interface Props {
   mode?: "login" | "register";
@@ -17,7 +17,7 @@ export default function Login({ mode = "login" }: Props) {
   const location = useLocation();
 
   useEffect(() => {
-    setSeoHead({
+    applySeoHead({
       title: mode === "register" ? "Create Account | CellPay" : "Log In | CellPay",
       description:
         mode === "register"
