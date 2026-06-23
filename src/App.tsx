@@ -81,6 +81,8 @@ const carrierRoutes: CarrierRouteDef[] = [
   { path: "/total-wireless", name: "Total Wireless", slug: "total-wireless", carrierId: 79, brandColor: "hsl(200,70%,40%)" },
   // Verizon Wireless Flexi intentionally omitted — backend has no carrier entry, served by static Verizon.tsx below.
   { path: "/xbox", name: "XBOX", slug: "xbox", carrierId: 76, brandColor: "hsl(120,60%,40%)" },
+  { path: "/movistar.html", name: "Movistar", slug: "movistar", carrierId: 333360, brandColor: "hsl(204,100%,35%)" },
+  { path: "/movistar-flexi.html", name: "Movistar Flexi", slug: "movistar-flexi", carrierId: 333361, brandColor: "hsl(204,100%,35%)" },
 ];
 
 // Legacy `-espanol.html` URLs (kept as redirects to /es/* for backward compatibility)
@@ -101,6 +103,8 @@ const legacyEspanolRedirects: Array<[string, string]> = [
   ["/ultra-mobile-espanol.html", "/es/ultra-mobile.html"],
   ["/us-cellular-espanol.html", "/es/us-cellular.html"],
   ["/verizon-wireless-flexi-espanol.html", "/es/verizon-wireless-flexi.html"],
+  ["/movistar-espanol.html", "/es/movistar.html"],
+  ["/movistar-flexi-espanol.html", "/es/movistar-flexi.html"],
 ];
 
 const TrackingCapture = () => {
