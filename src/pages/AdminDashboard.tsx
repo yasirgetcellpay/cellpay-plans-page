@@ -80,7 +80,13 @@ export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [logs, setLogs] = useState<TxLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [range, setRange] = useState("7d");
+  const [range, setRangeState] = useState<string>(() => {
+    try { return localStorage.getItem("admin:range") || "7d"; } catch { return "7d"; }
+  });
+  const setRange = (v: string) => {
+    setRangeState(v);
+    try { localStorage.setItem("admin:range", v); } catch {}
+  };
   const [section, setSection] = useState<Section>(() => isSection(routeSection) ? routeSection : "overview");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [methodFilter, setMethodFilter] = useState<string>("all");
