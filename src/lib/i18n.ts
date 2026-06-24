@@ -164,8 +164,8 @@ export interface Translations {
 const en: Translations = {
   back: "Go back",
   account: "Account",
-  heroH1: (c) => `Streamlined Solutions for Swift and Secure ${c} Prepaid Transactions`,
-  heroH2: (c) => `Effortless and Secure Transactions Tailored for ${c} Prepaid Users`,
+  heroH1: () => `Top Up Your Mobile Number—Instantly & Securely`,
+  heroH2: () => `No login, no hassle. Enter your phone number, choose your plan, and you're recharged.`,
   enterPhoneLabel: (c) => `Enter Your ${c} Phone Number`,
   phonePlaceholder: "(XXX) XXX-XXXX",
   refilling: "Refilling",
