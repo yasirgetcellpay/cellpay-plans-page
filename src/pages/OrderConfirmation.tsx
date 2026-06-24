@@ -125,6 +125,15 @@ const OrderConfirmation = () => {
             items: [{ item_id: itemId, item_name: itemName, price: amount, quantity: 1 }],
           },
         });
+        trackAxon("Purchase", {
+          content_ids: [itemId || carrierName || "recharge"],
+          content_name: itemName,
+          content_category: itemId || "recharge",
+          value: amount + fee,
+          currency: "USD",
+          num_items: 1,
+          transaction_id: txnId,
+        });
       } catch { /* ignore analytics errors */ }
     } catch {
       setError(tr.couldNotLoad);
