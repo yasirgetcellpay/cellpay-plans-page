@@ -7,6 +7,7 @@ import { LegalBar } from "@/components/LegalBar";
 import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 import { useLang, t, langPath } from "@/lib/i18n";
 import { applySeoHead } from "@/lib/seo";
+import { trackAxon } from "@/lib/axon";
 
 interface TransactionData {
   id?: number;
