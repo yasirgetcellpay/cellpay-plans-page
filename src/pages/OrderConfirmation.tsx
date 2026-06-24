@@ -7,7 +7,7 @@ import { LegalBar } from "@/components/LegalBar";
 import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 import { useLang, t, langPath } from "@/lib/i18n";
 import { applySeoHead } from "@/lib/seo";
-import { trackAxon } from "@/lib/axon";
+import { normalizeAxonAmount, trackAxonPurchase } from "@/lib/axon";
 
 interface TransactionData {
   id?: number;
@@ -16,6 +16,7 @@ interface TransactionData {
   phone_number?: string;
   pin?: string;
   transactionId?: string;
+  transaction_id?: string;
   hashid?: string;
   created?: string;
   carrier?: { name?: string; slug?: string };
@@ -105,11 +106,11 @@ const OrderConfirmation = () => {
       const txn = (result.transaction || result) as TransactionData;
       setTransaction(txn);
       try {
-        const amount = Number(txn.amount || 0);
+        const amount = normalizeAxonAmount(txn.amount);
         const fee = Number(txn.fee || 0);
         const itemName = txn.carrier?.name || carrierName || "Recharge";
-        const itemId = txn.carrier?.slug || "";
-        const txnId = String(txn.transactionId || txn.hashid || txn.id || "");
+        const itemId = txn.carrier?.slug || carrierName || "recharge";
+        const txnId = String(txn.transactionId || txn.transaction_id || txn.hashid || txn.id || hashid);
         // @ts-expect-error - dataLayer global
         window.dataLayer = window.dataLayer || [];
         // @ts-expect-error - dataLayer global
@@ -125,23 +126,13 @@ const OrderConfirmation = () => {
             items: [{ item_id: itemId, item_name: itemName, price: amount, quantity: 1 }],
           },
         });
-        trackAxon("purchase", {
-          currency: "USD",
+        trackAxonPurchase({
+          transactionId: txnId,
+          itemId: String(itemId),
+          itemName,
           value: amount,
-          shipping: 0,
-          tax: 0,
-          transaction_id: txnId,
-          items: [
-            {
-              item_id: String(itemId || carrierName || "recharge"),
-              item_name: itemName,
-              price: amount,
-              quantity: 1,
-            },
-          ],
-          user_data: txn.user?.email
-            ? { email: String(txn.user.email).trim().toLowerCase() }
-            : undefined,
+          email: txn.user?.email,
+          phone: txn.phone_number,
         });
       } catch { /* ignore analytics errors */ }
     } catch {
