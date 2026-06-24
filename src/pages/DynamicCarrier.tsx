@@ -409,13 +409,17 @@ const DynamicCarrier = ({
     }
     const planAmount = Number(plan.price.replace("$", ""));
     const selectedPlan = plans.find((p) => p.amount === planAmount);
-    trackAxon("AddToCart", {
-      content_ids: [selectedPlan?.plan_id || carrierSlug],
-      content_name: selectedPlan?.name || carrierName,
-      content_category: carrierSlug,
-      value: planAmount,
+    trackAxon("add_to_cart", {
       currency: "USD",
-      num_items: 1,
+      value: planAmount,
+      items: [
+        {
+          item_id: String(selectedPlan?.plan_id || carrierSlug),
+          item_name: selectedPlan?.name || carrierName,
+          price: planAmount,
+          quantity: 1,
+        },
+      ],
     });
     navigate(lang === "es" ? "/es/checkout" : "/checkout", {
       state: {
