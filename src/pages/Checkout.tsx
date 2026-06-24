@@ -231,6 +231,14 @@ const Checkout = () => {
           160,
         ),
     });
+    trackAxon("BeginCheckout", {
+      content_ids: [state.carrierSlug],
+      content_name: state.carrierName,
+      content_category: state.carrierSlug,
+      value: Number(state.amount) || 0,
+      currency: "USD",
+      num_items: 1,
+    });
     return () => document.body.classList.remove("hide-chat-mobile");
   }, [state.carrierName, state.carrierSlug]);
 
