@@ -231,13 +231,18 @@ const Checkout = () => {
           160,
         ),
     });
-    trackAxon("BeginCheckout", {
-      content_ids: [state.carrierSlug],
-      content_name: state.carrierName,
-      content_category: state.carrierSlug,
-      value: Number(state.amount) || 0,
+    const beginAmount = Number(state.amount) || 0;
+    trackAxon("begin_checkout", {
       currency: "USD",
-      num_items: 1,
+      value: beginAmount,
+      items: [
+        {
+          item_id: String(state.carrierSlug || "recharge"),
+          item_name: state.carrierName || "Recharge",
+          price: beginAmount,
+          quantity: 1,
+        },
+      ],
     });
     return () => document.body.classList.remove("hide-chat-mobile");
   }, [state.carrierName, state.carrierSlug]);

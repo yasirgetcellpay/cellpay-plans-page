@@ -1,23 +1,35 @@
 // AppLovin Axon Pixel helper. The base pixel is loaded in index.html and
-// exposes `window.AlPixelObject.track(event, params?)`. We wrap it here so
-// callers can fire ecommerce events without worrying about the pixel being
-// uninitialized or breaking the page if it failed to load.
+// exposes a global `axon(...)` queue function (the new Axon Pixel API).
+// Event names are snake_case (page_view, view_item, add_to_cart,
+// begin_checkout, purchase) and payloads follow the Axon item / user_data
+// schema documented at:
+// https://support.applovin.com/en/growth/promoting-your-websites/track-and-optimize/events-and-objects
 
 type AxonParams = Record<string, unknown>;
 
-interface AxonPixel {
-  track: (event: string, params?: AxonParams) => void;
-}
+type AxonFn = (op: "init" | "track", eventName?: string, data?: AxonParams) => void;
 
 declare global {
   interface Window {
-    AlPixelObject?: AxonPixel;
+    axon?: AxonFn;
   }
+}
+
+export interface AxonItem {
+  item_id: string;
+  item_name?: string;
+  price?: number;
+  quantity?: number;
+  item_category_id?: number;
+  item_variant_id?: string;
+  item_brand?: string;
 }
 
 export function trackAxon(event: string, params?: AxonParams): void {
   try {
-    window.AlPixelObject?.track(event, params);
+    if (typeof window === "undefined" || typeof window.axon !== "function") return;
+    if (params === undefined) window.axon("track", event);
+    else window.axon("track", event, params);
   } catch {
     /* swallow — analytics must never break the app */
   }
