@@ -7,6 +7,7 @@ import { LegalBar } from "@/components/LegalBar";
 import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 import { useLang, t, langPath } from "@/lib/i18n";
 import { applySeoHead } from "@/lib/seo";
+import { trackAxon } from "@/lib/axon";
 
 interface TransactionData {
   id?: number;
@@ -123,6 +124,15 @@ const OrderConfirmation = () => {
             currency: "USD",
             items: [{ item_id: itemId, item_name: itemName, price: amount, quantity: 1 }],
           },
+        });
+        trackAxon("Purchase", {
+          content_ids: [itemId || carrierName || "recharge"],
+          content_name: itemName,
+          content_category: itemId || "recharge",
+          value: amount + fee,
+          currency: "USD",
+          num_items: 1,
+          transaction_id: txnId,
         });
       } catch { /* ignore analytics errors */ }
     } catch {

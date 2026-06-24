@@ -10,6 +10,7 @@ import { PlanGrid } from "@/components/PlanGrid";
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
+import { trackAxon } from "@/lib/axon";
 import { t, type Language } from "@/lib/i18n";
 import {
   CricketQuickPayContent,
@@ -244,6 +245,12 @@ const DynamicCarrier = ({
           (seoSrc.seo_schema as string) ||
           "";
         applySeoHead({ title, description, keywords, schema });
+        trackAxon("ViewItem", {
+          content_ids: [carrierSlug],
+          content_name: (data.name as string) || carrierSlug,
+          content_category: "prepaid_carrier",
+          currency: "USD",
+        });
 
         // Cricket-specific SEO override — tightens metadata around the
         // "cricket quick pay" head term to push from position 2 → 1.
@@ -399,6 +406,14 @@ const DynamicCarrier = ({
     }
     const planAmount = Number(plan.price.replace("$", ""));
     const selectedPlan = plans.find((p) => p.amount === planAmount);
+    trackAxon("AddToCart", {
+      content_ids: [selectedPlan?.plan_id || carrierSlug],
+      content_name: selectedPlan?.name || carrierName,
+      content_category: carrierSlug,
+      value: planAmount,
+      currency: "USD",
+      num_items: 1,
+    });
     navigate(lang === "es" ? "/es/checkout" : "/checkout", {
       state: {
         phone,
@@ -440,6 +455,14 @@ const DynamicCarrier = ({
     }
     // Custom amount path → use carrier_plans.carrier.id when available
     const selectedPlan = plans.find((p) => p.amount === amountNum);
+    trackAxon("AddToCart", {
+      content_ids: [selectedPlan?.plan_id || rangePlanId || carrierSlug],
+      content_name: selectedPlan?.name || carrierName,
+      content_category: carrierSlug,
+      value: amountNum,
+      currency: "USD",
+      num_items: 1,
+    });
     navigate(lang === "es" ? "/es/checkout" : "/checkout", {
       state: {
         phone,

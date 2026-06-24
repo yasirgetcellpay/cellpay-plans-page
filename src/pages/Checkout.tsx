@@ -20,6 +20,7 @@ import {
 } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
 import { applySeoHead } from "@/lib/seo";
+import { trackAxon } from "@/lib/axon";
 import { getGclid } from "@/lib/tracking";
 import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib/subdivisions";
 import { useLang, t } from "@/lib/i18n";
@@ -229,6 +230,14 @@ const Checkout = () => {
           0,
           160,
         ),
+    });
+    trackAxon("BeginCheckout", {
+      content_ids: [state.carrierSlug],
+      content_name: state.carrierName,
+      content_category: state.carrierSlug,
+      value: Number(state.amount) || 0,
+      currency: "USD",
+      num_items: 1,
     });
     return () => document.body.classList.remove("hide-chat-mobile");
   }, [state.carrierName, state.carrierSlug]);
