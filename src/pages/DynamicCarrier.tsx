@@ -223,8 +223,8 @@ const DynamicCarrier = ({
 
         // SEO / FAQ
         if (data.seo_carrier?.faqs) setFaqs(data.seo_carrier.faqs);
-        if (data.seo_carrier?.recommended?.h1) setHeading(data.seo_carrier.recommended.h1);
-        if (data.seo_carrier?.recommended?.h2) setSubheading(data.seo_carrier.recommended.h2);
+        // H1/H2 are intentionally static across all product pages — do not override from API
+
 
         // Dynamic <head> SEO tags from API (fall back to seo_carrier nested fields)
         const seoSrc = (data.seo_carrier ?? {}) as Record<string, unknown>;
