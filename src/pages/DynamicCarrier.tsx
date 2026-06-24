@@ -245,6 +245,12 @@ const DynamicCarrier = ({
           (seoSrc.seo_schema as string) ||
           "";
         applySeoHead({ title, description, keywords, schema });
+        trackAxon("ViewItem", {
+          content_ids: [carrierSlug],
+          content_name: (data.name as string) || carrierSlug,
+          content_category: "prepaid_carrier",
+          currency: "USD",
+        });
 
         // Cricket-specific SEO override — tightens metadata around the
         // "cricket quick pay" head term to push from position 2 → 1.
