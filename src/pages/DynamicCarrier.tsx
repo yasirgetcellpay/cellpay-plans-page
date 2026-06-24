@@ -455,6 +455,14 @@ const DynamicCarrier = ({
     }
     // Custom amount path → use carrier_plans.carrier.id when available
     const selectedPlan = plans.find((p) => p.amount === amountNum);
+    trackAxon("AddToCart", {
+      content_ids: [selectedPlan?.plan_id || rangePlanId || carrierSlug],
+      content_name: selectedPlan?.name || carrierName,
+      content_category: carrierSlug,
+      value: amountNum,
+      currency: "USD",
+      num_items: 1,
+    });
     navigate(lang === "es" ? "/es/checkout" : "/checkout", {
       state: {
         phone,
