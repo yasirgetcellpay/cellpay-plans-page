@@ -93,6 +93,24 @@
 
     <!-- Groas -->
     <script src="https://app.groas.ai/content.js" type="text/javascript" defer></script>
+
+    <!-- AppLovin Axon Pixel -->
+    <script>
+      !function(w, d, t) {
+        w.AlPixelObject = w.AlPixelObject || {};
+        var pixel = w.AlPixelObject;
+        pixel.track = pixel.track || function() {
+          (pixel.queue = pixel.queue || []).push(arguments);
+        };
+        pixel.pixelId = "0268d37d-5fe5-46ba-94b9-b5371fc16823";
+        var a = d.createElement(t);
+        a.async = !0;
+        a.src = "https://pixel.axon.ai/pixel.js";
+        var b = d.getElementsByTagName(t)[0];
+        b.parentNode.insertBefore(a, b);
+      }(window, document, "script");
+      AlPixelObject.track("PageView");
+    </script>
 </head>
 
   <body>
