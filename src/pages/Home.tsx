@@ -227,14 +227,9 @@ const Home = () => {
       <nav className="sticky top-0 z-50 bg-card border-b-4 border-cellpay-green shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex justify-center h-14 sm:h-20 items-center">
-            {/* CellPay wordmark — feedback Page 7 #2 */}
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-cellpay-green text-primary-foreground shadow-sm">
-                <Smartphone className="h-4 w-4 sm:h-5 sm:w-5" />
-              </span>
-              <span className="text-xl sm:text-2xl font-extrabold text-cellpay-green tracking-tight">
-                CellPay
-              </span>
+            {/* CellPay logo */}
+            <div className="flex items-center">
+              <img src={cellpayLogo} alt="CellPay" className="h-8 sm:h-11 w-auto object-contain" />
             </div>
             {isLoggedIn && (
               <div className="absolute right-0" ref={dropdownRef}>
