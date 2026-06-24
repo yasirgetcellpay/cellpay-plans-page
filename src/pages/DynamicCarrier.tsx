@@ -245,11 +245,14 @@ const DynamicCarrier = ({
           (seoSrc.seo_schema as string) ||
           "";
         applySeoHead({ title, description, keywords, schema });
-        trackAxon("ViewItem", {
-          content_ids: [carrierSlug],
-          content_name: (data.name as string) || carrierSlug,
-          content_category: "prepaid_carrier",
+        trackAxon("view_item", {
           currency: "USD",
+          items: [
+            {
+              item_id: carrierSlug,
+              item_name: (data.name as string) || carrierSlug,
+            },
+          ],
         });
 
         // Cricket-specific SEO override — tightens metadata around the
