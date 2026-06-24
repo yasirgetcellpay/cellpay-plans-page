@@ -96,20 +96,10 @@
 
     <!-- AppLovin Axon Pixel -->
     <script>
-      !function(w, d, t) {
-        w.AlPixelObject = w.AlPixelObject || {};
-        var pixel = w.AlPixelObject;
-        pixel.track = pixel.track || function() {
-          (pixel.queue = pixel.queue || []).push(arguments);
-        };
-        pixel.pixelId = "0268d37d-5fe5-46ba-94b9-b5371fc16823";
-        var a = d.createElement(t);
-        a.async = !0;
-        a.src = "https://pixel.axon.ai/pixel.js";
-        var b = d.getElementsByTagName(t)[0];
-        b.parentNode.insertBefore(a, b);
-      }(window, document, "script");
-      AlPixelObject.track("PageView");
+      var AXON_EVENT_KEY = "0268d37d-5fe5-46ba-94b9-b5371fc16823";
+      !function(e,r){var t=["https://s.axon.ai/pixel.js","https://res4.applovin.com/p/l/loader.iife.js"];if(!e.axon){var a=e.axon=function(){a.performOperation?a.performOperation.apply(a,arguments):a.operationQueue.push(arguments)};a.operationQueue=[],a.ts=Date.now(),a.eventKey=AXON_EVENT_KEY;for(var n=r.getElementsByTagName("script")[0],o=0;o<t.length;o++){var i=r.createElement("script");i.async=!0,i.src=t[o],n.parentNode.insertBefore(i,n)}}}(window,document);
+      axon("init");
+      axon("track", "page_view");
     </script>
 </head>
 
