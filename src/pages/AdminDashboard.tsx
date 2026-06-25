@@ -357,6 +357,9 @@ export default function AdminDashboard() {
   const [customerSearch, setCustomerSearch] = useState("");
   const [customerCarrierFilter, setCustomerCarrierFilter] = useState<string>("all");
   const [customerRepeatOnly, setCustomerRepeatOnly] = useState(false);
+  const [customerPage, setCustomerPage] = useState(1);
+  const CUSTOMERS_PER_PAGE = 500;
+  useEffect(() => { setCustomerPage(1); }, [customerSearch, customerCarrierFilter, customerRepeatOnly, range]);
   const filteredCustomers = useMemo(() => {
     const s = customerSearch.toLowerCase().trim();
     return byCustomer.filter((c) => {
