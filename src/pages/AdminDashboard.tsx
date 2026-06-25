@@ -166,7 +166,9 @@ export default function AdminDashboard() {
       .on("postgres_changes", { event: "*", schema: "public", table: "transaction_logs" }, (payload) => {
         setLogs((prev) => {
           if (payload.eventType === "INSERT") {
-            return [payload.new as TxLog, ...prev].slice(0, 1000);
+            const next = payload.new as TxLog;
+            if (prev.some((l) => l.id === next.id)) return prev;
+            return [next, ...prev];
           }
           if (payload.eventType === "UPDATE") {
             return prev.map((l) => (l.id === (payload.new as TxLog).id ? (payload.new as TxLog) : l));
