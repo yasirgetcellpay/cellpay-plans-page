@@ -357,6 +357,9 @@ export default function AdminDashboard() {
   const [customerSearch, setCustomerSearch] = useState("");
   const [customerCarrierFilter, setCustomerCarrierFilter] = useState<string>("all");
   const [customerRepeatOnly, setCustomerRepeatOnly] = useState(false);
+  const [customerPage, setCustomerPage] = useState(1);
+  const CUSTOMERS_PER_PAGE = 500;
+  useEffect(() => { setCustomerPage(1); }, [customerSearch, customerCarrierFilter, customerRepeatOnly, range]);
   const filteredCustomers = useMemo(() => {
     const s = customerSearch.toLowerCase().trim();
     return byCustomer.filter((c) => {
@@ -1090,7 +1093,7 @@ export default function AdminDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredCustomers.slice(0, 500).map((c) => (
+                    {filteredCustomers.slice((customerPage - 1) * CUSTOMERS_PER_PAGE, customerPage * CUSTOMERS_PER_PAGE).map((c) => (
                       <TableRow key={`${c.email}-${c.phone}`}>
                         <TableCell className="text-xs">{c.name || "—"}</TableCell>
                         <TableCell className="text-xs">{c.email || "—"}</TableCell>
@@ -1111,6 +1114,25 @@ export default function AdminDashboard() {
                   </TableBody>
                 </Table>
               </div>
+              {filteredCustomers.length > CUSTOMERS_PER_PAGE && (() => {
+                const totalPages = Math.ceil(filteredCustomers.length / CUSTOMERS_PER_PAGE);
+                const start = (customerPage - 1) * CUSTOMERS_PER_PAGE + 1;
+                const end = Math.min(customerPage * CUSTOMERS_PER_PAGE, filteredCustomers.length);
+                return (
+                  <div className="flex items-center justify-between gap-2 pt-4 flex-wrap">
+                    <div className="text-xs text-muted-foreground">
+                      Showing {start.toLocaleString()}–{end.toLocaleString()} of {filteredCustomers.length.toLocaleString()}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" disabled={customerPage === 1} onClick={() => setCustomerPage(1)}>First</Button>
+                      <Button variant="outline" size="sm" disabled={customerPage === 1} onClick={() => setCustomerPage((p) => Math.max(1, p - 1))}>Prev</Button>
+                      <span className="text-xs px-2">Page {customerPage} / {totalPages}</span>
+                      <Button variant="outline" size="sm" disabled={customerPage >= totalPages} onClick={() => setCustomerPage((p) => Math.min(totalPages, p + 1))}>Next</Button>
+                      <Button variant="outline" size="sm" disabled={customerPage >= totalPages} onClick={() => setCustomerPage(totalPages)}>Last</Button>
+                    </div>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </div>
