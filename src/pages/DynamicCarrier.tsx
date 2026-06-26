@@ -302,6 +302,17 @@ const DynamicCarrier = ({
           });
         }
 
+        // Per-route overrides (e.g. /guest-metro-pcs.html) — applied LAST so they win.
+        if (seoTitleOverride || seoDescriptionOverride) {
+          applySeoHead({
+            title: seoTitleOverride || "",
+            description: seoDescriptionOverride || "",
+          });
+        }
+        if (seoH1Override) setHeading(seoH1Override);
+        if (seoIntroOverride) setSubheading(seoIntroOverride);
+
+
 
         // Plans: support both `carrier_plans` (range/custom amount) and `fixed_plans` (fixed buttons).
         // `fixed_plans` may live at the response root OR nested inside `carrier_plans.fixed_plans`.
