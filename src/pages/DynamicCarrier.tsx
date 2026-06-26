@@ -94,6 +94,10 @@ interface DynamicCarrierProps {
   brandColor: string;
   logo?: string;
   lang?: Language;
+  seoTitleOverride?: string;
+  seoDescriptionOverride?: string;
+  seoH1Override?: string;
+  seoIntroOverride?: string;
 }
 
 interface NormalizedPlan {
@@ -149,6 +153,10 @@ const DynamicCarrier = ({
   brandColor,
   logo,
   lang = "en",
+  seoTitleOverride,
+  seoDescriptionOverride,
+  seoH1Override,
+  seoIntroOverride,
 }: DynamicCarrierProps) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
