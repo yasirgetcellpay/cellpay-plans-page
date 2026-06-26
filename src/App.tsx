@@ -258,6 +258,7 @@ const App = () => (
         {/* Metro PCS legacy alias → canonical /metropcs.html */}
         <Route path="/metro-pcs.html" element={<Navigate to="/metropcs.html" replace />} />
         <Route path="/es/metro-pcs.html" element={<Navigate to="/es/metropcs.html" replace />} />
+        <Route path="/guest-metro-pcs.html" element={<Navigate to="/metropcs.html" replace />} />
         {/* Legacy Red Pocket .html URL — render same DynamicCarrier so bots get real content (200, not 404) */}
         <Route
           path="/red-pocket-mobile.html"
