@@ -122,6 +122,36 @@ const htmlAliasPlugin = (): Plugin => ({
       );
     }
     const html = fs.readFileSync(indexPath, "utf-8");
+    // Guest landing pages: H1 + intro paragraph injected into the static
+    // shell body so crawlers (Google AdsBot, etc.) see real above-the-fold
+    // content in raw HTML, not just after React hydration.
+    const GUEST_CONTENT: Record<string, { h1: string; intro: string }> = {
+      "guest-metro-pcs.html": {
+        h1: "Metro PCS Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+      },
+      "guest-h2o.html": {
+        h1: "H2O Wireless Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your H2O Wireless bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+      },
+      "guest-pageplus.html": {
+        h1: "Page Plus Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your Page Plus Cellular bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+      },
+      "guest-simple-mobile.html": {
+        h1: "Simple Mobile Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your Simple Mobile bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+      },
+      "guest-net10.html": {
+        h1: "NET10 Wireless Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your NET10 Wireless bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+      },
+      "guest-lyca.html": {
+        h1: "Lycamobile Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your Lycamobile bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+      },
+    };
+
 
     // Per-route SEO metadata for static alias HTML files.
     // Bots and social scrapers read the static HTML before JS runs, so each
