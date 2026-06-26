@@ -94,6 +94,10 @@ interface DynamicCarrierProps {
   brandColor: string;
   logo?: string;
   lang?: Language;
+  seoTitleOverride?: string;
+  seoDescriptionOverride?: string;
+  seoH1Override?: string;
+  seoIntroOverride?: string;
 }
 
 interface NormalizedPlan {
@@ -149,6 +153,10 @@ const DynamicCarrier = ({
   brandColor,
   logo,
   lang = "en",
+  seoTitleOverride,
+  seoDescriptionOverride,
+  seoH1Override,
+  seoIntroOverride,
 }: DynamicCarrierProps) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -172,8 +180,18 @@ const DynamicCarrier = ({
   const [rangeCarrierId, setRangeCarrierId] = useState<number | undefined>(undefined); // carrier_plans.carrier.id
   const [plans, setPlans] = useState<NormalizedPlan[]>([]);
   const [faqs, setFaqs] = useState<Array<{ question: string; answer: string }>>([]);
-  const [heading, setHeading] = useState("");
-  const [subheading, setSubheading] = useState("");
+  const [heading, setHeading] = useState(seoH1Override || "");
+  const [subheading, setSubheading] = useState(seoIntroOverride || "");
+
+  // Apply per-route SEO overrides synchronously on mount so they're set before the API roundtrip.
+  useEffect(() => {
+    if (seoTitleOverride || seoDescriptionOverride) {
+      applySeoHead({
+        title: seoTitleOverride || "",
+        description: seoDescriptionOverride || "",
+      });
+    }
+  }, [seoTitleOverride, seoDescriptionOverride]);
 
   // Postpaid carriers — show "Postpaid Account?" link to corporate site (feedback)
   const postpaidUrls: Record<string, string> = {
@@ -293,6 +311,17 @@ const DynamicCarrier = ({
             schemaSecondary: longForm.schema,
           });
         }
+
+        // Per-route overrides (e.g. /guest-metro-pcs.html) — applied LAST so they win.
+        if (seoTitleOverride || seoDescriptionOverride) {
+          applySeoHead({
+            title: seoTitleOverride || "",
+            description: seoDescriptionOverride || "",
+          });
+        }
+        if (seoH1Override) setHeading(seoH1Override);
+        if (seoIntroOverride) setSubheading(seoIntroOverride);
+
 
 
         // Plans: support both `carrier_plans` (range/custom amount) and `fixed_plans` (fixed buttons).
