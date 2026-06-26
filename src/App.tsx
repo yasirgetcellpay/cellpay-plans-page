@@ -275,6 +275,88 @@ const App = () => (
             />
           }
         />
+        {/* Guest/one-time payment landing pages — render full DynamicCarrier (no redirect) so Google Ads sees real content. */}
+        <Route
+          path="/guest-h2o.html"
+          element={
+            <DynamicCarrier
+              carrierName="H2O Wireless"
+              carrierSlug="h2o"
+              carrierId={6}
+              brandColor="hsl(195,85%,50%)"
+              logo={h2oLogo}
+              seoTitleOverride="H2O Wireless Guest Payment — One-Time Refill | CellPay"
+              seoDescriptionOverride="Make an H2O Wireless guest payment in seconds. No login required — enter your phone number, choose your 30-day plan, and pay securely. Instant top-up."
+              seoH1Override="H2O Wireless Guest Payment — One-Time Refill, No Login Required"
+              seoIntroOverride="Pay your H2O Wireless bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly."
+            />
+          }
+        />
+        <Route
+          path="/guest-pageplus.html"
+          element={
+            <DynamicCarrier
+              carrierName="Page Plus"
+              carrierSlug="pageplus"
+              carrierId={1}
+              brandColor="hsl(0,70%,50%)"
+              logo={pageplusLogo}
+              seoTitleOverride="Page Plus Guest Payment — One-Time Refill | CellPay"
+              seoDescriptionOverride="Make a Page Plus Cellular guest payment in seconds. No login required — enter your phone number, choose your 30-day plan, and pay securely. Instant top-up."
+              seoH1Override="Page Plus Guest Payment — One-Time Refill, No Login Required"
+              seoIntroOverride="Pay your Page Plus Cellular bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly."
+            />
+          }
+        />
+        <Route
+          path="/guest-simple-mobile.html"
+          element={
+            <DynamicCarrier
+              carrierName="Simple Mobile"
+              carrierSlug="s1"
+              carrierId={15}
+              brandColor="hsl(101,67%,44%)"
+              logo={simpleMobileLogo}
+              seoTitleOverride="Simple Mobile Guest Payment — One-Time Refill | CellPay"
+              seoDescriptionOverride="Make a Simple Mobile guest payment in seconds. No login required — enter your phone number, choose your 30-day plan, and pay securely. Instant top-up."
+              seoH1Override="Simple Mobile Guest Payment — One-Time Refill, No Login Required"
+              seoIntroOverride="Pay your Simple Mobile bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly."
+            />
+          }
+        />
+        <Route
+          path="/guest-net10.html"
+          element={
+            <DynamicCarrier
+              carrierName="Net10 Wireless"
+              carrierSlug="net10"
+              carrierId={7}
+              brandColor="hsl(195,100%,50%)"
+              logo={net10Logo}
+              seoTitleOverride="NET10 Wireless Guest Payment — One-Time Refill | CellPay"
+              seoDescriptionOverride="Make a NET10 Wireless guest payment in seconds. No login required — enter your phone number, choose your 30-day plan, and pay securely. Instant top-up."
+              seoH1Override="NET10 Wireless Guest Payment — One-Time Refill, No Login Required"
+              seoIntroOverride="Pay your NET10 Wireless bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly."
+            />
+          }
+        />
+        <Route
+          path="/guest-lyca.html"
+          element={
+            <DynamicCarrier
+              carrierName="Lyca Mobile"
+              carrierSlug="lyca"
+              carrierId={29}
+              brandColor="hsl(220,50%,22%)"
+              logo={lycaLogo}
+              seoTitleOverride="Lycamobile Guest Payment — One-Time Refill | CellPay"
+              seoDescriptionOverride="Make a Lycamobile guest payment in seconds. No login required — enter your phone number, choose your 30-day plan, and pay securely. Instant top-up."
+              seoH1Override="Lycamobile Guest Payment — One-Time Refill, No Login Required"
+              seoIntroOverride="Pay your Lycamobile bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly."
+            />
+          }
+        />
+
         {/* Legacy Red Pocket .html URL — render same DynamicCarrier so bots get real content (200, not 404) */}
         <Route
           path="/red-pocket-mobile.html"

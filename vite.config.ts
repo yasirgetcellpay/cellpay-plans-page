@@ -20,6 +20,11 @@ const HTML_ROUTES = [
   "metropcs.html",
   "metro-pcs.html",
   "guest-metro-pcs.html",
+  "guest-h2o.html",
+  "guest-pageplus.html",
+  "guest-simple-mobile.html",
+  "guest-net10.html",
+  "guest-lyca.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
@@ -117,6 +122,36 @@ const htmlAliasPlugin = (): Plugin => ({
       );
     }
     const html = fs.readFileSync(indexPath, "utf-8");
+    // Guest landing pages: H1 + intro paragraph injected into the static
+    // shell body so crawlers (Google AdsBot, etc.) see real above-the-fold
+    // content in raw HTML, not just after React hydration.
+    const GUEST_CONTENT: Record<string, { h1: string; intro: string }> = {
+      "guest-metro-pcs.html": {
+        h1: "Metro PCS Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+      },
+      "guest-h2o.html": {
+        h1: "H2O Wireless Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your H2O Wireless bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+      },
+      "guest-pageplus.html": {
+        h1: "Page Plus Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your Page Plus Cellular bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+      },
+      "guest-simple-mobile.html": {
+        h1: "Simple Mobile Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your Simple Mobile bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+      },
+      "guest-net10.html": {
+        h1: "NET10 Wireless Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your NET10 Wireless bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+      },
+      "guest-lyca.html": {
+        h1: "Lycamobile Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your Lycamobile bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+      },
+    };
+
 
     // Per-route SEO metadata for static alias HTML files.
     // Bots and social scrapers read the static HTML before JS runs, so each
@@ -140,6 +175,11 @@ const htmlAliasPlugin = (): Plugin => ({
       "metropcs.html":             { title: "Metro by T-Mobile Refill — Instant Top-Up | CellPay",   description: "Recharge Metro by T-Mobile instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
       "metro-pcs.html":            { title: "Metro PCS Refill — Instant Top-Up | CellPay",           description: "Recharge Metro PCS instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
       "guest-metro-pcs.html":      { title: "Metro PCS Guest Refill — Instant Top-Up | CellPay",     description: "Recharge Metro PCS as a guest — no login required. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "guest-h2o.html":            { title: "H2O Wireless Guest Refill — Instant Top-Up | CellPay",  description: "Make an H2O Wireless guest payment in seconds. No login required — pick a 30-day plan, pay securely, and your refill is delivered instantly." },
+      "guest-pageplus.html":       { title: "Page Plus Guest Refill — Instant Top-Up | CellPay",     description: "Pay your Page Plus Cellular bill as a guest. No login required — pick a 30-day plan, check out securely, and refill in seconds." },
+      "guest-simple-mobile.html":  { title: "Simple Mobile Guest Refill — Instant Top-Up | CellPay", description: "Make a Simple Mobile guest payment in seconds. No login required — pick a 30-day plan, pay securely, and refill instantly." },
+      "guest-net10.html":          { title: "NET10 Wireless Guest Refill — Instant Top-Up | CellPay",description: "Pay your NET10 Wireless bill as a guest. No login required — pick a 30-day plan, check out securely, and refill in seconds." },
+      "guest-lyca.html":           { title: "Lycamobile Guest Refill — Instant Top-Up | CellPay",    description: "Make a Lycamobile guest payment in seconds. No login required — pick a 30-day plan, pay securely, and refill instantly." },
       "net10.html":                { title: "Net10 Wireless Refill — Instant Top-Up | CellPay",      description: "Recharge Net10 Wireless instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
       "pageplus.html":             { title: "Page Plus Cellular Refill — Instant Top-Up | CellPay",  description: "Recharge Page Plus Cellular instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
       "s1.html":                   { title: "Simple Mobile Refill — Instant Top-Up | CellPay",       description: "Recharge Simple Mobile instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
@@ -296,6 +336,23 @@ const htmlAliasPlugin = (): Plugin => ({
       }
       if (extras.length) {
         out = out.replace(/<\/head>/i, `  ${extras.join("\n  ")}\n  </head>`);
+      }
+
+      // Inject H1 + intro into the static body for guest landing pages so
+      // crawlers see real above-the-fold content in raw HTML (before JS).
+      // React's createRoot replaces #root children on hydration, so users
+      // briefly see this fallback then the full app mounts — no lasting
+      // visual change to the app's design.
+      const guest = GUEST_CONTENT[route];
+      if (guest) {
+        const prerender =
+          `<div id="root">` +
+          `<main role="main" style="font-family:'Open Sans',system-ui,Arial,sans-serif;max-width:760px;margin:48px auto;padding:0 20px;color:#0f172a;text-align:center">` +
+          `<h1 style="font-size:28px;line-height:1.25;font-weight:800;margin:0 0 16px">${escAttr(guest.h1)}</h1>` +
+          `<p style="font-size:16px;line-height:1.55;margin:0;color:#334155">${escAttr(guest.intro)}</p>` +
+          `</main>` +
+          `</div>`;
+        out = out.replace(/<div id="root"><\/div>/i, prerender);
       }
 
       return out;
