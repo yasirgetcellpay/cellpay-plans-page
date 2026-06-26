@@ -258,7 +258,23 @@ const App = () => (
         {/* Metro PCS legacy alias → canonical /metropcs.html */}
         <Route path="/metro-pcs.html" element={<Navigate to="/metropcs.html" replace />} />
         <Route path="/es/metro-pcs.html" element={<Navigate to="/es/metropcs.html" replace />} />
-        <Route path="/guest-metro-pcs.html" element={<Navigate to="/metropcs.html" replace />} />
+        {/* Metro PCS guest/one-time payment landing — renders full Metro PCS content (no redirect) so Google Ads sees real content. */}
+        <Route
+          path="/guest-metro-pcs.html"
+          element={
+            <DynamicCarrier
+              carrierName="Metro PCS"
+              carrierSlug="metropcs"
+              carrierId={38}
+              brandColor="hsl(270,60%,32%)"
+              logo={metroLogo}
+              seoTitleOverride="Metro PCS Guest Payment — One-Time Refill | CellPay"
+              seoDescriptionOverride="Make a Metro by T-Mobile (Metro PCS) guest payment in seconds. No login required — enter your phone number, choose your 30-day plan, and pay securely. Instant top-up."
+              seoH1Override="Metro PCS Guest Payment — One-Time Refill, No Login Required"
+              seoIntroOverride="Pay your Metro by T-Mobile (Metro PCS) bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly."
+            />
+          }
+        />
         {/* Legacy Red Pocket .html URL — render same DynamicCarrier so bots get real content (200, not 404) */}
         <Route
           path="/red-pocket-mobile.html"
