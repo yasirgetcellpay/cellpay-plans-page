@@ -338,6 +338,23 @@ const htmlAliasPlugin = (): Plugin => ({
         out = out.replace(/<\/head>/i, `  ${extras.join("\n  ")}\n  </head>`);
       }
 
+      // Inject H1 + intro into the static body for guest landing pages so
+      // crawlers see real above-the-fold content in raw HTML (before JS).
+      // React's createRoot replaces #root children on hydration, so users
+      // briefly see this fallback then the full app mounts — no lasting
+      // visual change to the app's design.
+      const guest = GUEST_CONTENT[route];
+      if (guest) {
+        const prerender =
+          `<div id="root">` +
+          `<main role="main" style="font-family:'Open Sans',system-ui,Arial,sans-serif;max-width:760px;margin:48px auto;padding:0 20px;color:#0f172a;text-align:center">` +
+          `<h1 style="font-size:28px;line-height:1.25;font-weight:800;margin:0 0 16px">${escAttr(guest.h1)}</h1>` +
+          `<p style="font-size:16px;line-height:1.55;margin:0;color:#334155">${escAttr(guest.intro)}</p>` +
+          `</main>` +
+          `</div>`;
+        out = out.replace(/<div id="root"><\/div>/i, prerender);
+      }
+
       return out;
     };
 
