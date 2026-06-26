@@ -274,6 +274,7 @@ const App = () => (
               seoIntroOverride="Pay your Metro by T-Mobile (Metro PCS) bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly."
             />
           }
+        />
         {/* Guest/one-time payment landing pages — render full DynamicCarrier (no redirect) so Google Ads sees real content. */}
         <Route
           path="/guest-h2o.html"
