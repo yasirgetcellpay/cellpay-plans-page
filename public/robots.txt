@@ -1,12 +1,13 @@
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /admin/
-Disallow: /checkout
-Disallow: /payment-callback
-Disallow: /cashapp-return
-Disallow: /order-confirmation
-Disallow: /profile
-Disallow: /orders
+
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: AdsBot-Google-Mobile
+Allow: /
+
+User-agent: Googlebot
+Allow: /
 
 Sitemap: https://cellpay-plans-page.lovable.app/sitemap.xml
