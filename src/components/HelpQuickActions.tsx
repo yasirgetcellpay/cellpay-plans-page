@@ -18,13 +18,25 @@ interface HelpQuickActionsProps {
 }
 
 interface LastTransaction {
-  phoneNumber?: string;
+  id?: string | number;
+  phoneNumber?: string | number;
   pinNumber?: string;
   ccTxnId?: string;
+  ccNumber?: string;
   amount?: string | number;
   fee?: string | number;
+  date?: string | number;
+  resultText?: string;
+  result?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  payMethod?: string;
+  transactionType?: string;
+  approved?: boolean;
   msg?: string;
 }
+
 
 const normalize = (raw: string) => raw.trim();
 
