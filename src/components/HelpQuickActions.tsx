@@ -103,7 +103,7 @@ export const HelpQuickActions = ({ brandColor = "hsl(101,67%,44%)" }: HelpQuickA
 
       if (ok) {
         const resultStr = String(data.result || "").toLowerCase();
-        const approved = !resultStr.includes("fail") && !resultStr.includes("decline") && !resultStr.includes("error");
+        const approved = ok && !resultStr.includes("decline") && !resultStr.includes("error");
         setLookupResult({
           id: data.ID as string | number | undefined,
           phoneNumber: data.phoneNumber as string | number | undefined,
