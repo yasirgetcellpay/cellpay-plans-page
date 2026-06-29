@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CarrierFooter } from "@/components/CarrierFooter";
+import { HelpQuickActions } from "@/components/HelpQuickActions";
 import { applySeoHead } from "@/lib/seo";
 import {
   Accordion,
@@ -55,6 +56,7 @@ const FAQ = () => {
           ))}
         </Accordion>
       </main>
+      <HelpQuickActions />
       <CarrierFooter brandColor="hsl(101,67%,44%)" carrierName="CellPay" />
     </div>
   );
