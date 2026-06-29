@@ -95,7 +95,7 @@ export const HelpQuickActions = ({ brandColor = "hsl(101,67%,44%)" }: HelpQuickA
       await callProxy({
         endpoint: "autopay/unsubscribe",
         method: "POST",
-        body: { identifier: v },
+        payload: { identifier: v },
       }).catch(() => null);
 
       toast({
