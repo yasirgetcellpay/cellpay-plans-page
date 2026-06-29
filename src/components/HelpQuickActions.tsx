@@ -89,20 +89,53 @@ export const HelpQuickActions = ({ brandColor = "hsl(101,67%,44%)" }: HelpQuickA
   const handleUnsubscribe = async () => {
     const v = normalize(value);
     if (!v) return;
+    const digits = v.replace(/\D/g, "");
+    const phone = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+    if (phone.length !== 10) {
+      toast({
+        title: "Invalid phone number",
+        description: "Please enter a valid 10-digit US wireless number.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSubmitting(true);
     try {
-      // Best-effort: log the request. Always confirm to the user.
-      await callProxy({
+      const raw = await callProxy({
         endpoint: "autopay/unsubscribe",
         method: "POST",
-        payload: { identifier: v },
-      }).catch(() => null);
-
-      toast({
-        title: "Autopay cancellation requested",
-        description: "We've received your request. Your autopay will be cancelled within 24 hours and a confirmation will be sent.",
+        payload: { phone },
       });
-      close();
+
+      let data: Record<string, unknown> = {};
+      if (raw && typeof raw === "object") {
+        const obj = raw as Record<string, unknown>;
+        data = (obj.data && typeof obj.data === "object" ? obj.data : obj) as Record<string, unknown>;
+        if (data.data && typeof data.data === "object") data = data.data as Record<string, unknown>;
+      }
+      const status = data.status;
+      const ok = status === true || status === "true" || String(status || "").toLowerCase() === "success";
+      const msg = (data.msg || data.Message || data.message) as string | undefined;
+
+      if (ok) {
+        toast({
+          title: "Autopay cancelled",
+          description: msg || `Autopay has been cancelled for ${phone}.`,
+        });
+        close();
+      } else {
+        toast({
+          title: "Unable to cancel autopay",
+          description: msg || "We couldn't find an active autopay for that number. Please contact support@getcellpay.com.",
+          variant: "destructive",
+        });
+      }
+    } catch {
+      toast({
+        title: "Request failed",
+        description: "Please try again or contact support@getcellpay.com.",
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(false);
     }
