@@ -440,6 +440,9 @@ const Home = () => {
         </div>
       </section>
 
+      <HelpQuickActions />
+
+
       <PaymentBar lang={lang} />
       <Footer />
       <LegalBar />
