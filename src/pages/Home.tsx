@@ -369,6 +369,9 @@ const Home = () => {
         </div>
       </main>
 
+      <HelpQuickActions />
+
+
       {/* Popular carrier quick links — keyword-rich internal anchors for SEO authority flow */}
       <section className="bg-background border-t border-border">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 text-center">
