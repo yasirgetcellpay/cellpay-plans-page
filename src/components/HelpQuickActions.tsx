@@ -102,12 +102,25 @@ export const HelpQuickActions = ({ brandColor = "hsl(101,67%,44%)" }: HelpQuickA
       const msg = (data.msg || data.Message || data.message) as string | undefined;
 
       if (ok) {
+        const resultStr = String(data.result || "").toLowerCase();
+        const approved = !resultStr.includes("fail") && !resultStr.includes("decline") && !resultStr.includes("error");
         setLookupResult({
-          phoneNumber: data.phoneNumber as string | undefined,
+          id: data.ID as string | number | undefined,
+          phoneNumber: data.phoneNumber as string | number | undefined,
           pinNumber: data.pinNumber as string | undefined,
           ccTxnId: data.ccTxnId as string | undefined,
+          ccNumber: data.ccNumber as string | undefined,
           amount: data.amount as string | number | undefined,
           fee: data.fee as string | number | undefined,
+          date: data.date as string | number | undefined,
+          resultText: data.resultText as string | undefined,
+          result: data.result as string | undefined,
+          firstName: data.firstName as string | undefined,
+          lastName: data.lastName as string | undefined,
+          email: data.email as string | undefined,
+          payMethod: data.payMethod as string | undefined,
+          transactionType: data.transaction_type as string | undefined,
+          approved,
           msg,
         });
       } else {
