@@ -254,41 +254,93 @@ export const HelpQuickActions = ({ brandColor = "hsl(101,67%,44%)" }: HelpQuickA
 
           {mode === "lookup" && lookupResult ? (
             <div className="space-y-3">
-              <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-2 text-sm">
-                {lookupResult.phoneNumber && (
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground">Phone</span>
-                    <span className="font-medium text-foreground">{lookupResult.phoneNumber}</span>
-                  </div>
-                )}
-                {formatMoney(lookupResult.amount) && (
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground">Amount</span>
-                    <span className="font-medium text-foreground">{formatMoney(lookupResult.amount)}</span>
-                  </div>
-                )}
-                {formatMoney(lookupResult.fee) && (
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground">Fee</span>
-                    <span className="font-medium text-foreground">{formatMoney(lookupResult.fee)}</span>
-                  </div>
-                )}
-                {lookupResult.ccTxnId && (
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground">Transaction ID</span>
-                    <span className="font-mono text-xs font-medium text-foreground break-all">{lookupResult.ccTxnId}</span>
-                  </div>
-                )}
-                {lookupResult.pinNumber && (
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground">PIN</span>
-                    <span className="font-mono font-medium text-foreground break-all">{lookupResult.pinNumber}</span>
-                  </div>
-                )}
-              </div>
-              {lookupResult.msg && (
-                <p className="text-sm text-muted-foreground">{lookupResult.msg}</p>
-              )}
+              {(() => {
+                const r = lookupResult;
+                const total = (Number(r.amount) || 0) + (Number(r.fee) || 0);
+                const fullName = [r.firstName, r.lastName].filter(Boolean).join(" ").trim();
+                const phoneStr = r.phoneNumber ? String(r.phoneNumber).replace(/^1?(\d{3})(\d{3})(\d{4})$/, "($1) $2-$3") : null;
+                const dateStr = r.date
+                  ? new Date((typeof r.date === "number" ? r.date : Number(r.date)) * 1000).toLocaleString()
+                  : null;
+                return (
+                  <>
+                    <div className={`rounded-xl p-3 text-sm font-semibold ${r.approved ? "bg-green-50 text-green-700 border border-green-200" : "bg-amber-50 text-amber-800 border border-amber-200"}`}>
+                      {r.approved ? "Payment approved" : "Payment not completed"}
+                      {r.resultText && <div className="font-normal text-xs mt-1 opacity-80">{r.resultText}</div>}
+                    </div>
+                    <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-2 text-sm">
+                      {phoneStr && (
+                        <div className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">Phone</span>
+                          <span className="font-medium text-foreground">{phoneStr}</span>
+                        </div>
+                      )}
+                      {fullName && (
+                        <div className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">Name</span>
+                          <span className="font-medium text-foreground">{fullName}</span>
+                        </div>
+                      )}
+                      {r.email && (
+                        <div className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">Email</span>
+                          <span className="font-medium text-foreground break-all">{r.email}</span>
+                        </div>
+                      )}
+                      {formatMoney(r.amount) && (
+                        <div className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">Amount</span>
+                          <span className="font-medium text-foreground">{formatMoney(r.amount)}</span>
+                        </div>
+                      )}
+                      {formatMoney(r.fee) && (
+                        <div className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">Fee</span>
+                          <span className="font-medium text-foreground">{formatMoney(r.fee)}</span>
+                        </div>
+                      )}
+                      {total > 0 && (
+                        <div className="flex justify-between gap-4 border-t border-border pt-2">
+                          <span className="text-muted-foreground font-medium">Total</span>
+                          <span className="font-bold text-foreground">{formatMoney(total)}</span>
+                        </div>
+                      )}
+                      {r.payMethod && (
+                        <div className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">Payment</span>
+                          <span className="font-medium text-foreground">
+                            {r.payMethod}{r.ccNumber ? ` •••• ${r.ccNumber}` : ""}
+                          </span>
+                        </div>
+                      )}
+                      {r.id !== undefined && r.id !== "" && (
+                        <div className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">Order #</span>
+                          <span className="font-mono font-medium text-foreground">{String(r.id)}</span>
+                        </div>
+                      )}
+                      {r.ccTxnId && r.ccTxnId !== "1" && (
+                        <div className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">Transaction ID</span>
+                          <span className="font-mono text-xs font-medium text-foreground break-all">{r.ccTxnId}</span>
+                        </div>
+                      )}
+                      {r.pinNumber && (
+                        <div className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">PIN</span>
+                          <span className="font-mono font-medium text-foreground break-all">{r.pinNumber}</span>
+                        </div>
+                      )}
+                      {dateStr && (
+                        <div className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">Date</span>
+                          <span className="font-medium text-foreground">{dateStr}</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
