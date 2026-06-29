@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AuthDialog } from "@/components/AuthDialog";
 import { User, LogOut, ChevronDown, ShoppingBag, UserCog } from "lucide-react";
 import { LegalBar } from "@/components/LegalBar";
+import { HelpQuickActions } from "@/components/HelpQuickActions";
 import { PaymentBar } from "@/components/PaymentBar";
 import { fetchCarriers, type Carrier } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
