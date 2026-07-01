@@ -88,6 +88,30 @@ export const Navbar = () => {
           )}
         </div>
       </div>
+      <div className="bg-[hsl(174,45%,12%)] text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ul className="flex items-center gap-1 sm:gap-2 overflow-x-auto whitespace-nowrap py-2 sm:py-3 text-sm sm:text-base font-medium scrollbar-none">
+            {[
+              { label: "Domestic Payments", href: "/", external: false },
+              { label: "Bill Payments", href: "https://billpay.cellpay.us/", external: true },
+              { label: "International Topups", href: "https://international.cellpay.us/", external: true },
+              { label: "SIM Cards", href: "https://simcard.cellpay.us/sim-carriers/", external: true },
+              { label: "Postpaid", href: "https://postpaid.cellpay.us", external: true },
+              { label: "Accessories", href: "https://shop.cellpay.us/", external: true },
+            ].map((item) => (
+              <li key={item.label}>
+                <a
+                  href={item.href}
+                  {...(item.external ? { rel: "noopener" } : {})}
+                  className="inline-block px-3 sm:px-4 py-1.5 rounded-md hover:bg-white/10 transition-colors"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </nav>
   );
 };
