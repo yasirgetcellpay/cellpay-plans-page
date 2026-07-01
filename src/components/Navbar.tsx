@@ -93,10 +93,9 @@ export const Navbar = () => {
           <ul className="flex items-center gap-1 sm:gap-2 overflow-x-auto whitespace-nowrap py-2 sm:py-3 text-sm sm:text-base font-medium scrollbar-none">
             {[
               { label: "Domestic Payments", href: "/", external: false },
-              { label: "Bill Payments", href: "https://billpay.cellpay.us/", external: true },
+              { label: "Bill Payments", href: "https://billpay.cellpay.us/billpayment", external: true },
               { label: "International Topups", href: "https://international.cellpay.us/", external: true },
-              { label: "SIM Cards", href: "https://simcard.cellpay.us/sim-carriers/", external: true },
-              { label: "Postpaid", href: "https://postpaid.cellpay.us", external: true },
+              { label: "Postpaid", href: "https://billpay.cellpay.us/postpaid/", external: true },
               { label: "Accessories", href: "https://shop.cellpay.us/", external: true, newTab: true },
             ].map((item) => (
               <li key={item.label}>
