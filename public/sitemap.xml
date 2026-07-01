@@ -103,14 +103,35 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/pageplus.html" />
   </url>
   <url>
-    <loc>https://cellpay-plans-page.lovable.app/pageplus-addon</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://cellpay-plans-page.lovable.app/red-pocket</loc>
+    <loc>https://cellpay-plans-page.lovable.app/verizon.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/verizon.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es/verizon.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/verizon.html" />
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/verizon.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/tmobile.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/tmobile.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es/tmobile.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/tmobile.html" />
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/tmobile.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/bmobile.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://cellpay-plans-page.lovable.app/s1.html</loc>
