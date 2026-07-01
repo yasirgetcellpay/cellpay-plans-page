@@ -97,12 +97,12 @@ export const Navbar = () => {
               { label: "International Topups", href: "https://international.cellpay.us/", external: true },
               { label: "SIM Cards", href: "https://simcard.cellpay.us/sim-carriers/", external: true },
               { label: "Postpaid", href: "https://postpaid.cellpay.us", external: true },
-              { label: "Accessories", href: "https://shop.cellpay.us/", external: true },
+              { label: "Accessories", href: "https://shop.cellpay.us/", external: true, newTab: true },
             ].map((item) => (
               <li key={item.label}>
                 <a
                   href={item.href}
-                  {...(item.external ? { rel: "noopener" } : {})}
+                  {...(item.external ? { rel: "noopener noreferrer", ...((item as any).newTab ? { target: "_blank" } : {}) } : {})}
                   className="inline-block px-3 sm:px-4 py-1.5 rounded-md hover:bg-white/10 transition-colors"
                 >
                   {item.label}
