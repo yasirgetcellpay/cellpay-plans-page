@@ -231,7 +231,7 @@ const Home = () => {
           <div className="relative flex justify-center h-14 sm:h-20 items-center">
             {/* CellPay logo */}
             <div className="flex items-center">
-              <img src={cellpayLogo} alt="CellPay" className="h-8 sm:h-11 w-auto object-contain" />
+              <img src={cellpayLogo} alt="CellPay" width={160} height={44} decoding="async" fetchPriority="high" className="h-8 sm:h-11 w-auto object-contain" />
             </div>
             {isLoggedIn && (
               <div className="absolute right-0" ref={dropdownRef}>
