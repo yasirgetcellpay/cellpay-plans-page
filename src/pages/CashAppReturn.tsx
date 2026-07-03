@@ -25,7 +25,7 @@ const CashAppReturn = () => {
     }
 
     // Restore context written by Checkout before redirecting to the hosted URL
-    let ctx: { brandColor?: string; carrier?: string } = {};
+    let ctx: { brandColor?: string; carrier?: string; pending_log_id?: string } = {};
     try {
       const raw = sessionStorage.getItem("cashapp_return_ctx");
       if (raw) ctx = JSON.parse(raw) as typeof ctx;
@@ -45,7 +45,7 @@ const CashAppReturn = () => {
     const poll = async () => {
       if (cancelledRef.current) return;
       try {
-        const result = await fetchPockytSessionStatus(sessionId);
+        const result = await fetchPockytSessionStatus(sessionId, ctx.pending_log_id);
         const internalStatus = String(result.internal_status || result.status || "").toLowerCase();
         const txnId = (result.transaction_id || result.transactionId || "") as string;
         const apiMsg = (result.message as string) || "";
