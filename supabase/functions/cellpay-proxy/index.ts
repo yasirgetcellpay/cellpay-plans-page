@@ -94,7 +94,11 @@ function unwrapTransactionResult(wrapped: Record<string, unknown>): Record<strin
   return result;
 }
 
-async function finishTransactionLog(id: string | null, wrapped: Record<string, unknown>) {
+async function finishTransactionLog(
+  id: string | null,
+  wrapped: Record<string, unknown>,
+  paymentMethod?: string | null,
+) {
   if (!id) return;
   const result = unwrapTransactionResult(wrapped);
   const status = result.status;
@@ -103,6 +107,15 @@ async function finishTransactionLog(id: string | null, wrapped: Record<string, u
     String(status || "").toLowerCase() === "success" ||
     String(status || "").toLowerCase() === "completed"
   );
+
+  // For Pockyt (Cash App), the initial /checkout/transaction response returns
+  // a HostedURL and no completed payment yet. Keep the log as 'pending' until
+  // the customer returns from the hosted flow and the session status confirms
+  // the final outcome.
+  const hostedUrl = (result.HostedURL || result.hostedUrl || result.hosted_url) as string | undefined;
+  if ((paymentMethod || "").toLowerCase() === "pockyt" && hostedUrl && !isSuccess) {
+    return; // leave as pending
+  }
 
   try {
     await callDatabaseRpc("finalize_transaction_log", {
