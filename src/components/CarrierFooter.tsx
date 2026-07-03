@@ -59,7 +59,7 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
           </div>
           <div className="border-t border-muted pt-6 text-center">
             <p className="text-xs">{tr.copyright}</p>
-            <p className="text-[10px] leading-relaxed max-w-4xl mx-auto opacity-50 mt-3">
+            <p className="text-[10px] leading-relaxed max-w-4xl mx-auto opacity-80 mt-3">
               {tr.trademarkDisclaimer(carrierName)}
             </p>
           </div>
