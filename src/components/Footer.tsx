@@ -76,7 +76,7 @@ export const Footer = ({ onLoginClick, onSignupClick }: FooterProps) => {
               <button onClick={() => go("/terms-and-conditions")} className="hover:text-primary-foreground">{tr.termsAndConditions}</button> |{" "}
               <button onClick={() => go("/contact-us")} className="hover:text-primary-foreground">{tr.contactUs}</button>
             </p>
-            <p className="text-[10px] leading-relaxed max-w-4xl mx-auto opacity-50">
+            <p className="text-[10px] leading-relaxed max-w-4xl mx-auto opacity-80">
               {lang === "es"
                 ? "CellPay es un procesador de pagos autorizado independiente para servicios inalámbricos prepagados. Todos los nombres de operadores, logotipos y marcas comerciales (incluyendo AT&T, Verizon, T-Mobile, Cricket, Simple Mobile, Boost, Metro, Straight Talk, H2O, Lyca, Net10, Page Plus, TracFone, Ultra Mobile, US Cellular, Red Pocket y Total Wireless) son propiedad de sus respectivos dueños y se mencionan únicamente para identificar los servicios para los cuales CellPay procesa pagos. CellPay no está afiliado, respaldado ni patrocinado por ningún operador."
                 : "CellPay is an independent authorized payment processor for prepaid wireless services. All carrier names, logos, and trademarks (including AT&T, Verizon, T-Mobile, Cricket, Simple Mobile, Boost, Metro, Straight Talk, H2O, Lyca, Net10, Page Plus, TracFone, Ultra Mobile, US Cellular, Red Pocket, and Total Wireless) are the property of their respective owners and are referenced solely to identify the services for which CellPay processes payments. CellPay is not affiliated with, endorsed by, or sponsored by any carrier."}
