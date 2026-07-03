@@ -215,8 +215,15 @@ export async function verifyPhone(
     if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
       result = result.data as Record<string, unknown>;
     }
-    if (result.success === false) {
-      return { success: false, message: (result.message as string) || "Invalid phone number" };
+    const resultField = typeof result.Result === "string" ? (result.Result as string).toLowerCase() : "";
+    const statusFalse = result.status === false || result.status === "false";
+    if (result.success === false || resultField === "error" || resultField === "fail" || resultField === "failed" || statusFalse) {
+      const msg =
+        (result.Message as string) ||
+        (result.message as string) ||
+        (result.msg as string) ||
+        "Invalid phone number";
+      return { success: false, message: msg };
     }
     return { success: true };
   } catch (err) {
