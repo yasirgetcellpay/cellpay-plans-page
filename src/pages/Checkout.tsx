@@ -1175,6 +1175,17 @@ const Checkout = () => {
     const nestedHostedUrl = hostedUrl || (dataObj?.HostedURL as string);
 
     if (nestedHostedUrl) {
+      // Persist the pending log id so the return page can finalize the log
+      // to success/failed once Pockyt confirms the hosted payment outcome.
+      try {
+        const pendingLogId = (raw as Record<string, unknown>).pending_log_id as string | undefined;
+        if (pendingLogId) {
+          const rawCtx = sessionStorage.getItem("cashapp_return_ctx");
+          const ctx = rawCtx ? JSON.parse(rawCtx) : {};
+          ctx.pending_log_id = pendingLogId;
+          sessionStorage.setItem("cashapp_return_ctx", JSON.stringify(ctx));
+        }
+      } catch { /* ignore */ }
       window.location.href = nestedHostedUrl;
       return;
     }

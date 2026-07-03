@@ -94,7 +94,11 @@ function unwrapTransactionResult(wrapped: Record<string, unknown>): Record<strin
   return result;
 }
 
-async function finishTransactionLog(id: string | null, wrapped: Record<string, unknown>) {
+async function finishTransactionLog(
+  id: string | null,
+  wrapped: Record<string, unknown>,
+  paymentMethod?: string | null,
+) {
   if (!id) return;
   const result = unwrapTransactionResult(wrapped);
   const status = result.status;
@@ -103,6 +107,15 @@ async function finishTransactionLog(id: string | null, wrapped: Record<string, u
     String(status || "").toLowerCase() === "success" ||
     String(status || "").toLowerCase() === "completed"
   );
+
+  // For Pockyt (Cash App), the initial /checkout/transaction response returns
+  // a HostedURL and no completed payment yet. Keep the log as 'pending' until
+  // the customer returns from the hosted flow and the session status confirms
+  // the final outcome.
+  const hostedUrl = (result.HostedURL || result.hostedUrl || result.hosted_url) as string | undefined;
+  if ((paymentMethod || "").toLowerCase() === "pockyt" && hostedUrl && !isSuccess) {
+    return; // leave as pending
+  }
 
   try {
     await callDatabaseRpc("finalize_transaction_log", {
@@ -185,8 +198,10 @@ serve(async (req) => {
     }
 
     const shouldLogTransaction = endpoint === "checkout/transaction" && method === "POST";
+    const payloadRecord = asRecord(payload);
+    const paymentMethod = text(payloadRecord.payment_method ?? payloadRecord.paymentMethod);
     const txLogId = shouldLogTransaction
-      ? await createTransactionLog(asRecord(payload), callerHost, req.headers.get("user-agent"))
+      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"))
       : null;
 
     const response = await fetch(url, fetchOptions);
@@ -202,12 +217,44 @@ serve(async (req) => {
     }
 
     // Always return 200 so supabase.functions.invoke doesn't throw
-    const wrapped = response.ok
+    const wrapped: Record<string, unknown> = response.ok
       ? { success: true, data }
       : { success: false, error: (data as Record<string, unknown>)?.message || (data as Record<string, unknown>)?.error || "Request failed", data };
 
     if (shouldLogTransaction) {
-      await finishTransactionLog(txLogId, wrapped);
+      await finishTransactionLog(txLogId, wrapped, paymentMethod);
+      if (txLogId) wrapped.pending_log_id = txLogId;
+    }
+
+    // Pockyt Cash App session status polling — finalize the pending log when
+    // the hosted flow reports a terminal state.
+    const pockytStatusMatch = endpoint.match(/^payments\/pockyt\/session\/[^/]+\/status$/);
+    if (pockytStatusMatch && method === "GET") {
+      const logId = text(payloadRecord.pending_log_id);
+      if (logId) {
+        const result = unwrapTransactionResult(wrapped);
+        const internal = String(result.internal_status || result.status || "").toLowerCase();
+        const txnId = text(result.transaction_id ?? result.transactionId);
+        const successStatuses = ["success", "completed", "paid", "captured", "approved"];
+        const failureStatuses = ["failed", "declined", "cancelled", "canceled", "expired", "voided", "error"];
+        let finalStatus: "success" | "failed" | null = null;
+        if (txnId && successStatuses.includes(internal)) finalStatus = "success";
+        else if (failureStatuses.includes(internal)) finalStatus = "failed";
+        if (finalStatus) {
+          try {
+            await callDatabaseRpc("finalize_transaction_log", {
+              _id: logId,
+              _status: finalStatus,
+              _hashid: txnId,
+              _transaction_id: txnId,
+              _error_message: finalStatus === "failed" ? text(result.message ?? result.msg) : null,
+              _raw_response: result,
+            });
+          } catch (error) {
+            console.error("[tx-log] pockyt finalize failed:", error instanceof Error ? error.message : error);
+          }
+        }
+      }
     }
 
     return new Response(JSON.stringify(wrapped), {
