@@ -327,10 +327,14 @@ export async function createKlarnaSession(payload: Record<string, unknown>): Pro
 }
 
 // Pockyt (Cash App) session status
-export async function fetchPockytSessionStatus(sessionId: string): Promise<Record<string, unknown>> {
+export async function fetchPockytSessionStatus(
+  sessionId: string,
+  pendingLogId?: string,
+): Promise<Record<string, unknown>> {
   const raw = await callProxy({
     endpoint: `payments/pockyt/session/${sessionId}/status`,
     method: "GET",
+    payload: pendingLogId ? { pending_log_id: pendingLogId } : undefined,
   });
   const wrapper = raw as Record<string, unknown>;
   let result = (wrapper.data || wrapper) as Record<string, unknown>;
