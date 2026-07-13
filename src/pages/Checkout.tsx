@@ -1588,22 +1588,17 @@ const Checkout = () => {
                   </span>
                 </label>
 
-                <label
-                  className="flex items-start gap-3 cursor-pointer rounded-lg border-2 p-3 transition-colors"
-                  style={{
-                    borderColor: autoPay ? brandColor : "hsl(var(--border))",
-                    backgroundColor: autoPay ? `color-mix(in srgb, ${brandColor} 8%, transparent)` : "transparent",
-                  }}
-                >
+                <label className="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" checked={autoPay} onChange={(e) => setAutoPay(e.target.checked)}
                     className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
-                  <span className="text-base font-bold text-foreground leading-snug">
+                  <span className="text-sm font-bold text-foreground leading-snug">
                     {tr.subscribeAutoPay}
                     <span className="block text-xs font-normal text-muted-foreground mt-0.5">
                       Save fees with automatic recurring recharge every 30 days
                     </span>
                   </span>
                 </label>
+
 
                 {autoPay && (
                   <div className="rounded-lg bg-muted/40 p-4 space-y-3">
