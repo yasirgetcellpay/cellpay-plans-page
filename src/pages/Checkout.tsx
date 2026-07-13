@@ -1558,10 +1558,10 @@ const Checkout = () => {
 
           {/* Terms + Place Order */}
           <div className="bg-card rounded-xl border border-border p-5 space-y-4">
-            <label className="flex items-start gap-2 cursor-pointer">
+            <label className="flex items-start gap-3 cursor-pointer">
               <input type="checkbox" checked={agreedTerms} onChange={(e) => setAgreedTerms(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
-              <span className="text-[11px] text-muted-foreground leading-relaxed">
+                className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
+              <span className="text-sm text-foreground leading-relaxed">
                 {tr.agreeTerms}{" "}
                 <a href="https://www.cellpay.us/terms-and-conditions.html" className="underline font-semibold" style={{ color: brandColor }}>
                   {tr.termsAndConditions}
@@ -1572,10 +1572,10 @@ const Checkout = () => {
 
             {paymentMethod === "card" && (
               <>
-                <label className="flex items-start gap-2 cursor-pointer">
+                <label className="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
-                  <span className="text-[11px] text-muted-foreground leading-relaxed">
+                    className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
+                  <span className="text-sm text-foreground leading-relaxed">
                     <span className="font-semibold text-foreground">{tr.saveCard}</span>{" "}
                     <button
                       type="button"
@@ -1588,27 +1588,37 @@ const Checkout = () => {
                   </span>
                 </label>
 
-                <label className="flex items-start gap-2 cursor-pointer">
+                <label
+                  className="flex items-start gap-3 cursor-pointer rounded-lg border-2 p-3 transition-colors"
+                  style={{
+                    borderColor: autoPay ? brandColor : "hsl(var(--border))",
+                    backgroundColor: autoPay ? `color-mix(in srgb, ${brandColor} 8%, transparent)` : "transparent",
+                  }}
+                >
                   <input type="checkbox" checked={autoPay} onChange={(e) => setAutoPay(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
-                  <span className="text-[11px] text-muted-foreground leading-relaxed">
-                    <span className="font-semibold text-foreground">{tr.subscribeAutoPay}</span>
+                    className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
+                  <span className="text-base font-bold text-foreground leading-snug">
+                    {tr.subscribeAutoPay}
+                    <span className="block text-xs font-normal text-muted-foreground mt-0.5">
+                      Save fees with automatic recurring recharge every 30 days
+                    </span>
                   </span>
                 </label>
 
                 {autoPay && (
                   <div className="rounded-lg bg-muted/40 p-4 space-y-3">
-                    <p className="text-[12px] text-foreground leading-relaxed">
+                    <p className="text-sm text-foreground leading-relaxed">
                       Choose auto pay for automatic recurring recharge every 30 days to save fees, you will be charged flat <span className="font-semibold">$4.97</span> fee for recharge amount.
                     </p>
 
-                    <label className="flex items-start gap-2 cursor-pointer">
+                    <label className="flex items-start gap-3 cursor-pointer">
                       <input type="checkbox" checked={autoPayTerms} onChange={(e) => setAutoPayTerms(e.target.checked)}
-                        className="mt-0.5 h-4 w-4 rounded border-input" style={{ accentColor: brandColor }} />
-                      <span className="text-[12px] font-bold text-foreground">{tr.acceptAutoPayTerms}</span>
+                        className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
+                      <span className="text-sm font-bold text-foreground">{tr.acceptAutoPayTerms}</span>
                     </label>
 
-                    <div className="max-h-48 overflow-y-auto rounded-md border border-border bg-background p-3 text-[11px] text-muted-foreground leading-relaxed space-y-2">
+                    <div className="max-h-48 overflow-y-auto rounded-md border border-border bg-background p-3 text-xs text-muted-foreground leading-relaxed space-y-2">
+
                       <p className="font-semibold text-foreground">GENERAL AND PAYMENT-SPECIFIC TERMS &amp; CONDITIONS; RECURRING CHARGE AUTHORIZATION</p>
                       <p>The following terms and conditions are specific to Auto Recharge payments and are supplemental to (and do not supersede) the Pay Cell Systems Service Agreement, which includes the General Terms and Conditions of Service (available at http://paycellsystems.com), that you received and accepted when you first became a Pay Cell Systems customer. Your continued access to or use of the Auto Recharge service after the receipt and review hereof constitutes your consent to the terms contained herein and your continued consent to the terms contained in the Service Agreement. You also continue to be bound by the terms of the Pay Cell Systems Privacy Policy, also available at http://paycellsystems.com, which details the conditions and circumstances under which, in the ordinary course of business, Pay Cell Systems may provide information concerning you or your account to third parties.</p>
                       <p>The following ''General Terms &amp; Conditions'' apply to all Auto Recharge Payment Options.</p>
@@ -1644,7 +1654,7 @@ const Checkout = () => {
                 type="button"
                 disabled={!canSubmit}
                 onClick={handlePlaceOrder}
-                className="w-full h-[48px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base transition-all active:scale-[0.97] flex items-center justify-center gap-2"
+                className="w-full h-[56px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-all active:scale-[0.97] flex items-center justify-center gap-2"
                 style={{ backgroundColor: brandColor }}
               >
                 {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
@@ -1652,9 +1662,10 @@ const Checkout = () => {
               </button>
             )}
 
-            <p className="text-center text-[10px] text-muted-foreground">
+            <p className="text-center text-xs text-muted-foreground">
               {tr.securePoweredBy}
             </p>
+
           </div>
         </div>
       )}
