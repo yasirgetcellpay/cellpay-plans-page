@@ -1593,10 +1593,8 @@ const Checkout = () => {
                     className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
                   <span className="text-sm font-bold text-foreground leading-snug">
                     {tr.subscribeAutoPay}
-                    <span className="block text-xs font-normal text-muted-foreground mt-0.5">
-                      Save fees with automatic recurring recharge every 30 days
-                    </span>
                   </span>
+
                 </label>
 
 
