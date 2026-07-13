@@ -1654,7 +1654,7 @@ const Checkout = () => {
                 type="button"
                 disabled={!canSubmit}
                 onClick={handlePlaceOrder}
-                className="w-full h-[48px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base transition-all active:scale-[0.97] flex items-center justify-center gap-2"
+                className="w-full h-[56px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-all active:scale-[0.97] flex items-center justify-center gap-2"
                 style={{ backgroundColor: brandColor }}
               >
                 {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
@@ -1662,9 +1662,10 @@ const Checkout = () => {
               </button>
             )}
 
-            <p className="text-center text-[10px] text-muted-foreground">
+            <p className="text-center text-xs text-muted-foreground">
               {tr.securePoweredBy}
             </p>
+
           </div>
         </div>
       )}
