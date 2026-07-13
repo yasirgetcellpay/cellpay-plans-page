@@ -1601,8 +1601,9 @@ const Checkout = () => {
                 {autoPay && (
                   <div className="rounded-lg bg-muted/40 p-4 space-y-3">
                     <p className="text-sm text-foreground leading-relaxed">
-                      Choose auto pay for automatic recurring recharge every 30 days to save fees, you will be charged flat <span className="font-semibold">$4.97</span> fee for recharge amount.
+                      Choose auto pay for automatic recurring recharge every 30 days.
                     </p>
+
 
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input type="checkbox" checked={autoPayTerms} onChange={(e) => setAutoPayTerms(e.target.checked)}
