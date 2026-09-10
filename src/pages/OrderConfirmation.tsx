@@ -213,7 +213,7 @@ const OrderConfirmation = () => {
 
               <div className="p-5 border-t border-border bg-muted/40">
                 <h2 className="text-base sm:text-lg font-bold text-foreground">
-                  As a thank-you, enjoy 30% off accessories
+                  As a thank-you, enjoy 30% off cell phone accessories
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
                   Phone cases, chargers, screen protectors, and more.
