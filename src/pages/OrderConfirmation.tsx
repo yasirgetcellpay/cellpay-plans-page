@@ -211,6 +211,31 @@ const OrderConfirmation = () => {
                 )}
               </div>
 
+              <div className="p-5 border-t border-border bg-muted/40">
+                <h2 className="text-base sm:text-lg font-bold text-foreground">
+                  As a thank-you, enjoy 30% off accessories
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Phone cases, chargers, screen protectors, and more.
+                </p>
+                <p className="text-sm mt-3">
+                  <span className="font-bold text-foreground">Promo code: </span>
+                  <span className="font-mono font-bold" style={{ color: brandColor }}>BuyCellPay</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  (Apply at checkout on our accessories page)
+                </p>
+                <a
+                  href="https://shop.cellpay.us/?_gl=1*1ofqb7k*_gcl_au*MTA1MTE3MTcxOS4xNzg5MDU2NjU1*_ga*MzIwMTk2MjQ1LjE3ODkwNTY2NTU.*_ga_G5QH60Z2GZ*czE3ODkwNTY2NTUkbzEkZzEkdDE3ODkwNTc3NjYkajYwJGwwJGgxOTcyMzI0NTMw*_ga_4T3FK9DBTR*czE3ODkwNTY2NTUkbzEkZzEkdDE3ODkwNTc3NjYkajYwJGwwJGg2MTk5MzE2MjI."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex items-center justify-center px-6 py-3 rounded-full text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity"
+                  style={{ backgroundColor: brandColor }}
+                >
+                  Shop Accessories &amp; Save 30%
+                </a>
+              </div>
+
               <div className="p-5">
                 <button
                   onClick={() => navigate(home)}
