@@ -236,13 +236,12 @@ const OrderConfirmation = () => {
                 </a>
               </div>
 
-              <div className="p-5">
+              <div className="px-5 pb-5 pt-3">
                 <button
                   onClick={() => navigate(home)}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity"
-                  style={{ backgroundColor: brandColor }}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <ArrowLeft className="h-3.5 w-3.5" />
                   {tr.continueShopping}
                 </button>
               </div>
