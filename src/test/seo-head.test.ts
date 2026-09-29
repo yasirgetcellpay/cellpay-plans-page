@@ -19,7 +19,6 @@ const PLANS_ROUTES: string[] = [
   "/net10.html",
   "/pageplus.html",
   "/tracfone.html",
-  "/ultra-mobile.html",
   "/pageplus-addon",
   "/red-pocket",
   "/total-wireless",
