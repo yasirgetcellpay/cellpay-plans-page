@@ -34,7 +34,6 @@ const HTML_ROUTES = [
   "net10.html",
   "pageplus.html",
   "tracfone.html",
-  "ultra-mobile.html",
   "us-cellular.html",
   "verizon-wireless-flexi.html",
   // Spanish mirrors
@@ -51,7 +50,6 @@ const HTML_ROUTES = [
   "es/net10.html",
   "es/pageplus.html",
   "es/tracfone.html",
-  "es/ultra-mobile.html",
   "es/us-cellular.html",
   "es/verizon-wireless-flexi.html",
   // Legacy `-espanol.html` URLs (App.tsx redirects them to /es/* client-side)
