@@ -130,7 +130,7 @@ const staticCarriers: DisplayCarrier[] = [
   
   { name: "Total Wireless", logo: totalWirelessLogo, path: "/total-wireless", bg: "bg-[hsl(200,70%,40%)]" },
   { name: "TracFone", logo: tracfoneLogo, path: "/tracfone.html", bg: "bg-[hsl(230,70%,30%)]" },
-  { name: "Ultra Mobile", logo: ultraLogo, path: "/ultra-mobile.html", bg: "bg-[hsl(270,50%,40%)]" },
+  // Ultra Mobile temporarily disabled
   { name: "US Cellular", logo: uscellularLogo, path: "/us-cellular.html", bg: "bg-[hsl(220,80%,35%)]" },
 ];
 
@@ -157,6 +157,7 @@ const excludedSlugs = new Set<string>([
   "verizon-wireless-flexi",    // Verizon Flexi (duplicate of Verizon)
   "pageplusadd",               // Page Plus Addon (duplicate of Page Plus)
   "red-pocket-mobile",         // Red Pocket Mobile (hidden from homepage)
+  "ultra-mobile",              // Ultra Mobile (temporarily disabled)
 ]);
 
 function mapApiCarrier(c: Carrier): DisplayCarrier | null {
