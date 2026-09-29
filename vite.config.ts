@@ -34,6 +34,8 @@ const HTML_ROUTES = [
   "net10.html",
   "pageplus.html",
   "tracfone.html",
+  "ultra-mobile.html",
+  "es/ultra-mobile.html",
   "us-cellular.html",
   "verizon-wireless-flexi.html",
   // Spanish mirrors
