@@ -426,4 +426,17 @@
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/ultra-mobile.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://cellpay-plans-page.lovable.app/ultra-mobile.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://cellpay-plans-page.lovable.app/es/ultra-mobile.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://cellpay-plans-page.lovable.app/ultra-mobile.html" />
+  </url>
+  <url>
+    <loc>https://cellpay-plans-page.lovable.app/es/ultra-mobile.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>
