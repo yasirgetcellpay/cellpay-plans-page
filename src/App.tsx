@@ -73,7 +73,7 @@ const carrierRoutes: CarrierRouteDef[] = [
   { path: "/net10.html", name: "Net10 Wireless", slug: "net10", carrierId: 7, brandColor: "hsl(195,100%,50%)", logo: net10Logo },
   { path: "/pageplus.html", name: "Page Plus", slug: "pageplus", carrierId: 1, brandColor: "hsl(0,70%,50%)", logo: pageplusLogo },
   { path: "/tracfone.html", name: "TracFone", slug: "tracfone", carrierId: 10, brandColor: "hsl(230,70%,30%)", logo: tracfoneLogo },
-  { path: "/ultra-mobile.html", name: "Ultra Mobile", slug: "ultra-mobile", carrierId: 25, brandColor: "hsl(270,50%,40%)", logo: ultraLogo },
+  // Ultra Mobile temporarily disabled — its URLs redirect to home (see DISABLED_CARRIER_PATHS).
   // US Cellular intentionally omitted — backend has no carrier entry, served by static USCellular.tsx below.
   // AT&T FirstNet intentionally omitted — backend has no carrier entry, served by static ATT.tsx below.
   { path: "/pageplus-addon", name: "Page Plus Addon Balance", slug: "pageplusadd", carrierId: 50, brandColor: "hsl(0,70%,50%)", logo: pageplusLogo },
@@ -163,6 +163,12 @@ const App = () => (
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/es" element={<Home />} />
+
+        {/* Temporarily disabled carriers → redirect to home */}
+        {["/ultra-mobile.html", "/ultra-mobile", "/ultra-mobile/pay", "/guest-ultra-mobile.html"].flatMap((p) => [
+          <Route key={`dis-${p}`} path={p} element={<Navigate to="/" replace />} />,
+          <Route key={`dis-es-${p}`} path={`/es${p}`} element={<Navigate to="/es" replace />} />,
+        ])}
 
         {/* Carrier pages — English + /es/ mirrors, plus /{slug}/pay aliases */}
         {carrierRoutes.flatMap((c) => {
