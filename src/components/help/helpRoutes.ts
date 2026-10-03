@@ -1,10 +1,9 @@
 // Route rules + carrier links for the CellPay help chat. No imports from checkout/relay code.
 
-/** Payment / checkout / admin routes (with or without /es) where the widget never renders. */
+/** Routes (with or without /es) where the widget never renders: the internal admin area only.
+ *  HC-ALL (Oct 3): checkout (incl. /checkout/cashapp-return), /payment-callback and /order-confirmation show the launcher
+ *  too; on phones it docks in the carrier Pay bar's slot, and an end spacer lets Place Order scroll clear (helpMobileGuard.ts). */
 const HIDDEN_PREFIXES = [
-  "/checkout", // includes /checkout/cashapp-return
-  "/payment-callback",
-  "/order-confirmation",
   "/admin",
 ];
 

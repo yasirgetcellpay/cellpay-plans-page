@@ -741,9 +741,10 @@ const DynamicCarrier = ({
           )}
 
           {/* Mobile sticky Pay bar — keeps CTA visible above numeric keyboard
-              on open denomination flows (feedback Page 2 #4) */}
+              on open denomination flows (feedback Page 2 #4). HC-ALL: pr-[72px] keeps a slot at the right end for the
+              Help button (48px at right 16px + 8px gap), which docks inside it (data-help-dock-slot, helpMobileGuard.ts). */}
           {showRange && (
-            <div className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-3 py-2 flex items-center gap-2"
+            <div data-help-dock-slot="" className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] pl-3 pr-[72px] py-2 flex items-center gap-2"
                  style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)" }}>
               <div className="flex-1 text-left leading-tight">
                 <p className="text-[10px] text-muted-foreground">{tr.total}</p>
