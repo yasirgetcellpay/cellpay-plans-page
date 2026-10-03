@@ -3,11 +3,10 @@
 // taller than the 58px it was tuned for; re-check on real devices), and data-cp-primary-action is honoured too.
 // Rule (lead, Oct 2 + Oct 3): on phones the launcher shows on first load, but it must never cover Pay / PAY NOW /
 // Place Order, a plan card, a checkbox, a terms link, the Quick Refill form or any carrier/phone/amount field.
-// Oct 3 #9-fix1 (Parvez, overrides the top-right rule): on phones it floats bottom-right (right 16px, bottom 16px +
-// safe-area inset), because top-right covered the carrier nav bar and the hero headline. It hides only when one of
-// those elements is UNDER (or about to scroll under) the bottom-right zone, while a fixed Pay bar is on screen, or
-// while a page text field is focused (keypad). (Earlier, before #9 shipped: bottom-right but hidden while any of them
-// was anywhere on screen or up to 240px below it, so on most pages it only appeared after scrolling.)
+// Oct 3 fix: on phones it sits top-right, just under the sticky header (the forms and Pay live lower on the first
+// screen), and it hides only when one of those elements would be UNDER it, while a fixed Pay bar is on screen, or
+// while a page text field is focused (keypad). (Before: it sat bottom-right and hid while any of them was anywhere on
+// screen or up to 240px below it, so on most pages it only appeared after scrolling.)
 // Detection is markup-agnostic (no edits to carrier pages needed) and also honours an explicit
 // data-cm-primary-action / data-cp-primary-action attribute if a page ever adds one. A fixed Pay bar is covered too:
 // its button is watched, and the fixed bar that contains it is watched as well.
@@ -15,13 +14,13 @@
 /** Phones / small tablets: Tailwind md breakpoint. */
 export const HELP_MOBILE_QUERY = "(max-width: 767px)";
 
-/** Phone position (keep in sync with the launcher's `right-4 bottom-[calc(16px+env(safe-area-inset-bottom))]` classes). */
-export const HELP_MOBILE_BOTTOM_PX = 16;
+/** Phone position (keep in sync with the launcher's `top-[88px] right-4` classes): about 10px under CellPay's header. */
+export const HELP_MOBILE_TOP_PX = 88;
 export const HELP_MOBILE_RIGHT_PX = 16;
 /** Launcher box on phones (48px tall; 124px covers "Help" / "Ayuda" / "Cerrar" plus the icon). */
 export const HELP_LAUNCHER_W_PX = 124;
 export const HELP_LAUNCHER_H_PX = 48;
-/** Margin around the launcher, and how far above it a protected element already counts (content scrolls down into it). */
+/** Margin around the launcher, and how far below it a protected element already counts (content scrolls up into it). */
 export const HELP_ZONE_PAD_PX = 8;
 export const HELP_LOOKAHEAD_PX = 48;
 
@@ -107,35 +106,22 @@ export function findHelpTargets(root: ParentNode = document, hideWhilePayOnScree
   return { pay, cover };
 }
 
-/** Area the launcher needs on a phone, in viewport px: its box plus padding, extended down to the bottom of the screen
- *  (content scrolling up arrives from there, and a bottom Pay bar sits there) and HELP_LOOKAHEAD_PX above it.
- *  safeBottom = env(safe-area-inset-bottom) in px (0 unless the page uses viewport-fit=cover). */
-export function launcherZone(vw: number, vh: number, safeBottom = 0): { left: number; top: number; right: number; bottom: number } {
+/** Area the launcher needs on a phone, in viewport px: its box plus padding, extended up to the top of the screen
+ *  (content scrolling down arrives from there) and HELP_LOOKAHEAD_PX below it. */
+export function launcherZone(vw: number): { left: number; top: number; right: number; bottom: number } {
   const right = vw - HELP_MOBILE_RIGHT_PX;
   return {
     left: right - HELP_LAUNCHER_W_PX - HELP_ZONE_PAD_PX,
-    top: vh - safeBottom - HELP_MOBILE_BOTTOM_PX - HELP_LAUNCHER_H_PX - HELP_ZONE_PAD_PX - HELP_LOOKAHEAD_PX,
+    top: 0,
     right: vw,
-    bottom: vh,
+    bottom: HELP_MOBILE_TOP_PX + HELP_LAUNCHER_H_PX + HELP_ZONE_PAD_PX + HELP_LOOKAHEAD_PX,
   };
 }
 
-/** IntersectionObserver rootMargin that shrinks the viewport to launcherZone(vw, vh, safeBottom). */
-export function zoneRootMargin(vw: number, vh: number, safeBottom = 0): string {
-  const z = launcherZone(vw, vh, safeBottom);
-  return `${-Math.max(0, Math.round(z.top))}px 0px 0px ${-Math.max(0, Math.round(z.left))}px`;
-}
-
-/** env(safe-area-inset-bottom) in px, measured once per zone rebuild (0 when unsupported). */
-export function safeAreaBottomPx(): number {
-  try {
-    const el = document.createElement("div");
-    el.style.cssText = "position:fixed;left:0;bottom:0;width:0;height:0;visibility:hidden;pointer-events:none;padding-bottom:env(safe-area-inset-bottom)";
-    document.body.appendChild(el);
-    const px = parseFloat(getComputedStyle(el).paddingBottom) || 0;
-    el.remove();
-    return px;
-  } catch { return 0; }
+/** IntersectionObserver rootMargin that shrinks the viewport to launcherZone(vw). */
+export function zoneRootMargin(vw: number, vh: number): string {
+  const z = launcherZone(vw);
+  return `0px 0px ${-Math.max(0, Math.round(vh - z.bottom))}px ${-Math.max(0, Math.round(z.left))}px`;
 }
 
 const TYPING_SELECTOR = "input:not([type='checkbox']):not([type='radio']):not([type='button']):not([type='submit']), select, textarea";
@@ -159,7 +145,7 @@ export function watchHelpLauncher(onHide: (hide: boolean) => void): () => void {
     publish();
   };
   const payIo = new IntersectionObserver(report(payOn, payWait), { threshold: 0 });
-  const makeCoverIo = () => new IntersectionObserver(report(coverOn, coverWait), { threshold: 0, rootMargin: zoneRootMargin(window.innerWidth, window.innerHeight, safeAreaBottomPx()) });
+  const makeCoverIo = () => new IntersectionObserver(report(coverOn, coverWait), { threshold: 0, rootMargin: zoneRootMargin(window.innerWidth, window.innerHeight) });
   let coverIo = makeCoverIo();
   const sync = (found: Set<Element>, watched: Set<Element>, io: IntersectionObserver, on: Set<Element>, wait: Set<Element>) => {
     for (const el of found) if (!watched.has(el)) { watched.add(el); wait.add(el); io.observe(el); }
@@ -180,8 +166,7 @@ export function watchHelpLauncher(onHide: (hide: boolean) => void): () => void {
     if (!frame) frame = window.requestAnimationFrame(() => { frame = 0; scan(); });
   });
   mo.observe(document.body, { childList: true, subtree: true });
-  // The zone is in viewport px: rebuild the zone observer when the viewport size changes (rotation, URL bar show/hide
-  // moves the bottom edge).
+  // The zone is in viewport px: rebuild the zone observer when the viewport size changes (rotation, URL bar).
   let size = `${window.innerWidth}x${window.innerHeight}`;
   const onResize = () => {
     const now = `${window.innerWidth}x${window.innerHeight}`;
