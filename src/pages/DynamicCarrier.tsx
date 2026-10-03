@@ -146,6 +146,58 @@ function normalizePlans(plans: Array<Record<string, unknown>>): NormalizedPlan[]
   });
 }
 
+// ─── Amount input (CP-01) ───
+// Keep digits and ONE decimal point (max 2 decimals). Never drop the "." or shift digits
+// ("25.00" stays $25, never $250) and never cut digits off ("351" stays 351 and is then
+// validated against the carrier's min/max).
+const sanitizeAmountInput = (raw: string): string => {
+  let s = (raw || "").replace(/[^0-9.]/g, "");
+  const dot = s.indexOf(".");
+  if (dot !== -1) s = s.slice(0, dot + 1) + s.slice(dot + 1).replace(/\./g, "").slice(0, 2);
+  s = s.replace(/^0+(?=\d)/, "");
+  if (s.startsWith(".")) s = "0" + s;
+  const [intPart, dec] = s.split(".");
+  return intPart.slice(0, 6) + (dec !== undefined ? "." + dec : "");
+};
+
+// Paste: strip $, spaces and commas and take the first number ("$1,025.00" → "1025.00").
+const parsePastedAmount = (text: string): string => {
+  const m = (text || "").replace(/[$\s]/g, "").match(/\d[\d,]*(?:\.\d*)?|\.\d+/);
+  return m ? sanitizeAmountInput(m[0].replace(/,/g, "")) : "";
+};
+
+// Field text → dollars (rounded to cents). NaN when empty.
+const parseAmountDollars = (s: string): number => {
+  if (!s) return NaN;
+  const n = Number(s);
+  return Number.isFinite(n) ? Math.round(n * 100) / 100 : NaN;
+};
+
+// On blur: "12.5" → "12.50", "25." → "25.00", "25" stays "25".
+const normalizeAmountOnBlur = (s: string): string => {
+  const n = parseAmountDollars(s);
+  if (!Number.isFinite(n)) return "";
+  return s.includes(".") ? n.toFixed(2) : String(n);
+};
+
+// Amount step: the carrier API only returns rangeMin/rangeMax (carrier_plans.carrier), no step.
+// Every open-amount order on record is whole dollars, so the step is $1 (cents must be .00).
+const AMOUNT_STEP_CENTS = 100;
+
+const getAmountProblem = (text: string, n: number, min: number, max: number): "empty" | "range" | "step" | null => {
+  if (!text || !Number.isFinite(n)) return "empty";
+  if (n < min || n > max) return "range";
+  if (Math.round(n * 100) % AMOUNT_STEP_CENTS !== 0) return "step";
+  return null;
+};
+
+const formatDollars = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(2));
+
+const wholeDollarMessage = (lang: string, n: number): string =>
+  lang === "es"
+    ? `Ingrese un monto en dólares enteros (por ejemplo $${Math.floor(n)} o $${Math.ceil(n)}).`
+    : `Please enter a whole-dollar amount (for example $${Math.floor(n)} or $${Math.ceil(n)}).`;
+
 const DynamicCarrier = ({
   carrierName: initialName,
   carrierSlug,
@@ -168,6 +220,8 @@ const DynamicCarrier = ({
   const [verifying, setVerifying] = useState(false);
   // Persistent inline error message — visible until the user changes input.
   const [inlineError, setInlineError] = useState<string | null>(null);
+  // Amount field has been left (blur) or pasted into — show below-min / step messages only then.
+  const [amountTouched, setAmountTouched] = useState(false);
 
   // API-loaded state
   const [carrierName, setCarrierName] = useState(initialName);
@@ -213,14 +267,24 @@ const DynamicCarrier = ({
 
   const handleAmountChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = e.target.value.replace(/[^0-9]/g, "");
       setInlineError(null);
-      if (val === "") { setAmount(""); return; }
-      const num = parseInt(val, 10);
-      if (num <= rangeMax) setAmount(val);
+      setAmountTouched(false);
+      setAmount(sanitizeAmountInput(e.target.value));
     },
-    [rangeMax]
+    []
   );
+
+  const handleAmountPaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    setInlineError(null);
+    setAmount(parsePastedAmount(e.clipboardData.getData("text")));
+    setAmountTouched(true);
+  }, []);
+
+  const handleAmountBlur = useCallback(() => {
+    setAmount((a) => normalizeAmountOnBlur(a));
+    setAmountTouched(true);
+  }, []);
 
   useEffect(() => {
     document.body.classList.add("hide-chat-mobile");
@@ -416,8 +480,17 @@ const DynamicCarrier = ({
   }, [loading]);
 
   const phoneDigits = phone.replace(/\D/g, "");
-  const amountNum = amount ? parseInt(amount, 10) : 0;
-  const rangeAmountValid = amountNum >= rangeMin && amountNum <= rangeMax;
+  const amountNum = parseAmountDollars(amount) || 0; // dollars, same unit checkout and the API use
+  const amountProblem = getAmountProblem(amount, amountNum, rangeMin, rangeMax);
+  const rangeAmountValid = amountProblem === null;
+  const amountMessage =
+    amountProblem === "range"
+      ? tr.invalidAmount(rangeMin, rangeMax)
+      : amountProblem === "step"
+      ? wholeDollarMessage(lang, amountNum)
+      : null;
+  // Over the max shows at once; below-min / cents show after the customer leaves the field.
+  const showAmountMessage = !!amountMessage && (amountTouched || amountNum > rangeMax);
 
   const handlePlanSelect = (plan: { price: string; highlight: string }) => {
     setAmount(plan.price.replace("$", ""));
@@ -474,8 +547,9 @@ const DynamicCarrier = ({
       toast({ title: msg, description: msg, variant: "destructive" });
       return;
     }
-    if (amountNum < rangeMin || amountNum > rangeMax) {
-      const msg = tr.invalidAmount(rangeMin, rangeMax);
+    if (!rangeAmountValid) {
+      const msg = amountMessage || tr.invalidAmount(rangeMin, rangeMax);
+      setAmountTouched(true);
       setInlineError(msg);
       toast({ title: msg, description: msg, variant: "destructive" });
       return;
@@ -621,12 +695,21 @@ const DynamicCarrier = ({
                       inputMode="numeric"
                       value={amount}
                       onChange={handleAmountChange}
+                      onPaste={handleAmountPaste}
+                      onBlur={handleAmountBlur}
                       placeholder={tr.amountPlaceholder(rangeMin, rangeMax)}
                       aria-label={tr.selectAmount}
+                      aria-invalid={showAmountMessage}
+                      aria-describedby={showAmountMessage ? "carrier-amount-error" : undefined}
                       className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
                       style={{ "--tw-ring-color": bc } as React.CSSProperties}
                     />
                   </div>
+                  {showAmountMessage && (
+                    <p id="carrier-amount-error" role="alert" className="text-[11px] sm:text-xs text-destructive font-semibold mt-1 mb-1">
+                      {amountMessage}
+                    </p>
+                  )}
                   {rangeAmountValid && (
                     <button
                       type="button"
@@ -682,7 +765,7 @@ const DynamicCarrier = ({
               <button
                 type="button"
                 onClick={handlePay}
-                disabled={verifying}
+                disabled={verifying || !rangeAmountValid}
                 className="h-[48px] px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: bc }}
               >
@@ -704,13 +787,13 @@ const DynamicCarrier = ({
               <div className="flex-1 text-left leading-tight">
                 <p className="text-[10px] text-muted-foreground">{tr.total}</p>
                 <p className="text-base font-extrabold text-foreground">
-                  ${amountNum > 0 ? amountNum : "—"}
+                  ${amountNum > 0 ? formatDollars(amountNum) : "—"}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handlePay}
-                disabled={verifying}
+                disabled={verifying || !rangeAmountValid}
                 className="flex-[2] h-[46px] rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: bc }}
               >
