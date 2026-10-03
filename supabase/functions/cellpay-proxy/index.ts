@@ -314,6 +314,25 @@ function guardRefusal(
 
 const GUARD_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"]);
 
+async function blocklistCheck(p: Record<string, unknown>, cardH: string | null): Promise<{ key_type: string; reason: string } | null> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceKey) return null;
+  const pay = asRecord(p.payment);
+  let visitor: string | null = null;
+  try { visitor = text(asRecord(JSON.parse(String(p.browser_info ?? "{}"))).visitorId); } catch { visitor = null; }
+  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/checkout_blocklist_check`, {
+    method: "POST",
+    headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
+    body: JSON.stringify({ _phone: text(p.phone_number ?? p.phoneNumber), _email: text(pay.email ?? p.email), _card_h: cardH, _visitor: visitor, _session: text(p.kount_ssid ?? p.riskified_sessionid ?? p.cbsys_sessionid) }),
+    signal: AbortSignal.timeout(1200),
+  });
+  if (!res.ok) { console.warn(`[blocklist] check failed: ${res.status}`); return null; }
+  const rows = await res.json();
+  const r = asRecord(Array.isArray(rows) ? rows[0] : rows);
+  return r.blocked === true ? { key_type: String(r.key_type), reason: String(r.reason) } : null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -381,6 +400,16 @@ serve(async (req) => {
     const shouldLogTransaction = endpoint === "checkout/transaction" && method === "POST";
     const payloadRecord = asRecord(payload);
     const paymentMethod = text(payloadRecord.payment_method ?? payloadRecord.paymentMethod);
+    // [blocklist BL-2] Confirmed bad actors (checkout_blocklist). Fail-open. Same calm 200 as a velocity pause.
+    if (shouldLogTransaction) {
+      try {
+        const bl = await blocklistCheck(payloadRecord, null);
+        if (bl) {
+          recordGuardEvent({ code: `blocklist_hit:${bl.reason}:${bl.key_type}`, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: true });
+          return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: "We couldn't process this card right now. Please try again in about 30 minutes or use a different payment method. You were not charged." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      } catch { /* blocklist fails open */ }
+    }
     const txLogId = shouldLogTransaction
       ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"))
       : null;
