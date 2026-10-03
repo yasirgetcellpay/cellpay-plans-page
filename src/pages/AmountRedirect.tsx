@@ -28,7 +28,6 @@ const CARRIER_MAP: Record<string, string> = {
   ultramobile: "/ultra-mobile.html",
   uscellular: "/us-cellular.html",
   "us-cellular": "/us-cellular.html",
-  redpocket: "/red-pocket",
   total: "/total-wireless",
   totalwireless: "/total-wireless",
 };

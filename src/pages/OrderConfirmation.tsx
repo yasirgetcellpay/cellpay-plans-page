@@ -170,7 +170,7 @@ const OrderConfirmation = () => {
             </h1>
             <p className="text-sm mt-1 opacity-90">
               {tr.contactUsLink}{" "}
-              <a href="https://www.cellpay.us/contact" className="underline font-semibold">{tr.contactUs.toLowerCase()}.</a>
+              <a href="/contact-us" className="underline font-semibold">{tr.contactUs.toLowerCase()}.</a>
             </p>
             <p className="text-xs mt-2 opacity-80">
               {tr.postedNote}

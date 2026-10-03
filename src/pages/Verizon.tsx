@@ -88,8 +88,8 @@ const Verizon = () => {
   useEffect(() => {
     const isEs = typeof window !== "undefined" && window.location.pathname.startsWith("/es");
     applySeoHead(isEs
-      ? { title: 'Recarga Verizon Prepago en Línea | CellPay', description: 'Recarga tu teléfono Verizon Prepaid en línea con CellPay. Recarga instantánea y segura enviada directamente a tu número Verizon.' }
-      : { title: 'Verizon Prepaid Refill Online | CellPay', description: 'Refill your Verizon Prepaid phone online with CellPay. Secure, instant top-up delivered straight to your Verizon number.' });
+      ? { title: 'Recarga Verizon Prepago en Línea | CellPay', description: 'Recarga tu teléfono Verizon Prepaid en línea con CellPay. Recarga segura enviada directamente a tu número Verizon. La recarga puede tardar hasta 30 min en reflejarse.' }
+      : { title: 'Verizon Prepaid Refill Online | CellPay', description: 'Refill your Verizon Prepaid phone online with CellPay. Secure online top-up sent straight to your Verizon number.' });
   }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
@@ -217,7 +217,7 @@ const Verizon = () => {
         <div className="flex justify-center">
           <button type="button" disabled={!isValid} onClick={() => goCheckout(amount)} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]" style={{ backgroundColor: BRAND }}>PAY NOW</button>
         </div>
-        <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
+        <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Your refill is sent directly to your phone. It can take up to 30 min for a refill to reflect on your account.</p>
       </div>
 
       <PaymentBar />

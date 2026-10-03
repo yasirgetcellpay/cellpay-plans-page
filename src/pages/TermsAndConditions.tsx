@@ -33,7 +33,7 @@ const TermsAndConditions = () => {
         <p>We accept Visa, Mastercard, American Express, Discover, and Apple Pay. Payment is processed at the time of purchase. You are responsible for ensuring your payment method is valid and has sufficient funds.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">5. Refills & Delivery</h2>
-        <p>Refills are processed instantly upon successful payment. You are responsible for entering the correct phone number. CellPay is not liable for refills sent to incorrect numbers.</p>
+        <p>Refills are processed promptly upon successful payment. You are responsible for entering the correct phone number. CellPay is not liable for refills sent to incorrect numbers.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">6. No Refunds</h2>
         <p>All prepaid refill purchases are final and non-refundable once processed. Please verify your phone number and plan selection before completing your purchase. See our Returns & Refunds Policy for exceptions.</p>

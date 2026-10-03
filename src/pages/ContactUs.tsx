@@ -31,6 +31,7 @@ const ContactUs = () => {
             <p>Monday – Friday: 9:00 AM – 6:00 PM (EST)</p>
             <p>Saturday – Sunday: 10:00 AM – 4:00 PM (EST)</p>
           </div>
+          {/* TODO(address/phone): business street address and support phone pending from Saurabh/Parvez. Do not invent or fill. */}
           <div>
             <h2 className="text-base font-bold text-foreground">Response Time</h2>
             <p>We typically respond within 24 hours on business days.</p>

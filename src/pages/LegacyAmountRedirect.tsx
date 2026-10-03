@@ -25,8 +25,6 @@ const SLUG_TO_PATH: Record<string, string> = {
   "ultra": "/ultra-mobile.html",
   "us-cellular": "/us-cellular.html",
   "straight-talk": "/straight-talk.html",
-  "red-pocket": "/red-pocket",
-  "red-pocket-mobile": "/red-pocket",
   "total-wireless": "/total-wireless",
 };
 

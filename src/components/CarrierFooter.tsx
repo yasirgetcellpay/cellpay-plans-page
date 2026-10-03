@@ -68,7 +68,7 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
       <div className={`${textOnBrand} py-3 text-[10px] md:text-xs`} style={{ backgroundColor: brandColor }}>
         <div className="max-w-7xl mx-auto px-4 text-center leading-relaxed">
           {tr.retailDisclaimer}{" "}
-          <a href="https://www.cellpay.us/terms-and-conditions.html" className="underline font-bold ml-1">{tr.viewFullTerms}</a>
+          <a href="/terms-and-conditions" className="underline font-bold ml-1">{tr.viewFullTerms}</a>
         </div>
       </div>
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} initialMode={authMode} />

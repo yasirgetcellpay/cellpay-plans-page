@@ -44,8 +44,8 @@ const StraightTalk = () => {
   useEffect(() => {
     const isEs = typeof window !== "undefined" && window.location.pathname.startsWith("/es");
     applySeoHead(isEs
-      ? { title: 'Recarga Straight Talk en Línea | CellPay', description: 'Recarga tu plan Straight Talk Wireless en línea con CellPay. Recarga instantánea y segura enviada directamente a tu número.' }
-      : { title: 'Straight Talk Prepaid Refill Online | CellPay', description: 'Refill Straight Talk Wireless plans online with CellPay. Secure, instant top-up delivered directly to your Straight Talk phone.' });
+      ? { title: 'Recarga Straight Talk en Línea | CellPay', description: 'Recarga tu plan Straight Talk Wireless en línea con CellPay. Recarga segura enviada directamente a tu número.' }
+      : { title: 'Straight Talk Prepaid Refill Online | CellPay', description: 'Refill Straight Talk Wireless plans online with CellPay. Secure online top-up sent directly to your Straight Talk phone.' });
   }, []);
   const navigate = useNavigate();
   const { toast } = useToast();

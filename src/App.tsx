@@ -81,12 +81,9 @@ const carrierRoutes: CarrierRouteDef[] = [
   // US Cellular intentionally omitted — backend has no carrier entry, served by static USCellular.tsx below.
   // AT&T FirstNet intentionally omitted — backend has no carrier entry, served by static ATT.tsx below.
   { path: "/pageplus-addon", name: "Page Plus Addon Balance", slug: "pageplusadd", carrierId: 50, brandColor: "hsl(0,70%,50%)", logo: pageplusLogo },
-  { path: "/red-pocket", name: "Red Pocket Mobile", slug: "red-pocket-mobile", carrierId: 2, brandColor: "hsl(0,80%,45%)" },
+  // Red Pocket, Xbox and Movistar were removed from the site (Oct 2026); their old URLs redirect home (REMOVED_CARRIER_PATHS).
   { path: "/total-wireless", name: "Total Wireless", slug: "total-wireless", carrierId: 79, brandColor: "hsl(200,70%,40%)" },
   // Verizon Wireless Flexi intentionally omitted — backend has no carrier entry, served by static Verizon.tsx below.
-  { path: "/xbox", name: "XBOX", slug: "xbox", carrierId: 76, brandColor: "hsl(120,60%,40%)" },
-  { path: "/movistar.html", name: "Movistar", slug: "movistar", carrierId: 333360, brandColor: "hsl(204,100%,35%)" },
-  { path: "/movistar-flexi.html", name: "Movistar Flexi", slug: "movistar-flexi", carrierId: 333361, brandColor: "hsl(204,100%,35%)" },
 ];
 
 // Legacy `-espanol.html` URLs (kept as redirects to /es/* for backward compatibility)
@@ -107,8 +104,15 @@ const legacyEspanolRedirects: Array<[string, string]> = [
   ["/ultra-mobile-espanol.html", "/es/ultra-mobile.html"],
   ["/us-cellular-espanol.html", "/es/us-cellular.html"],
   ["/verizon-wireless-flexi-espanol.html", "/es/verizon-wireless-flexi.html"],
-  ["/movistar-espanol.html", "/es/movistar.html"],
-  ["/movistar-flexi-espanol.html", "/es/movistar-flexi.html"],
+];
+
+// Carriers removed from the site (Parvez via CellPay Lead, Oct 2026): Red Pocket, Xbox, Movistar.
+// Every old URL (plus its /es mirror) gets noindex and a client-side redirect to the home page.
+const REMOVED_CARRIER_PATHS = [
+  "/red-pocket", "/red-pocket/pay", "/red-pocket-mobile", "/red-pocket-mobile.html",
+  "/xbox", "/xbox/pay",
+  "/movistar", "/movistar.html", "/movistar/pay",
+  "/movistar-flexi", "/movistar-flexi.html", "/movistar-flexi/pay",
 ];
 
 const TrackingCapture = () => {
@@ -125,6 +129,21 @@ const EsFallback = () => {
   const { pathname, search, hash } = useLocation();
   const stripped = pathname.replace(/^\/es(?=\/|$)/, "") || "/";
   return <Navigate to={`${stripped}${search}${hash}`} replace />;
+};
+
+/** Removed carrier URL: mark noindex, then hard-redirect home (query string kept, fresh page head). */
+const RemovedCarrierRedirect = ({ to }: { to: string }) => {
+  useEffect(() => {
+    let tag = document.querySelector('meta[name="robots"]');
+    if (!tag) {
+      tag = document.createElement("meta");
+      tag.setAttribute("name", "robots");
+      document.head.appendChild(tag);
+    }
+    tag.setAttribute("content", "noindex,follow");
+    window.location.replace(`${to}${window.location.search}${window.location.hash}`);
+  }, [to]);
+  return null;
 };
 
 /** Friendly slug → canonical carrier slug mapping for legacy/marketing URLs. */
@@ -227,8 +246,30 @@ const App = () => (
         <Route path="/es/tmobile.html" element={<Navigate to="/es/tmobile-flexi.html" replace />} />
         <Route path="/bmobile.html" element={<Navigate to="/boost.html" replace />} />
         <Route path="/es/bmobile.html" element={<Navigate to="/es/boost.html" replace />} />
-        <Route path="/total-wireless.html" element={<Navigate to="/total-wireless" replace />} />
-        <Route path="/es/total-wireless.html" element={<Navigate to="/es/total-wireless" replace />} />
+        {/* Total Wireless .html — render the page directly (no redirect) so gclid/utm params survive for Google Ads. */}
+        <Route
+          path="/total-wireless.html"
+          element={
+            <DynamicCarrier
+              carrierName="Total Wireless"
+              carrierSlug="total-wireless"
+              carrierId={79}
+              brandColor="hsl(200,70%,40%)"
+            />
+          }
+        />
+        <Route
+          path="/es/total-wireless.html"
+          element={
+            <DynamicCarrier
+              lang="es"
+              carrierName="Total Wireless"
+              carrierSlug="total-wireless"
+              carrierId={79}
+              brandColor="hsl(200,70%,40%)"
+            />
+          }
+        />
         <Route path="/users/login" element={<Navigate to="/login" replace />} />
         <Route path="/users/login/" element={<Navigate to="/login" replace />} />
         <Route path="/es/users/login" element={<Navigate to="/es/login" replace />} />
@@ -274,9 +315,43 @@ const App = () => (
               brandColor="hsl(270,60%,32%)"
               logo={metroLogo}
               seoTitleOverride="Metro PCS Guest Payment — One-Time Refill | CellPay"
-              seoDescriptionOverride="Make a Metro by T-Mobile (Metro PCS) guest payment in seconds. No login required — enter your phone number, choose your 30-day plan, and pay securely. Instant top-up."
+              seoDescriptionOverride="Make a Metro by T-Mobile (Metro PCS) guest payment online. No login required — enter your phone number, choose your 30-day plan, and pay securely."
               seoH1Override="Metro PCS Guest Payment — One-Time Refill, No Login Required"
-              seoIntroOverride="Pay your Metro by T-Mobile (Metro PCS) bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly."
+              seoIntroOverride="Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment."
+            />
+          }
+        />
+        {/* Metro PCS guest landing, alternate URL used by Google Ads (was a 404). */}
+        <Route
+          path="/guest-metropcs.html"
+          element={
+            <DynamicCarrier
+              carrierName="Metro PCS"
+              carrierSlug="metropcs"
+              carrierId={38}
+              brandColor="hsl(270,60%,32%)"
+              logo={metroLogo}
+              seoTitleOverride="Metro PCS Guest Payment — One-Time Refill | CellPay"
+              seoDescriptionOverride="Make a Metro by T-Mobile (Metro PCS) guest payment online. No login required — enter your phone number, choose your 30-day plan, and pay securely."
+              seoH1Override="Metro PCS Guest Payment — One-Time Refill, No Login Required"
+              seoIntroOverride="Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment."
+            />
+          }
+        />
+        {/* Boost Mobile guest landing used by Google Ads (was a 404). */}
+        <Route
+          path="/guest-boost.html"
+          element={
+            <DynamicCarrier
+              carrierName="Boost Mobile"
+              carrierSlug="boost"
+              carrierId={36}
+              brandColor="hsl(27,100%,50%)"
+              logo={boostLogo}
+              seoTitleOverride="Boost Mobile Guest Payment — One-Time Refill | CellPay"
+              seoDescriptionOverride="Make a Boost Mobile guest payment online. No login required — enter your phone number, choose your 30-day plan, and pay securely."
+              seoH1Override="Boost Mobile Guest Payment — One-Time Refill, No Login Required"
+              seoIntroOverride="Pay your Boost Mobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment."
             />
           }
         />
@@ -291,9 +366,9 @@ const App = () => (
               brandColor="hsl(195,85%,50%)"
               logo={h2oLogo}
               seoTitleOverride="H2O Wireless Guest Payment — One-Time Refill | CellPay"
-              seoDescriptionOverride="Make an H2O Wireless guest payment in seconds. No login required — enter your phone number, choose your 30-day plan, and pay securely. Instant top-up."
+              seoDescriptionOverride="Make an H2O Wireless guest payment online. No login required — enter your phone number, choose your 30-day plan, and pay securely."
               seoH1Override="H2O Wireless Guest Payment — One-Time Refill, No Login Required"
-              seoIntroOverride="Pay your H2O Wireless bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly."
+              seoIntroOverride="Pay your H2O Wireless bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment."
             />
           }
         />
@@ -307,9 +382,9 @@ const App = () => (
               brandColor="hsl(0,70%,50%)"
               logo={pageplusLogo}
               seoTitleOverride="Page Plus Guest Payment — One-Time Refill | CellPay"
-              seoDescriptionOverride="Make a Page Plus Cellular guest payment in seconds. No login required — enter your phone number, choose your 30-day plan, and pay securely. Instant top-up."
+              seoDescriptionOverride="Make a Page Plus Cellular guest payment online. No login required — enter your phone number, choose your 30-day plan, and pay securely."
               seoH1Override="Page Plus Guest Payment — One-Time Refill, No Login Required"
-              seoIntroOverride="Pay your Page Plus Cellular bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly."
+              seoIntroOverride="Pay your Page Plus Cellular bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment."
             />
           }
         />
@@ -323,9 +398,9 @@ const App = () => (
               brandColor="hsl(101,67%,44%)"
               logo={simpleMobileLogo}
               seoTitleOverride="Simple Mobile Guest Payment — One-Time Refill | CellPay"
-              seoDescriptionOverride="Make a Simple Mobile guest payment in seconds. No login required — enter your phone number, choose your 30-day plan, and pay securely. Instant top-up."
+              seoDescriptionOverride="Make a Simple Mobile guest payment online. No login required — enter your phone number, choose your 30-day plan, and pay securely."
               seoH1Override="Simple Mobile Guest Payment — One-Time Refill, No Login Required"
-              seoIntroOverride="Pay your Simple Mobile bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly."
+              seoIntroOverride="Pay your Simple Mobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment."
             />
           }
         />
@@ -339,9 +414,9 @@ const App = () => (
               brandColor="hsl(195,100%,50%)"
               logo={net10Logo}
               seoTitleOverride="NET10 Wireless Guest Payment — One-Time Refill | CellPay"
-              seoDescriptionOverride="Make a NET10 Wireless guest payment in seconds. No login required — enter your phone number, choose your 30-day plan, and pay securely. Instant top-up."
+              seoDescriptionOverride="Make a NET10 Wireless guest payment online. No login required — enter your phone number, choose your 30-day plan, and pay securely."
               seoH1Override="NET10 Wireless Guest Payment — One-Time Refill, No Login Required"
-              seoIntroOverride="Pay your NET10 Wireless bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly."
+              seoIntroOverride="Pay your NET10 Wireless bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment."
             />
           }
         />
@@ -355,37 +430,20 @@ const App = () => (
               brandColor="hsl(220,50%,22%)"
               logo={lycaLogo}
               seoTitleOverride="Lycamobile Guest Payment — One-Time Refill | CellPay"
-              seoDescriptionOverride="Make a Lycamobile guest payment in seconds. No login required — enter your phone number, choose your 30-day plan, and pay securely. Instant top-up."
+              seoDescriptionOverride="Make a Lycamobile guest payment online. No login required — enter your phone number, choose your 30-day plan, and pay securely."
               seoH1Override="Lycamobile Guest Payment — One-Time Refill, No Login Required"
-              seoIntroOverride="Pay your Lycamobile bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly."
+              seoIntroOverride="Pay your Lycamobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment."
             />
           }
         />
 
-        {/* Legacy Red Pocket .html URL — render same DynamicCarrier so bots get real content (200, not 404) */}
-        <Route
-          path="/red-pocket-mobile.html"
-          element={
-            <DynamicCarrier
-              carrierName="Red Pocket Mobile"
-              carrierSlug="red-pocket-mobile"
-              carrierId={2}
-              brandColor="hsl(0,80%,45%)"
-            />
-          }
-        />
-        <Route
-          path="/es/red-pocket-mobile.html"
-          element={
-            <DynamicCarrier
-              lang="es"
-              carrierName="Red Pocket Mobile"
-              carrierSlug="red-pocket-mobile"
-              carrierId={2}
-              brandColor="hsl(0,80%,45%)"
-            />
-          }
-        />
+        {/* Removed carriers (Red Pocket, Xbox, Movistar) — noindex + redirect to the home page. */}
+        {REMOVED_CARRIER_PATHS.flatMap((p) => [
+          <Route key={`removed-${p}`} path={p} element={<RemovedCarrierRedirect to="/" />} />,
+          <Route key={`removed-es-${p}`} path={`/es${p}`} element={<RemovedCarrierRedirect to="/es" />} />,
+        ])}
+        <Route path="/movistar-espanol.html" element={<RemovedCarrierRedirect to="/es" />} />
+        <Route path="/movistar-flexi-espanol.html" element={<RemovedCarrierRedirect to="/es" />} />
 
 
         {/* Legacy `-espanol` URLs → redirect to canonical /es/* */}

@@ -25,9 +25,8 @@ import pageplusLogo from "@/assets/pageplus-logo.png";
 import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
 import uscellularLogo from "@/assets/uscellular-logo.png";
-import redPocketLogo from "@/assets/red-pocket-logo.png";
 import totalWirelessLogo from "@/assets/total-wireless-logo.png";
-import { ShieldCheck, Zap, Headphones, Star, Smartphone, MousePointerClick, ListChecks, CreditCard } from "lucide-react";
+import { ShieldCheck, Zap, Headphones, Receipt, Smartphone, MousePointerClick, ListChecks, CreditCard } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -57,7 +56,6 @@ const localLogos: Record<string, string> = {
   "verizon-wireless-flexi": verizonLogo,
   "straight-talk": straightTalkLogo,
   straighttalk: straightTalkLogo,
-  "red-pocket-mobile": redPocketLogo,
   "total-wireless": totalWirelessLogo,
 };
 
@@ -73,7 +71,6 @@ const slugToPath: Record<string, string> = {
   net10: "/net10.html",
   pageplus: "/pageplus.html",
   pageplusadd: "/pageplus-addon",
-  "red-pocket-mobile": "/red-pocket",
   s1: "/s1.html",
   tmobile: "/tmobile-flexi.html",
   "total-wireless": "/total-wireless",
@@ -82,7 +79,6 @@ const slugToPath: Record<string, string> = {
   "us-cellular": "/us-cellular.html",
   verizon: "/verizon",
   "verizon-wireless-flexi": "/verizon-wireless-flexi.html",
-  xbox: "/xbox",
   "straight-talk": "/straight-talk.html",
   straighttalk: "/straight-talk.html",
 };
@@ -99,7 +95,6 @@ const slugToColor: Record<string, string> = {
   net10: "bg-[hsl(195,100%,50%)]",
   pageplus: "bg-[hsl(0,70%,50%)]",
   pageplusadd: "bg-[hsl(0,70%,50%)]",
-  "red-pocket-mobile": "bg-[hsl(0,80%,45%)]",
   s1: "bg-[hsl(101,67%,44%)]",
   tmobile: "bg-[hsl(330,100%,45%)]",
   "total-wireless": "bg-[hsl(200,70%,40%)]",
@@ -108,7 +103,6 @@ const slugToColor: Record<string, string> = {
   "us-cellular": "bg-[hsl(220,80%,35%)]",
   verizon: "bg-[hsl(0,100%,45%)]",
   "verizon-wireless-flexi": "bg-[hsl(0,100%,45%)]",
-  xbox: "bg-[hsl(120,60%,40%)]",
   "straight-talk": "bg-[hsl(72,74%,44%)]",
   straighttalk: "bg-[hsl(72,74%,44%)]",
 };
@@ -156,7 +150,11 @@ const excludedSlugs = new Set<string>([
   "topup-af",                  // AT&T FirstNet (duplicate of AT&T)
   "verizon-wireless-flexi",    // Verizon Flexi (duplicate of Verizon)
   "pageplusadd",               // Page Plus Addon (duplicate of Page Plus)
-  "red-pocket-mobile",         // Red Pocket Mobile (hidden from homepage)
+  // Carriers removed from the site (Oct 2026): never show them, even if the carriers API returns them.
+  "red-pocket-mobile",
+  "xbox",
+  "movistar",
+  "movistar-flexi",
 ]);
 
 function mapApiCarrier(c: Carrier): DisplayCarrier | null {
@@ -321,16 +319,6 @@ const Home = () => {
           <p className="text-sm sm:text-base opacity-95 mt-1.5">
             {tr.homeSubtitle}
           </p>
-          {/* Social proof — feedback #5, #12 */}
-          <div className="mt-3 flex items-center justify-center gap-1.5 text-xs sm:text-sm">
-            <div className="flex items-center gap-0.5">
-              {[0,1,2,3,4].map(i => (
-                <Star key={i} className="h-3.5 w-3.5 fill-current" />
-              ))}
-            </div>
-            <span className="font-bold">4.8/5</span>
-            <span className="opacity-90">{tr.homeRating}</span>
-          </div>
         </div>
       </section>
 
@@ -343,12 +331,12 @@ const Home = () => {
               <span className="font-semibold">{tr.secureCheckout}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Zap className="h-4 w-4 text-cellpay-green" />
-              <span className="font-semibold">{tr.instantDelivery}</span>
+              <Receipt className="h-4 w-4 text-cellpay-green" />
+              <span className="font-semibold">{tr.feeShownShort}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Headphones className="h-4 w-4 text-cellpay-green" />
-              <span className="font-semibold">{tr.support247Short}</span>
+              <span className="font-semibold">{tr.supportLine}</span>
             </div>
             {/* Inline 'We accept' strip removed from top per feedback Page 6 (Non-blocker #1).
                 Payment logos are still shown via <PaymentBar /> at the bottom. */}
