@@ -102,14 +102,12 @@ const HelpChatPanel = ({ open, lang, flags, onClose }: Props) => {
   const lastBotQuick = [...msgs].reverse().find((m) => m.from === "bot")?.id;
 
   return (
-    // #9-fix1: phones = bottom 16px + safe area (the launcher steps aside while open) and the top stays >= 124px from the
-    // top of the screen, below CellPay's sticky header (z-50, ~111px), so the close X is never under it. Desktop unchanged.
     <div
       id="cp-help-panel"
       role="dialog"
       aria-label={s.ui.title}
       data-testid="help-panel"
-      className="fixed right-4 bottom-[calc(16px+env(safe-area-inset-bottom))] md:bottom-20 z-40 flex w-[min(380px,calc(100vw-2rem))] max-h-[calc(100dvh-140px-env(safe-area-inset-bottom))] md:max-h-[min(620px,calc(100vh-6.5rem))] flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl"
+      className="fixed bottom-20 right-4 z-40 flex w-[min(380px,calc(100vw-2rem))] max-h-[min(620px,calc(100vh-6.5rem))] flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl"
     >
       <div className="flex items-start justify-between gap-3 bg-cellpay-green px-4 py-3 text-white">
         <div className="min-w-0">
