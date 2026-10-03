@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      checkout_blocklist: {
+        Row: {
+          active: boolean
+          added_by: string
+          created_at: string
+          expires_at: string | null
+          hit_count: number
+          id: string
+          key_type: string
+          last_hit_at: string | null
+          note: string | null
+          reason: string
+          source: string
+          value_norm: string
+        }
+        Insert: {
+          active?: boolean
+          added_by: string
+          created_at?: string
+          expires_at?: string | null
+          hit_count?: number
+          id?: string
+          key_type: string
+          last_hit_at?: string | null
+          note?: string | null
+          reason: string
+          source: string
+          value_norm: string
+        }
+        Update: {
+          active?: boolean
+          added_by?: string
+          created_at?: string
+          expires_at?: string | null
+          hit_count?: number
+          id?: string
+          key_type?: string
+          last_hit_at?: string | null
+          note?: string | null
+          reason?: string
+          source?: string
+          value_norm?: string
+        }
+        Relationships: []
+      }
       page_visitors: {
         Row: {
           created_at: string
@@ -175,6 +220,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      blocklist_norm: { Args: { _raw: string; _type: string }; Returns: string }
+      checkout_blocklist_check: {
+        Args: {
+          _card_h: string
+          _email: string
+          _phone: string
+          _session: string
+          _visitor: string
+        }
+        Returns: {
+          blocked: boolean
+          key_type: string
+          reason: string
+        }[]
+      }
       finalize_transaction_log: {
         Args: {
           _error_message: string
