@@ -1,0 +1,110 @@
+{
+  "ui": {
+    "launcher": "Help",
+    "launcherAria": "Open help chat",
+    "close": "Close help",
+    "title": "CellPay Help",
+    "subtitle": "Quick answers about refills and orders.",
+    "greeting": "Hi! Pick a topic or type your question.",
+    "inputPlaceholder": "Type your question…",
+    "inputAria": "Your question",
+    "send": "Send",
+    "back": "Back",
+    "fallback": "Sorry, I didn't catch that. Try one of these topics, or email us.",
+    "allCarriers": "See all carriers",
+    "footer": "Need more help? Email support@getcellpay.com"
+  },
+  "quick": {
+    "refill_how": "How to refill",
+    "carriers": "Carriers & amounts",
+    "fee": "Service fee",
+    "declined": "Payment declined",
+    "not_received": "Refill not received",
+    "no_account": "Do I need an account?",
+    "order_status": "Check order status",
+    "autopay": "Cancel Auto Pay",
+    "contact": "Contact support"
+  },
+  "answers": {
+    "refill_how": [
+      "Choose your carrier, enter the phone number, choose a plan or amount, and pay with a credit or debit card.",
+      "You don't need to create an account or log in."
+    ],
+    "carriers": [
+      "Choose your carrier below to see the available plans or refill amounts."
+    ],
+    "fee": [
+      "A service fee may apply.",
+      "Any service fee is shown at checkout before you pay, so you can review the total first."
+    ],
+    "declined": [
+      "Please double-check your card details, phone number and plan before confirming.",
+      "Before paying again, check whether the first payment went through with \"Check order status\" below, or email us."
+    ],
+    "not_received": [
+      "If your refill hasn't arrived within 30 minutes, contact support.",
+      "You can also check your order status here with the phone number and your checkout email (or the last 4 characters of your Order ID).",
+      "Please don't pay again while an order is still being confirmed."
+    ],
+    "no_account": [
+      "No. You can check out as a guest.",
+      "Creating a CellPay account is optional."
+    ]
+  },
+  "autopay": {
+    "lines": [
+      "You can cancel Auto Pay yourself: tap \"Unsubscribe From Autopay\" below and enter the phone number on Auto Pay plus your checkout email (or the last 4 characters of your Order ID).",
+      "We confirm by email within 1 business day. Payments already made aren't refunded."
+    ],
+    "open": "Cancel Auto Pay",
+    "fallback": "Prefer email? Write to support@getcellpay.com from the email you used at checkout, with the phone number on Auto Pay. We reply within 1 business day.",
+    "formLanguageNote": ""
+  },
+  "orderStatus": {
+    "title": "Check order status",
+    "intro": "Enter the phone number you refilled and the email you used at checkout. You can use the last 4 characters of your Order ID instead.",
+    "phoneLabel": "Phone number",
+    "phonePlaceholder": "(XXX) XXX-XXXX",
+    "verifierLabel": "Checkout email or last 4 of Order ID",
+    "verifierPlaceholder": "you@example.com or 1A2B",
+    "submit": "Check status",
+    "checking": "Checking…",
+    "invalidPhone": "Enter all 10 digits",
+    "invalidVerifier": "Enter your checkout email, or the last 4 letters or numbers of your Order ID.",
+    "result": {
+      "success": "This order shows as successful.",
+      "pending": "We're still confirming this payment. Please don't pay again. Check back in a few minutes; if your refill hasn't arrived within 30 minutes, contact support.",
+      "unconfirmed": "We couldn't confirm this payment yet. Please don't pay again. Contact support and we'll check it for you.",
+      "failed": "This payment didn't go through. If you see a charge for it, contact support before paying again.",
+      "not_found": "We couldn't find an order with those details. Check the phone number and email (or Order ID), then try again, or contact support.",
+      "invalid": "Please check the phone number and your checkout email (or the last 4 characters of your Order ID), then try again.",
+      "rate_limited": "Too many attempts. Please try again later or contact support.",
+      "unavailable": "Order status is temporarily unavailable. Please try again in a few minutes or contact support.",
+      "error": "Something went wrong. Please try again or contact support."
+    }
+  },
+  "contact": {
+    "title": "Contact support",
+    "intro": "Send us a message about a refill or an order.",
+    "hours": "We typically respond within 24 hours on business days.",
+    "cardWarning": "Never share card details (card number, expiration date or security code) in this form.",
+    "nameLabel": "Name",
+    "contactLabel": "Phone or email",
+    "messageLabel": "Message",
+    "last4Label": "Order ID, last 4 (optional)",
+    "submit": "Send message",
+    "sending": "Sending…",
+    "sent": "Thanks! Your message was sent. We typically respond within 24 hours on business days.",
+    "invalidName": "Please enter your name.",
+    "invalidContact": "Enter a 10-digit phone number or a valid email.",
+    "invalidMessage": "Please enter a message (up to 1000 characters).",
+    "invalidLast4": "Enter the last 4 letters or numbers of your Order ID.",
+    "rate_limited": "You've sent several messages already. Please try again later, or email us.",
+    "error": "Your message couldn't be sent. Please try again, or email us.",
+    "invalid": "Please check your details and try again.",
+    "unavailable": "Messages are temporarily unavailable. Please try again in a few minutes, or email us.",
+    "directLabel": "Customer Support",
+    "hoursWeekday": "Monday – Friday: 9:00 AM – 6:00 PM (EST)",
+    "hoursWeekend": "Saturday – Sunday: 10:00 AM – 4:00 PM (EST)"
+  }
+}
