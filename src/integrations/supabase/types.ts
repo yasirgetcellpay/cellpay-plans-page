@@ -116,6 +116,36 @@ export type Database = {
         }
         Relationships: []
       }
+      checkout_dedupe: {
+        Row: {
+          created_at: string
+          dup_count: number
+          id: number
+          key_h: string
+          last_dup_at: string | null
+          payment_method: string | null
+          phone_norm: string | null
+        }
+        Insert: {
+          created_at?: string
+          dup_count?: number
+          id?: never
+          key_h: string
+          last_dup_at?: string | null
+          payment_method?: string | null
+          phone_norm?: string | null
+        }
+        Update: {
+          created_at?: string
+          dup_count?: number
+          id?: never
+          key_h?: string
+          last_dup_at?: string | null
+          payment_method?: string | null
+          phone_norm?: string | null
+        }
+        Relationships: []
+      }
       page_visitors: {
         Row: {
           created_at: string
@@ -308,6 +338,15 @@ export type Database = {
           key_type: string
           reason: string
         }[]
+      }
+      checkout_dedupe_claim: {
+        Args: {
+          _key: string
+          _method: string
+          _phone: string
+          _window_s?: number
+        }
+        Returns: Json
       }
       finalize_transaction_log: {
         Args: {
