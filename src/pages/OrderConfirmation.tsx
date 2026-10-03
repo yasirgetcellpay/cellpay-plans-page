@@ -104,6 +104,19 @@ const OrderConfirmation = () => {
         result = result.data as Record<string, unknown>;
       }
       const txn = (result.transaction || result) as TransactionData;
+      // CV-1: fail OPEN on unknown values, closed only on a clear failure. The pending flag below (set only after a
+      // success checkout reply, matched to this hashid) is the main guard. Not confirmed = the proxy error/not-found
+      // shape (success:false), an upstream body that is not JSON (parseError), or a status/success field that is a clear
+      // failure word. Anything else (missing, true, 1, "Success ", "COMPLETED", unknown strings) counts as confirmed.
+      const FAIL_WORDS = ["false", "0", "failed", "failure", "fail", "error", "declined", "decline", "denied", "cancelled", "canceled", "void", "voided", "refunded", "reversed", "rejected"];
+      const isFail = (v: unknown) => v === false || v === 0 || (typeof v === "string" && FAIL_WORDS.includes(v.trim().toLowerCase()));
+      const confirmed =
+        wrapper.success !== false && result.parseError !== true &&
+        ![wrapper.status, result.success, result.status, txn.success, txn.status].some(isFail);
+      if (!confirmed) {
+        setError(tr.couldNotLoad);
+        return;
+      }
       setTransaction(txn);
       try {
         const amount = normalizeAxonAmount(txn.amount);
@@ -111,29 +124,43 @@ const OrderConfirmation = () => {
         const itemName = txn.carrier?.name || carrierName || "Recharge";
         const itemId = txn.carrier?.slug || carrierName || "recharge";
         const txnId = String(txn.transactionId || txn.transaction_id || txn.hashid || txn.id || hashid);
-        // @ts-expect-error - dataLayer global
-        window.dataLayer = window.dataLayer || [];
-        // @ts-expect-error - dataLayer global
-        window.dataLayer.push({
-          event: "purchase",
-          ecommerce: {
-            transaction_id: txnId,
-            value: amount + fee,
-            fee,
-            revenue: amount,
-            email: txn.user?.email || "",
-            currency: "USD",
-            items: [{ item_id: itemId, item_name: itemName, price: amount, quantity: 1 }],
-          },
-        });
-        trackAxonPurchase({
-          transactionId: txnId,
-          itemId: String(itemId),
-          itemName,
-          value: amount,
-          email: txn.user?.email,
-          phone: txn.phone_number,
-        });
+        // CV-1: fire once per transaction id, and only right after a success hand-off (pending flag set by
+        // Checkout / Apple Pay / Cash App for this hashid). Reload, back/forward, new tab and shared links never fire.
+        const sentKey = `cp_purchase_sent:${txnId}`;
+        let fire = false;
+        try {
+          if (sessionStorage.getItem("cp_purchase_pending") === hashid) {
+            sessionStorage.removeItem("cp_purchase_pending");
+            if (localStorage.getItem(sentKey) === null) {
+              localStorage.setItem(sentKey, String(Date.now()));
+              fire = true;
+            }
+          }
+        } catch { fire = false; }
+        if (fire) {
+          // @ts-expect-error - dataLayer global
+          window.dataLayer = window.dataLayer || [];
+          // @ts-expect-error - dataLayer global
+          window.dataLayer.push({
+            event: "purchase",
+            ecommerce: {
+              transaction_id: txnId,
+              value: Math.round((amount + fee) * 100) / 100,
+              fee,
+              revenue: amount,
+              currency: "USD",
+              items: [{ item_id: itemId, item_name: itemName, price: amount, quantity: 1 }],
+            },
+          });
+          trackAxonPurchase({
+            transactionId: txnId,
+            itemId: String(itemId),
+            itemName,
+            value: amount,
+            email: txn.user?.email,
+            phone: txn.phone_number,
+          });
+        }
       } catch { /* ignore analytics errors */ }
     } catch {
       setError(tr.couldNotLoad);
@@ -160,7 +187,8 @@ const OrderConfirmation = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Success Banner */}
+      {/* Success Banner (only for a confirmed order, CV-1) */}
+      {transaction && !error && (
       <div className="w-full py-6 sm:py-8 px-4 text-primary-foreground" style={{ backgroundColor: brandColor }}>
         <div className="max-w-3xl mx-auto flex items-start gap-4">
           <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 mt-0.5" />
@@ -178,6 +206,7 @@ const OrderConfirmation = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Main Content */}
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 sm:py-8">
@@ -186,8 +215,14 @@ const OrderConfirmation = () => {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : error ? (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground">{error}</p>
+          <div className="text-center py-16" role="status">
+            <h1 className="text-lg font-bold text-foreground">
+              {lang === "es" ? "No pudimos confirmar este pedido. Comuníquese con soporte." : "We couldn't confirm this order. Please contact support."}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-2">
+              {lang === "es" ? "Soporte:" : "Support:"}{" "}
+              <a href="mailto:support@getcellpay.com" className="underline font-semibold">support@getcellpay.com</a>
+            </p>
             <button onClick={() => navigate(home)} className="mt-4 px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
               {tr.backToHome}
             </button>

@@ -20,7 +20,7 @@ import {
 } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
 import { applySeoHead } from "@/lib/seo";
-import { trackAxon, trackAxonPurchase } from "@/lib/axon";
+import { trackAxon } from "@/lib/axon";
 import { getGclid } from "@/lib/tracking";
 import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib/subdivisions";
 import { useLang, t } from "@/lib/i18n";
@@ -589,14 +589,8 @@ const Checkout = () => {
     const isSuccess = status === true || status === "true" || String(status || "").toLowerCase() === "success" || String(status || "").toLowerCase() === "completed";
     if (isSuccess) {
       const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
-      trackAxonPurchase({
-        transactionId: String(hid || sessionIdRef.current),
-        itemId: String(state.carrierSlug || "recharge"),
-        itemName: state.carrierName || "Recharge",
-        value: Number(validation?.amount ?? state.amount),
-        email,
-        phone: state.phone,
-      });
+      // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1).
+      try { if (hid) sessionStorage.setItem("cp_purchase_pending", String(hid)); } catch { /* storage unavailable: no purchase event */ }
       const params = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
       navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
     } else {
@@ -985,6 +979,7 @@ const Checkout = () => {
           console.log("[ApplePay] transaction success");
           session.completePayment({ status: session.STATUS_SUCCESS });
           const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
+          try { if (hid) sessionStorage.setItem("cp_purchase_pending", String(hid)); } catch { /* storage unavailable: no purchase event */ }
           const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
           navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${apParams.toString()}`);
         } else {

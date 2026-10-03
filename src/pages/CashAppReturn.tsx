@@ -34,6 +34,8 @@ const CashAppReturn = () => {
     }
 
     const goSuccess = (transactionId: string) => {
+      // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1).
+      try { sessionStorage.setItem("cp_purchase_pending", transactionId); } catch { /* storage unavailable: no purchase event */ }
       const params = new URLSearchParams({
         hashid: transactionId,
         color: ctx.brandColor || "",
