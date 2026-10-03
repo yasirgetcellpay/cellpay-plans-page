@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      ap1_rate_limits: {
+        Row: {
+          bucket: string
+          hits: number
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          hits?: number
+          window_start?: string
+        }
+        Update: {
+          bucket?: string
+          hits?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
+      autopay_cancel_retry: {
+        Row: {
+          attempt_count: number
+          cellpay_domain: string
+          created_at: string
+          failure_kind: string
+          id: number
+          last_attempt_at: string
+          resolved_at: string | null
+          status: string
+          transaction_log_id: string
+          upstream_status: number | null
+        }
+        Insert: {
+          attempt_count?: number
+          cellpay_domain: string
+          created_at?: string
+          failure_kind: string
+          id?: never
+          last_attempt_at?: string
+          resolved_at?: string | null
+          status?: string
+          transaction_log_id: string
+          upstream_status?: number | null
+        }
+        Update: {
+          attempt_count?: number
+          cellpay_domain?: string
+          created_at?: string
+          failure_kind?: string
+          id?: never
+          last_attempt_at?: string
+          resolved_at?: string | null
+          status?: string
+          transaction_log_id?: string
+          upstream_status?: number | null
+        }
+        Relationships: []
+      }
       checkout_blocklist: {
         Row: {
           active: boolean
@@ -220,6 +277,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ap1_owner_match: {
+        Args: { _email: string; _last4: string; _phone: string }
+        Returns: string
+      }
+      ap1_rate_limit_hit: {
+        Args: { _bucket: string; _limit: number; _window_seconds: number }
+        Returns: boolean
+      }
+      ap1_retry_record: {
+        Args: {
+          _domain: string
+          _kind: string
+          _log_id: string
+          _status: number
+        }
+        Returns: number
+      }
       blocklist_norm: { Args: { _raw: string; _type: string }; Returns: string }
       checkout_blocklist_check: {
         Args: {
