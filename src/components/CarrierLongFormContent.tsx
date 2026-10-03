@@ -172,7 +172,7 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 4 — AT&T Refill Confirmation",
-      body: "You'll get an email receipt and an SMS from AT&T confirming the new balance or plan renewal.",
+      body: "AT&T usually sends an SMS confirming the new balance or plan renewal.",
     },
   ],
   plansH2: "Supported AT&T Prepaid Plans",
@@ -240,7 +240,7 @@ export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 4 — Straight Talk Refill Confirmation",
-      body: "You'll get an email receipt and an SMS from Straight Talk confirming the new service period.",
+      body: "Straight Talk usually sends an SMS confirming the new service period.",
     },
   ],
   plansH2: "Supported Straight Talk Service Plans",
@@ -308,7 +308,7 @@ export const VERIZON_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 4 — Verizon Refill Confirmation",
-      body: "You'll get an email receipt and an SMS from Verizon confirming the new plan or balance.",
+      body: "Verizon usually sends an SMS confirming the new plan or balance.",
     },
   ],
   plansH2: "Supported Verizon Prepaid Plans",
