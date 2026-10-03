@@ -211,11 +211,9 @@ const Checkout = () => {
     }
   }, []);
 
-  // Hide Tidio chat overlay on mobile during checkout — feedback #3, #19, #34
   // Also scroll to top on mount so users always land on the "Checkout" H1 on
   // mobile (feedback Page 4–5 #1).
   useEffect(() => {
-    document.body.classList.add("hide-chat-mobile");
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     (window as unknown as { __cellpayCheckoutMeta?: Record<string, unknown> }).__cellpayCheckoutMeta = {
       carrierName: state.carrierName,
@@ -244,7 +242,6 @@ const Checkout = () => {
         },
       ],
     });
-    return () => document.body.classList.remove("hide-chat-mobile");
   }, [state.carrierName, state.carrierSlug]);
 
   // Load FingerprintJS Pro and capture visitor identifier

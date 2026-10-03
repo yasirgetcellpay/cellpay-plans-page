@@ -287,11 +287,6 @@ const DynamicCarrier = ({
   }, []);
 
   useEffect(() => {
-    document.body.classList.add("hide-chat-mobile");
-    return () => document.body.classList.remove("hide-chat-mobile");
-  }, []);
-
-  useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
