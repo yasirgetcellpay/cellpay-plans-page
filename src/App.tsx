@@ -52,8 +52,6 @@ import uscellularLogo from "@/assets/uscellular-logo.png";
 // Help chat (#9): lazy chunk, loaded after first render; renders nothing until help_settings.chat_enabled is true.
 const HelpChat = lazy(() => import("@/components/help/HelpChat"));
 
-
-
 interface CarrierRouteDef {
   path: string;            // English path (without leading /es)
   name: string;
