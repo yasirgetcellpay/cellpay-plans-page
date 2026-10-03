@@ -699,6 +699,7 @@ function isRefillErrorResult(wrapped: Record<string, unknown>): boolean {
   const msg = text(result.message ?? result.msg ?? data.message ?? data.msg ?? wrapped.error);
   return msg !== null && REFILL_ERROR_RE.test(msg);
 }
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
