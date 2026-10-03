@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes, useLocation, Navigate } from "react-router-dom";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
+import { HELP_CHAT_ENABLED } from "@/components/help/helpChatFlag";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { captureTrackingIdsFromUrl } from "@/lib/tracking";
 import { usePresence } from "@/hooks/usePresence";
@@ -47,6 +48,10 @@ import pageplusLogo from "@/assets/pageplus-logo.png";
 import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
 import uscellularLogo from "@/assets/uscellular-logo.png";
+
+// Help chat (#9): lazy chunk, loaded after first render; renders nothing until help_settings.chat_enabled is true.
+const HelpChat = lazy(() => import("@/components/help/HelpChat"));
+
 
 interface CarrierRouteDef {
   path: string;            // English path (without leading /es)
@@ -444,6 +449,11 @@ const App = () => (
         <Route path="*" element={<CatchAll />} />
       </Routes>
       <Toaster />
+      {HELP_CHAT_ENABLED && (
+        <Suspense fallback={null}>
+          <HelpChat />
+        </Suspense>
+      )}
     </BrowserRouter>
   </AuthProvider>
 );
