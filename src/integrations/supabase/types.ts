@@ -146,6 +146,72 @@ export type Database = {
         }
         Relationships: []
       }
+      help_events: {
+        Row: {
+          created_at: string
+          fn: string
+          id: number
+          lang: string
+          outcome: string
+        }
+        Insert: {
+          created_at?: string
+          fn: string
+          id?: number
+          lang?: string
+          outcome: string
+        }
+        Update: {
+          created_at?: string
+          fn?: string
+          id?: number
+          lang?: string
+          outcome?: string
+        }
+        Relationships: []
+      }
+      help_rate_limits: {
+        Row: {
+          bucket: string
+          hits: number
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          hits?: number
+          window_start: string
+        }
+        Update: {
+          bucket?: string
+          hits?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
+      help_settings: {
+        Row: {
+          chat_enabled: boolean
+          contact_enabled: boolean
+          id: number
+          status_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          chat_enabled?: boolean
+          contact_enabled?: boolean
+          id: number
+          status_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          chat_enabled?: boolean
+          contact_enabled?: boolean
+          id?: number
+          status_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       page_visitors: {
         Row: {
           created_at: string
@@ -203,6 +269,48 @@ export type Database = {
           id?: never
           method?: string | null
           origin_host?: string | null
+        }
+        Relationships: []
+      }
+      support_requests: {
+        Row: {
+          category: string | null
+          contact: string
+          created_at: string
+          id: string
+          lang: string
+          message: string
+          name: string
+          order_last4: string | null
+          page_path: string | null
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          category?: string | null
+          contact: string
+          created_at?: string
+          id?: string
+          lang?: string
+          message: string
+          name: string
+          order_last4?: string | null
+          page_path?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          category?: string | null
+          contact?: string
+          created_at?: string
+          id?: string
+          lang?: string
+          message?: string
+          name?: string
+          order_last4?: string | null
+          page_path?: string | null
+          sent_at?: string | null
+          status?: string
         }
         Relationships: []
       }
@@ -364,6 +472,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      help_rate_limit_hit: {
+        Args: { _bucket: string; _max: number; _window_seconds: number }
         Returns: boolean
       }
       log_transaction_attempt: { Args: { _data: Json }; Returns: string }
