@@ -52,6 +52,7 @@ const StraightTalk = () => {
   const [phone, setPhone] = useState("");
   const [apiPlans, setApiPlans] = useState<ApiPlan[]>([]);
   const [verifying, setVerifying] = useState(false);
+  const [plansLoaded, setPlansLoaded] = useState(false); // speed SP-1a: keep space reserved until plans load (no layout jump)
 
   useEffect(() => {
     (async () => {
@@ -76,6 +77,8 @@ const StraightTalk = () => {
         setApiPlans(normalized);
       } catch (e) {
         console.error("Straight Talk plan fetch failed", e);
+      } finally {
+        setPlansLoaded(true);
       }
     })();
   }, []);
@@ -185,6 +188,7 @@ const StraightTalk = () => {
         </div>
       </div>
 
+      <div className={plansLoaded ? undefined : "min-h-screen"}>
       {wirelessPlans.length > 0 && (
         <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 mb-4">
           <div className="bg-muted/40 border border-border rounded-xl p-3 sm:p-5">
@@ -212,6 +216,7 @@ const StraightTalk = () => {
         </section>
       )}
 
+      </div>
       <PaymentBar />
       <CarrierFooter brandColor={brandColor} carrierName="Straight Talk" />
     </div>
