@@ -25,7 +25,7 @@ const PrivacyPolicy = () => {
         <ul className="list-disc list-inside space-y-1">
           <li>Phone number (for processing your refill)</li>
           <li>Email address (for account creation and order confirmations)</li>
-          <li>Payment information (processed securely through our payment provider — we do not store card details)</li>
+          <li>Payment information (Card payments are processed by our third-party payment processors. If you choose to save a card, it is stored securely for your future payments.)</li>
           <li>Transaction history (order amounts, carriers, dates)</li>
         </ul>
 
@@ -46,10 +46,10 @@ const PrivacyPolicy = () => {
         </ul>
 
         <h2 className="text-lg font-bold text-foreground pt-3">4. Data Security</h2>
-        <p>We use industry-standard encryption (SSL/TLS) to protect your data during transmission. Payment information is handled by PCI-compliant payment processors.</p>
+        <p>We use industry-standard encryption (SSL/TLS) to protect your data during transmission. Payment information is handled by our third-party payment processors.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">5. Cookies</h2>
-        <p>We use essential cookies to maintain your session and improve site functionality. We do not use tracking cookies for advertising purposes.</p>
+        <p>We use essential cookies to maintain your session and improve site functionality. We and our partners (such as Google, Meta, Microsoft, AppLovin and Microsoft Clarity) use cookies and similar technologies for analytics and advertising.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">6. Your Rights</h2>
         <p>You may request access to, correction of, or deletion of your personal data by contacting us at support@getcellpay.com.</p>

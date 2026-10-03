@@ -31,20 +31,20 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
       icon: CreditCard,
       title: "Step 3 — Pay Securely With Any Card or Wallet",
       body:
-        "Check out in seconds with debit, credit, Apple Pay, Google Pay, PayPal, Cash App, Klarna, or your bank account. Every Cricket quick pay transaction is encrypted and processed in real time.",
+        "Check out with debit, credit, Apple Pay, Google Pay, PayPal, Cash App, Klarna, or your bank account. Every Cricket quick pay transaction is encrypted in transit (TLS).",
     },
     {
       icon: CheckCircle2,
-      title: "Step 4 — Instant Refill, Instant Confirmation",
+      title: "Step 4 — Refill and Confirmation",
       body:
-        "Your Cricket line is recharged within seconds. You'll receive an email receipt and an SMS from Cricket confirming the new balance or plan renewal — usually before you close the tab.",
+        "You'll receive an email receipt and an SMS from Cricket confirming the new balance or plan renewal. It can take up to 30 min for a refill to reflect on your account.",
     },
   ];
 
   const faqs = [
     {
       q: "What is Cricket Quick Pay?",
-      a: "Cricket Quick Pay is the fastest way to pay your Cricket Wireless bill online without signing into your Cricket account. On CellPay, just enter your phone number, pick an amount, and pay — your refill posts to your line instantly.",
+      a: "Cricket Quick Pay lets you pay your Cricket Wireless bill online without signing into your Cricket account. On CellPay, just enter your phone number, pick an amount, and pay — your refill is sent to your line.",
     },
     {
       q: "How do I pay my Cricket bill online without logging in?",
@@ -52,7 +52,7 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
     },
     {
       q: "How long does a Cricket quick pay refill take?",
-      a: "Refills are applied within seconds of payment. Cricket usually sends an SMS confirmation to the refilled phone number once your new plan is active.",
+      a: "It can take up to 30 min for a refill to reflect on your account. Cricket usually sends an SMS confirmation to the refilled phone number once your new plan is active.",
     },
     {
       q: "What payment methods can I use for Cricket Wireless?",
@@ -68,11 +68,11 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
     },
     {
       q: "Is there a fee to use Cricket Quick Pay on CellPay?",
-      a: "No hidden fees. You pay the full retail price of the Cricket plan or top-up — the same amount you'd pay at a Cricket store.",
+      a: "A low service fee is shown before you pay, on top of the plan's retail price.",
     },
     {
       q: "Will Cricket Quick Pay restore my service if it's suspended?",
-      a: "Yes. Paying your Cricket bill through CellPay reactivates your line as soon as Cricket processes the refill, typically within a minute.",
+      a: "Yes. Paying your Cricket bill through CellPay reactivates your line as soon as Cricket processes the refill. It can take up to 30 min for a refill to reflect on your account.",
     },
   ];
 
@@ -87,10 +87,10 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
         </h2>
         <p className="text-sm sm:text-base text-foreground leading-relaxed">
           CellPay's Cricket Quick Pay lets you refill any Cricket Wireless prepaid
-          line in under 60 seconds — no Cricket login, no app download, no waiting
+          line online — no Cricket login, no app download, no waiting
           in line at a store. Just enter the Cricket phone number, choose a plan
           or custom top-up amount, and pay with the card or wallet you already use.
-          Your Cricket service is restored instantly.
+          It can take up to 30 min for a refill to reflect on your account.
         </p>
       </section>
 
@@ -163,7 +163,7 @@ export const CRICKET_QUICK_PAY_FAQ_SCHEMA = JSON.stringify({
       name: "What is Cricket Quick Pay?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Cricket Quick Pay is the fastest way to pay your Cricket Wireless bill online without signing into your Cricket account. On CellPay, just enter your phone number, pick an amount, and pay — your refill posts to your line instantly.",
+        text: "Cricket Quick Pay lets you pay your Cricket Wireless bill online without signing into your Cricket account. On CellPay, just enter your phone number, pick an amount, and pay — your refill is sent to your line.",
       },
     },
     {
@@ -179,7 +179,7 @@ export const CRICKET_QUICK_PAY_FAQ_SCHEMA = JSON.stringify({
       name: "How long does a Cricket quick pay refill take?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Refills are applied within seconds of payment, and Cricket sends an SMS confirmation to the refilled line as soon as the new plan is active.",
+        text: "It can take up to 30 min for a refill to reflect on your account, and Cricket sends an SMS confirmation to the refilled line as soon as the new plan is active.",
       },
     },
     {
@@ -211,7 +211,7 @@ export const CRICKET_QUICK_PAY_FAQ_SCHEMA = JSON.stringify({
       name: "Is there a fee to use Cricket Quick Pay on CellPay?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "No hidden fees. You pay the full retail price of the Cricket plan or top-up — the same amount you'd pay at a Cricket store.",
+        text: "A low service fee is shown before you pay, on top of the plan's retail price.",
       },
     },
     {
@@ -219,7 +219,7 @@ export const CRICKET_QUICK_PAY_FAQ_SCHEMA = JSON.stringify({
       name: "Will Cricket Quick Pay restore my service if it's suspended?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes. Paying through CellPay reactivates your Cricket line as soon as Cricket processes the refill, typically within a minute.",
+        text: "Yes. Paying through CellPay reactivates your Cricket line as soon as Cricket processes the refill. It can take up to 30 min for a refill to reflect on your account.",
       },
     },
   ],

@@ -8,7 +8,7 @@ const AboutUs = () => {
     applySeoHead({
       title: "About CellPay — Online Prepaid Wireless Refills",
       description:
-        "Learn about CellPay, an independent online prepaid refill service supporting 15+ US wireless carriers with instant top-ups, secure checkout, and no hidden fees.",
+        "Learn about CellPay, an independent online prepaid refill service supporting 15+ US wireless carriers with online top-ups, secure checkout, and a low service fee shown before you pay.",
       path: "/about-us",
     });
   }, []);
@@ -26,10 +26,10 @@ const AboutUs = () => {
         </p>
         <h2 className="text-xl font-bold text-foreground pt-4">Why Choose CellPay?</h2>
         <ul className="list-disc list-inside space-y-2">
-          <li>Instant recharge — your account is topped up in seconds</li>
+          <li>Online recharge — pay from your phone or computer</li>
           <li>Secure payments via credit/debit card and Apple Pay</li>
-          <li>24/7 availability — recharge anytime, anywhere</li>
-          <li>No hidden fees — transparent pricing on every plan</li>
+          <li>Customer support: Monday – Friday: 9:00 AM – 6:00 PM (EST); Saturday – Sunday: 10:00 AM – 4:00 PM (EST); support@getcellpay.com</li>
+          <li>Low service fee shown before you pay</li>
           <li>Support for 15+ major prepaid carriers</li>
         </ul>
         <h2 className="text-xl font-bold text-foreground pt-4">Our Mission</h2>

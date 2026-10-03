@@ -3,7 +3,16 @@
 // All tags are tagged with data-dynamic-seo so we can clean them up on unmount.
 
 const DYNAMIC_ATTR = "data-dynamic-seo";
-const SITE_ORIGIN = "https://refill.cellpay.us";
+// refill.cellpay.us (paid ads) and www.cellpay.us (organic) are separate sites that serve this same build.
+// Each host is self-canonical: canonical and og:url use the host the page is served from, never the other one.
+// Any other host (Lovable build/preview domains) keeps refill.cellpay.us, as before.
+const OWN_HOSTS = ["refill.cellpay.us", "www.cellpay.us"];
+const FALLBACK_ORIGIN = "https://refill.cellpay.us";
+function siteOrigin(): string {
+  if (typeof window === "undefined") return FALLBACK_ORIGIN;
+  const host = window.location.hostname.toLowerCase();
+  return OWN_HOSTS.includes(host) ? `https://${host}` : FALLBACK_ORIGIN;
+}
 
 function upsertMeta(name: string, content: string) {
   if (!content) return;
@@ -82,7 +91,7 @@ export function applySeoHead(data: SeoHeadData) {
   if (data.keywords !== undefined) upsertMeta("keywords", data.keywords || "");
 
   const path = data.path ?? (typeof window !== "undefined" ? window.location.pathname : "/");
-  const url = `${SITE_ORIGIN}${path}`;
+  const url = `${siteOrigin()}${path}`;
   upsertCanonical(url);
   upsertProperty("og:url", url);
 

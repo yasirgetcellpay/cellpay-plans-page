@@ -224,7 +224,7 @@ const Checkout = () => {
     applySeoHead({
       title: `Secure ${carrier}Checkout | CellPay`.slice(0, 60),
       description:
-        `Complete your ${state.carrierName || "prepaid"} refill securely on CellPay. Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or bank — instant delivery, no hidden fees.`.slice(
+        `Complete your ${state.carrierName || "prepaid"} refill securely on CellPay. Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or bank. Low service fee shown before you pay.`.slice(
           0,
           160,
         ),
@@ -1335,16 +1335,8 @@ const Checkout = () => {
                 <span>{tr.sslSecured}</span>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
-                <ShieldCheck className="h-4 w-4 text-cellpay-green" />
-                <span>{tr.pciCompliant}</span>
-              </div>
-              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
-                <CheckCircle2 className="h-4 w-4 text-cellpay-green" />
-                <span>{tr.verifiedMerchant}</span>
-              </div>
-              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
                 <Headphones className="h-4 w-4 text-cellpay-green" />
-                <span>{tr.support247}</span>
+                <span>{tr.supportLine}</span>
               </div>
             </div>
           </div>
@@ -1560,7 +1552,7 @@ const Checkout = () => {
                 className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
               <span className="text-sm text-foreground leading-relaxed">
                 {tr.agreeTerms}{" "}
-                <a href="https://www.cellpay.us/terms-and-conditions.html" className="underline font-semibold" style={{ color: brandColor }}>
+                <a href="/terms-and-conditions" className="underline font-semibold" style={{ color: brandColor }}>
                   {tr.termsAndConditions}
                 </a>{" "}
                 {tr.agreeTermsSuffix}

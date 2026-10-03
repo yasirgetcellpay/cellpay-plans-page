@@ -6,9 +6,9 @@ import { applySeoHead } from "@/lib/seo";
 const steps = [
   { num: "1", title: "Choose Your Carrier", desc: "Browse our home page and select your prepaid wireless carrier from the list of supported providers." },
   { num: "2", title: "Enter Your Phone Number", desc: "Type in the 10-digit phone number associated with your prepaid account. Make sure it's correct — refills cannot be reversed." },
-  { num: "3", title: "Select a Plan or Amount", desc: "Choose from available plans or enter a custom top-up amount. Pricing is shown upfront with no hidden fees." },
+  { num: "3", title: "Select a Plan or Amount", desc: "Choose from available plans or enter a custom top-up amount. Pricing, including a low service fee, is shown before you pay." },
   { num: "4", title: "Complete Payment", desc: "Pay securely using your credit/debit card or Apple Pay. Your payment is processed through our encrypted payment gateway." },
-  { num: "5", title: "Instant Recharge", desc: "Your prepaid account is topped up instantly. You'll receive a confirmation with your transaction details." },
+  { num: "5", title: "Refill Confirmation", desc: "Your refill is sent to your line after payment. It can take up to 30 min for a refill to reflect on your account. You'll receive a confirmation with your transaction details." },
 ];
 
 const HowToUse = () => {
@@ -16,7 +16,7 @@ const HowToUse = () => {
     applySeoHead({
       title: "How to Refill a Prepaid Phone Online — CellPay Guide",
       description:
-        "Step-by-step guide to recharging a US prepaid phone with CellPay: pick a carrier, enter the number, choose a plan, pay securely, and get an instant top-up.",
+        "Step-by-step guide to recharging a US prepaid phone with CellPay: pick a carrier, enter the number, choose a plan, pay securely, and get your top-up.",
       path: "/how-to-use",
     });
   }, []);

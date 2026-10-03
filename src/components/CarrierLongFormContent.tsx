@@ -155,7 +155,7 @@ export const buildFaqSchema = (faqs: { q: string; a: string }[]): string =>
 export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
   introH2: "AT&T Prepaid Refill — Pay Your AT&T Bill Online",
   intro:
-    "Refill any AT&T Prepaid line in seconds with CellPay. No AT&T login, no app, no store visit — just enter the phone number, pick a plan or top-up amount, and pay with the card or wallet you already use. Your AT&T Prepaid service is restored instantly.",
+    "Refill any AT&T Prepaid line online with CellPay. No AT&T login, no app, no store visit — just enter the phone number, pick a plan or top-up amount, and pay with the card or wallet you already use. It can take up to 30 min for a refill to reflect on your account.",
   stepsH2: "How to Refill AT&T Prepaid in 4 Steps",
   steps: [
     {
@@ -168,11 +168,11 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with debit, credit, Apple Pay, Google Pay, PayPal, Cash App, Klarna, or bank pay. Every AT&T Prepaid payment is encrypted and processed in real time.",
+      body: "Check out with debit, credit, Apple Pay, Google Pay, PayPal, Cash App, Klarna, or bank pay. Every AT&T Prepaid payment is encrypted in transit (TLS).",
     },
     {
-      title: "Step 4 — Instant AT&T Refill Confirmation",
-      body: "Your AT&T Prepaid line is recharged within seconds. You'll get an email receipt and an SMS from AT&T confirming the new balance or plan renewal.",
+      title: "Step 4 — AT&T Refill Confirmation",
+      body: "You'll get an email receipt and an SMS from AT&T confirming the new balance or plan renewal.",
     },
   ],
   plansH2: "Supported AT&T Prepaid Plans",
@@ -194,7 +194,7 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
     },
     {
       q: "How fast does an AT&T Prepaid refill post?",
-      a: "Refills typically post within seconds of payment. AT&T sends an SMS to the refilled line as soon as the new plan or balance is active.",
+      a: "It can take up to 30 min for a refill to reflect on your account. AT&T sends an SMS to the refilled line as soon as the new plan or balance is active.",
     },
     {
       q: "Can I refill someone else's AT&T Prepaid line?",
@@ -210,11 +210,11 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
     },
     {
       q: "Will an AT&T Prepaid refill restore suspended service?",
-      a: "Yes. Once AT&T processes the refill (usually within a minute), your line reactivates automatically.",
+      a: "Yes. Once AT&T processes the refill, your line reactivates automatically. It can take up to 30 min for a refill to reflect on your account.",
     },
     {
       q: "Is there a fee to refill AT&T Prepaid through CellPay?",
-      a: "No hidden fees. You pay the same retail amount as you would at an AT&T store.",
+      a: "A low service fee is shown before you pay, on top of the plan's retail price.",
     },
   ],
 };
@@ -223,7 +223,7 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
 export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
   introH2: "Straight Talk Refill — Pay Your Straight Talk Bill Online",
   intro:
-    "Refill any Straight Talk Wireless phone in seconds with CellPay. Skip the Walmart line, the Straight Talk login, and the refill card scratch-off — just enter the phone number, pick a service plan, and pay with the card or wallet you already use. Your Straight Talk service is renewed instantly.",
+    "Refill any Straight Talk Wireless phone online with CellPay. Skip the Walmart line, the Straight Talk login, and the refill card scratch-off — just enter the phone number, pick a service plan, and pay with the card or wallet you already use. It can take up to 30 min for a refill to reflect on your account.",
   stepsH2: "How to Refill Straight Talk in 4 Steps",
   steps: [
     {
@@ -236,11 +236,11 @@ export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with debit, credit, Apple Pay, Google Pay, PayPal, Cash App, Klarna, or bank pay. Every Straight Talk payment is encrypted and processed in real time.",
+      body: "Check out with debit, credit, Apple Pay, Google Pay, PayPal, Cash App, Klarna, or bank pay. Every Straight Talk payment is encrypted in transit (TLS).",
     },
     {
-      title: "Step 4 — Instant Straight Talk Refill Confirmation",
-      body: "Your Straight Talk plan is applied within seconds. You'll get an email receipt and an SMS from Straight Talk confirming the new service period.",
+      title: "Step 4 — Straight Talk Refill Confirmation",
+      body: "You'll get an email receipt and an SMS from Straight Talk confirming the new service period.",
     },
   ],
   plansH2: "Supported Straight Talk Service Plans",
@@ -262,7 +262,7 @@ export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
     },
     {
       q: "How fast does a Straight Talk refill post?",
-      a: "Refills typically post within seconds. Straight Talk sends an SMS to the refilled line as soon as the new service period is active.",
+      a: "It can take up to 30 min for a refill to reflect on your account. Straight Talk sends an SMS to the refilled line as soon as the new service period is active.",
     },
     {
       q: "Can I refill someone else's Straight Talk phone?",
@@ -278,11 +278,11 @@ export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
     },
     {
       q: "Will a Straight Talk refill restore suspended service?",
-      a: "Yes. Once Straight Talk processes the refill, your line reactivates automatically — usually within a minute.",
+      a: "Yes. Once Straight Talk processes the refill, your line reactivates automatically. It can take up to 30 min for a refill to reflect on your account.",
     },
     {
       q: "Is there a fee to refill Straight Talk through CellPay?",
-      a: "No hidden fees. You pay the full retail price of the Straight Talk plan — the same amount as Walmart or straighttalk.com.",
+      a: "A low service fee is shown before you pay, on top of the plan's retail price.",
     },
   ],
 };
@@ -291,7 +291,7 @@ export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
 export const VERIZON_CONFIG: CarrierLongFormConfig = {
   introH2: "Verizon Prepaid Refill — Pay Your Verizon Bill Online",
   intro:
-    "Refill any Verizon Prepaid phone in seconds with CellPay. No My Verizon login, no app, no store visit — just enter the phone number, pick a Verizon Prepaid plan, and pay with the card or wallet you already use. Your Verizon service is renewed instantly.",
+    "Refill any Verizon Prepaid phone online with CellPay. No My Verizon login, no app, no store visit — just enter the phone number, pick a Verizon Prepaid plan, and pay with the card or wallet you already use. It can take up to 30 min for a refill to reflect on your account.",
   stepsH2: "How to Refill Verizon Prepaid in 4 Steps",
   steps: [
     {
@@ -304,11 +304,11 @@ export const VERIZON_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with debit, credit, Apple Pay, Google Pay, PayPal, Cash App, Klarna, or bank pay. Every Verizon Prepaid payment is encrypted and processed in real time.",
+      body: "Check out with debit, credit, Apple Pay, Google Pay, PayPal, Cash App, Klarna, or bank pay. Every Verizon Prepaid payment is encrypted in transit (TLS).",
     },
     {
-      title: "Step 4 — Instant Verizon Refill Confirmation",
-      body: "Your Verizon Prepaid line is recharged within seconds. You'll get an email receipt and an SMS from Verizon confirming the new plan or balance.",
+      title: "Step 4 — Verizon Refill Confirmation",
+      body: "You'll get an email receipt and an SMS from Verizon confirming the new plan or balance.",
     },
   ],
   plansH2: "Supported Verizon Prepaid Plans",
@@ -330,7 +330,7 @@ export const VERIZON_CONFIG: CarrierLongFormConfig = {
     },
     {
       q: "How fast does a Verizon Prepaid refill post?",
-      a: "Refills typically post within seconds of payment. Verizon sends an SMS to the refilled line as soon as the new plan is active.",
+      a: "It can take up to 30 min for a refill to reflect on your account. Verizon sends an SMS to the refilled line as soon as the new plan is active.",
     },
     {
       q: "Can I refill someone else's Verizon Prepaid phone?",
@@ -346,11 +346,11 @@ export const VERIZON_CONFIG: CarrierLongFormConfig = {
     },
     {
       q: "Will a Verizon Prepaid refill reactivate suspended service?",
-      a: "Yes. Once Verizon processes the refill, your line reactivates automatically — usually within a minute.",
+      a: "Yes. Once Verizon processes the refill, your line reactivates automatically. It can take up to 30 min for a refill to reflect on your account.",
     },
     {
       q: "Is there a fee to refill Verizon Prepaid through CellPay?",
-      a: "No hidden fees. You pay the same retail price as you would in a Verizon store or on the Verizon website.",
+      a: "A low service fee is shown before you pay, on top of the plan's retail price.",
     },
   ],
 };

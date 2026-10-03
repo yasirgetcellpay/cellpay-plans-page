@@ -92,8 +92,8 @@ const ATT = () => {
   useEffect(() => {
     const isEs = typeof window !== "undefined" && window.location.pathname.startsWith("/es");
     applySeoHead(isEs
-      ? { title: 'Recarga AT&T Prepago en Línea | CellPay', description: 'Recarga tu teléfono AT&T Prepaid al instante con CellPay. Recarga en línea segura desde $5 hasta $300, enviada directamente a tu número.' }
-      : { title: 'AT&T Prepaid Refill Online | CellPay', description: 'Refill your AT&T Prepaid phone instantly with CellPay. Secure online top-up from $5 to $300, sent directly to your number in seconds.' });
+      ? { title: 'Recarga AT&T Prepago en Línea | CellPay', description: 'Recarga tu teléfono AT&T Prepaid en línea con CellPay. Recarga en línea segura desde $5 hasta $300, enviada directamente a tu número.' }
+      : { title: 'AT&T Prepaid Refill Online | CellPay', description: 'Refill your AT&T Prepaid phone online with CellPay. Secure online top-up from $5 to $300, sent directly to your number.' });
   }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
@@ -223,7 +223,7 @@ const ATT = () => {
             <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">Agree with AT&amp;T Product Policies and Sales.{" "}<a href="https://www.att.com/legal/terms.attWebsiteTermsOfUse.html" className="underline font-semibold" style={{ color: BRAND }}>View More</a></span>
           </label>
           <button type="button" disabled={!isValid} onClick={() => goCheckout(amount)} className="w-full h-[44px] sm:h-[48px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]" style={{ backgroundColor: BRAND }}>PAY NOW</button>
-          <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
+          <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Your refill is sent directly to your phone. It can take up to 30 min for a refill to reflect on your account.</p>
         </div>
       </div>
 

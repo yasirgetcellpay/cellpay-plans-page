@@ -25,6 +25,8 @@ const HTML_ROUTES = [
   "guest-simple-mobile.html",
   "guest-net10.html",
   "guest-lyca.html",
+  "guest-metropcs.html",
+  "guest-boost.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
@@ -38,6 +40,7 @@ const HTML_ROUTES = [
   "es/ultra-mobile.html",
   "us-cellular.html",
   "verizon-wireless-flexi.html",
+  "total-wireless.html",
   // Spanish mirrors
   "es/s1.html",
   "es/topup-crc.html",
@@ -54,6 +57,7 @@ const HTML_ROUTES = [
   "es/tracfone.html",
   "es/us-cellular.html",
   "es/verizon-wireless-flexi.html",
+  "es/total-wireless.html",
   // Legacy `-espanol.html` URLs (App.tsx redirects them to /es/* client-side)
   "s1-espanol.html",
   "topup-crc-espanol.html",
@@ -70,16 +74,19 @@ const HTML_ROUTES = [
   "ultra-mobile-espanol.html",
   "us-cellular-espanol.html",
   "verizon-wireless-flexi-espanol.html",
-  // Legacy Google Ads landing URL — served as SPA so AmountRedirect can run
-  "amount.php",
   // H2O alt paths used by older Google Ads campaigns
   "h2o-wireless/index.html",
   "h2o-wireless/bill-payment/index.html",
   // PagePlus path-style alias
   "pageplus/index.html",
-  // Red Pocket legacy .html URL (alias to /red-pocket SPA route)
+  // Carriers removed from the site (Red Pocket, Movistar, Xbox; Oct 2026): noindex
+  // shells only. App.tsx redirects these URLs to the home page.
   "red-pocket-mobile.html",
   "es/red-pocket-mobile.html",
+  "movistar.html",
+  "es/movistar.html",
+  "movistar-flexi.html",
+  "es/movistar-flexi.html",
   // Admin SPA routes — emit as folder/index.html so self-hosted servers
   // (which don't do SPA fallback) serve the React app on direct refresh.
   "admin/index.html",
@@ -128,36 +135,47 @@ const htmlAliasPlugin = (): Plugin => ({
     const GUEST_CONTENT: Record<string, { h1: string; intro: string }> = {
       "guest-metro-pcs.html": {
         h1: "Metro PCS Guest Payment — One-Time Refill, No Login Required",
-        intro: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+        intro: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment.",
       },
       "guest-h2o.html": {
         h1: "H2O Wireless Guest Payment — One-Time Refill, No Login Required",
-        intro: "Pay your H2O Wireless bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+        intro: "Pay your H2O Wireless bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment.",
       },
       "guest-pageplus.html": {
         h1: "Page Plus Guest Payment — One-Time Refill, No Login Required",
-        intro: "Pay your Page Plus Cellular bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+        intro: "Pay your Page Plus Cellular bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment.",
       },
       "guest-simple-mobile.html": {
         h1: "Simple Mobile Guest Payment — One-Time Refill, No Login Required",
-        intro: "Pay your Simple Mobile bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+        intro: "Pay your Simple Mobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment.",
       },
       "guest-net10.html": {
         h1: "NET10 Wireless Guest Payment — One-Time Refill, No Login Required",
-        intro: "Pay your NET10 Wireless bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+        intro: "Pay your NET10 Wireless bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment.",
       },
       "guest-lyca.html": {
         h1: "Lycamobile Guest Payment — One-Time Refill, No Login Required",
-        intro: "Pay your Lycamobile bill as a guest in seconds. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is delivered instantly.",
+        intro: "Pay your Lycamobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment.",
+      },
+      "guest-metropcs.html": {
+        h1: "Metro PCS Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment.",
+      },
+      "guest-boost.html": {
+        h1: "Boost Mobile Guest Payment — One-Time Refill, No Login Required",
+        intro: "Pay your Boost Mobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely — no account needed. Your refill is sent to your line after payment.",
       },
     };
 
 
     // Per-route SEO metadata for static alias HTML files.
     // Bots and social scrapers read the static HTML before JS runs, so each
-    // alias must ship its own <title>, description, canonical, OG, hreflang,
+    // alias ships its own <title>, description, OG title/description
     // and (for legacy redirect shells) noindex,follow.
-    const SITE = "https://refill.cellpay.us";
+    // These files are served on refill.cellpay.us AND www.cellpay.us (separate sites,
+    // each self-canonical), so the static HTML never names a host: no absolute canonical,
+    // og:url or hreflang here. At runtime src/lib/seo.ts sets canonical + og:url to the
+    // current host; hreflang lives in each host's own sitemap (sitemap-refill.xml / sitemap-www.xml).
     type Meta = {
       title: string;
       description: string;
@@ -167,37 +185,45 @@ const htmlAliasPlugin = (): Plugin => ({
       esPath?: string;
     };
     const CARRIER_META: Record<string, { title: string; description: string }> = {
-      "topup-at.html":             { title: "AT&T Prepaid Refill — Instant Top-Up | CellPay",        description: "Recharge your AT&T Prepaid phone instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "boost.html":                { title: "Boost Mobile Refill — Instant Top-Up | CellPay",        description: "Recharge Boost Mobile online instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "topup-crc.html":            { title: "Cricket Wireless Refill — Instant Top-Up | CellPay",    description: "Recharge Cricket Wireless instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "h2o.html":                  { title: "H2O Wireless Refill — Instant Top-Up | CellPay",        description: "Recharge H2O Wireless instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "lyca.html":                 { title: "Lycamobile Refill — Instant Top-Up | CellPay",          description: "Recharge Lycamobile instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "metropcs.html":             { title: "Metro by T-Mobile Refill — Instant Top-Up | CellPay",   description: "Recharge Metro by T-Mobile instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "metro-pcs.html":            { title: "Metro PCS Refill — Instant Top-Up | CellPay",           description: "Recharge Metro PCS instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "guest-metro-pcs.html":      { title: "Metro PCS Guest Refill — Instant Top-Up | CellPay",     description: "Recharge Metro PCS as a guest — no login required. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "guest-h2o.html":            { title: "H2O Wireless Guest Refill — Instant Top-Up | CellPay",  description: "Make an H2O Wireless guest payment in seconds. No login required — pick a 30-day plan, pay securely, and your refill is delivered instantly." },
-      "guest-pageplus.html":       { title: "Page Plus Guest Refill — Instant Top-Up | CellPay",     description: "Pay your Page Plus Cellular bill as a guest. No login required — pick a 30-day plan, check out securely, and refill in seconds." },
-      "guest-simple-mobile.html":  { title: "Simple Mobile Guest Refill — Instant Top-Up | CellPay", description: "Make a Simple Mobile guest payment in seconds. No login required — pick a 30-day plan, pay securely, and refill instantly." },
-      "guest-net10.html":          { title: "NET10 Wireless Guest Refill — Instant Top-Up | CellPay",description: "Pay your NET10 Wireless bill as a guest. No login required — pick a 30-day plan, check out securely, and refill in seconds." },
-      "guest-lyca.html":           { title: "Lycamobile Guest Refill — Instant Top-Up | CellPay",    description: "Make a Lycamobile guest payment in seconds. No login required — pick a 30-day plan, pay securely, and refill instantly." },
-      "net10.html":                { title: "Net10 Wireless Refill — Instant Top-Up | CellPay",      description: "Recharge Net10 Wireless instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "pageplus.html":             { title: "Page Plus Cellular Refill — Instant Top-Up | CellPay",  description: "Recharge Page Plus Cellular instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "s1.html":                   { title: "Simple Mobile Refill — Instant Top-Up | CellPay",       description: "Recharge Simple Mobile instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "tmobile-flexi.html":        { title: "T-Mobile Prepaid Refill — Instant Top-Up | CellPay",    description: "Recharge T-Mobile Prepaid instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "tracfone.html":             { title: "TracFone Refill — Instant Top-Up | CellPay",            description: "Recharge TracFone instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "ultra-mobile.html":         { title: "Ultra Mobile Refill — Instant Top-Up | CellPay",        description: "Recharge Ultra Mobile instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "us-cellular.html":          { title: "US Cellular Refill — Instant Top-Up | CellPay",         description: "Recharge US Cellular instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "verizon-wireless-flexi.html": { title: "Verizon Prepaid Refill — Instant Top-Up | CellPay",   description: "Recharge Verizon Prepaid instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "straight-talk.html":        { title: "Straight Talk Refill — Instant Top-Up | CellPay",       description: "Recharge Straight Talk instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
-      "red-pocket-mobile.html":    { title: "Red Pocket Mobile Refill — Instant Top-Up | CellPay",   description: "Recharge Red Pocket Mobile instantly. All 30-day plans, secure checkout, no fees, delivered in seconds." },
+      "topup-at.html":             { title: "AT&T Prepaid Refill — Online Top-Up | CellPay",        description: "Recharge your AT&T Prepaid phone online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "boost.html":                { title: "Boost Mobile Refill — Online Top-Up | CellPay",        description: "Recharge Boost Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "topup-crc.html":            { title: "Cricket Wireless Refill — Online Top-Up | CellPay",    description: "Recharge Cricket Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "h2o.html":                  { title: "H2O Wireless Refill — Online Top-Up | CellPay",        description: "Recharge H2O Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "lyca.html":                 { title: "Lycamobile Refill — Online Top-Up | CellPay",          description: "Recharge Lycamobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "metropcs.html":             { title: "Metro by T-Mobile Refill — Online Top-Up | CellPay",   description: "Recharge Metro by T-Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "metro-pcs.html":            { title: "Metro PCS Refill — Online Top-Up | CellPay",           description: "Recharge Metro PCS online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "guest-metro-pcs.html":      { title: "Metro PCS Guest Refill — Online Top-Up | CellPay",     description: "Recharge Metro PCS as a guest — no login required. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "guest-h2o.html":            { title: "H2O Wireless Guest Refill — Online Top-Up | CellPay",  description: "Make an H2O Wireless guest payment online. No login required — pick a 30-day plan, pay securely, and your refill is sent to your line after payment." },
+      "guest-pageplus.html":       { title: "Page Plus Guest Refill — Online Top-Up | CellPay",     description: "Pay your Page Plus Cellular bill as a guest. No login required — pick a 30-day plan, check out securely, and your refill is sent to your line after payment." },
+      "guest-simple-mobile.html":  { title: "Simple Mobile Guest Refill — Online Top-Up | CellPay", description: "Make a Simple Mobile guest payment online. No login required — pick a 30-day plan, pay securely, and your refill is sent to your line after payment." },
+      "guest-net10.html":          { title: "NET10 Wireless Guest Refill — Online Top-Up | CellPay",description: "Pay your NET10 Wireless bill as a guest. No login required — pick a 30-day plan, check out securely, and your refill is sent to your line after payment." },
+      "guest-lyca.html":           { title: "Lycamobile Guest Refill — Online Top-Up | CellPay",    description: "Make a Lycamobile guest payment online. No login required — pick a 30-day plan, pay securely, and your refill is sent to your line after payment." },
+      "net10.html":                { title: "Net10 Wireless Refill — Online Top-Up | CellPay",      description: "Recharge Net10 Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "pageplus.html":             { title: "Page Plus Cellular Refill — Online Top-Up | CellPay",  description: "Recharge Page Plus Cellular online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "s1.html":                   { title: "Simple Mobile Refill — Online Top-Up | CellPay",       description: "Recharge Simple Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "tmobile-flexi.html":        { title: "T-Mobile Prepaid Refill — Online Top-Up | CellPay",    description: "Recharge T-Mobile Prepaid online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "tracfone.html":             { title: "TracFone Refill — Online Top-Up | CellPay",            description: "Recharge TracFone online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "ultra-mobile.html":         { title: "Ultra Mobile Refill — Online Top-Up | CellPay",        description: "Recharge Ultra Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "us-cellular.html":          { title: "US Cellular Refill — Online Top-Up | CellPay",         description: "Recharge US Cellular online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "verizon-wireless-flexi.html": { title: "Verizon Prepaid Refill — Online Top-Up | CellPay",   description: "Recharge Verizon Prepaid online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "straight-talk.html":        { title: "Straight Talk Refill — Online Top-Up | CellPay",       description: "Recharge Straight Talk online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "guest-metropcs.html":       { title: "Metro PCS Guest Refill — Online Top-Up | CellPay",      description: "Recharge Metro PCS as a guest — no login required. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "guest-boost.html":          { title: "Boost Mobile Guest Refill — Online Top-Up | CellPay",   description: "Recharge Boost Mobile as a guest — no login required. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "total-wireless.html":       { title: "Total Wireless Refill — Online Top-Up | CellPay",       description: "Recharge Total Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
     };
     const ES_TITLE_PREFIX: Record<string, string> = {};
+    // Carriers removed from the site (Oct 2026). Their old URLs keep a noindex shell.
+    const REMOVED_CARRIER_SHELLS = new Set([
+      "red-pocket-mobile.html", "es/red-pocket-mobile.html",
+      "movistar.html", "es/movistar.html",
+      "movistar-flexi.html", "es/movistar-flexi.html",
+    ]);
     const buildMeta = (route: string): Meta => {
       // Legacy per-amount redirect shells: noindex,follow
       if (/^\d+-.+-prepaid-refill\.html$/.test(route)) {
         return {
           title: "Prepaid Refill | CellPay",
-          description: "Recharge your prepaid phone instantly with CellPay.",
+          description: "Recharge your prepaid phone online with CellPay.",
           noindex: true,
           lang: "en",
         };
@@ -206,18 +232,9 @@ const htmlAliasPlugin = (): Plugin => ({
       if (route.endsWith("-espanol.html")) {
         return {
           title: "Recarga de Teléfono Prepago | CellPay",
-          description: "Recarga tu teléfono prepago al instante con CellPay.",
+          description: "Recarga tu teléfono prepago en línea con CellPay.",
           noindex: true,
           lang: "es",
-        };
-      }
-      // amount.php legacy
-      if (route === "amount.php") {
-        return {
-          title: "Recarga de Teléfono | CellPay",
-          description: "Elige tu operador para recargar tu teléfono prepago.",
-          noindex: true,
-          lang: "en",
         };
       }
       // Admin shells: noindex
@@ -229,6 +246,19 @@ const htmlAliasPlugin = (): Plugin => ({
           lang: "en",
         };
       }
+      // Removed carriers (Red Pocket, Movistar, Xbox): generic noindex,follow shell;
+      // the React route sends visitors to the home page.
+      if (REMOVED_CARRIER_SHELLS.has(route)) {
+        const isEs = route.startsWith("es/");
+        return {
+          title: "CellPay — Mobile Recharge & Prepaid Phone Refills Online",
+          description: isEs
+            ? "Recargas de teléfonos prepago para más de 15 operadores de EE. UU. con CellPay."
+            : "Mobile recharge and prepaid refills for 15+ US carriers with CellPay.",
+          noindex: true,
+          lang: isEs ? "es" : "en",
+        };
+      }
       // Spanish carrier mirror
       if (route.startsWith("es/")) {
         const base = route.slice(3);
@@ -236,7 +266,7 @@ const htmlAliasPlugin = (): Plugin => ({
         if (meta) {
           return {
             title: meta.title.replace(" | CellPay", " — Español | CellPay"),
-            description: "Recarga al instante. Planes de 30 días, pago seguro, sin comisiones, entrega en segundos.",
+            description: "Recarga en línea. Planes de 30 días, pago seguro. Cargo por servicio bajo, mostrado antes de pagar.",
             lang: "es",
             esPath: "/" + route,
             enPath: "/" + base,
@@ -262,7 +292,7 @@ const htmlAliasPlugin = (): Plugin => ({
       }
       return {
         title: "Mobile Recharge & Prepaid Refills Online | CellPay",
-        description: "Recharge any US prepaid carrier instantly with CellPay.",
+        description: "Recharge any US prepaid carrier online with CellPay.",
         lang: "en",
       };
     };
@@ -272,7 +302,7 @@ const htmlAliasPlugin = (): Plugin => ({
 
     const renderHtml = (route: string): string => {
       const meta = buildMeta(route);
-      const url = `${SITE}/${route.replace(/\/index\.html$/, "/")}`;
+      const url = `/${route.replace(/\/index\.html$/, "/")}`; // relative: resolves to whichever host serves the file
       let out = html;
 
       // <html lang="...">
@@ -293,11 +323,9 @@ const htmlAliasPlugin = (): Plugin => ({
         `<link rel="canonical" href="${url}" />`,
       );
 
-      // og:url, og:title, og:description
-      out = out.replace(
-        /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i,
-        `<meta property="og:url" content="${url}" />`,
-      );
+      // og:url must be absolute and the host is only known at runtime: drop any static og:url (seo.ts sets it).
+      out = out.replace(/\s*<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i, "");
+      // og:title, og:description
       out = out.replace(
         /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i,
         `<meta property="og:title" content="${escAttr(meta.title)}" />`,
@@ -327,16 +355,8 @@ const htmlAliasPlugin = (): Plugin => ({
         }
       }
 
-      // hreflang pairing
-      const extras: string[] = [];
-      if (meta.enPath && meta.esPath) {
-        extras.push(`<link rel="alternate" hreflang="en" href="${SITE}${meta.enPath}" />`);
-        extras.push(`<link rel="alternate" hreflang="es" href="${SITE}${meta.esPath}" />`);
-        extras.push(`<link rel="alternate" hreflang="x-default" href="${SITE}${meta.enPath}" />`);
-      }
-      if (extras.length) {
-        out = out.replace(/<\/head>/i, `  ${extras.join("\n  ")}\n  </head>`);
-      }
+      // hreflang: not emitted in the static HTML. It must be an absolute URL and this file is
+      // served on two hosts; each host's own sitemap carries the en/es/x-default alternates.
 
       // Inject H1 + intro into the static body for guest landing pages so
       // crawlers see real above-the-fold content in raw HTML (before JS).

@@ -70,8 +70,8 @@ const USCellular = () => {
   useEffect(() => {
     const isEs = typeof window !== "undefined" && window.location.pathname.startsWith("/es");
     applySeoHead(isEs
-      ? { title: 'Recarga US Cellular en Línea | CellPay', description: 'Paga tu factura US Cellular en línea con CellPay. Recargas prepagadas rápidas y seguras desde $5 hasta $100, enviadas al instante.' }
-      : { title: 'US Cellular Prepaid Refill Online | CellPay', description: 'Pay your US Cellular bill online with CellPay. Fast and secure prepaid refills from $5 to $100, sent instantly to your number.' });
+      ? { title: 'Recarga US Cellular en Línea | CellPay', description: 'Paga tu factura US Cellular en línea con CellPay. Recargas prepagadas seguras desde $5 hasta $100, enviadas a tu número.' }
+      : { title: 'US Cellular Prepaid Refill Online | CellPay', description: 'Pay your US Cellular bill online with CellPay. Secure prepaid refills from $5 to $100, sent to your number.' });
   }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
@@ -177,7 +177,7 @@ const USCellular = () => {
             navigate("/checkout", { state: { phone, amount: String(amountNum), carrierSlug: "uscellular", carrierName: "US Cellular", brandColor: "hsl(220,80%,35%)", carrierId: picked.carrierId, planId: picked.planId, planName: picked.name } });
           }} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg bg-[hsl(220,80%,35%)] hover:bg-[hsl(220,80%,28%)] disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]">PAY NOW</button>
         </div>
-        <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
+        <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Your refill is sent directly to your phone. It can take up to 30 min for a refill to reflect on your account.</p>
       </div>
 
       <PaymentBar />

@@ -68,9 +68,7 @@ export interface Translations {
   serviceFee: string;
   tax: string;
   sslSecured: string;
-  pciCompliant: string;
-  verifiedMerchant: string;
-  support247: string;
+  supportLine: string;
   contactInformation: string;
   emailPlaceholder: string;
   invalidEmail: string;
@@ -135,10 +133,8 @@ export interface Translations {
   // ── Home page ──
   homeH1: string;
   homeSubtitle: string;
-  homeRating: string;
   secureCheckout: string;
-  instantDelivery: string;
-  support247Short: string;
+  feeShownShort: string;
   refillNow: string;
   howItWorksTitle: string;
   howItWorksSubtitle: string;
@@ -164,7 +160,7 @@ export interface Translations {
 const en: Translations = {
   back: "Go back",
   account: "Account",
-  heroH1: () => `Top Up Your Mobile Number—Instantly & Securely`,
+  heroH1: () => `Top Up Your Mobile Number—Online & Securely`,
   heroH2: () => `No login, no hassle. Enter your phone number, choose your plan, and you're recharged.`,
   enterPhoneLabel: (c) => `Enter Your ${c} Phone Number`,
   phonePlaceholder: "(XXX) XXX-XXXX",
@@ -186,7 +182,7 @@ const en: Translations = {
   payNow: "PAY NOW",
   verifying: "VERIFYING...",
   total: "Total",
-  securePayment: "Secure payment. Instant refill sent directly to your phone.",
+  securePayment: "Secure payment. Your refill is sent directly to your phone.",
   tapToContinue: "Tap to continue",
   mostPopular: "MOST POPULAR",
   faqsTitle: (c) => `${c} FAQs`,
@@ -220,9 +216,7 @@ const en: Translations = {
   serviceFee: "Service Fee",
   tax: "Tax",
   sslSecured: "SSL Secured",
-  pciCompliant: "PCI Compliant",
-  verifiedMerchant: "Verified Merchant",
-  support247: "24/7 Support",
+  supportLine: "Support: Monday – Friday: 9:00 AM – 6:00 PM (EST) · Saturday – Sunday: 10:00 AM – 4:00 PM (EST) · support@getcellpay.com",
   contactInformation: "Contact Information",
   emailPlaceholder: "Email Address *",
   invalidEmail: "Please enter a valid email address",
@@ -252,7 +246,7 @@ const en: Translations = {
   acceptAutoPayTerms: "Accept Terms and Conditions",
   placeOrder: "PLACE ORDER NOW",
   processing: "Processing...",
-  securePoweredBy: "Secure payment powered by CellPay. Instant refill sent directly to your phone.",
+  securePoweredBy: "Secure payment powered by CellPay. Your refill is sent directly to your phone.",
   paymentFailed: "Payment Failed",
   tryAgain: "Try Again",
   validationFailedTitle: "Validation failed",
@@ -292,14 +286,12 @@ const en: Translations = {
   missingSession: "Missing payment session reference.",
 
   homeH1: "Mobile Recharge & Prepaid Phone Refills Online",
-  homeSubtitle: "Instant CellPay top-ups for 15+ US carriers · No account required",
-  homeRating: "· 50,000+ customers served",
+  homeSubtitle: "CellPay top-ups for 15+ US carriers · No account required",
   secureCheckout: "Secure Checkout",
-  instantDelivery: "Instant Delivery",
-  support247Short: "24/7 Support",
+  feeShownShort: "Low service fee shown before you pay",
   refillNow: "Refill Now",
   howItWorksTitle: "How it works in 4 easy steps",
-  howItWorksSubtitle: "Refill any prepaid line in under 60 seconds — no account needed.",
+  howItWorksSubtitle: "Refill any prepaid line online — no account needed.",
   step: "Step",
   stepChooseCarrier: "Choose a Carrier",
   stepEnterNumber: "Enter your number",
@@ -307,10 +299,10 @@ const en: Translations = {
   stepPay: "Pay",
   homeFaqTitle: "Frequently Asked Questions",
   homeFaq: [
-    { q: "What is CellPay?", a: "CellPay is a fast, secure online payment service that lets you refill any major US prepaid wireless line in seconds — no account required." },
-    { q: "How does CellPay work?", a: "Pick your carrier, enter the prepaid phone number, choose a refill amount or plan, and pay with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. The refill is applied to the line instantly." },
-    { q: "Is CellPay for real?", a: "Yes. CellPay has processed payments for thousands of customers across 15+ carriers. Every transaction is processed through trusted, PCI-compliant payment networks." },
-    { q: "Is CellPay secure?", a: "Absolutely. All payment data is encrypted in transit with TLS, and card data is handled by PCI-DSS-compliant providers. CellPay never stores your full card number on our servers." },
+    { q: "What is CellPay?", a: "CellPay is a fast, secure online payment service that lets you refill any major US prepaid wireless line online — no account required." },
+    { q: "How does CellPay work?", a: "Pick your carrier, enter the prepaid phone number, choose a refill amount or plan, and pay with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. It can take up to 30 min for a refill to reflect on your account." },
+    { q: "Is CellPay for real?", a: "Yes. CellPay processes prepaid refill payments for 15+ US carriers." },
+    { q: "Is CellPay secure?", a: "All payment data is encrypted in transit with TLS (HTTPS)." },
   ],
 };
 
@@ -339,7 +331,7 @@ const es: Translations = {
   payNow: "PAGAR AHORA",
   verifying: "VERIFICANDO...",
   total: "Total",
-  securePayment: "Pago seguro. Recarga instantánea enviada directamente a su teléfono.",
+  securePayment: "Pago seguro. Su recarga se envía directamente a su teléfono.",
   tapToContinue: "Toque para continuar",
   mostPopular: "MÁS POPULAR",
   faqsTitle: (c) => `Preguntas frecuentes de ${c}`,
@@ -373,9 +365,7 @@ const es: Translations = {
   serviceFee: "Cargo por servicio",
   tax: "Impuesto",
   sslSecured: "SSL Seguro",
-  pciCompliant: "Cumple con PCI",
-  verifiedMerchant: "Comerciante verificado",
-  support247: "Soporte 24/7",
+  supportLine: "Soporte: Lunes a viernes: 9:00 AM – 6:00 PM (EST) · Sábado y domingo: 10:00 AM – 4:00 PM (EST) · support@getcellpay.com",
   contactInformation: "Información de contacto",
   emailPlaceholder: "Correo electrónico *",
   invalidEmail: "Por favor ingrese un correo electrónico válido",
@@ -405,7 +395,7 @@ const es: Translations = {
   acceptAutoPayTerms: "Aceptar Términos y Condiciones",
   placeOrder: "REALIZAR PEDIDO AHORA",
   processing: "Procesando...",
-  securePoweredBy: "Pago seguro con tecnología de CellPay. Recarga instantánea enviada a su teléfono.",
+  securePoweredBy: "Pago seguro con tecnología de CellPay. Su recarga se envía a su teléfono.",
   paymentFailed: "Pago fallido",
   tryAgain: "Intentar de nuevo",
   validationFailedTitle: "Validación fallida",
@@ -444,15 +434,13 @@ const es: Translations = {
   transactionLabel: "Transacción",
   missingSession: "Falta la referencia de la sesión de pago.",
 
-  homeH1: "Recargue Cualquier Teléfono Prepagado en Segundos",
-  homeSubtitle: "Recargas instantáneas para más de 15 operadores · Sin necesidad de cuenta",
-  homeRating: "· Más de 50,000 clientes atendidos",
+  homeH1: "Recargue Cualquier Teléfono Prepagado en Línea",
+  homeSubtitle: "Recargas para más de 15 operadores · Sin necesidad de cuenta",
   secureCheckout: "Pago Seguro",
-  instantDelivery: "Entrega Instantánea",
-  support247Short: "Soporte 24/7",
+  feeShownShort: "Cargo por servicio bajo, mostrado antes de pagar",
   refillNow: "Recargar Ahora",
   howItWorksTitle: "Cómo funciona en 4 sencillos pasos",
-  howItWorksSubtitle: "Recargue cualquier línea prepagada en menos de 60 segundos — sin necesidad de cuenta.",
+  howItWorksSubtitle: "Recargue cualquier línea prepagada en línea — sin necesidad de cuenta.",
   step: "Paso",
   stepChooseCarrier: "Elija un Operador",
   stepEnterNumber: "Ingrese su número",
@@ -460,10 +448,10 @@ const es: Translations = {
   stepPay: "Pague",
   homeFaqTitle: "Preguntas Frecuentes",
   homeFaq: [
-    { q: "¿Qué es CellPay?", a: "CellPay es un servicio de pago en línea rápido y seguro que le permite recargar cualquier línea inalámbrica prepagada importante de EE. UU. en segundos, sin necesidad de cuenta." },
-    { q: "¿Cómo funciona CellPay?", a: "Elija su operador, ingrese el número de teléfono prepagado, seleccione un monto o plan de recarga y pague con tarjeta, Apple Pay, Google Pay, PayPal, Klarna o Cash App. La recarga se aplica a la línea al instante." },
-    { q: "¿Es CellPay real?", a: "Sí. CellPay ha procesado pagos para miles de clientes en más de 15 operadores. Cada transacción se procesa a través de redes de pago confiables y compatibles con PCI." },
-    { q: "¿Es CellPay seguro?", a: "Absolutamente. Todos los datos de pago se cifran en tránsito con TLS, y los datos de la tarjeta son manejados por proveedores compatibles con PCI-DSS. CellPay nunca almacena el número completo de su tarjeta en nuestros servidores." },
+    { q: "¿Qué es CellPay?", a: "CellPay es un servicio de pago en línea rápido y seguro que le permite recargar cualquier línea inalámbrica prepagada importante de EE. UU. en línea, sin necesidad de cuenta." },
+    { q: "¿Cómo funciona CellPay?", a: "Elija su operador, ingrese el número de teléfono prepagado, seleccione un monto o plan de recarga y pague con tarjeta, Apple Pay, Google Pay, PayPal, Klarna o Cash App. La recarga puede tardar hasta 30 min en reflejarse." },
+    { q: "¿Es CellPay real?", a: "Sí. CellPay procesa pagos de recargas prepagadas para más de 15 operadores de EE. UU." },
+    { q: "¿Es CellPay seguro?", a: "Todos los datos de pago se cifran en tránsito con TLS (HTTPS)." },
   ],
 };
 
