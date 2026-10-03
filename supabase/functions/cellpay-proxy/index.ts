@@ -224,6 +224,291 @@ function isRetiredEndpoint(raw: string): boolean {
   return d.includes("autopay") || /transactions[\/\\]+(\.[\/\\]+)*last/.test(d);
 }
 
+// ---------------------------------------------------------------------------
+// [autopay AP-1] Self-serve Auto Pay cancel, restored on ONE route only:
+// POST "autopay/unsubscribe" with payload exactly { phone: "<10 digits>" } (the old cellpay.us call).
+// Extra, invisible checks in front of it: production Origin only, per-IP (Fix D) and per-phone rate
+// limits (HMAC'd buckets), ownership = phone + (checkout email OR last 4 of the Order ID) matched against
+// transaction_logs (rpc ap1_owner_match -> row id or null), and Turnstile in SHADOW mode (logged, never blocks).
+// A match whose CellPay call fails (5xx, timeout, network, non-JSON, error body) is queued in autopay_cancel_retry
+// (rpc ap1_retry_record: transaction_logs id + failure kind + HTTP status only) so it is never lost.
+// Every verification outcome gets the SAME neutral reply, padded to the same minimum time. The upstream
+// body is never passed through. transactions/last and every other autopay/* path stay 403 "retired".
+// Logs: PII-free rows in proxy_guard_events (code "ap1:*"); no phone, email, Order ID, IP or token.
+// ---------------------------------------------------------------------------
+const AP1_ROUTE_ENABLED = true; // one-line kill switch: false sends this route back to 403 "retired"
+const AP1_ENDPOINT = "autopay/unsubscribe";
+const AP1_ORIGINS = new Set<string>(["https://cellpay.us", "https://www.cellpay.us", "https://refill.cellpay.us"]);
+const AP1_HOSTS = new Set<string>(["cellpay.us", "www.cellpay.us", "refill.cellpay.us"]);
+// Same constants as 1b's ORIGIN_DOMAIN (each production Origin -> its own host); kept under an ap1 name so it never collides.
+const AP1_ORIGIN_DOMAIN: Record<string, string> = {
+  "https://cellpay.us": "cellpay.us",
+  "https://www.cellpay.us": "www.cellpay.us",
+  "https://refill.cellpay.us": "refill.cellpay.us",
+};
+const AP1_MIN_MS = 2500; // every 200 reply waits at least this long
+const AP1_UPSTREAM_TIMEOUT_MS = 2000;
+const AP1_LIMITS = { ip: { max: 10, windowS: 3600 }, phone: { max: 5, windowS: 3600 } };
+const AP1_TS_MODE: "shadow" = "shadow"; // standing decision: Turnstile only if abuse. Shadow logs, never blocks.
+const AP1_TS_ACTION = "autopay_cancel";
+const AP1_NEUTRAL = {
+  success: true,
+  data: {
+    status: true,
+    code: "AP_REQUEST_RECEIVED",
+    msg: "If that number has Auto Pay with us, it's now cancelled. We'll confirm by email within 1 business day.",
+  },
+};
+const AP1_TRY_LATER = {
+  success: true,
+  data: {
+    status: false,
+    code: "AP_TRY_LATER",
+    msg: "We couldn't take this request right now. Please try again later or email support@getcellpay.com.",
+  },
+};
+
+// Fix D client IP (same rule as CellPay Fraud's clientIp): CF-Connecting-IP, else the rightmost
+// platform-added X-Forwarded-For entry. Never the leftmost entry and never a body field.
+// Kept under ap1* names so it never collides with 1b's clientIp/TRUSTED_XFF_HOPS.
+const AP1_TRUSTED_XFF_HOPS = Number(Deno.env.get("TRUSTED_XFF_HOPS") ?? "1");
+function ap1IsIp(v: string): boolean {
+  return /^(\d{1,3}\.){3}\d{1,3}$/.test(v) || (/^[0-9a-f:]+$/i.test(v) && v.includes(":"));
+}
+function ap1ClientIp(req: Request): string | null {
+  const cf = (req.headers.get("cf-connecting-ip") || "").trim();
+  if (ap1IsIp(cf)) return cf;
+  const xff = (req.headers.get("x-forwarded-for") || "").split(",").map((x) => x.trim()).filter(Boolean);
+  const i = xff.length - AP1_TRUSTED_XFF_HOPS;
+  if (i >= 0 && ap1IsIp(xff[i])) return xff[i];
+  return null;
+}
+
+// AP-1's own event writer: same table and fetch shape as recordGuardEvent, but its OWN per-isolate cap so AP-1
+// traffic can never crowd out 1a/Fraud refusal rows. guard_version "ap1". Fire-and-forget, never throws.
+const AP1_EVENT_CAP_PER_MINUTE = Number(Deno.env.get("AP1_EVENT_CAP_PER_MINUTE") ?? "200");
+let ap1EventMinute = 0;
+let ap1EventsThisMinute = 0;
+let ap1EventsDropped = 0;
+function ap1Event(code: string, origin: string | null): void {
+  try {
+    const minute = Math.floor(Date.now() / 60000);
+    if (minute !== ap1EventMinute) {
+      ap1EventMinute = minute;
+      ap1EventsThisMinute = 0;
+    }
+    if (ap1EventsThisMinute >= AP1_EVENT_CAP_PER_MINUTE) {
+      ap1EventsDropped++;
+      return;
+    }
+    ap1EventsThisMinute++;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceKey) return;
+    const droppedBefore = ap1EventsDropped;
+    ap1EventsDropped = 0;
+    const write = fetch(`${supabaseUrl}/rest/v1/proxy_guard_events`, {
+      method: "POST",
+      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json", prefer: "return=minimal" },
+      body: JSON.stringify({
+        code, method: "POST", endpoint_shape: AP1_ENDPOINT, origin_host: originHost(origin), has_origin: origin !== null,
+        guard_version: "ap1", dropped_before: droppedBefore,
+      }),
+      signal: AbortSignal.timeout(1500),
+    })
+      .then((res) => {
+        if (!res.ok) console.warn(`[autopay AP-1] event insert failed: ${res.status}`);
+      })
+      .catch(() => {});
+    // deno-lint-ignore no-explicit-any
+    const runtime = (globalThis as any).EdgeRuntime;
+    if (runtime && typeof runtime.waitUntil === "function") runtime.waitUntil(write);
+  } catch {
+    // never let logging affect the reply
+  }
+}
+
+async function ap1Hash(kind: string, value: string): Promise<string> {
+  const key = Deno.env.get("GUARD_HASH_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const enc = new TextEncoder();
+  const k = await crypto.subtle.importKey("raw", enc.encode(key), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", k, enc.encode(`ap1|${kind}|${value}`)));
+  return `ap1:${kind}:` + Array.from(sig, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function ap1Rpc(name: string, args: Record<string, unknown>, timeoutMs: number): Promise<unknown> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceKey) throw new Error("db not configured");
+  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/${name}`, {
+    method: "POST",
+    headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
+    body: JSON.stringify(args),
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!res.ok) throw new Error(`${name} ${res.status}`);
+  return await res.json();
+}
+
+/** Turnstile, SHADOW only: returns a verdict for the log. Never blocks and never logs the token or secret. */
+async function ap1TurnstileVerdict(token: unknown, ip: string | null): Promise<string> {
+  if (typeof token !== "string" || token.length === 0 || token.length > 2048) return "missing";
+  const secret = Deno.env.get("TURNSTILE_SECRET_KEY");
+  if (!secret) return "nosecret";
+  try {
+    const form = new URLSearchParams({ secret, response: token });
+    if (ip) form.set("remoteip", ip);
+    const res = await fetch(Deno.env.get("TURNSTILE_VERIFY_URL") || "https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      body: form,
+      signal: AbortSignal.timeout(1500),
+    });
+    if (!res.ok) return "unavailable";
+    const v = asRecord(await res.json());
+    return v.success === true && v.action === AP1_TS_ACTION && AP1_HOSTS.has(String(v.hostname || "")) ? "ok" : "invalid";
+  } catch {
+    return "unavailable";
+  }
+}
+
+function ap1Json(cors: Record<string, string>, status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
+}
+
+async function ap1Padded(started: number, cors: Record<string, string>, body: unknown): Promise<Response> {
+  const wait = AP1_MIN_MS - (Date.now() - started);
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  return ap1Json(cors, 200, body);
+}
+
+/**
+ * Handles POST autopay/unsubscribe end to end. The upstream request is the old cellpay.us one:
+ * same method/path, the same header set the proxy always sent, and body JSON.stringify({ phone }).
+ * The verification fields (verify.email / verify.last4) and the Turnstile token ride OUTSIDE payload
+ * and are never forwarded.
+ */
+async function ap1HandleUnsubscribe(
+  req: Request,
+  body: Record<string, unknown>,
+  cors: Record<string, string>,
+  apiKey: string,
+  apiSecret: string,
+): Promise<Response> {
+  const started = Date.now();
+  const origin = req.headers.get("origin");
+  if (origin === null || !AP1_ORIGINS.has(origin)) {
+    ap1Event("ap1:bad_origin", origin);
+    return ap1Json(cors, 403, { success: false, blocked: true, code: "not_allowed", error: "This request is not allowed.", message: "This request is not allowed." });
+  }
+
+  // Exact old body: payload is { phone } and nothing else; phone is the old toPhone() output (10 digits).
+  const payload = asRecord(body.payload);
+  const keys = Object.keys(payload);
+  const phone = payload.phone;
+  const verify = asRecord(body.verify);
+  const email = typeof verify.email === "string" ? verify.email.trim().toLowerCase() : "";
+  const last4 = typeof verify.last4 === "string" ? verify.last4.trim().toLowerCase() : "";
+  const emailOk = email.length > 0 && email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const last4Ok = /^[a-z0-9]{4}$/.test(last4);
+  if (keys.length !== 1 || keys[0] !== "phone" || typeof phone !== "string" || !/^\d{10}$/.test(phone) || (!emailOk && !last4Ok)) {
+    ap1Event("ap1:invalid", origin);
+    return ap1Json(cors, 400, { success: false, blocked: true, code: "invalid_request", error: "Invalid request.", message: "Invalid request." });
+  }
+
+  const ip = ap1ClientIp(req);
+  // Rate limits: both buckets are always counted (same work either way).
+  let limited: string | null = null;
+  try {
+    const [ipOk, phoneOk] = await Promise.all([
+      ap1Rpc("ap1_rate_limit_hit", { _bucket: await ap1Hash("ip", ip ?? "none"), _limit: AP1_LIMITS.ip.max, _window_seconds: AP1_LIMITS.ip.windowS }, 1000),
+      ap1Rpc("ap1_rate_limit_hit", { _bucket: await ap1Hash("ph", phone), _limit: AP1_LIMITS.phone.max, _window_seconds: AP1_LIMITS.phone.windowS }, 1000),
+    ]);
+    if (ipOk !== true) limited = "ap1:rl_ip";
+    else if (phoneOk !== true) limited = "ap1:rl_phone";
+  } catch {
+    limited = "ap1:rl_error"; // fail closed: no cancel without a working limiter
+  }
+  if (limited) {
+    ap1Event(limited, origin);
+    return ap1Padded(started, cors, AP1_TRY_LATER);
+  }
+
+  // Turnstile (shadow) and the ownership check run side by side.
+  const [tsVerdict, owner] = await Promise.all([
+    ap1TurnstileVerdict(body.turnstile, ip),
+    ap1Rpc("ap1_owner_match", { _phone: phone, _email: emailOk ? email : null, _last4: last4Ok ? last4 : null }, 1500)
+      .then((v) => (typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v) ? v : null))
+      .catch(() => "error" as const),
+  ]);
+  ap1Event(`ap1:ts_${AP1_TS_MODE}:${tsVerdict}`, origin);
+  if (owner === "error") {
+    ap1Event("ap1:verify_error", origin);
+    return ap1Padded(started, cors, AP1_TRY_LATER);
+  }
+  if (owner === null) {
+    ap1Event("ap1:no_match", origin);
+    return ap1Padded(started, cors, AP1_NEUTRAL);
+  }
+
+  // The old call. X-Cellpay-Domain is a server-side constant picked by the validated Origin, never a body value
+  // (Yasir hard lock 3): the same rule as 1b's `callerHost ? domainForOrigin(origin) : FALLBACK_DOMAIN`. On 1a bases it
+  // equals the old resolveCellpayDomain(callerHost) for every real browser (callerHost is the page's own host).
+  const cellpayDomain = body.callerHost ? AP1_ORIGIN_DOMAIN[origin] : FALLBACK_DOMAIN;
+  const headers: Record<string, string> = {
+    "X-Api-Key": apiKey,
+    "X-Api-Secret": apiSecret,
+    "X-Cellpay-Domain": cellpayDomain,
+    "Content-Type": "application/json",
+    "Accept": "*/*",
+  };
+  if (typeof body.bearerToken === "string" && body.bearerToken) headers["Authorization"] = `Bearer ${body.bearerToken}`;
+  let fail: { kind: string; status: number | null } | null = null;
+  try {
+    const res = await fetch(`${API_BASE}/${AP1_ENDPOINT}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ phone }),
+      signal: AbortSignal.timeout(AP1_UPSTREAM_TIMEOUT_MS),
+    });
+    const raw = await res.text();
+    let d: unknown = undefined;
+    try {
+      d = JSON.parse(raw);
+    } catch {
+      d = undefined;
+    }
+    if (res.status >= 500) {
+      fail = { kind: "http_5xx", status: res.status };
+    } else if (!d || typeof d !== "object" || Array.isArray(d)) {
+      fail = { kind: "non_json", status: res.status };
+    } else {
+      const top = d as Record<string, unknown>;
+      const inner = top.data && typeof top.data === "object" ? asRecord(top.data) : top;
+      const st = inner.status;
+      const ok = res.ok && (st === true || st === "true" || String(st || "").toLowerCase() === "success");
+      if (!ok) fail = { kind: "error_body", status: res.status };
+    }
+  } catch (e) {
+    fail = { kind: e instanceof Error && e.name === "TimeoutError" ? "timeout" : "network", status: null };
+  }
+  if (!fail) {
+    ap1Event("ap1:sent_ok", origin);
+  } else {
+    ap1Event(`ap1:sent_fail:${fail.kind}`, origin);
+    // Queue it (reference + kind + status only). 400 ms budget keeps the reply inside AP1_MIN_MS.
+    try {
+      const rid = await ap1Rpc("ap1_retry_record", { _log_id: owner, _kind: fail.kind, _status: fail.status, _domain: cellpayDomain }, 400);
+      if (rid === null || rid === undefined) throw new Error("no row");
+      ap1Event("ap1:retry_queued", origin);
+    } catch {
+      ap1Event("ap1:retry_write_error", origin);
+      // Last resort so it still isn't lost: the edge log gets the transaction_logs id (a uuid, no PII).
+      console.error(`[autopay AP-1] retry row NOT written: transaction_log_id=${owner} kind=${fail.kind} status=${fail.status ?? "none"}`);
+    }
+  }
+  return ap1Padded(started, cors, AP1_NEUTRAL);
+}
+
 /** PII-free shape for logs: literal words kept, anything with digits or symbols becomes ":x". */
 function endpointShape(endpoint: unknown): string {
   if (typeof endpoint !== "string") return `<${endpoint === null ? "null" : typeof endpoint}>`;
@@ -363,6 +648,11 @@ serve(async (req) => {
     const guardOrigin = req.headers.get("origin");
     if (typeof endpoint !== "string" || typeof method !== "string" || !GUARD_METHODS.has(method.toUpperCase())) {
       return guardRefusal(corsHeaders, 400, "invalid_request", method, endpoint, guardOrigin);
+    }
+    // [autopay AP-1] The single restored route (exact endpoint + method). Anything else under autopay/*,
+    // and transactions/last, still falls through to the 1a "retired" 403 below.
+    if (AP1_ROUTE_ENABLED && endpoint === AP1_ENDPOINT && method === "POST") {
+      return await ap1HandleUnsubscribe(req, asRecord(body), corsHeaders, apiKey, apiSecret);
     }
     if (isRetiredEndpoint(endpoint)) {
       return guardRefusal(corsHeaders, 403, "retired", method, endpoint, guardOrigin);
