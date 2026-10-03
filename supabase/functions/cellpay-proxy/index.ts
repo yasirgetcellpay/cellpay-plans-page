@@ -146,6 +146,174 @@ function resolveCellpayDomain(host: string | undefined | null): string {
   return cleaned;
 }
 
+
+// ---------------------------------------------------------------------------
+// [proxy-guard 1a] Guard in front of the forwarding logic only. The
+// transaction-log helpers above (callDatabaseRpc, createTransactionLog,
+// finishTransactionLog) and the logging / Pockyt finalize code inside serve()
+// are unchanged.
+// ---------------------------------------------------------------------------
+const GUARD_VERSION = "1a";
+
+type GuardCode =
+  | "invalid_request"
+  | "invalid_endpoint"
+  | "retired"
+  | "not_allowed"
+  | "origin_missing"
+  | "origin_not_allowed";
+
+const GUARD_MESSAGES: Record<GuardCode, string> = {
+  invalid_request: "Invalid request.",
+  invalid_endpoint: "This request is not allowed.",
+  retired: "This service is not available online. Please contact support@getcellpay.com.",
+  not_allowed: "This request is not allowed.",
+  origin_missing: "This request is not allowed.",
+  origin_not_allowed: "This request is not allowed.",
+};
+
+/** Percent-decode up to 3 times; stops at the first malformed escape. */
+function guardDecode(raw: string): string {
+  let p = raw;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const d = decodeURIComponent(p);
+      if (d === p) break;
+      p = d;
+    } catch {
+      break;
+    }
+  }
+  return p;
+}
+
+interface NormalizedEndpoint { segments: string[]; rawSegments: string[] }
+
+/**
+ * Ported from Callingmart's live guard (c667aa0b). Returns null for anything that could
+ * leave its path: control/space characters, \ # @ ; ?, an encoded "/", leftover %xx after
+ * 3 decodes, empty / "." / ".." segments, or more than 400 characters.
+ * CellPay's live site never sends a query string, so "?" is always refused.
+ */
+function normalizeEndpoint(raw: string): NormalizedEndpoint | null {
+  if (raw.length === 0 || raw.length > 400) return null;
+  if (/[\u0000-\u0020\u007f\\#@?;]/.test(raw)) return null;
+  let path = raw;
+  for (let i = 0; i < 3; i++) {
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(path);
+    } catch {
+      return null;
+    }
+    if (decoded === path) break;
+    path = decoded;
+  }
+  if (/%[0-9a-f]{2}/i.test(path)) return null;
+  if (/[\u0000-\u0020\u007f\\#@?;]/.test(path)) return null;
+  const segments = path.toLowerCase().split("/");
+  const rawSegments = raw.split("/");
+  if (segments.length !== rawSegments.length) return null; // an encoded "/" is never accepted
+  if (segments.some((s) => s === "" || s === "." || s === "..")) return null;
+  return { segments, rawSegments };
+}
+
+/** transactions/last and autopay/* are retired for every caller (phone-only lookups are never proxied). */
+function isRetiredEndpoint(raw: string): boolean {
+  const d = guardDecode(raw).toLowerCase();
+  return d.includes("autopay") || /transactions[\/\\]+(\.[\/\\]+)*last/.test(d);
+}
+
+/** PII-free shape for logs: literal words kept, anything with digits or symbols becomes ":x". */
+function endpointShape(endpoint: unknown): string {
+  if (typeof endpoint !== "string") return `<${endpoint === null ? "null" : typeof endpoint}>`;
+  const segs = guardDecode(endpoint).toLowerCase().split(/[\/?]/);
+  const shown = segs.slice(0, 5).map((s) => (/^[a-z][a-z-]{0,31}$/.test(s) ? s : ":x"));
+  return (shown.join("/") + (segs.length > 5 ? "/..." : "")).slice(0, 120);
+}
+
+function originHost(origin: string | null): string | null {
+  if (origin === null) return null;
+  try {
+    return new URL(origin).host.toLowerCase().slice(0, 100);
+  } catch {
+    return "invalid";
+  }
+}
+
+function methodLabel(method: unknown): string {
+  return typeof method === "string" ? method.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 10) : `<${typeof method}>`;
+}
+
+// Refusal counter for the watch: one PII-free row per refusal in public.proxy_guard_events
+// (service role only). Fire-and-forget, never on the allowed path, capped per isolate.
+const GUARD_EVENT_CAP_PER_MINUTE = 60;
+let guardEventMinute = 0;
+let guardEventsThisMinute = 0;
+let guardEventsDropped = 0;
+
+function recordGuardEvent(event: Record<string, unknown>): void {
+  try {
+    const minute = Math.floor(Date.now() / 60000);
+    if (minute !== guardEventMinute) {
+      guardEventMinute = minute;
+      guardEventsThisMinute = 0;
+    }
+    if (guardEventsThisMinute >= GUARD_EVENT_CAP_PER_MINUTE) {
+      guardEventsDropped++;
+      return;
+    }
+    guardEventsThisMinute++;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceKey) return;
+    const droppedBefore = guardEventsDropped;
+    guardEventsDropped = 0;
+    const write = fetch(`${supabaseUrl}/rest/v1/proxy_guard_events`, {
+      method: "POST",
+      headers: {
+        apikey: serviceKey,
+        authorization: `Bearer ${serviceKey}`,
+        "content-type": "application/json",
+        prefer: "return=minimal",
+      },
+      body: JSON.stringify({ ...event, guard_version: GUARD_VERSION, dropped_before: droppedBefore }),
+      signal: AbortSignal.timeout(1500),
+    })
+      .then((res) => {
+        if (!res.ok) console.warn(`[proxy-guard] event insert failed: ${res.status}`);
+      })
+      .catch(() => {});
+    // deno-lint-ignore no-explicit-any
+    const runtime = (globalThis as any).EdgeRuntime;
+    if (runtime && typeof runtime.waitUntil === "function") runtime.waitUntil(write);
+  } catch {
+    // never let refusal logging affect the response
+  }
+}
+
+function guardRefusal(
+  cors: Record<string, string>,
+  status: number,
+  code: GuardCode,
+  method: unknown,
+  endpoint: unknown,
+  origin: string | null,
+): Response {
+  const shape = endpointShape(endpoint);
+  const host = originHost(origin);
+  const m = methodLabel(method);
+  console.warn(`[proxy-guard ${GUARD_VERSION}] refused code=${code} method=${m} shape=${shape} origin=${host ?? "none"}`);
+  recordGuardEvent({ code, method: m, endpoint_shape: shape, origin_host: host, has_origin: origin !== null });
+  const message = GUARD_MESSAGES[code];
+  return new Response(JSON.stringify({ success: false, blocked: true, code, error: message, message }), {
+    status,
+    headers: { ...cors, "Content-Type": "application/json" },
+  });
+}
+
+const GUARD_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"]);
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -169,6 +337,19 @@ serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // [proxy-guard 1a] Small block: malformed input -> 400; transactions/last, autopay/* and
+    // endpoints that could escape their path -> 403. Everything else is forwarded exactly as before.
+    const guardOrigin = req.headers.get("origin");
+    if (typeof endpoint !== "string" || typeof method !== "string" || !GUARD_METHODS.has(method.toUpperCase())) {
+      return guardRefusal(corsHeaders, 400, "invalid_request", method, endpoint, guardOrigin);
+    }
+    if (isRetiredEndpoint(endpoint)) {
+      return guardRefusal(corsHeaders, 403, "retired", method, endpoint, guardOrigin);
+    }
+    if (!normalizeEndpoint(endpoint)) {
+      return guardRefusal(corsHeaders, 403, "invalid_endpoint", method, endpoint, guardOrigin);
     }
 
     // Resolve dynamic X-Cellpay-Domain from caller's hostname (with fallback for lovable/dev hosts)
