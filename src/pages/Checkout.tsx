@@ -20,7 +20,6 @@ import {
 } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
 import { applySeoHead } from "@/lib/seo";
-import { trackAxon } from "@/lib/axon";
 import { getGclid } from "@/lib/tracking";
 import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib/subdivisions";
 import { useLang, t } from "@/lib/i18n";
@@ -228,19 +227,6 @@ const Checkout = () => {
           0,
           160,
         ),
-    });
-    const beginAmount = Number(state.amount) || 0;
-    trackAxon("begin_checkout", {
-      currency: "USD",
-      value: beginAmount,
-      items: [
-        {
-          item_id: String(state.carrierSlug || "recharge"),
-          item_name: state.carrierName || "Recharge",
-          price: beginAmount,
-          quantity: 1,
-        },
-      ],
     });
   }, [state.carrierName, state.carrierSlug]);
 
