@@ -618,6 +618,41 @@ async function blocklistCheck(p: Record<string, unknown>, cardH: string | null):
   return r.blocked === true ? { key_type: String(r.key_type), reason: String(r.reason) } : null;
 }
 
+// [dedupe BL-3] Duplicate-charge guard: phone|amount|method|card-or-token, HMAC'd in memory (PAN/token never stored or logged).
+// One atomic RPC (checkout_dedupe_claim, advisory lock): first claim in 10 s passes, repeats are refused. Fail-open, 1 s timeout.
+async function dedupeClaim(p: Record<string, unknown>, method: string | null): Promise<boolean> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const hashKey = Deno.env.get("GUARD_HASH_KEY") || serviceKey;
+  if (!supabaseUrl || !serviceKey || !hashKey) return false;
+  const pay = asRecord(p.payment);
+  let phone = String(p.phone_number ?? p.phoneNumber ?? "").replace(/\D/g, "");
+  if (phone.length === 11 && phone.startsWith("1")) phone = phone.slice(1);
+  const amt = Number(p.amount);
+  const amount = Number.isFinite(amt) ? amt.toFixed(2) : String(p.amount ?? "").trim();
+  const pm = (method || "").trim().toLowerCase();
+  const tok = (v: unknown) => (v === undefined || v === null || v === "" ? "" : typeof v === "string" ? v : JSON.stringify(v));
+  const digits = (v: unknown) => String(v ?? "").replace(/\D/g, "");
+  const pan = digits(pay.cc_number ?? p.cc_number);
+  const fp = pan
+    ? `pan:${pan}:${digits(pay.cc_exp_month ?? p.cc_exp_month)}/${digits(pay.cc_exp_year ?? p.cc_exp_year)}`
+    : tok(p.google_pay_token) || tok(p.apple_pay_token) || tok(p.plaid_token) || tok(p.klarna_auth_token) || tok(p.payment_token);
+  const enc = new TextEncoder();
+  const k = await crypto.subtle.importKey("raw", enc.encode(hashKey), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", k, enc.encode(`${phone}|${amount}|${pm}|${fp}`)));
+  const key = Array.from(sig, (b) => b.toString(16).padStart(2, "0")).join("");
+  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/checkout_dedupe_claim`, {
+    method: "POST",
+    headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
+    body: JSON.stringify({ _key: key, _phone: phone || null, _method: pm || null }),
+    signal: AbortSignal.timeout(1000),
+  });
+  if (!res.ok) { console.warn(`[dedupe] claim failed: ${res.status}`); return false; }
+  const rows = await res.json();
+  const r = asRecord(Array.isArray(rows) ? rows[0] : rows);
+  return r.duplicate === true;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -699,6 +734,15 @@ serve(async (req) => {
           return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: "We couldn't process this card right now. Please try again in about 30 minutes or use a different payment method. You were not charged." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       } catch { /* blocklist fails open */ }
+    }
+    // [dedupe BL-3] Same payment already claimed in the last 10 s (checkout_dedupe). Fail-open. Calm 200, before the log and CellPay.
+    if (shouldLogTransaction) {
+      try {
+        if (await dedupeClaim(payloadRecord, paymentMethod)) {
+          recordGuardEvent({ code: "dedupe_hit", method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null });
+          return new Response(JSON.stringify({ success: false, blocked: true, code: "DUPLICATE", message: "This payment is already being processed. Please wait a moment before trying again; you will not be charged twice." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      } catch { /* dedupe fails open */ }
     }
     const txLogId = shouldLogTransaction
       ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"))
