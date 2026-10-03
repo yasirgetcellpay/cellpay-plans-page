@@ -653,6 +653,52 @@ async function dedupeClaim(p: Record<string, unknown>, method: string | null): P
   return r.duplicate === true;
 }
 
+// [refill-cooldown Fix F] CellPay's refill-error result ("There was some error during refill. This transaction has been auto
+// refunded.") puts the SAME phone + plan on a 10-min cooldown: the next checkout for that pair is refused before the log and CellPay.
+// Key = HMAC-SHA256("refill|phone|plan") computed in memory; the phone and plan id never leave the function. Fail-open, 1 s timeout.
+// Marks ONLY on that result: never on declines, throttles, validation errors, non-JSON/gateway pages (504) or timeouts.
+const REFILL_COOLDOWN_S = 600;
+const REFILL_ERROR_RE = /error during refill|auto[- ]?refunded/i;
+const REFILL_COOLDOWN_MSG = "This plan couldn't be refilled just now. Your earlier attempt was refunded automatically. Please try again in about 10 minutes or choose a different plan.";
+
+async function refillCooldownKey(p: Record<string, unknown>): Promise<string | null> {
+  const hashKey = Deno.env.get("GUARD_HASH_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!hashKey) return null;
+  let phone = String(p.phone_number ?? p.phoneNumber ?? "").replace(/\D/g, "");
+  if (phone.length === 11 && phone.startsWith("1")) phone = phone.slice(1);
+  const plan = String(p.plan_id ?? p.planId ?? "").trim().toLowerCase();
+  if (phone.length < 7 || phone.length > 15 || !plan || plan.length > 64) return null;
+  const enc = new TextEncoder();
+  const k = await crypto.subtle.importKey("raw", enc.encode(hashKey), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", k, enc.encode(`refill|${phone}|${plan}`)));
+  return Array.from(sig, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function refillCooldownRpc(name: "refill_cooldown_check" | "refill_cooldown_mark", key: string): Promise<Record<string, unknown> | null> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceKey) return null;
+  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/${name}`, {
+    method: "POST",
+    headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
+    body: JSON.stringify({ _key: key }),
+    signal: AbortSignal.timeout(1000),
+  });
+  if (!res.ok) { console.warn(`[refill-cooldown] ${name} failed: ${res.status}`); await res.body?.cancel(); return null; }
+  const rows = await res.json();
+  return asRecord(Array.isArray(rows) ? rows[0] : rows);
+}
+
+/** True only for CellPay's refill-error result: a parsed JSON body, not a success, with the refill-error message. */
+function isRefillErrorResult(wrapped: Record<string, unknown>): boolean {
+  const data = asRecord(wrapped.data);
+  if (data.parseError === true) return false; // HTML / gateway pages (504 etc.): outcome unknown, never mark
+  const result = unwrapTransactionResult(wrapped);
+  const st = String(result.status ?? "").toLowerCase();
+  if (result.status === true || st === "true" || st === "success" || st === "completed") return false; // a success never marks
+  const msg = text(result.message ?? result.msg ?? data.message ?? data.msg ?? wrapped.error);
+  return msg !== null && REFILL_ERROR_RE.test(msg);
+}
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -735,6 +781,21 @@ serve(async (req) => {
         }
       } catch { /* blocklist fails open */ }
     }
+    // [refill-cooldown Fix F] Same phone + plan got CellPay's refill error in the last 10 min (refill_cooldown). Fail-open.
+    // Calm 200 before the log and CellPay. Sits before the BL-3 dedupe claim, so a refused retry never takes a claim.
+    let refillKey: string | null = null;
+    if (shouldLogTransaction) {
+      try {
+        refillKey = await refillCooldownKey(payloadRecord);
+        const cd = refillKey ? await refillCooldownRpc("refill_cooldown_check", refillKey) : null;
+        if (cd && cd.cooldown === true) {
+          const ra = Math.round(Number(cd.retry_after));
+          const retryAfter = Number.isFinite(ra) && ra >= 1 && ra <= REFILL_COOLDOWN_S ? ra : REFILL_COOLDOWN_S;
+          recordGuardEvent({ code: "refill_cooldown_hit", method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null });
+          return new Response(JSON.stringify({ success: false, blocked: true, code: "REFILL_COOLDOWN", retry_after: retryAfter, message: REFILL_COOLDOWN_MSG }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      } catch { /* refill cooldown fails open */ }
+    }
     // [dedupe BL-3] Same payment already claimed in the last 10 s (checkout_dedupe). Fail-open. Calm 200, before the log and CellPay.
     if (shouldLogTransaction) {
       try {
@@ -765,6 +826,10 @@ serve(async (req) => {
       ? { success: true, data }
       : { success: false, error: (data as Record<string, unknown>)?.message || (data as Record<string, unknown>)?.error || "Request failed", data };
 
+    // [refill-cooldown Fix F] Start the 10-min cooldown ONLY on CellPay's refill-error result. Fail-open (1 s), response unchanged.
+    if (shouldLogTransaction && refillKey && isRefillErrorResult(wrapped)) {
+      try { await refillCooldownRpc("refill_cooldown_mark", refillKey); } catch { /* refill cooldown fails open */ }
+    }
     if (shouldLogTransaction) {
       await finishTransactionLog(txLogId, wrapped, paymentMethod);
       if (txLogId) wrapped.pending_log_id = txLogId;
