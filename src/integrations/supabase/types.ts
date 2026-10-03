@@ -272,6 +272,33 @@ export type Database = {
         }
         Relationships: []
       }
+      refill_cooldown: {
+        Row: {
+          created_at: string
+          expires_at: string
+          hits: number
+          key: string
+          last_hit_at: string | null
+          marks: number
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          hits?: number
+          key: string
+          last_hit_at?: string | null
+          marks?: number
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          hits?: number
+          key?: string
+          last_hit_at?: string | null
+          marks?: number
+        }
+        Relationships: []
+      }
       support_requests: {
         Row: {
           category: string | null
@@ -482,6 +509,11 @@ export type Database = {
       record_presence: {
         Args: { _path: string; _session_id: string; _user_agent: string }
         Returns: undefined
+      }
+      refill_cooldown_check: { Args: { _key: string }; Returns: Json }
+      refill_cooldown_mark: {
+        Args: { _key: string; _seconds?: number }
+        Returns: Json
       }
     }
     Enums: {
