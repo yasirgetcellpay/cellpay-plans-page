@@ -38,6 +38,42 @@ export type Database = {
         }
         Relationships: []
       }
+      proxy_guard_events: {
+        Row: {
+          code: string
+          created_at: string
+          dropped_before: number
+          endpoint_shape: string | null
+          guard_version: string
+          has_origin: boolean
+          id: number
+          method: string | null
+          origin_host: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          dropped_before?: number
+          endpoint_shape?: string | null
+          guard_version: string
+          has_origin?: boolean
+          id?: never
+          method?: string | null
+          origin_host?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          dropped_before?: number
+          endpoint_shape?: string | null
+          guard_version?: string
+          has_origin?: boolean
+          id?: never
+          method?: string | null
+          origin_host?: string | null
+        }
+        Relationships: []
+      }
       transaction_logs: {
         Row: {
           amount: number | null
