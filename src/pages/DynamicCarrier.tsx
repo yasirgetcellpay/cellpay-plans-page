@@ -10,7 +10,6 @@ import { PlanGrid } from "@/components/PlanGrid";
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
-import { trackAxon } from "@/lib/axon";
 import { t, type Language } from "@/lib/i18n";
 import {
   CricketQuickPayContent,
@@ -322,15 +321,6 @@ const DynamicCarrier = ({
           (seoSrc.seo_schema as string) ||
           "";
         applySeoHead({ title, description, keywords, schema });
-        trackAxon("view_item", {
-          currency: "USD",
-          items: [
-            {
-              item_id: carrierSlug,
-              item_name: (data.name as string) || carrierSlug,
-            },
-          ],
-        });
 
         // Cricket-specific SEO override — tightens metadata around the
         // "cricket quick pay" head term to push from position 2 → 1.
@@ -506,18 +496,6 @@ const DynamicCarrier = ({
     }
     const planAmount = Number(plan.price.replace("$", ""));
     const selectedPlan = plans.find((p) => p.amount === planAmount);
-    trackAxon("add_to_cart", {
-      currency: "USD",
-      value: planAmount,
-      items: [
-        {
-          item_id: String(selectedPlan?.plan_id || carrierSlug),
-          item_name: selectedPlan?.name || carrierName,
-          price: planAmount,
-          quantity: 1,
-        },
-      ],
-    });
     navigate(lang === "es" ? "/es/checkout" : "/checkout", {
       state: {
         phone,
@@ -560,18 +538,6 @@ const DynamicCarrier = ({
     }
     // Custom amount path → use carrier_plans.carrier.id when available
     const selectedPlan = plans.find((p) => p.amount === amountNum);
-    trackAxon("add_to_cart", {
-      currency: "USD",
-      value: amountNum,
-      items: [
-        {
-          item_id: String(selectedPlan?.plan_id || rangePlanId || carrierSlug),
-          item_name: selectedPlan?.name || carrierName,
-          price: amountNum,
-          quantity: 1,
-        },
-      ],
-    });
     navigate(lang === "es" ? "/es/checkout" : "/checkout", {
       state: {
         phone,

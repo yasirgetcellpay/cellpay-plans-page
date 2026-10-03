@@ -2,6 +2,42 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- TG-1 tag guard (permanent; keep it the first script in head, before GTM). GTM-T7KGLV8T still injects Meta and Bing UET
+         (Bing loads Clarity). Refuses script/iframe/img, Image() and sendBeacon to those hosts and AppLovin/Axon; fbq/uetq/clarity are no-ops. -->
+    <script>
+      (function (w, d) {
+        var B = /(^|\.)(clarity\.ms|axon\.ai|applovin\.com)$|^(connect\.facebook\.net|bat\.bing\.com)$/i;
+        function bad(u) { try { return B.test(new URL(String(u), d.baseURI).hostname); } catch (e) { return false; } }
+        function el(n) { var t = n && n.nodeName; return t === "SCRIPT" || t === "IFRAME" || t === "IMG"; }
+        function no(n) { return el(n) && bad(n.getAttribute("src") || ""); }
+        function fail(n) { setTimeout(function () { try { n.dispatchEvent(new Event("error")); } catch (e) {} }, 0); }
+        var f = function () {}; f.push = f; f.loaded = true; f.version = "2.0"; f.queue = [];
+        w.fbq = w._fbq = f;
+        w.uetq = { length: 0, push: function () { return 0; } };
+        w.clarity = function () {};
+        [HTMLScriptElement, HTMLIFrameElement, HTMLImageElement].forEach(function (C) {
+          var o = Object.getOwnPropertyDescriptor(C.prototype, "src");
+          Object.defineProperty(C.prototype, "src", { configurable: true, enumerable: o.enumerable, get: o.get,
+            set: function (v) { if (bad(v)) fail(this); else o.set.call(this, v); } });
+        });
+        var E = Element.prototype, N = Node.prototype, sa = E.setAttribute, ac = N.appendChild, ib = N.insertBefore, rc = N.replaceChild;
+        E.setAttribute = function (k, v) {
+          if (String(k).toLowerCase() === "src" && el(this) && bad(v)) { fail(this); return; }
+          return sa.apply(this, arguments);
+        };
+        N.appendChild = function (n) { if (no(n)) { fail(n); return n; } return ac.call(this, n); };
+        N.insertBefore = function (n, r) { if (no(n)) { fail(n); return n; } return ib.call(this, n, r); };
+        N.replaceChild = function (n, o) { if (no(n)) { fail(n); return o; } return rc.call(this, n, o); };
+        ["append", "prepend", "before", "after"].forEach(function (m) {
+          var g = E[m];
+          if (g) E[m] = function () { return g.apply(this, [].filter.call(arguments, function (n) { if (no(n)) { fail(n); return false; } return true; })); };
+        });
+        var ia = E.insertAdjacentElement;
+        E.insertAdjacentElement = function (p, n) { if (no(n)) { fail(n); return null; } return ia.call(this, p, n); };
+        var sb = navigator.sendBeacon;
+        if (sb) navigator.sendBeacon = function (u) { return bad(u) ? true : sb.apply(navigator, arguments); };
+      })(window, document);
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CellPay — Mobile Recharge & Prepaid Phone Refills Online</title>
     <meta name="description" content="Mobile recharge and prepaid refills for 15+ US carriers — AT&amp;T, T-Mobile, Metro, Cricket, Verizon, Boost & more. No login needed. Low service fee shown before you pay." />
@@ -109,14 +145,6 @@
 
     <!-- Groas -->
     <script src="https://app.groas.ai/content.js" type="text/javascript" defer></script>
-
-    <!-- AppLovin Axon Pixel -->
-    <script>
-      var AXON_EVENT_KEY = "0268d37d-5fe5-46ba-94b9-b5371fc16823";
-      !function(e,r){var t=["https://s.axon.ai/pixel.js","https://res4.applovin.com/p/l/loader.iife.js"];if(!e.axon){var a=e.axon=function(){a.performOperation?a.performOperation.apply(a,arguments):a.operationQueue.push(arguments)};a.operationQueue=[],a.ts=Date.now(),a.eventKey=AXON_EVENT_KEY;for(var n=r.getElementsByTagName("script")[0],o=0;o<t.length;o++){var i=r.createElement("script");i.async=!0,i.src=t[o],n.parentNode.insertBefore(i,n)}}}(window,document);
-      axon("init");
-      axon("track", "page_view");
-    </script>
 </head>
 
   <body>

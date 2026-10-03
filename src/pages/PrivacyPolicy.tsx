@@ -49,7 +49,7 @@ const PrivacyPolicy = () => {
         <p>We use industry-standard encryption (SSL/TLS) to protect your data during transmission. Payment information is handled by our third-party payment processors.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">5. Cookies</h2>
-        <p>We use essential cookies to maintain your session and improve site functionality. We and our partners (such as Google, Meta, Microsoft, AppLovin and Microsoft Clarity) use cookies and similar technologies for analytics and advertising.</p>
+        <p>We use essential cookies to maintain your session and improve site functionality. We and our partners (such as Google) use cookies and similar technologies for analytics and advertising.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">6. Your Rights</h2>
         <p>You may request access to, correction of, or deletion of your personal data by contacting us at support@getcellpay.com.</p>
