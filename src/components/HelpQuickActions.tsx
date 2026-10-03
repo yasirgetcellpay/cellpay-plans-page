@@ -18,9 +18,26 @@ interface HelpQuickActionsProps {
 }
 
 const SUPPORT_EMAIL = "support@getcellpay.com";
+// [AP-1c] Neutral reply, shown for matches and non-matches alike, so it must not promise a cancellation.
 const NEUTRAL_RESULT =
-  "If that number has Auto Pay with us, it's now cancelled. We'll confirm by email within 1 business day.";
-const FALLBACK_LINE = `Didn't get an email? Write to ${SUPPORT_EMAIL} from the email you used at checkout.`;
+  "If the details match an Auto Pay on that number, we'll cancel it and confirm by email within 1 business day.";
+const FALLBACK_PREFIX = "No email by then? Email";
+const FALLBACK_SUFFIX = "with your number and we'll take care of it.";
+
+// [AP-1c] Keep a focused field visible above the iOS keyboard.
+const revealOnFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+  const el = e.currentTarget;
+  window.setTimeout(() => {
+    try { el.scrollIntoView({ block: "center", behavior: "smooth" }); } catch { /* ignore */ }
+  }, 300);
+};
+
+// [AP-1c] Mobile layout: 16px side margins, anchored near the top on phones (keyboard room), scrolls if short,
+// and a 44x44 close X (the X is DialogContent's last child button).
+const DIALOG_CLASS =
+  "w-[calc(100%-2rem)] rounded-lg sm:max-w-md top-4 translate-y-0 sm:top-[50%] sm:translate-y-[-50%] max-h-[calc(100dvh-2rem)] overflow-y-auto " +
+  "[&>button:last-child]:right-0.5 [&>button:last-child]:top-0.5 [&>button:last-child]:inline-flex [&>button:last-child]:h-[44px] [&>button:last-child]:w-[44px] [&>button:last-child]:items-center [&>button:last-child]:justify-center";
+const TAP_LINK = "underline inline-block py-[14px] -my-[14px]";
 
 // [AP-1] Turnstile hook, SHADOW only (the proxy logs the verdict and never blocks). Empty site key = off:
 // no script is loaded and no token is sent. Turning it on later is this one line.
@@ -213,7 +230,7 @@ export const HelpQuickActions = ({ brandColor = "hsl(101,67%,44%)" }: HelpQuickA
       </section>
 
       <Dialog open={mode !== null} onOpenChange={(o) => !o && close()}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className={DIALOG_CLASS}>
           <DialogHeader>
             <DialogTitle>
               {mode === "lookup" ? "Did Not Receive Your Payment?" : "Unsubscribe From Autopay"}
@@ -252,14 +269,15 @@ export const HelpQuickActions = ({ brandColor = "hsl(101,67%,44%)" }: HelpQuickA
                 <span>{NEUTRAL_RESULT}</span>
               </div>
               <p className="text-xs text-muted-foreground">
-                {FALLBACK_LINE}{" "}
-                <a href={autopayMailto} className="underline">Email support</a>
+                {FALLBACK_PREFIX}{" "}
+                <a href={autopayMailto} className={TAP_LINK}>{SUPPORT_EMAIL}</a>{" "}
+                {FALLBACK_SUFFIX}
               </p>
               <div className="flex justify-end">
                 <button
                   type="button"
                   onClick={close}
-                  className="px-6 py-2 rounded-full text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity"
+                  className="min-h-[44px] px-6 py-2 rounded-full text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity"
                   style={{ backgroundColor: brandColor }}
                 >
                   Done
@@ -279,6 +297,7 @@ export const HelpQuickActions = ({ brandColor = "hsl(101,67%,44%)" }: HelpQuickA
                   onChange={(e) => setValue(e.target.value)}
                   placeholder="Enter your 10-digit phone number"
                   inputMode="tel"
+                  onFocus={revealOnFocus}
                 />
               </div>
               <div>
@@ -291,18 +310,19 @@ export const HelpQuickActions = ({ brandColor = "hsl(101,67%,44%)" }: HelpQuickA
                   onChange={(e) => setProof(e.target.value)}
                   placeholder="you@example.com or 1A2B"
                   autoComplete="email"
+                  onFocus={revealOnFocus}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
                 Prefer email? Write to{" "}
-                <a href={autopayMailto} className="underline">{SUPPORT_EMAIL}</a>{" "}
+                <a href={autopayMailto} className={TAP_LINK}>{SUPPORT_EMAIL}</a>{" "}
                 with the number on Auto Pay. We reply within 1 business day.
               </p>
               <div className="flex justify-end">
                 <button
                   type="submit"
                   disabled={submitting || !value.trim() || !proof.trim()}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 min-h-[44px] px-6 py-2.5 rounded-full text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundColor: brandColor }}
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <BellOff className="w-4 h-4" />}
