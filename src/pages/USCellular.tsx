@@ -7,6 +7,7 @@ import uscellularLogo from "@/assets/uscellular-logo.png";
 import { PaymentBar } from "@/components/PaymentBar";
 import { loadResolvedPlans, pickPlanForAmount, type ResolvedPlans } from "@/lib/resolvePlanId";
 import { applySeoHead } from "@/lib/seo";
+import { t, useLang } from "@/lib/i18n";
 
 const formatPhone = (value: string): string => {
   let raw = value.replace(/\D/g, ""); if (raw.length === 11 && raw.startsWith("1")) raw = raw.slice(1); if (raw.length >= 10 && raw.startsWith("1")) raw = raw.slice(1); const digits = raw.slice(0, 10);
@@ -15,6 +16,55 @@ const formatPhone = (value: string): string => {
   if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 };
+
+// ─── Amount input (CP-01b: same logic as CP-01 in DynamicCarrier.tsx) ───
+// Keep digits and ONE decimal point (max 2 decimals). Never drop the "." or shift digits
+// ("25.00" stays $25, never $250) and never cut digits off ("151" stays 151 and is then
+// validated against the min/max).
+const sanitizeAmountInput = (raw: string): string => {
+  let s = (raw || "").replace(/[^0-9.]/g, "");
+  const dot = s.indexOf(".");
+  if (dot !== -1) s = s.slice(0, dot + 1) + s.slice(dot + 1).replace(/\./g, "").slice(0, 2);
+  s = s.replace(/^0+(?=\d)/, "");
+  if (s.startsWith(".")) s = "0" + s;
+  const [intPart, dec] = s.split(".");
+  return intPart.slice(0, 6) + (dec !== undefined ? "." + dec : "");
+};
+
+// Paste: strip $, spaces and commas and take the first number ("$1,025.00" → "1025.00").
+const parsePastedAmount = (text: string): string => {
+  const m = (text || "").replace(/[$\s]/g, "").match(/\d[\d,]*(?:\.\d*)?|\.\d+/);
+  return m ? sanitizeAmountInput(m[0].replace(/,/g, "")) : "";
+};
+
+// Field text → dollars (rounded to cents). NaN when empty.
+const parseAmountDollars = (s: string): number => {
+  if (!s) return NaN;
+  const n = Number(s);
+  return Number.isFinite(n) ? Math.round(n * 100) / 100 : NaN;
+};
+
+// On blur: "12.5" → "12.50", "25." → "25.00", "25" stays "25".
+const normalizeAmountOnBlur = (s: string): string => {
+  const n = parseAmountDollars(s);
+  if (!Number.isFinite(n)) return "";
+  return s.includes(".") ? n.toFixed(2) : String(n);
+};
+
+// Amount step is $1 (cents must be .00), same as CP-01.
+const AMOUNT_STEP_CENTS = 100;
+
+const getAmountProblem = (text: string, n: number, min: number, max: number): "empty" | "range" | "step" | null => {
+  if (!text || !Number.isFinite(n)) return "empty";
+  if (n < min || n > max) return "range";
+  if (Math.round(n * 100) % AMOUNT_STEP_CENTS !== 0) return "step";
+  return null;
+};
+
+const wholeDollarMessage = (lang: string, n: number): string =>
+  lang === "es"
+    ? `Ingrese un monto en dólares enteros (por ejemplo $${Math.floor(n)} o $${Math.ceil(n)}).`
+    : `Please enter a whole-dollar amount (for example $${Math.floor(n)} or $${Math.ceil(n)}).`;
 
 const USCellular = () => {
   useEffect(() => {
@@ -26,6 +76,9 @@ const USCellular = () => {
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
+  // Amount field has been left (blur) or pasted into — show below-min / step messages only then.
+  const [amountTouched, setAmountTouched] = useState(false);
+  const lang = useLang();
   const [confirmed, setConfirmed] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [resolved, setResolved] = useState<ResolvedPlans>({ fixedPlans: [] });
@@ -39,15 +92,34 @@ const USCellular = () => {
   }, []);
 
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/[^0-9]/g, "");
-    if (val === "") { setAmount(""); return; }
-    const num = parseInt(val, 10);
-    if (num <= 100) setAmount(val);
+    setAmountTouched(false);
+    setAmount(sanitizeAmountInput(e.target.value));
+  }, []);
+
+  const handleAmountPaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    setAmount(parsePastedAmount(e.clipboardData.getData("text")));
+    setAmountTouched(true);
+  }, []);
+
+  const handleAmountBlur = useCallback(() => {
+    setAmount((a) => normalizeAmountOnBlur(a));
+    setAmountTouched(true);
   }, []);
 
   const phoneDigits = phone.replace(/\D/g, "");
-  const amountNum = amount ? parseInt(amount, 10) : 0;
-  const isValid = phoneDigits.length === 10 && amountNum >= 5 && amountNum <= 100 && confirmed && agreedTerms;
+  const amountNum = parseAmountDollars(amount) || 0; // dollars, same unit checkout uses
+  const amountProblem = getAmountProblem(amount, amountNum, 5, 100);
+  const amountValid = amountProblem === null;
+  const amountMessage =
+    amountProblem === "range"
+      ? t(lang).invalidAmount(5, 100)
+      : amountProblem === "step"
+      ? wholeDollarMessage(lang, amountNum)
+      : null;
+  // Over the max shows at once; below-min / cents show after the customer leaves the field.
+  const showAmountMessage = !!amountMessage && (amountTouched || amountNum > 100);
+  const isValid = phoneDigits.length === 10 && amountValid && confirmed && agreedTerms;
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -77,9 +149,14 @@ const USCellular = () => {
           <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">Recharge Amount</label>
           <div className="relative mb-1 sm:mb-2">
             <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-            <input type="text" inputMode="numeric" value={amount} onChange={handleAmountChange} placeholder="Enter amount between 5 - 100"
+            <input type="text" inputMode="numeric" value={amount} onChange={handleAmountChange} onPaste={handleAmountPaste} onBlur={handleAmountBlur} aria-invalid={showAmountMessage} aria-describedby={showAmountMessage ? "carrier-amount-error" : undefined} placeholder="Enter amount between 5 - 100"
               className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(220,80%,35%)] focus:border-transparent text-center" />
           </div>
+          {showAmountMessage && (
+            <p id="carrier-amount-error" role="alert" className="text-[11px] sm:text-xs text-destructive font-semibold mt-1 mb-1">
+              {amountMessage}
+            </p>
+          )}
           <p className="text-[10px] sm:text-xs text-muted-foreground">Min $5 – Max $100</p>
         </div>
       </div>
@@ -96,8 +173,8 @@ const USCellular = () => {
         </label>
         <div className="flex justify-center">
           <button type="button" disabled={!isValid} onClick={() => {
-            const picked = pickPlanForAmount(resolved, parseInt(amount, 10));
-            navigate("/checkout", { state: { phone, amount, carrierSlug: "uscellular", carrierName: "US Cellular", brandColor: "hsl(220,80%,35%)", carrierId: picked.carrierId, planId: picked.planId, planName: picked.name } });
+            const picked = pickPlanForAmount(resolved, amountNum);
+            navigate("/checkout", { state: { phone, amount: String(amountNum), carrierSlug: "uscellular", carrierName: "US Cellular", brandColor: "hsl(220,80%,35%)", carrierId: picked.carrierId, planId: picked.planId, planName: picked.name } });
           }} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg bg-[hsl(220,80%,35%)] hover:bg-[hsl(220,80%,28%)] disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]">PAY NOW</button>
         </div>
         <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Instant refill sent directly to your phone.</p>
