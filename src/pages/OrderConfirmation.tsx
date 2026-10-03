@@ -7,6 +7,7 @@ import { LegalBar } from "@/components/LegalBar";
 import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 import { useLang, t, langPath } from "@/lib/i18n";
 import { applySeoHead } from "@/lib/seo";
+import { normalizeAxonAmount, trackAxonPurchase } from "@/lib/axon";
 
 interface TransactionData {
   id?: number;
@@ -22,13 +23,6 @@ interface TransactionData {
   user?: { email?: string; first_name?: string; last_name?: string };
   [key: string]: unknown;
 }
-
-// Receipt amount -> number (same parsing as before; feeds the purchase value).
-const parseAmount = (value: unknown): number => {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  const parsed = Number(String(value ?? "").replace(/[^0-9.-]/g, ""));
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
-};
 
 const OrderConfirmation = () => {
   const [searchParams] = useSearchParams();
@@ -125,7 +119,7 @@ const OrderConfirmation = () => {
       }
       setTransaction(txn);
       try {
-        const amount = parseAmount(txn.amount);
+        const amount = normalizeAxonAmount(txn.amount);
         const fee = Number(txn.fee || 0);
         const itemName = txn.carrier?.name || carrierName || "Recharge";
         const itemId = txn.carrier?.slug || carrierName || "recharge";
@@ -157,6 +151,14 @@ const OrderConfirmation = () => {
               currency: "USD",
               items: [{ item_id: itemId, item_name: itemName, price: amount, quantity: 1 }],
             },
+          });
+          trackAxonPurchase({
+            transactionId: txnId,
+            itemId: String(itemId),
+            itemName,
+            value: amount,
+            email: txn.user?.email,
+            phone: txn.phone_number,
           });
         }
       } catch { /* ignore analytics errors */ }
