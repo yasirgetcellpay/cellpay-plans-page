@@ -19,7 +19,7 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
       icon: Phone,
       title: "Step 1 — Enter Your Cricket Phone Number",
       body:
-        "Type the 10-digit Cricket Wireless number you want to refill. No login or Cricket account password is required — CellPay is a Cricket quick pay shortcut that works for any active Cricket prepaid line.",
+        "Type the 10-digit Cricket Wireless number you want to refill. No login needed, and no Cricket account password — CellPay is a Cricket quick pay shortcut that works for any active Cricket prepaid line.",
     },
     {
       icon: DollarSign,
@@ -37,7 +37,7 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
       icon: CheckCircle2,
       title: "Step 4 — Refill and Confirmation",
       body:
-        "You'll receive an email receipt and an SMS from Cricket confirming the new balance or plan renewal. It can take up to 30 min for a refill to reflect on your account.",
+        "Cricket usually sends an SMS confirming the new balance or plan renewal. It can take up to 30 min for a refill to reflect on your account.",
     },
   ];
 

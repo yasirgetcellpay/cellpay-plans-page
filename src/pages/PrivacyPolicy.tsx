@@ -24,7 +24,7 @@ const PrivacyPolicy = () => {
         <p>When you use CellPay, we may collect the following information:</p>
         <ul className="list-disc list-inside space-y-1">
           <li>Phone number (for processing your refill)</li>
-          <li>Email address (for account creation and order confirmations)</li>
+          <li>Email address (to contact you about your order and for support)</li>
           <li>Payment information (Card payments are processed by our third-party payment processors. If you choose to save a card, it is stored securely for your future payments.)</li>
           <li>Transaction history (order amounts, carriers, dates)</li>
         </ul>
@@ -32,7 +32,7 @@ const PrivacyPolicy = () => {
         <h2 className="text-lg font-bold text-foreground pt-3">2. How We Use Your Information</h2>
         <ul className="list-disc list-inside space-y-1">
           <li>To process and complete your prepaid refill transactions</li>
-          <li>To send order confirmations and receipts</li>
+          <li>To contact you about your order</li>
           <li>To provide customer support</li>
           <li>To improve our services and user experience</li>
         </ul>
