@@ -1,13 +1,24 @@
+# CellPay US robots.txt. The same file is served on every CellPay US host. Each host is a separate,
+# self-canonical site, so this file names no host and has no Sitemap line. Each host submits only its
+# own sitemap (sitemap-refill.xml or sitemap-www.xml) in its own Search Console property.
+# The Googlebot group is merged with * so the Disallow lines apply to Googlebot too.
+# (A crawler obeys only its most specific group; a separate "Googlebot: Allow /" group would cancel them.)
 User-agent: *
+User-agent: Googlebot
+Disallow: /checkout
+Disallow: /es/checkout
+Disallow: /payment-callback
+Disallow: /es/payment-callback
+Disallow: /order-confirmation
+Disallow: /es/order-confirmation
+Disallow: /admin
+Disallow: /profile
+Disallow: /orders
 Allow: /
 
+# Google Ads landing-page crawlers ignore "*"; keep them fully allowed.
 User-agent: AdsBot-Google
 Allow: /
 
 User-agent: AdsBot-Google-Mobile
 Allow: /
-
-User-agent: Googlebot
-Allow: /
-
-Sitemap: https://cellpay-plans-page.lovable.app/sitemap.xml
