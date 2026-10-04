@@ -248,6 +248,237 @@ export type Database = {
         }
         Relationships: []
       }
+      fraud_seed_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: number
+          key_type: string
+          masked: string
+          reason: string | null
+          run_id: number | null
+          source: string
+          value_norm: string
+          why: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: number
+          key_type: string
+          masked: string
+          reason?: string | null
+          run_id?: number | null
+          source: string
+          value_norm: string
+          why?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: number
+          key_type?: string
+          masked?: string
+          reason?: string | null
+          run_id?: number | null
+          source?: string
+          value_norm?: string
+          why?: string | null
+        }
+        Relationships: []
+      }
+      fraud_watch_alerts: {
+        Row: {
+          asof: string
+          created_at: string
+          detail: Json
+          id: number
+          kind: string
+          label: string | null
+          line: string | null
+          relayed_at: string | null
+          run_id: number
+        }
+        Insert: {
+          asof: string
+          created_at?: string
+          detail?: Json
+          id?: number
+          kind: string
+          label?: string | null
+          line?: string | null
+          relayed_at?: string | null
+          run_id: number
+        }
+        Update: {
+          asof?: string
+          created_at?: string
+          detail?: Json
+          id?: number
+          kind?: string
+          label?: string | null
+          line?: string | null
+          relayed_at?: string | null
+          run_id?: number
+        }
+        Relationships: []
+      }
+      fraud_watch_config: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      fraud_watch_lists: {
+        Row: {
+          added_at: string
+          list: string
+          note: string | null
+          value: string
+        }
+        Insert: {
+          added_at?: string
+          list: string
+          note?: string | null
+          value: string
+        }
+        Update: {
+          added_at?: string
+          list?: string
+          note?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
+      fraud_watch_reported: {
+        Row: {
+          data: Json
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          data: Json
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          data?: Json
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fraud_watch_runs: {
+        Row: {
+          alerts: number | null
+          backlog_min: number | null
+          chunks: number | null
+          error: string | null
+          finished_at: string | null
+          first_asof: string | null
+          held: number | null
+          id: number
+          job: string
+          last_asof: string | null
+          ok: boolean | null
+          seeded: number | null
+          started_at: string
+          summary: Json
+          undone: number | null
+        }
+        Insert: {
+          alerts?: number | null
+          backlog_min?: number | null
+          chunks?: number | null
+          error?: string | null
+          finished_at?: string | null
+          first_asof?: string | null
+          held?: number | null
+          id?: number
+          job: string
+          last_asof?: string | null
+          ok?: boolean | null
+          seeded?: number | null
+          started_at?: string
+          summary?: Json
+          undone?: number | null
+        }
+        Update: {
+          alerts?: number | null
+          backlog_min?: number | null
+          chunks?: number | null
+          error?: string | null
+          finished_at?: string | null
+          first_asof?: string | null
+          held?: number | null
+          id?: number
+          job?: string
+          last_asof?: string | null
+          ok?: boolean | null
+          seeded?: number | null
+          started_at?: string
+          summary?: Json
+          undone?: number | null
+        }
+        Relationships: []
+      }
+      fraud_watch_state: {
+        Row: {
+          fp_last_at: string | null
+          id: number
+          updated_at: string
+          wm_asof: string | null
+        }
+        Insert: {
+          fp_last_at?: string | null
+          id?: number
+          updated_at?: string
+          wm_asof?: string | null
+        }
+        Update: {
+          fp_last_at?: string | null
+          id?: number
+          updated_at?: string
+          wm_asof?: string | null
+        }
+        Relationships: []
+      }
+      fraud_xsite_ids: {
+        Row: {
+          checked_at: string | null
+          key_type: string
+          source: string
+          synced_at: string
+          value: string
+        }
+        Insert: {
+          checked_at?: string | null
+          key_type: string
+          source?: string
+          synced_at?: string
+          value: string
+        }
+        Update: {
+          checked_at?: string | null
+          key_type?: string
+          source?: string
+          synced_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       help_events: {
         Row: {
           created_at: string
@@ -407,6 +638,27 @@ export type Database = {
           path?: string
           session_id?: string
           user_agent?: string | null
+        }
+        Relationships: []
+      }
+      plaid_v2_refs: {
+        Row: {
+          bind_h: string
+          created_at: string
+          expires_at: string
+          ref_h: string
+        }
+        Insert: {
+          bind_h: string
+          created_at?: string
+          expires_at: string
+          ref_h: string
+        }
+        Update: {
+          bind_h?: string
+          created_at?: string
+          expires_at?: string
+          ref_h?: string
         }
         Relationships: []
       }
@@ -820,7 +1072,100 @@ export type Database = {
         }
         Returns: undefined
       }
+      fraud_alarm_log: {
+        Args: {
+          _detail: Json
+          _kind: string
+          _ref: string
+          _severity: string
+          _text: string
+        }
+        Returns: number
+      }
       fraud_control_get: { Args: { _key: string }; Returns: string }
+      fraud_detect: {
+        Args: { _asof: string; _out_since: string }
+        Returns: Json[]
+      }
+      fraud_f0: { Args: { _x: number }; Returns: string }
+      fraud_ib_fp_guard: {
+        Args: { _mode: string; _run_id: number }
+        Returns: Json
+      }
+      fraud_ib_norm: {
+        Args: { _kind: string; _raw: string }
+        Returns: Record<string, unknown>
+      }
+      fraud_ib_seed_alerts: {
+        Args: { _alerts: Json; _asof: string; _mode: string; _run_id: number }
+        Returns: Json
+      }
+      fraud_ib_seed_one: {
+        Args: {
+          _asof: string
+          _count_in_run: number
+          _evidence: string
+          _kind: string
+          _mode: string
+          _raw: string
+          _reason: string
+          _run_id: number
+          _src: string
+        }
+        Returns: Json
+      }
+      fraud_ib_xsite: {
+        Args: { _mode: string; _run_id: number }
+        Returns: Json
+      }
+      fraud_is_cgnat: { Args: { _ip: string }; Returns: boolean }
+      fraud_mask_text: { Args: { _s: string }; Returns: string }
+      fraud_near_copy_ratio: {
+        Args: { _a: string; _b: string }
+        Returns: number
+      }
+      fraud_num: { Args: { _v: Json }; Returns: number }
+      fraud_py: { Args: { _v: Json }; Returns: string }
+      fraud_seqmatch_blocks: {
+        Args: {
+          _a: string
+          _b: string
+          ahi: number
+          alo: number
+          bhi: number
+          blo: number
+        }
+        Returns: number
+      }
+      fraud_split: { Args: { _s: string }; Returns: string[] }
+      fraud_truthy: { Args: { _v: Json }; Returns: boolean }
+      fraud_watch_apply: {
+        Args: {
+          _all?: boolean
+          _asof: string
+          _dry?: boolean
+          _prev_asof: string
+          _rows: Json
+          _t: string
+        }
+        Returns: Json
+      }
+      fraud_watch_heartbeat_check: { Args: never; Returns: Json }
+      fraud_watch_review: { Args: { _since?: string }; Returns: Json }
+      fraud_watch_run: {
+        Args: { _dry?: boolean; _max_chunks?: number }
+        Returns: Json
+      }
+      fraud_watch_sets: {
+        Args: never
+        Returns: {
+          bad_emails: string[]
+          blocked: string[]
+          customers: string[]
+          not_block: string[]
+          watch: Json
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -843,6 +1188,14 @@ export type Database = {
           _text: string
         }
         Returns: number
+      }
+      plaid_v2_bind: {
+        Args: { _bind_h: string; _ref_h: string; _ttl_s?: number }
+        Returns: Json
+      }
+      plaid_v2_claim: {
+        Args: { _bind_h: string; _ref_h: string }
+        Returns: Json
       }
       pockyt_sweep_claim: {
         Args: { _limit: number; _mode: string }

@@ -316,6 +316,15 @@ export async function exchangePlaidToken(payload: Record<string, unknown>): Prom
   return callProxy({ endpoint: "payments/plaid/exchange-token", method: "POST", payload });
 }
 
+// Plaid v2 (Pay by Bank): dedicated cellpay-proxy actions; the proxy calls CellPay. Raw payments/plaid/exchange-token stays blocked.
+export async function plaidV2LinkToken(payload: Record<string, unknown>): Promise<unknown> {
+  return callProxy({ endpoint: "plaid-v2/link-token", method: "POST", payload });
+}
+
+export async function plaidV2Exchange(payload: Record<string, unknown>): Promise<unknown> {
+  return callProxy({ endpoint: "plaid-v2/exchange", method: "POST", payload });
+}
+
 // Apple Pay session
 export async function createApplePaySession(payload: Record<string, unknown>): Promise<unknown> {
   return callProxy({ endpoint: "payments/apple-pay/session", method: "POST", payload });
