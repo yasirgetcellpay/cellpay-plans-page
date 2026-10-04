@@ -5,7 +5,7 @@ import es from "./strings-es.json";
 import { HELP_CARRIERS, type HelpCarrier } from "./helpRoutes";
 
 export type HelpLang = "en" | "es";
-export type FaqTopic = "not_received" | "declined" | "fee" | "no_account" | "carriers" | "refill_how";
+export type FaqTopic = "not_received" | "declined" | "fee" | "no_account" | "carriers" | "refill_how" | "carrier_issue" | "refund" | "not_working" | "balance";
 export type HelpIntent = FaqTopic | "order_status" | "autopay" | "contact";
 export type HelpStrings = typeof en;
 
@@ -13,7 +13,7 @@ export const STRINGS: Record<HelpLang, HelpStrings> = { en, es };
 
 /** Quick-reply order shown in the panel. */
 export const QUICK_REPLIES: HelpIntent[] = [
-  "refill_how", "carriers", "fee", "declined", "not_received", "no_account", "order_status", "autopay", "contact",
+  "refill_how", "carriers", "fee", "declined", "not_received", "not_working", "no_account", "order_status", "autopay", "contact",
 ];
 
 /** Lower-case, strip accents and apostrophes, collapse everything else to single spaces. */
@@ -39,7 +39,18 @@ const KEYWORDS: Array<[HelpIntent, string[]]> = [
     "cancel auto pay", "cancel autopay", "auto pay", "autopay", "auto recharge", "auto refill", "automatic payment",
     "automatic refill", "recurring", "stop recurring", "recurring payment", "unsubscribe", "stop auto pay",
     "cancelar pago automatico", "pago automatico", "autopago", "recarga automatica", "cancelar autopago",
-    "pagos recurrentes", "cancelar suscripcion", "darme de baja",
+    "pagos recurrentes", "cancelar suscripcion", "darme de baja", "cancelar el pago automatico", "cancelar mi pago automatico",
+  ]],
+  // NR-1 (Oct 4): completed payments can't be refunded. Refund / cancel-a-payment questions get the approved answer
+  // (strings answers.refund), never the contact form. After autopay so "cancel my auto pay" stays Auto Pay.
+  ["refund", [
+    "refund", "refunds", "refunded", "money back", "my money back", "cancel payment", "cancel my payment", "cancel a payment",
+    "cancel the payment", "cancel order", "cancel my order", "cancel the order", "cancel transaction", "cancel my transaction",
+    "cancel purchase", "cancel my purchase", "cancel the purchase", "cancel refill", "cancel my refill", "cancel the refill",
+    "cancel recharge", "cancel my recharge", "cancel the recharge", "cancel the transaction",
+    "reembolso", "reembolsos", "reembolsar", "devolucion", "devolver mi dinero", "mi dinero de vuelta", "cancelar pago",
+    "cancelar mi pago", "cancelar el pago", "cancelar pedido", "cancelar mi pedido", "cancelar el pedido", "cancelar orden",
+    "cancelar mi orden", "cancelar compra", "cancelar mi compra", "cancelar recarga", "cancelar mi recarga",
   ]],
   ["not_received", [
     "not received", "didnt receive", "did not receive", "havent received", "never received", "didnt get", "did not get",
@@ -48,6 +59,24 @@ const KEYWORDS: Array<[HelpIntent, string[]]> = [
     "didnt go to my phone", "not applied", "no balance",
     "no llego", "no ha llegado", "no recibi", "no me llego", "no se aplico", "no se ha aplicado", "todavia no",
     "aun no", "donde esta mi recarga", "no veo mi recarga", "no tengo saldo", "no se acredito",
+  ]],
+  // KB-1 (Oct 4): paid but no service. ~99% = less than the full amount paid or billing cycle not started; restart; 611.
+  // After not_received (a missing refill stays a refill issue), before carrier_issue (which repeats some of these phrases).
+  ["not_working", [
+    "not working", "phone not working", "my phone is not working", "phone isnt working", "phone doesnt work",
+    "phone does not work", "service not working", "no service", "still no service", "no signal", "paid but",
+    "cant make calls", "cannot make calls", "no data", "data not working", "service suspended", "suspended",
+    "service was cut off",
+    "no funciona", "mi telefono no funciona", "no tengo servicio", "sin servicio", "sin senal", "no tengo senal",
+    "pague pero", "ya pague", "no puedo llamar", "no tengo datos", "servicio suspendido", "suspendido",
+    "me cortaron el servicio",
+  ]],
+  // KB-1: balance / due date. The panel adds the carrier's verified balance check + care number (helpCarrierCare.ts).
+  ["balance", [
+    "balance", "check balance", "check my balance", "my balance", "due date", "my due date", "expiration date",
+    "service end date", "how much do i owe", "amount due", "data left", "minutes left",
+    "saldo", "consultar saldo", "revisar saldo", "mi saldo", "fecha de pago", "fecha de vencimiento", "cuanto debo",
+    "cuantos datos me quedan",
   ]],
   ["declined", [
     "declined", "decline", "denied", "rejected", "card not working", "card doesnt work", "card didnt work",
@@ -75,15 +104,28 @@ const KEYWORDS: Array<[HelpIntent, string[]]> = [
   ]],
   ["contact", [
     "contact", "contact support", "customer service", "support", "human", "agent", "real person", "talk to",
-    "speak to", "speak with", "email you", "call you", "phone number for support", "refund", "complaint",
+    "speak to", "speak with", "email you", "call you", "phone number for support", "complaint",
     "contacto", "contactar", "soporte", "servicio al cliente", "atencion al cliente", "hablar con", "agente",
-    "persona", "reembolso", "queja", "llamar",
+    "persona", "queja", "llamar",
   ]],
   ["carriers", [
     "carrier", "carriers", "which carriers", "what carriers", "provider", "providers", "network", "amount", "amounts",
     "plan", "plans", "price", "prices", "how much", "international",
     "operador", "operadores", "compania", "companias", "monto", "montos", "planes", "precio", "precios",
     "cuanto cuesta", "internacional",
+  ]],
+  // HANDOFF-1: carrier-only issues are steered to the carrier, not sent to CellPay support. Listed before refill_how
+  // so "lost my sim" beats "refill"; after not_received so "refill didn't arrive on my new sim" stays a refill issue.
+  ["carrier_issue", [
+    "sim", "sim card", "esim", "my sim", "new sim", "lost my sim", "lost sim", "port my number", "port in", "port out",
+    "transfer my number", "keep my number", "keep my phone number", "change my number", "unlock", "unlock my phone",
+    "no service", "no signal", "phone not working", "my phone is not working", "phone broken", "broke my phone",
+    "broken phone", "lost my phone", "stolen phone", "phone was stolen", "change my plan", "change plan", "switch plan",
+    "upgrade my plan", "downgrade my plan",
+    "chip", "tarjeta sim", "perdi mi chip", "portar mi numero", "transferir mi numero", "mantener mi numero",
+    "conservar mi numero", "cambiar mi numero", "desbloquear", "sin servicio", "sin senal", "no tengo servicio",
+    "no tengo senal", "mi telefono no funciona", "se me rompio el telefono", "telefono roto", "perdi mi telefono",
+    "me robaron el telefono", "cambiar mi plan", "cambiar de plan",
   ]],
   ["refill_how", [
     "how to refill", "how do i refill", "how to recharge", "how do i recharge", "how to top up", "how do i top up",
@@ -132,4 +174,9 @@ export function answerFor(intent: FaqTopic, lang: HelpLang): string[] {
 
 export function isFaqTopic(i: HelpIntent | null): i is FaqTopic {
   return !!i && i !== "order_status" && i !== "autopay" && i !== "contact";
+}
+
+/** NR-1b (Oct 4): answers after which the chat offers "Still need help? Contact support". Support is the fallback, not the first step. */
+export function offersSupportAfter(intent: HelpIntent | null): boolean {
+  return intent === "refund" || intent === "not_working" || intent === "not_received";
 }
