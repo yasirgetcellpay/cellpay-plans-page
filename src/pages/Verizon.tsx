@@ -1,6 +1,6 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Phone, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import verizonLogo from "@/assets/verizon-logo.png";
@@ -84,6 +84,13 @@ const wholeDollarMessage = (lang: string, n: number): string =>
 
 const BRAND = "hsl(0,100%,45%)";
 
+// VZ-PLAN: shown when the Verizon plan list could not be loaded, so no plan_id can be sent.
+// Kept to 2 short lines so it fits the reserved message slot above the top PAY NOW.
+const planLoadMessage = (lang: string): string =>
+  lang === "es"
+    ? "No se pudieron cargar los planes. Toque PAY NOW otra vez."
+    : "Couldn't load Verizon plans. Tap PAY NOW to try again.";
+
 const Verizon = () => {
   useEffect(() => {
     const isEs = typeof window !== "undefined" && window.location.pathname.startsWith("/es");
@@ -100,14 +107,54 @@ const Verizon = () => {
   const [confirmed, setConfirmed] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [resolved, setResolved] = useState<ResolvedPlans>({ fixedPlans: [] });
+  // VZ-PLAN: the plan list loads in the background. If PAY NOW is tapped before it arrives (slow
+  // network) or after it failed, wait for / retry the load instead of going to checkout without a
+  // plan_id (the backend then rejects every attempt with "plan_id is required").
+  const plansPromise = useRef<Promise<ResolvedPlans> | null>(null);
+  const resolvingRef = useRef(false);
+  const [resolving, setResolving] = useState(false);
+  const [planError, setPlanError] = useState<"top" | "bottom" | null>(null);
 
-  useEffect(() => {
-    loadResolvedPlans("verizon").then(setResolved).catch((e) => console.warn("Verizon plan load failed", e));
+  const loadPlans = useCallback((): Promise<ResolvedPlans> => {
+    if (!plansPromise.current) {
+      const p = loadResolvedPlans("verizon").then((r) => {
+        if (!r.rangePlanId && r.fixedPlans.length === 0) plansPromise.current = null; // empty: refetch next time
+        else setResolved(r);
+        return r;
+      });
+      p.catch(() => { plansPromise.current = null; });
+      plansPromise.current = p;
+    }
+    return plansPromise.current;
   }, []);
 
-  const goCheckout = (amt: number | string) => {
+  useEffect(() => {
+    loadPlans().catch((e) => console.warn("Verizon plan load failed", e));
+  }, [loadPlans]);
+
+  const goCheckout = async (amt: number | string, from: "top" | "bottom") => {
+    if (resolvingRef.current) return;
     const amountNum = typeof amt === "number" ? amt : Number(amt);
-    const picked = pickPlanForAmount(resolved, amountNum);
+    let picked = pickPlanForAmount(resolved, amountNum);
+    if (!picked.planId) {
+      resolvingRef.current = true;
+      setResolving(true);
+      setPlanError(null);
+      try {
+        picked = pickPlanForAmount(await loadPlans(), amountNum);
+      } catch (e) {
+        console.warn("Verizon plan load failed", e);
+        picked = {};
+      } finally {
+        resolvingRef.current = false;
+        setResolving(false);
+      }
+      if (!picked.planId) {
+        setPlanError(from);
+        return;
+      }
+    }
+    setPlanError(null);
     navigate("/checkout", {
       state: {
         phone,
@@ -187,18 +234,23 @@ const Verizon = () => {
             <input type="text" inputMode="numeric" value={amount} onChange={handleAmountChange} onPaste={handleAmountPaste} onBlur={handleAmountBlur} aria-invalid={showAmountMessage} aria-describedby={showAmountMessage ? "carrier-amount-error" : undefined} placeholder="$10 - $150"
               className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" style={{ "--tw-ring-color": BRAND } as React.CSSProperties} />
           </div>
-          {showAmountMessage && (
-            <p id="carrier-amount-error" role="alert" className="text-[11px] sm:text-xs text-destructive font-semibold mt-1 mb-1">
-              {amountMessage}
-            </p>
-          )}
-          <p className="text-[10px] sm:text-xs text-muted-foreground">Or select a plan below</p>
-          {amountValid && (
-            <button type="button" onClick={() => {
-              if (phoneDigits.length !== 10) return;
-              goCheckout(amount);
-            }} disabled={phoneDigits.length !== 10} className="mt-4 w-full h-10 sm:h-11 rounded-lg text-primary-foreground font-bold text-sm sm:text-base transition-colors active:scale-[0.97] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" style={{ backgroundColor: BRAND }}>PAY NOW</button>
-          )}
+          {/* VZ-FOLD: fixed-height message slot, so a message never moves the PAY NOW below it. */}
+          <div className="min-h-[40px]">
+            {showAmountMessage && (
+              <p id="carrier-amount-error" role="alert" className="text-[11px] sm:text-xs text-destructive font-semibold mt-1 mb-1">
+                {amountMessage}
+              </p>
+            )}
+            {!showAmountMessage && amountValid && planError === "top" && (
+              <p role="alert" className="text-[11px] sm:text-xs text-destructive font-semibold mt-1 mb-1">{planLoadMessage(lang)}</p>
+            )}
+          </div>
+          {/* VZ-FOLD: PAY NOW always rendered above the fold (disabled until phone + amount are valid). */}
+          <button type="button" onClick={() => {
+            if (phoneDigits.length !== 10 || !amountValid) return;
+            void goCheckout(amount, "top");
+          }} disabled={phoneDigits.length !== 10 || !amountValid || resolving} className="w-full h-10 sm:h-11 rounded-lg text-primary-foreground font-bold text-sm sm:text-base transition-colors active:scale-[0.97] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed" style={{ backgroundColor: BRAND }}>PAY NOW</button>
+          <p className="mt-2 text-[10px] sm:text-xs text-muted-foreground">Or select a plan below</p>
         </div>
       </div>
 
@@ -215,8 +267,11 @@ const Verizon = () => {
           <span className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">Agree with Verizon Product Policies and Sales.{" "}<a href="https://www.verizon.com/support/prepaid-terms-conditions/" className="underline font-semibold" style={{ color: BRAND }}>View More</a></span>
         </label>
         <div className="flex justify-center">
-          <button type="button" disabled={!isValid} onClick={() => goCheckout(amount)} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]" style={{ backgroundColor: BRAND }}>PAY NOW</button>
+          <button type="button" disabled={!isValid || resolving} onClick={() => void goCheckout(amount, "bottom")} className="h-[44px] sm:h-[48px] px-10 sm:px-14 rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-base sm:text-lg transition-colors active:scale-[0.97]" style={{ backgroundColor: BRAND }}>PAY NOW</button>
         </div>
+        {planError === "bottom" && (
+          <p role="alert" className="text-center text-[11px] sm:text-xs text-destructive font-semibold mt-3">{planLoadMessage(lang)}</p>
+        )}
         <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">Secure payment. Your refill is sent directly to your phone. It can take up to 30 min for a refill to reflect on your account.</p>
       </div>
 

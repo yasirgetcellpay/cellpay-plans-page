@@ -520,6 +520,47 @@ const Checkout = () => {
   const subdivisions = useMemo(() => getSubdivisions(country), [country]);
   const hasSubdivisions = subdivisions.length > 0;
 
+  // #6 fold (iPhone SE): on phones (< sm) PLACE ORDER NOW sits 1,000-1,600px down on arrival. Until the page's own button
+  // has scrolled fully above the bar (+8px, so the Help pill never lands on it when it leaves the bar), a bottom bar shows the
+  // Total + PLACE ORDER NOW (same canSubmit / handlePlaceOrder; the
+  // total is the display-only one from the summary). It reserves the Help launcher's slot (data-help-dock-slot, like the
+  // carrier Pay bar), hides while a text field is focused (keypad up) and never shows for PayPal (SDK buttons) or on tablet/desktop.
+  const inlinePayRef = useRef<HTMLButtonElement | null>(null);
+  const payBarRef = useRef<HTMLDivElement | null>(null);
+  const [payBarShown, setPayBarShown] = useState(false);
+  useEffect(() => {
+    if (loading || !state || paymentMethod === "paypal") { setPayBarShown(false); return; }
+    const mq = window.matchMedia("(max-width: 639.98px)");
+    let raf = 0;
+    let barH = 64;
+    const update = () => {
+      raf = 0;
+      const btn = inlinePayRef.current;
+      if (payBarRef.current) barH = payBarRef.current.offsetHeight || barH;
+      const a = document.activeElement as HTMLElement | null;
+      const typing = !!a && a.matches("input:not([type='checkbox']):not([type='radio']):not([type='button']):not([type='submit']), select, textarea");
+      setPayBarShown(mq.matches && !!btn && !typing && btn.getBoundingClientRect().bottom > window.innerHeight - barH - 8);
+    };
+    const schedule = () => { if (!raf) raf = requestAnimationFrame(update); };
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(schedule) : null;
+    ro?.observe(document.body);
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    document.addEventListener("focusin", schedule);
+    document.addEventListener("focusout", schedule);
+    mq.addEventListener?.("change", schedule);
+    schedule();
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      ro?.disconnect();
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      document.removeEventListener("focusin", schedule);
+      document.removeEventListener("focusout", schedule);
+      mq.removeEventListener?.("change", schedule);
+    };
+  }, [loading, paymentMethod, !!state]);
+
   if (!state) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background" aria-busy="true">
@@ -1682,6 +1723,7 @@ const Checkout = () => {
 
             {paymentMethod !== "paypal" && (
               <button
+                ref={inlinePayRef}
                 type="button"
                 disabled={!canSubmit}
                 onClick={handlePlaceOrder}
@@ -1702,6 +1744,34 @@ const Checkout = () => {
       )}
 
 
+
+      {/* #6 fold: phone Pay bar (see payBarShown). Same canSubmit / handlePlaceOrder as PLACE ORDER NOW below; the total is display
+          only. Not ready yet (terms, card details): the tap scrolls to the terms + PLACE ORDER card instead. Help docks in the slot. */}
+      {payBarShown && (
+        <div ref={payBarRef} data-help-dock-slot="" data-testid="checkout-pay-bar" className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] pl-3 pr-[72px] py-2 flex items-center gap-2"
+             style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)" }}>
+          <div className="shrink-0 text-left leading-tight">
+            <p className="text-[10px] text-muted-foreground">{tr.total}</p>
+            <p data-testid="checkout-bar-total" className="text-base font-extrabold" style={{ color: brandColor }}>${Number(total).toFixed(2)}</p>
+          </div>
+          <button
+            type="button"
+            data-testid="checkout-bar-pay"
+            aria-disabled={!canSubmit}
+            onClick={() => {
+              if (submitting) return;
+              if (canSubmit) { handlePlaceOrder(); return; }
+              const card = inlinePayRef.current?.parentElement;
+              if (card) window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - 72, behavior: "smooth" });
+            }}
+            className={`flex-1 min-w-0 h-[46px] rounded-lg px-2 hover:opacity-90 text-primary-foreground font-bold text-[clamp(11px,3.5vw,13px)] whitespace-nowrap leading-tight transition-all active:scale-[0.97] inline-flex items-center justify-center gap-2 ${canSubmit ? "" : "opacity-60"}`}
+            style={{ backgroundColor: brandColor }}
+          >
+            {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+            {submitting ? tr.processing : tr.placeOrder}
+          </button>
+        </div>
+      )}
 
       {/* Error dialog */}
       {errorMsg && (
