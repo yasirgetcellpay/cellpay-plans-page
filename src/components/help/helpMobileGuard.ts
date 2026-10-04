@@ -2,7 +2,8 @@
 // HC-ALL (Lead, Oct 3): the overlap-removal guard that used to live here is deleted (it hid the launcher whenever a Pay bar,
 // Pay button, plan card, form field, checkbox or terms link was on screen or under it, so Help was missing on most carrier
 // pages, and the route list hid it on checkout / confirmation). What is left:
-//   * the launcher always shows, compact (48px icon-only on phones), docked bottom-right (16px + safe-area inset);
+//   * the launcher always shows with its "Help" / "Ayuda" label (HC-ALL-L, Parvez via Lead Oct 3): a 44px icon + label pill
+//     bottom-right (16px + safe-area inset), or a 48px icon-over-label tile while docked in a bar slot (watchHelpDock: docked);
 //   * where a bottom fixed Pay bar exists (carrier Total / PAY NOW bar) and reserves a slot for it (data-help-dock-slot,
 //     DynamicCarrier's phone bar: pr-[72px]), it docks INSIDE the bar, vertically centred on the bar's button (Lead option B),
 //     so it never covers PAY NOW, the Total, the amount field or the plan grid; a bottom bar without a slot: HELP_DOCK_GAP_PX
@@ -68,23 +69,34 @@ export function barLiftPx(bars: Iterable<Element>, vh: number): number {
   return Math.max(0, lift);
 }
 
-export interface HelpDockState { lift: number; typing: boolean; }
+/** True when a visible bottom bar reserves a slot for the launcher (it then docks inside it as the 48px icon-over-label tile). */
+export function inDockSlot(bars: Iterable<Element>, vh: number): boolean {
+  for (const b of bars) {
+    if (!b.isConnected || !b.hasAttribute(HELP_DOCK_SLOT_ATTR)) continue;
+    const r = b.getBoundingClientRect();
+    if (r.height > 0 && r.top < vh && r.bottom > 0) return true;
+  }
+  return false;
+}
+
+export interface HelpDockState { lift: number; typing: boolean; docked: boolean; }
 
 /**
- * Phones: reports { lift, typing } now and on every change. lift = bottom offset above a bottom fixed Pay bar (0 = default
- * position); typing = a page text field is focused (hide the launcher). Re-measures once per frame while the page changes
+ * Phones: reports { lift, typing, docked } now and on every change. lift = bottom offset above a bottom fixed Pay bar (0 = default
+ * position); typing = a page text field is focused (hide the launcher); docked = inside a bar slot (show the stacked tile). Re-measures once per frame while the page changes
  * (the bar appears after plans load), when the viewport or the bar resizes, and on focus changes. Returns a cleanup function.
  */
 export function watchHelpDock(onState: (s: HelpDockState) => void): () => void {
-  let lift = 0, typing = false, sent = "";
+  let lift = 0, typing = false, docked = false, sent = "";
   const bars = new Set<Element>();
-  const publish = () => { const k = `${lift}|${typing}`; if (k !== sent) { sent = k; onState({ lift, typing }); } };
-  const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => { lift = barLiftPx(bars, window.innerHeight); publish(); });
+  const publish = () => { const k = `${lift}|${typing}|${docked}`; if (k !== sent) { sent = k; onState({ lift, typing, docked }); } };
+  const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => { lift = barLiftPx(bars, window.innerHeight); docked = inDockSlot(bars, window.innerHeight); publish(); });
   const measure = () => {
     const found = findBottomBars();
     for (const b of found) if (!bars.has(b)) { bars.add(b); ro?.observe(b); }
     for (const b of [...bars]) if (!found.has(b) || !b.isConnected) { bars.delete(b); ro?.unobserve(b); }
     lift = barLiftPx(bars, window.innerHeight);
+    docked = inDockSlot(bars, window.innerHeight);
     publish();
   };
   let frame = 0;
