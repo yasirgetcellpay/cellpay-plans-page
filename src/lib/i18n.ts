@@ -113,6 +113,16 @@ export interface Translations {
   methodPayByBank: string;
   methodCashApp: string;
   methodKlarna: string;
+  // Pay by Bank (Plaid v2) messages
+  plaidDeclined: string;
+  plaidRelink: string;
+  plaidUnavailable: string;
+  plaidFailed: string;
+  plaidPaymentFailed: string;
+  plaidLinkFailed: string;
+  plaidSdkFailed: string;
+  plaidSdkMissing: string;
+  plaidLinkedBank: (account: string, mask: string, name: string) => string;
 
   // ── Order Confirmation ──
   thankYouHeader: string;
@@ -260,6 +270,15 @@ const en: Translations = {
   methodPayByBank: "Pay by Bank",
   methodCashApp: "Cash App",
   methodKlarna: "Klarna",
+  plaidDeclined: "You need to link a bank account with sufficient funds.",
+  plaidRelink: "Your bank link has expired or no longer matches this order. Please link your bank again.",
+  plaidUnavailable: "Pay by Bank is unavailable right now. Please choose another payment method.",
+  plaidFailed: "We couldn't connect your bank right now. Please try again or choose another payment method.",
+  plaidPaymentFailed: "Bank payment failed",
+  plaidLinkFailed: "Could not create Plaid link",
+  plaidSdkFailed: "Failed to load Plaid SDK",
+  plaidSdkMissing: "Plaid SDK not available",
+  plaidLinkedBank: (account, mask, name) => `${account} ••••${mask} – ${name}`,
 
   thankYouHeader: "Thank you for your payment. The charge on your statement will reflect CellPay.",
   contactUsLink: "If you need additional information, please",
@@ -409,6 +428,15 @@ const es: Translations = {
   methodPayByBank: "Pago bancario",
   methodCashApp: "Cash App",
   methodKlarna: "Klarna",
+  plaidDeclined: "Debe vincular una cuenta bancaria con fondos suficientes.",
+  plaidRelink: "La conexión con su banco venció o ya no coincide con este pedido. Vuelva a vincular su banco.",
+  plaidUnavailable: "El pago bancario no está disponible en este momento. Elija otro método de pago.",
+  plaidFailed: "No pudimos conectar con su banco en este momento. Intente de nuevo o elija otro método de pago.",
+  plaidPaymentFailed: "No se pudo completar el pago bancario. Intente de nuevo.",
+  plaidLinkFailed: "No pudimos iniciar la conexión con su banco. Intente de nuevo.",
+  plaidSdkFailed: "No pudimos cargar Plaid. Revise su conexión e intente de nuevo.",
+  plaidSdkMissing: "Plaid no está disponible en este momento. Intente de nuevo.",
+  plaidLinkedBank: (account, mask, name) => `${account} ••••${mask} – ${name}`,
 
   thankYouHeader: "Gracias por su pago. El cargo en su estado de cuenta aparecerá como CellPay.",
   contactUsLink: "Si necesita información adicional, por favor",

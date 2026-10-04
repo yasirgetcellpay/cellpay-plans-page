@@ -13,8 +13,8 @@ import {
   fetchCheckoutConfig,
   createPayPalOrder,
   capturePayPalOrder,
-  createPlaidLinkToken,
-  exchangePlaidToken,
+  plaidV2LinkToken,
+  plaidV2Exchange,
   createApplePaySession,
   createKlarnaSession,
   type ValidationResult,
@@ -149,8 +149,14 @@ const Checkout = () => {
   }, []);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
+  // Plaid v2 kill switch: cellpay-proxy answered plaid_unavailable (fraud_controls.plaid_exchange_mode = 'off'), so Pay by Bank
+  // is hidden for the rest of this visit.
+  const [plaidOff, setPlaidOff] = useState(false);
+  // Plaid v2: the plaid_ref from step 2 (this order only, at most 1 h; cleared after every checkout answer) and its bank line.
+  const plaidRefRef = useRef<{ ref: string; exp: number } | null>(null);
+  const [plaidAccount, setPlaidAccount] = useState<string | null>(null);
   // PL-0: a hidden Pay by Bank can never stay selected (falls back to the default, card).
-  useEffect(() => { if (!PLAID_ENABLED && paymentMethod === "plaid") setPaymentMethod("card"); }, [paymentMethod]);
+  useEffect(() => { if ((!PLAID_ENABLED || plaidOff) && paymentMethod === "plaid") setPaymentMethod("card"); }, [paymentMethod, plaidOff]);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [saveCard, setSaveCard] = useState(false);
   const [autoPay, setAutoPay] = useState(false);
@@ -760,78 +766,143 @@ const Checkout = () => {
 
   // PayPal is now handled entirely by SDK Buttons rendered in the UI
 
-  // ─── Plaid (Pay by Bank) ───
-  const handlePlaid = async () => {
+  // ─── Plaid (Pay by Bank) v2: CellPay's Pay by Bank flow ───
+  // 1) link token -> Plaid Link (always opens Link; there is no saved bank), 2) cellpay-proxy exchanges Link's public token
+  // with CellPay (decision + plaid_ref), 3) checkout is auto-submitted with plaid_ref only. Every call goes through
+  // cellpay-proxy; the public token never goes to checkout and the browser never receives an access token.
+  // Steps 2 and 3 send the same order values (the proxy checks this server-side).
+  // Messages come from the i18n dictionary (tr.plaid*, English and /es Spanish). CellPay's own `error` text is shown as is;
+  // text the proxy wrote itself (msg_by "proxy") is replaced by the dictionary wording for its code.
+  const PLAID_CODE_MSG: Record<string, string> = {
+    plaid_ref: tr.plaidRelink, plaid_unavailable: tr.plaidUnavailable, plaid_declined: tr.plaidDeclined,
+    plaid_bind: tr.plaidFailed, plaid_exchange: tr.plaidFailed, plaid_link: tr.plaidLinkFailed,
+  };
+  const plaidOrder = () => ({
+    carrierId: validation?.carrier_id || validation?.carrierId,
+    plan_id: state.planId ? String(state.planId) : undefined,
+    phone_number: normalizePhone(state.phone),
+    amount: validation?.amount ?? Number(state.amount),
+    email: email.trim(),
+    slug: state.carrierSlug,
+  });
+  type PlaidOrder = ReturnType<typeof plaidOrder>;
+  const clearPlaidRef = () => { plaidRefRef.current = null; setPlaidAccount(null); };
+  const plaidData = (raw: Record<string, unknown>): Record<string, unknown> => {
+    const d = raw.data && typeof raw.data === "object" ? raw.data as Record<string, unknown> : {};
+    return d.data && typeof d.data === "object" ? d.data as Record<string, unknown> : d;
+  };
+  const plaidError = (raw: Record<string, unknown>, fallback: string): string => {
+    if (raw.msg_by === "proxy") {
+      const mine = PLAID_CODE_MSG[String(raw.code)];
+      if (mine) return mine;
+      if (lang === "es") return fallback; // proxy guard text (e.g. invalid_request) is English-only
+    }
+    return (typeof raw.error === "string" && raw.error) || (typeof raw.message === "string" && raw.message) || fallback;
+  };
+  // Kill switch answer (plaid_unavailable): hide Pay by Bank for this visit; the effect above falls back to card.
+  const plaidUnavailable = (raw: Record<string, unknown>): boolean => {
+    if (raw.code !== "plaid_unavailable") return false;
+    clearPlaidRef();
+    setPlaidOff(true);
+    setErrorMsg(plaidError(raw, tr.plaidUnavailable));
+    return true;
+  };
+
+  // Step 3. Returns the message to relink with when CellPay answered 422 code "plaid_ref", otherwise null.
+  const submitPlaid = async (ref: string, o: PlaidOrder): Promise<string | null> => {
+    const raw = await submitTransaction({
+      checkout_version: "5.0",
+      payment_method: "plaid",
+      plaid_ref: ref,
+      carrierId: o.carrierId,
+      plan_id: o.plan_id,
+      phone_number: o.phone_number,
+      amount: o.amount,
+      agree_desktop: true,
+      payment: {
+        firstName: firstName.trim() || "Customer",
+        lastName: lastName.trim() || "User",
+        email: o.email,
+      },
+      // Read by cellpay-proxy only (same-order check and the log row); never forwarded to CellPay.
+      carrier_slug: o.slug,
+      carrier_name: state.carrierName,
+      total: validation?.total ?? Number(state.amount),
+      kount_ssid: sessionIdRef.current,
+      source: visitorIpRef.current,
+    }) as Record<string, unknown>;
+    clearPlaidRef(); // single use: every checkout answer ends this plaid_ref
+    const code = raw.code ?? plaidData(raw).code;
+    if (code === "plaid_ref") return plaidError(raw, tr.plaidRelink);
+    if (plaidUnavailable(raw)) return null;
+    const body = raw.data && typeof raw.data === "object" ? raw.data as Record<string, unknown> : {};
+    if (raw.success === false || body.success === false) {
+      setErrorMsg(plaidError(raw.success === false ? raw : body, tr.plaidPaymentFailed));
+      return null;
+    }
+    handleResult(raw); // success -> order confirmation with data.transactionId, same as card
+    return null;
+  };
+
+  const handlePlaid = async (relinked = false): Promise<void> => {
+    clearPlaidRef();
+    const order = plaidOrder();
     const plaidConfig = checkoutConfig?.plaid as Record<string, unknown> | undefined;
     const scriptUrl = (plaidConfig?.linkInitializeScriptUrl as string) || "https://cdn.plaid.com/link/v2/stable/link-initialize.js";
     try {
       await loadScript(scriptUrl, "plaid-sdk");
     } catch {
-      setErrorMsg("Failed to load Plaid SDK");
+      setErrorMsg(tr.plaidSdkFailed);
       return;
     }
 
-    const tokenResp = await createPlaidLinkToken({
-      phone_number: normalizePhone(state.phone),
-      carrierId: validation?.carrier_id || validation?.carrierId,
-      plan_id: state.planId ? String(state.planId) : undefined,
-      amount: validation?.amount ?? Number(state.amount),
-    }) as Record<string, unknown>;
-    // Unwrap
-    let tokenData = tokenResp;
-    if (tokenData.data && typeof tokenData.data === "object") {
-      const inner = tokenData.data as Record<string, unknown>;
-      if (inner.data && typeof inner.data === "object") tokenData = inner.data as Record<string, unknown>;
-      else tokenData = inner;
+    // Step 1: Link token (cellpay-proxy calls CellPay's payments/plaid/link-token with the phone number).
+    const tokenResp = await plaidV2LinkToken({ phone_number: order.phone_number }) as Record<string, unknown>;
+    if (plaidUnavailable(tokenResp)) return;
+    const linkToken = plaidData(tokenResp).link_token;
+    if (tokenResp.success === false || typeof linkToken !== "string" || !linkToken) {
+      setErrorMsg(plaidError(tokenResp, tr.plaidLinkFailed));
+      return;
     }
-    const linkToken = tokenData.link_token as string;
-    if (!linkToken) { setErrorMsg("Could not create Plaid link"); return; }
-    if (!window.Plaid) { setErrorMsg("Plaid SDK not available"); return; }
+    if (!window.Plaid) { setErrorMsg(tr.plaidSdkMissing); return; }
 
-    return new Promise<void>((resolve) => {
+    const outcome: { relink: string | null } = { relink: null };
+    await new Promise<void>((resolve) => {
       const handler = window.Plaid!.create({
         token: linkToken,
         onSuccess: async (publicToken: string, metadata: Record<string, unknown>) => {
           try {
-            // Submit transaction directly with plaid_token
-            const result = await submitTransaction({
-              checkout_version: "5.0",
-              payment_method: "plaid",
-              amount: validation?.amount ?? Number(state.amount),
-              total: validation?.total ?? Number(state.amount),
-              phone_number: normalizePhone(state.phone),
-              carrierId: validation?.carrier_id || validation?.carrierId,
-              carrier_slug: state.carrierSlug,
-              carrier_name: state.carrierName,
-              plan_id: state.planId ? String(state.planId) : undefined,
-              agree_desktop: true,
-              payment: {
-                firstName: firstName.trim() || "Customer",
-                lastName: lastName.trim() || "User",
-                email: email.trim() || "customer@cellpay.us",
-              },
-              plaid_token: publicToken,
-              browser_info: browserInfoRef.current,
-              gclid: getGclid(),
-              kount_ssid: sessionIdRef.current,
-              riskified_sessionid: sessionIdRef.current,
-              cbsys_sessionid: sessionIdRef.current,
-              source: visitorIpRef.current,
-            }) as Record<string, unknown>;
-            handleResult(result);
+            // Step 2: cellpay-proxy sends the public token to CellPay's exchange with the same order values as step 3.
+            const ex = await plaidV2Exchange({ ...order, public_token: publicToken, metadata }) as Record<string, unknown>;
+            const d = plaidData(ex);
+            const ref = typeof d.plaid_ref === "string" ? d.plaid_ref : "";
+            if (plaidUnavailable(ex)) {
+              // Pay by Bank is now hidden for this visit
+            } else if (ex.success === false && ex.code !== "plaid_declined") {
+              setErrorMsg(plaidError(ex, tr.plaidPaymentFailed));
+            } else if (ex.success === false || d.decision === false || d.decision === "false" || !ref) {
+              setErrorMsg(tr.plaidDeclined);
+            } else {
+              const ttl = Math.min(Number(d.plaid_ref_expires_in) || 3600, 3600);
+              plaidRefRef.current = { ref, exp: Date.now() + ttl * 1000 };
+              setPlaidAccount(tr.plaidLinkedBank(String(d.account_name ?? ""), String(d.account_mask ?? ""), String(d.name ?? "")));
+              // Auto-submit (step 3) while the plaid_ref is fresh.
+              outcome.relink = await submitPlaid(ref, order);
+            }
           } catch {
-            setErrorMsg("Bank payment failed");
+            clearPlaidRef();
+            setErrorMsg(tr.plaidPaymentFailed);
           }
-          setSubmitting(false);
           resolve();
         },
-        onExit: () => {
-          setSubmitting(false);
-          resolve();
-        },
+        onExit: () => resolve(),
       });
       handler.open();
     });
+    if (outcome.relink !== null) {
+      if (relinked) setErrorMsg(outcome.relink);
+      else await handlePlaid(true); // plaid_ref expired or invalid at CellPay: back to step 1 (once per click)
+    }
   };
 
   // ─── Google Pay ───
@@ -1381,7 +1452,7 @@ const Checkout = () => {
     { key: "googlepay", label: tr.methodGooglePay, Brand: GooglePayMark },
     { key: "paypal", label: tr.methodPayPal, Brand: PayPalMark },
     // PL-0: Pay by Bank (Plaid) only shows while PLAID_ENABLED is true (src/config/paymentFlags.ts).
-    ...(PLAID_ENABLED ? [{ key: "plaid" as PaymentMethod, label: tr.methodPayByBank, Brand: BankMark }] : []),
+    ...(PLAID_ENABLED && !plaidOff ? [{ key: "plaid" as PaymentMethod, label: tr.methodPayByBank, Brand: BankMark }] : []),
     { key: "cashapp", label: tr.methodCashApp, Brand: CashAppMark },
     { key: "klarna", label: tr.methodKlarna, Brand: KlarnaMark }, // Klarna last — feedback #31
   ];
@@ -1485,6 +1556,13 @@ const Checkout = () => {
               ))}
             </div>
           </div>
+
+          {/* Plaid v2: the bank CellPay confirmed in step 2, shown while checkout is submitted */}
+          {paymentMethod === "plaid" && plaidAccount && (
+            <div className="bg-card rounded-xl border border-border p-4 text-sm font-medium text-foreground" aria-live="polite">
+              {plaidAccount}
+            </div>
+          )}
 
           {/* Card form (only shown for credit card) */}
           {paymentMethod === "card" && (
