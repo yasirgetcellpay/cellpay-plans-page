@@ -14,15 +14,17 @@ const loadPanel = () => import("./HelpChatPanel");
 const HelpChatPanel = lazy(loadPanel);
 
 /**
- * Phones only (HC-ALL, Lead Oct 3, option B). The launcher always shows: a compact 48px icon-only button docked bottom-right
- * (16px + safe-area inset), or inside the slot the carrier Total / PAY NOW bar reserves for it (lift, measured at runtime). It hides only while a page text field is focused (keypad up) and comes back on blur. Logic: watchHelpDock in
+ * Phones only (HC-ALL, Lead Oct 3, option B; HC-ALL-L: always labelled "Help" / "Ayuda"). The launcher always shows: a 44px icon + label
+ * pill bottom-right (16px + safe-area inset), or a 48px icon-over-label tile inside the slot the carrier Total / PAY NOW bar reserves for
+ * it (docked; lift measured at runtime). It hides only while a page text field is focused (keypad up) and comes back on blur. Logic: watchHelpDock in
  * helpMobileGuard.ts (the old overlap guard is deleted). Hidden until the first measurement (one frame) so it never
  * flashes over the bar. (body.hide-chat-mobile is NOT used: DynamicCarrier and Checkout set it for the old Tidio widget.)
  */
-function useMobileLauncher(pathname: string): { mobile: boolean; hide: boolean; lift: number } {
+function useMobileLauncher(pathname: string): { mobile: boolean; hide: boolean; lift: number; docked: boolean } {
   const [mobile, setMobile] = useState(() => typeof window !== "undefined" && window.matchMedia(HELP_MOBILE_QUERY).matches);
   const [hide, setHide] = useState(true);
   const [lift, setLift] = useState(0);
+  const [docked, setDocked] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia(HELP_MOBILE_QUERY);
@@ -33,12 +35,12 @@ function useMobileLauncher(pathname: string): { mobile: boolean; hide: boolean; 
   }, []);
 
   useEffect(() => {
-    if (!mobile) { setHide(false); setLift(0); return; }
+    if (!mobile) { setHide(false); setLift(0); setDocked(false); return; }
     setHide(true);
-    return watchHelpDock(({ lift: l, typing }) => { setLift(l); setHide(typing); });
+    return watchHelpDock(({ lift: l, typing, docked: d }) => { setLift(l); setDocked(d); setHide(typing); });
   }, [mobile, pathname]);
 
-  return { mobile, hide: mobile && hide, lift: mobile ? lift : 0 };
+  return { mobile, hide: mobile && hide, lift: mobile ? lift : 0, docked: mobile && docked };
 }
 
 /** Runtime switch (help_settings, cached 5 min). Until it answers, and on any error, everything is OFF. */
@@ -60,7 +62,7 @@ const HelpChat = () => {
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const hidden = isHelpHiddenPath(pathname);
-  const { mobile, hide: hideOnMobile, lift } = useMobileLauncher(pathname);
+  const { mobile, hide: hideOnMobile, lift, docked } = useMobileLauncher(pathname);
 
   // Focus goes back to the launcher after the panel closes by any route (X, Esc, a carrier/topic link that navigates).
   // On phones the launcher may be hidden for a frame (guard re-measures after navigation), so the request waits up to
@@ -100,24 +102,26 @@ const HelpChat = () => {
       <div aria-hidden="true" data-help-spacer="" className="h-[80px]" />
       {/* Phones: the open panel has its own close button, so the launcher steps aside instead of overlapping it.
           lift > 0: docked in (or above) the bottom Pay bar. A new lift re-mounts the button (key) at its new place instead of moving
-          it, so it is never a layout shift; it is fixed, so it reserves no space. */}
+          it, so it is never a layout shift; it is fixed, so it reserves no space. Always labelled (HC-ALL-L): 44px icon + "Help" pill,
+          or inside a bar slot (docked) a 48px tile with the icon over a 12px "Help" / "Ayuda" so the slot stays 72px. */}
       {!(mobile ? open || hideOnMobile : false) && (
         <button
-          key={lift > 0 ? `lift-${lift}` : "base"}
+          key={lift > 0 ? `${docked ? "dock" : "lift"}-${lift}` : "base"}
           style={lift > 0 ? { bottom: `${lift}px` } : undefined}
           ref={launcherRef}
           type="button"
           onClick={toggle}
           onMouseEnter={prefetch}
           onFocus={prefetch}
-          aria-label={open ? s.close : s.launcherAria}
+          aria-label={open ? s.close : s.launcher}
           aria-expanded={open}
           aria-controls="cp-help-panel"
           data-testid="help-launcher"
-          className="fixed right-4 bottom-[calc(16px+env(safe-area-inset-bottom))] md:bottom-4 z-40 inline-flex h-[48px] w-[48px] md:h-12 md:w-auto items-center justify-center gap-2 rounded-full border-2 border-[hsl(101,67%,14%)] bg-white px-0 md:px-4 text-[15px] font-bold text-[hsl(101,67%,22%)] shadow-lg transition-transform hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[hsl(101,67%,14%)]"
+          data-help-docked={docked ? "" : undefined}
+          className={`fixed right-4 bottom-[calc(16px+env(safe-area-inset-bottom))] md:bottom-4 z-40 inline-flex items-center justify-center border-2 border-[hsl(101,67%,14%)] bg-white font-bold text-[hsl(101,67%,22%)] shadow-lg transition-transform hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[hsl(101,67%,14%)] ${docked ? "h-[48px] w-[48px] flex-col gap-0.5 rounded-xl px-0 text-[12px] leading-none" : "h-[44px] gap-1.5 rounded-full px-3.5 md:px-4 text-[15px] leading-none"}`}
         >
-          {open ? <X className="h-5 w-5" aria-hidden="true" /> : <MessageCircle className="h-5 w-5" aria-hidden="true" />}
-          <span className="hidden md:inline">{open ? s.close : s.launcher}</span>
+          {open ? <X className={docked ? "h-[18px] w-[18px]" : "h-5 w-5"} aria-hidden="true" /> : <MessageCircle className={docked ? "h-[18px] w-[18px]" : "h-5 w-5"} aria-hidden="true" />}
+          <span data-help-label="" className="whitespace-nowrap">{open ? s.close : s.launcher}</span>
         </button>
       )}
     </div>
