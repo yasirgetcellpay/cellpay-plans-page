@@ -50,10 +50,52 @@ async function callDatabaseRpc(name: string, payload: Record<string, unknown>): 
   return responseText ? JSON.parse(responseText) : null;
 }
 
+// ---------------------------------------------------------------------------
+// [ARB-LOG] Auto Pay / Save card / login / language facts on every checkout log row (Parvez, Oct 4 2026). Read-only copies into
+// transaction_logs.metadata: the request sent to CellPay, the reply to the browser and every guard are unchanged. Never throws.
+// Key names follow Callingmart's AP1 (autopay, autopay_agreement_sent, save_cc_sent, lang, logged_in, bearer_present).
+// - autopay / autopay_agreement_sent / save_cc_sent = payment.autopay / payment.autopay_agreement / payment.save_cc exactly as
+//   sent: a boolean is stored as is; a missing key stays absent; any other value is stored as null plus <key>_type
+//   ("string", "number", "null", "object" or "array"). The value itself is never coerced or copied.
+// - root_autopay / root_autopay_agreement / root_subscriber_arb: the API's top-level aliases autopay / autopay_agreement /
+//   subscriberARB, same rule (the site does not send them today).
+// - logged_in = bearer_present = the request carries a non-empty bearerToken. Only the boolean is stored, never the token.
+// - lang: top-level body.lang when it is exactly "en" or "es" (sent by the site after ARB-L1); otherwise absent.
+// - arb_log: 1 on every row written by this build (lets the watch tell old and new rows apart).
+// Never card data, CVV, tokens, emails or phone numbers.
+// ---------------------------------------------------------------------------
+function arbFlag(out: Record<string, unknown>, key: string, v: unknown): void {
+  if (v === undefined) return;
+  if (typeof v === "boolean") { out[key] = v; return; }
+  out[key] = null;
+  out[`${key}_type`] = v === null ? "null" : Array.isArray(v) ? "array" : typeof v;
+}
+
+function arbLogMeta(payload: Record<string, unknown>, bearerToken: unknown, lang: unknown): Record<string, unknown> {
+  try {
+    const payment = asRecord(payload.payment);
+    const m: Record<string, unknown> = { arb_log: 1 };
+    arbFlag(m, "autopay", payment.autopay);
+    arbFlag(m, "autopay_agreement_sent", payment.autopay_agreement);
+    arbFlag(m, "save_cc_sent", payment.save_cc);
+    arbFlag(m, "root_autopay", payload.autopay);
+    arbFlag(m, "root_autopay_agreement", payload.autopay_agreement);
+    arbFlag(m, "root_subscriber_arb", payload.subscriberARB);
+    const present = typeof bearerToken === "string" && bearerToken.trim() !== "";
+    m.logged_in = present;
+    m.bearer_present = present;
+    if (lang === "en" || lang === "es") m.lang = lang;
+    return m;
+  } catch {
+    return { arb_log: 1, arb_log_error: true };
+  }
+}
+
 async function createTransactionLog(
   payload: Record<string, unknown>,
   callerHost: string | undefined,
   userAgent: string | null,
+  arb: Record<string, unknown> = {},
 ): Promise<string | null> {
   const payment = asRecord(payload.payment);
   try {
@@ -76,6 +118,7 @@ async function createTransactionLog(
         metadata: {
           caller_host: text(callerHost),
           checkout_session_id: text(payload.kount_ssid ?? payload.riskified_sessionid ?? payload.cbsys_sessionid),
+          ...arb, // [ARB-LOG] arbLogMeta() keys only
         },
       },
     });
@@ -972,7 +1015,7 @@ serve(async (req) => {
       } catch { /* dedupe fails open */ }
     }
     const txLogId = shouldLogTransaction
-      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"))
+      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), arbLogMeta(payloadRecord, bearerToken, body.lang))
       : null;
 
     const response = await fetch(url, fetchOptions);
