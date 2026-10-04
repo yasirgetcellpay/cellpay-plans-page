@@ -10,7 +10,9 @@
 //     above the bar's top edge. Both measured at runtime (the bar already sits above env(safe-area-inset-bottom));
 //   * the launcher adds an 80px in-flow spacer at the end of the page (HelpChat.tsx), so the last plan row / Place Order can
 //     always be scrolled clear of it (phones and desktop);
-//   * it hides only while a page text field is focused (keypad up) and comes back on blur.
+//   * it hides only while a page text field is focused (keypad up) and comes back on blur;
+//   * it never covers a full-width page button (checkout PLACE ORDER NOW / REALIZAR PEDIDO AHORA) while that button scrolls past
+//     its corner: it steps up above the button (ctaAvoidPx, transform applied before paint) and comes back once it has passed.
 // The file keeps its name so nothing that imports it can break.
 
 /** Phones / small tablets: Tailwind md breakpoint. */
@@ -25,6 +27,8 @@ export const HELP_LAUNCHER_SIZE_PX = 48;
 export const HELP_DOCK_GAP_PX = 12;
 /** Marks a bottom bar that reserves room at its right end for the launcher (it then docks inside the bar). */
 export const HELP_DOCK_SLOT_ATTR = "data-help-dock-slot";
+/** Gap kept between the launcher and a full-width page button it steps above (phones). */
+export const HELP_AVOID_GAP_PX = 8;
 
 /** Never treat the help widget's own elements as page elements. */
 const OWN_WIDGET = "#cp-help-panel, [data-help-widget]";
@@ -79,6 +83,23 @@ export function inDockSlot(bars: Iterable<Element>, vh: number): boolean {
   return false;
 }
 
+/** How far (px) the launcher must move up from `base` (its box without any avoid offset) so it clears every full-width page
+ *  button in its way: a visible in-flow <button> at least 60% of the viewport wide and 40px tall, without a price in it (so plan
+ *  cards do not make it jump), not inside a fixed bar. Checkout PLACE ORDER NOW is the case QA found (Oct 3). 0 = nothing in the way. */
+export function ctaAvoidPx(base: { left: number; right: number; top: number; bottom: number }, vw: number, vh: number): number {
+  let up = 0;
+  document.querySelectorAll("button").forEach((b) => {
+    if (b.closest(OWN_WIDGET)) return;
+    const q = b.getBoundingClientRect();
+    if (q.width < vw * 0.6 || q.height < 40 || q.bottom <= 0 || q.top >= vh) return;
+    if (q.right <= base.left || q.left >= base.right || q.bottom <= base.top - HELP_AVOID_GAP_PX || q.top >= base.bottom + HELP_AVOID_GAP_PX) return;
+    if (/\$\s?\d/.test(b.textContent || "")) return;
+    for (let e = b.parentElement; e && e !== document.body; e = e.parentElement) if (getComputedStyle(e).position === "fixed") return;
+    up = Math.max(up, Math.ceil(base.bottom - q.top + HELP_AVOID_GAP_PX));
+  });
+  return up;
+}
+
 export interface HelpDockState { lift: number; typing: boolean; docked: boolean; }
 
 /**
@@ -98,12 +119,33 @@ export function watchHelpDock(onState: (s: HelpDockState) => void): () => void {
     lift = barLiftPx(bars, window.innerHeight);
     docked = inDockSlot(bars, window.innerHeight);
     publish();
+    avoid();
   };
+  // Step above a full-width page button passing the launcher's corner (not while docked in a bar slot). Written straight on the
+  // launcher in the same frame as the scroll (transform: no layout shift, no transition), so it never paints over the button.
+  // data-help-up holds the current offset, so a re-mounted launcher starts from 0.
+  const avoid = () => {
+    const el = document.querySelector<HTMLElement>("[data-help-widget] [data-testid='help-launcher']");
+    if (!el) return;
+    const cur = Number(el.dataset.helpUp || 0);
+    let next = 0;
+    if (!docked) {
+      const r = el.getBoundingClientRect();
+      next = ctaAvoidPx({ left: r.left, right: r.right, top: r.top + cur, bottom: r.bottom + cur }, window.innerWidth, window.innerHeight);
+    }
+    if (next === cur) return;
+    el.dataset.helpUp = String(next);
+    el.style.transition = "none";
+    el.style.transform = next ? `translateY(-${next}px)` : "";
+  };
+  let aframe = 0;
+  const scheduleAvoid = () => { if (!aframe) aframe = window.requestAnimationFrame(() => { aframe = 0; avoid(); }); };
   let frame = 0;
   const schedule = () => { if (!frame) frame = window.requestAnimationFrame(() => { frame = 0; measure(); }); };
   const mo = new MutationObserver(schedule);
   mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
   window.addEventListener("resize", schedule);
+  window.addEventListener("scroll", scheduleAvoid, { passive: true });
   const onFocus = () => {
     const a = document.activeElement;
     typing = !!a && a.matches(TYPING_SELECTOR) && !a.closest(OWN_WIDGET);
@@ -113,8 +155,9 @@ export function watchHelpDock(onState: (s: HelpDockState) => void): () => void {
   document.addEventListener("focusout", onFocus);
   typing = false; onFocus(); measure();
   return () => {
-    mo.disconnect(); ro?.disconnect(); window.cancelAnimationFrame(frame);
+    mo.disconnect(); ro?.disconnect(); window.cancelAnimationFrame(frame); window.cancelAnimationFrame(aframe);
     window.removeEventListener("resize", schedule);
+    window.removeEventListener("scroll", scheduleAvoid);
     document.removeEventListener("focusin", onFocus);
     document.removeEventListener("focusout", onFocus);
   };
