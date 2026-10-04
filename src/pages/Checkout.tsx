@@ -155,6 +155,24 @@ const Checkout = () => {
   const [saveCard, setSaveCard] = useState(false);
   const [autoPay, setAutoPay] = useState(false);
   const [autoPayTerms, setAutoPayTerms] = useState(false);
+  // ARB-0: Auto Pay is offered with card only. Leaving card clears Auto Pay and its terms tick, so hidden state can't keep
+  // PLACE ORDER disabled or let another method pay as if Auto Pay were on. Back on card, the customer's own earlier choice
+  // comes back. Nothing is ever ticked for a customer who didn't tick it.
+  const autoPayChoiceRef = useRef<{ autoPay: boolean; autoPayTerms: boolean } | null>(null);
+  useEffect(() => {
+    if (paymentMethod !== "card") {
+      if (autoPay || autoPayTerms) {
+        autoPayChoiceRef.current = { autoPay, autoPayTerms };
+        setAutoPay(false);
+        setAutoPayTerms(false);
+      }
+    } else if (autoPayChoiceRef.current) {
+      const choice = autoPayChoiceRef.current;
+      autoPayChoiceRef.current = null;
+      setAutoPay(choice.autoPay);
+      setAutoPayTerms(choice.autoPayTerms);
+    }
+  }, [paymentMethod, autoPay, autoPayTerms]);
   const [showSaveInfoTip, setShowSaveInfoTip] = useState(false);
   const [applePayAvailable, setApplePayAvailable] = useState(false);
   // CK-0b: back on checkout for the same order (back from Cash App / PayPal / Klarna, reload, resume) -> keep the method chosen
