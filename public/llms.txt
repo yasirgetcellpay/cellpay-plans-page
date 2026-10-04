@@ -2,7 +2,7 @@
 
 > Online prepaid mobile recharge for 15+ US wireless carriers. Secure checkout. Low service fee shown before you pay.
 
-CellPay is a US-based prepaid wireless top-up service. Customers select a carrier, enter their phone number, choose a plan or amount, and pay securely. Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, Boost Mobile, Straight Talk, TracFone, H2O, Lyca, Net10, Page Plus, Simple Mobile, Ultra Mobile, and US Cellular. Each carrier page is available in English and Spanish.
+CellPay is a US-based prepaid wireless top-up service. Customers select a carrier, enter their phone number, choose a plan or amount, and pay securely. Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, Boost Mobile, Straight Talk, TracFone, H2O, Lyca, Net10, Page Plus, Simple Mobile, and Ultra Mobile. Each carrier page is available in English and Spanish.
 
 ## Pages
 
@@ -28,7 +28,6 @@ CellPay is a US-based prepaid wireless top-up service. Customers select a carrie
 - [Net10](/net10.html): Net10 Wireless prepaid refills.
 - [Page Plus](/pageplus.html): Page Plus Cellular prepaid refills.
 - [Ultra Mobile](/ultra-mobile.html): Ultra Mobile prepaid plan refills.
-- [US Cellular](/us-cellular.html): US Cellular prepaid plan refills.
 
 ## Optional
 

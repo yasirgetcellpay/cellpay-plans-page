@@ -13,7 +13,7 @@ import {
 const faqs = [
   { q: "What is CellPay?", a: "CellPay is an online platform that lets you recharge prepaid wireless accounts online for major U.S. carriers like AT&T, T-Mobile, Verizon, Cricket, Metro, Boost, and more." },
   { q: "How does CellPay work?", a: "Simply select your carrier, enter your phone number, choose a plan or amount, and complete your payment. It can take up to 30 min for a refill to reflect on your account." },
-  { q: "Which carriers does CellPay support?", a: "We support 15+ major prepaid carriers including AT&T, T-Mobile, Verizon, Cricket Wireless, Metro by T-Mobile, Boost Mobile, Straight Talk, TracFone, H2O Wireless, Lyca Mobile, Net10, Page Plus, Ultra Mobile, and US Cellular." },
+  { q: "Which carriers does CellPay support?", a: "We support 15+ major prepaid carriers including AT&T, T-Mobile, Verizon, Cricket Wireless, Metro by T-Mobile, Boost Mobile, Straight Talk, TracFone, H2O Wireless, Lyca Mobile, Net10, Page Plus, and Ultra Mobile." },
   { q: "Is CellPay safe and secure?", a: "Yes. Payment data is encrypted in transit with TLS (HTTPS) and processed by our payment processors." },
   { q: "How long does a refill take?", a: "It can take up to 30 min for a refill to reflect on your account." },
   { q: "What payment methods do you accept?", a: "We accept Visa, Mastercard, American Express, Discover, and Apple Pay." },

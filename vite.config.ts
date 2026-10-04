@@ -38,7 +38,6 @@ const HTML_ROUTES = [
   "tracfone.html",
   "ultra-mobile.html",
   "es/ultra-mobile.html",
-  "us-cellular.html",
   "verizon-wireless-flexi.html",
   "total-wireless.html",
   // Spanish mirrors
@@ -55,7 +54,6 @@ const HTML_ROUTES = [
   "es/net10.html",
   "es/pageplus.html",
   "es/tracfone.html",
-  "es/us-cellular.html",
   "es/verizon-wireless-flexi.html",
   "es/total-wireless.html",
   // Legacy `-espanol.html` URLs (App.tsx redirects them to /es/* client-side)
@@ -79,7 +77,7 @@ const HTML_ROUTES = [
   "h2o-wireless/bill-payment/index.html",
   // PagePlus path-style alias
   "pageplus/index.html",
-  // Carriers removed from the site (Red Pocket, Movistar, Xbox; Oct 2026): noindex
+  // Carriers removed from the site (Red Pocket, Movistar, Xbox, US Cellular; Oct 2026): noindex
   // shells only. App.tsx redirects these URLs to the home page.
   "red-pocket-mobile.html",
   "es/red-pocket-mobile.html",
@@ -87,6 +85,41 @@ const HTML_ROUTES = [
   "es/movistar.html",
   "movistar-flexi.html",
   "es/movistar-flexi.html",
+  "us-cellular.html",
+  "es/us-cellular.html",
+  // Removed-carrier URLs without ".html": folder shells so the host serves them noindex (not the indexable SPA fallback).
+  "xbox/index.html",
+  "es/xbox/index.html",
+  "red-pocket/index.html",
+  "es/red-pocket/index.html",
+  "red-pocket-mobile/index.html",
+  "es/red-pocket-mobile/index.html",
+  "movistar/index.html",
+  "es/movistar/index.html",
+  "movistar-flexi/index.html",
+  "es/movistar-flexi/index.html",
+  // Old alias .html URLs that App.tsx redirects (query + hash kept): static noindex shells so the host serves the app, not a 404.
+  "verizon.html",
+  "es/verizon.html",
+  "tmobile.html",
+  "es/tmobile.html",
+  "bmobile.html",
+  "es/bmobile.html",
+  "about-us.html",
+  "contact-us.html",
+  "faq.html",
+  "how-to-use.html",
+  "privacy-policy.html",
+  "terms-and-conditions.html",
+  "returns-policy.html",
+  "returns-and-refunds-policy.html",
+  "es/returns-and-refunds-policy.html",
+  "es/privacy-policy.html",
+  "es/terms-and-conditions.html",
+  "es/returns-policy.html",
+  // DMCA page (real page, indexable): its only URL ends in .html, so it needs a static shell too.
+  "digital-millennium-copyright-act-dmca-compliance.html",
+  "es/digital-millennium-copyright-act-dmca-compliance.html",
   // Admin SPA routes — emit as folder/index.html so self-hosted servers
   // (which don't do SPA fallback) serve the React app on direct refresh.
   "admin/index.html",
@@ -183,6 +216,7 @@ const htmlAliasPlugin = (): Plugin => ({
       lang?: string;
       enPath?: string; // for hreflang pairing
       esPath?: string;
+      canonical?: string; // static self-canonical, relative: resolves to the host that serves the file
     };
     const CARRIER_META: Record<string, { title: string; description: string }> = {
       "topup-at.html":             { title: "AT&T Prepaid Refill — Online Top-Up | CellPay",        description: "Recharge your AT&T Prepaid phone online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
@@ -204,7 +238,6 @@ const htmlAliasPlugin = (): Plugin => ({
       "tmobile-flexi.html":        { title: "T-Mobile Prepaid Refill — Online Top-Up | CellPay",    description: "Recharge T-Mobile Prepaid online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "tracfone.html":             { title: "TracFone Refill — Online Top-Up | CellPay",            description: "Recharge TracFone online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "ultra-mobile.html":         { title: "Ultra Mobile Refill — Online Top-Up | CellPay",        description: "Recharge Ultra Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
-      "us-cellular.html":          { title: "US Cellular Refill — Online Top-Up | CellPay",         description: "Recharge US Cellular online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "verizon-wireless-flexi.html": { title: "Verizon Prepaid Refill — Online Top-Up | CellPay",   description: "Recharge Verizon Prepaid online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "straight-talk.html":        { title: "Straight Talk Refill — Online Top-Up | CellPay",       description: "Recharge Straight Talk online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "guest-metropcs.html":       { title: "Metro PCS Guest Refill — Online Top-Up | CellPay",      description: "Recharge Metro PCS as a guest. No login needed. All 30-day plans, secure checkout. Low service fee shown before you pay." },
@@ -217,6 +250,24 @@ const htmlAliasPlugin = (): Plugin => ({
       "red-pocket-mobile.html", "es/red-pocket-mobile.html",
       "movistar.html", "es/movistar.html",
       "movistar-flexi.html", "es/movistar-flexi.html",
+      "us-cellular.html", "es/us-cellular.html",
+      "xbox/index.html", "es/xbox/index.html",
+      "red-pocket/index.html", "es/red-pocket/index.html",
+      "red-pocket-mobile/index.html", "es/red-pocket-mobile/index.html",
+      "movistar/index.html", "es/movistar/index.html",
+      "movistar-flexi/index.html", "es/movistar-flexi/index.html",
+    ]);
+    // Old alias .html URLs (App.tsx redirects them; query string and hash kept). Static shell only so the host does not 404.
+    const ALIAS_REDIRECT_SHELLS = new Set([
+      "verizon.html", "es/verizon.html",
+      "tmobile.html", "es/tmobile.html",
+      "bmobile.html", "es/bmobile.html",
+      "about-us.html", "contact-us.html",
+      "faq.html", "how-to-use.html",
+      "privacy-policy.html", "terms-and-conditions.html",
+      "returns-policy.html", "returns-and-refunds-policy.html",
+      "es/returns-and-refunds-policy.html", "es/privacy-policy.html",
+      "es/terms-and-conditions.html", "es/returns-policy.html",
     ]);
     const buildMeta = (route: string): Meta => {
       // Legacy per-amount redirect shells: noindex,follow
@@ -246,7 +297,7 @@ const htmlAliasPlugin = (): Plugin => ({
           lang: "en",
         };
       }
-      // Removed carriers (Red Pocket, Movistar, Xbox): generic noindex,follow shell;
+      // Removed carriers (Red Pocket, Movistar, Xbox, US Cellular): generic noindex,follow shell;
       // the React route sends visitors to the home page.
       if (REMOVED_CARRIER_SHELLS.has(route)) {
         const isEs = route.startsWith("es/");
@@ -257,6 +308,27 @@ const htmlAliasPlugin = (): Plugin => ({
             : "Mobile recharge and prepaid refills for 15+ US carriers with CellPay.",
           noindex: true,
           lang: isEs ? "es" : "en",
+        };
+      }
+      // Old alias .html URLs: noindex,follow shell; the React route redirects (query string and hash kept).
+      if (ALIAS_REDIRECT_SHELLS.has(route)) {
+        const isEs = route.startsWith("es/");
+        return {
+          title: "CellPay — Mobile Recharge & Prepaid Phone Refills Online",
+          description: isEs
+            ? "Recargas de teléfonos prepago para más de 15 operadores de EE. UU. con CellPay."
+            : "Mobile recharge and prepaid refills for 15+ US carriers with CellPay.",
+          noindex: true,
+          lang: isEs ? "es" : "en",
+        };
+      }
+      // DMCA page (real page, English only): indexable, canonical = the English URL (same as applySeoHead in DMCA.tsx).
+      if (route === "digital-millennium-copyright-act-dmca-compliance.html" || route === "es/digital-millennium-copyright-act-dmca-compliance.html") {
+        return {
+          title: "DMCA Compliance — CellPay",
+          description: "Digital Millennium Copyright Act (DMCA) compliance policy for CellPay, including how to submit a notice of alleged copyright infringement.",
+          lang: "en",
+          canonical: "/digital-millennium-copyright-act-dmca-compliance.html",
         };
       }
       // Spanish carrier mirror
@@ -353,6 +425,14 @@ const htmlAliasPlugin = (): Plugin => ({
         if (!/name="robots"/i.test(out)) {
           out = out.replace(/<\/head>/i, `  <meta name="robots" content="noindex,follow" />\n  </head>`);
         }
+      }
+
+      // Static self-canonical (only pages that set meta.canonical, e.g. DMCA): relative href = the host that serves the file.
+      if (meta.canonical) {
+        const tag = `<link rel="canonical" href="${escAttr(meta.canonical)}" />`;
+        out = /<link\s+rel="canonical"/i.test(out)
+          ? out.replace(/<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i, tag)
+          : out.replace(/<\/head>/i, `  ${tag}\n  </head>`);
       }
 
       // hreflang: not emitted in the static HTML. It must be an absolute URL and this file is

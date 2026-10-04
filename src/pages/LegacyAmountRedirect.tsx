@@ -23,13 +23,12 @@ const SLUG_TO_PATH: Record<string, string> = {
   "tracfone": "/tracfone.html",
   "ultra-mobile": "/ultra-mobile.html",
   "ultra": "/ultra-mobile.html",
-  "us-cellular": "/us-cellular.html",
   "straight-talk": "/straight-talk.html",
   "total-wireless": "/total-wireless",
 };
 
 const LegacyAmountRedirect = () => {
-  const { pathname, search } = useLocation();
+  const { pathname, search, hash } = useLocation();
   // Match /{amount}-{slug}-prepaid-refill.html  (slug may contain hyphens)
   const m = pathname.match(/^\/(\d+)-(.+)-prepaid-refill\.html$/i);
   const amount = m?.[1] ?? "";
@@ -39,7 +38,7 @@ const LegacyAmountRedirect = () => {
   const params = new URLSearchParams(search || "");
   if (amount && target !== "/") params.set("amount", amount);
   const qs = params.toString();
-  const to = qs ? `${target}?${qs}` : target;
+  const to = (qs ? `${target}?${qs}` : target) + hash;
 
   return (
     <>

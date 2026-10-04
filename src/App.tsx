@@ -13,7 +13,6 @@ import NotFound from "./pages/NotFound.tsx";
 import AmountRedirect from "./pages/AmountRedirect.tsx";
 import LegacyAmountRedirect from "./pages/LegacyAmountRedirect.tsx";
 import StraightTalk from "./pages/StraightTalk.tsx";
-import USCellular from "./pages/USCellular.tsx";
 import Verizon from "./pages/Verizon.tsx";
 import ATT from "./pages/ATT.tsx";
 import { Toaster } from "@/components/ui/toaster";
@@ -32,7 +31,6 @@ import net10Logo from "@/assets/net10-logo.png";
 import pageplusLogo from "@/assets/pageplus-logo.png";
 import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
-import uscellularLogo from "@/assets/uscellular-logo.png";
 
 // Help chat (#9): lazy chunk, loaded after first render; renders nothing until help_settings.chat_enabled is true.
 // SP-1b-fix: if the help chunk can't load (network blip, blocker, load cancelled), render nothing so the page keeps working
@@ -152,7 +150,7 @@ const carrierRoutes: CarrierRouteDef[] = [
   { path: "/pageplus.html", name: "Page Plus", slug: "pageplus", carrierId: 1, brandColor: "hsl(0,70%,50%)", logo: pageplusLogo },
   { path: "/tracfone.html", name: "TracFone", slug: "tracfone", carrierId: 10, brandColor: "hsl(230,70%,30%)", logo: tracfoneLogo },
   { path: "/ultra-mobile.html", name: "Ultra Mobile", slug: "ultra-mobile", carrierId: 25, brandColor: "hsl(270,50%,40%)", logo: ultraLogo },
-  // US Cellular intentionally omitted — backend has no carrier entry, served by static USCellular.tsx below.
+  // US Cellular removed from the site (Oct 2026): its old URLs redirect to the home page (see the routes below).
   // AT&T FirstNet intentionally omitted — backend has no carrier entry, served by static ATT.tsx below.
   { path: "/pageplus-addon", name: "Page Plus Addon Balance", slug: "pageplusadd", carrierId: 50, brandColor: "hsl(0,70%,50%)", logo: pageplusLogo },
   // Red Pocket, Xbox and Movistar were removed from the site (Oct 2026); their old URLs redirect home (REMOVED_CARRIER_PATHS).
@@ -176,7 +174,7 @@ const legacyEspanolRedirects: Array<[string, string]> = [
   ["/pageplus-espanol.html", "/es/pageplus.html"],
   ["/tracfone-espanol.html", "/es/tracfone.html"],
   ["/ultra-mobile-espanol.html", "/es/ultra-mobile.html"],
-  ["/us-cellular-espanol.html", "/es/us-cellular.html"],
+  ["/us-cellular-espanol.html", "/es"],
   ["/verizon-wireless-flexi-espanol.html", "/es/verizon-wireless-flexi.html"],
 ];
 
@@ -187,6 +185,53 @@ const REMOVED_CARRIER_PATHS = [
   "/xbox", "/xbox/pay",
   "/movistar", "/movistar.html", "/movistar/pay",
   "/movistar-flexi", "/movistar-flexi.html", "/movistar-flexi/pay",
+];
+
+// Carrier URLs typed without ".html" (Oct 2026): no route matched them, so they showed "page not found".
+// Each goes to its real page (English -> English, /es -> /es); AliasRedirect keeps the query string and hash.
+// /es/guest-* need no entry: EsFallback sends them to /guest-*, which redirects to /guest-*.html.
+const NO_HTML_CARRIER_ALIASES: Array<[string, string]> = [
+  ["/s1", "/s1.html"],
+  ["/topup-crc", "/topup-crc.html"],
+  ["/metropcs", "/metropcs.html"],
+  ["/tmobile-flexi", "/tmobile-flexi.html"],
+  ["/topup-at", "/topup-at.html"],
+  ["/boost", "/boost.html"],
+  ["/h2o", "/h2o.html"],
+  ["/lyca", "/lyca.html"],
+  ["/net10", "/net10.html"],
+  ["/tracfone", "/tracfone.html"],
+  ["/ultra-mobile", "/ultra-mobile.html"],
+  ["/straight-talk", "/straight-talk.html"],
+  ["/verizon-wireless-flexi", "/verizon-wireless-flexi.html"],
+  ["/metro-pcs", "/metropcs.html"],
+  ["/tmobile", "/tmobile-flexi.html"],
+  ["/bmobile", "/boost.html"],
+  ["/guest-metro-pcs", "/guest-metro-pcs.html"],
+  ["/guest-metropcs", "/guest-metropcs.html"],
+  ["/guest-boost", "/guest-boost.html"],
+  ["/guest-h2o", "/guest-h2o.html"],
+  ["/guest-pageplus", "/guest-pageplus.html"],
+  ["/guest-simple-mobile", "/guest-simple-mobile.html"],
+  ["/guest-net10", "/guest-net10.html"],
+  ["/guest-lyca", "/guest-lyca.html"],
+  ["/es/s1", "/es/s1.html"],
+  ["/es/topup-crc", "/es/topup-crc.html"],
+  ["/es/metropcs", "/es/metropcs.html"],
+  ["/es/tmobile-flexi", "/es/tmobile-flexi.html"],
+  ["/es/topup-at", "/es/topup-at.html"],
+  ["/es/boost", "/es/boost.html"],
+  ["/es/h2o", "/es/h2o.html"],
+  ["/es/lyca", "/es/lyca.html"],
+  ["/es/net10", "/es/net10.html"],
+  ["/es/tracfone", "/es/tracfone.html"],
+  ["/es/ultra-mobile", "/es/ultra-mobile.html"],
+  ["/es/straight-talk", "/es/straight-talk.html"],
+  ["/es/verizon-wireless-flexi", "/es/verizon-wireless-flexi.html"],
+  ["/es/metro-pcs", "/es/metropcs.html"],
+  ["/es/tmobile", "/es/tmobile-flexi.html"],
+  ["/es/bmobile", "/es/boost.html"],
+  ["/es/pageplus", "/es/pageplus.html"],
 ];
 
 const TrackingCapture = () => {
@@ -203,6 +248,12 @@ const EsFallback = () => {
   const { pathname, search, hash } = useLocation();
   const stripped = pathname.replace(/^\/es(?=\/|$)/, "") || "/";
   return <Navigate to={`${stripped}${search}${hash}`} replace />;
+};
+
+/** Alias redirect that keeps the query string and hash (gclid/gbraid/wbraid/utm from Google Ads) on the target page. */
+const AliasRedirect = ({ to }: { to: string }) => {
+  const { search, hash } = useLocation();
+  return <Navigate to={`${to}${search}${hash}`} replace />;
 };
 
 /** Removed carrier URL: mark noindex, then hard-redirect home (query string kept, fresh page head). */
@@ -292,36 +343,38 @@ const App = () => (
             <Route key={`en-${c.path}`} path={c.path} element={renderEn} />,
             <Route key={`es-${c.path}`} path={`/es${c.path}`} element={renderEs} />,
             // /{slug}/pay aliases → redirect to canonical carrier page (avoid duplicate-content SEO flags)
-            <Route key={`en-pay-${c.path}`} path={payPath} element={<Navigate to={c.path} replace />} />,
-            <Route key={`es-pay-${c.path}`} path={`/es${payPath}`} element={<Navigate to={`/es${c.path}`} replace />} />,
+            <Route key={`en-pay-${c.path}`} path={payPath} element={<AliasRedirect to={c.path} />} />,
+            <Route key={`es-pay-${c.path}`} path={`/es${payPath}`} element={<AliasRedirect to={`/es${c.path}`} />} />,
           ];
         })}
 
         {/* Straight Talk — static hardcoded page (no backend carrier entry). */}
         <Route path="/straight-talk.html" element={<StraightTalk />} />
         <Route path="/es/straight-talk.html" element={<StraightTalk />} />
-        <Route path="/straight-talk/pay" element={<Navigate to="/straight-talk.html" replace />} />
-        <Route path="/es/straight-talk/pay" element={<Navigate to="/es/straight-talk.html" replace />} />
+        <Route path="/straight-talk/pay" element={<AliasRedirect to="/straight-talk.html" />} />
+        <Route path="/es/straight-talk/pay" element={<AliasRedirect to="/es/straight-talk.html" />} />
 
-        {/* US Cellular — static hardcoded page (no backend carrier entry). */}
-        <Route path="/us-cellular.html" element={<USCellular />} />
-        <Route path="/es/us-cellular.html" element={<USCellular />} />
-        <Route path="/us-cellular/pay" element={<Navigate to="/us-cellular.html" replace />} />
-        <Route path="/es/us-cellular/pay" element={<Navigate to="/es/us-cellular.html" replace />} />
+        {/* US Cellular — removed from the site (Oct 2026): every old URL goes to the home page (query string and hash kept). */}
+        <Route path="/us-cellular" element={<AliasRedirect to="/" />} />
+        <Route path="/us-cellular.html" element={<AliasRedirect to="/" />} />
+        <Route path="/us-cellular/pay" element={<AliasRedirect to="/" />} />
+        <Route path="/es/us-cellular" element={<AliasRedirect to="/es" />} />
+        <Route path="/es/us-cellular.html" element={<AliasRedirect to="/es" />} />
+        <Route path="/es/us-cellular/pay" element={<AliasRedirect to="/es" />} />
 
         {/* Verizon Wireless Flexi — reuses static Verizon.tsx (no backend carrier entry). */}
         <Route path="/verizon-wireless-flexi.html" element={<Verizon />} />
         <Route path="/es/verizon-wireless-flexi.html" element={<Verizon />} />
-        <Route path="/verizon-wireless-flexi/pay" element={<Navigate to="/verizon-wireless-flexi.html" replace />} />
-        <Route path="/es/verizon-wireless-flexi/pay" element={<Navigate to="/es/verizon-wireless-flexi.html" replace />} />
+        <Route path="/verizon-wireless-flexi/pay" element={<AliasRedirect to="/verizon-wireless-flexi.html" />} />
+        <Route path="/es/verizon-wireless-flexi/pay" element={<AliasRedirect to="/es/verizon-wireless-flexi.html" />} />
 
         {/* Legacy carrier URL aliases → canonical carrier pages */}
-        <Route path="/verizon.html" element={<Navigate to="/verizon" replace />} />
-        <Route path="/es/verizon.html" element={<Navigate to="/es/verizon" replace />} />
-        <Route path="/tmobile.html" element={<Navigate to="/tmobile-flexi.html" replace />} />
-        <Route path="/es/tmobile.html" element={<Navigate to="/es/tmobile-flexi.html" replace />} />
-        <Route path="/bmobile.html" element={<Navigate to="/boost.html" replace />} />
-        <Route path="/es/bmobile.html" element={<Navigate to="/es/boost.html" replace />} />
+        <Route path="/verizon.html" element={<AliasRedirect to="/verizon" />} />
+        <Route path="/es/verizon.html" element={<AliasRedirect to="/es/verizon" />} />
+        <Route path="/tmobile.html" element={<AliasRedirect to="/tmobile-flexi.html" />} />
+        <Route path="/es/tmobile.html" element={<AliasRedirect to="/es/tmobile-flexi.html" />} />
+        <Route path="/bmobile.html" element={<AliasRedirect to="/boost.html" />} />
+        <Route path="/es/bmobile.html" element={<AliasRedirect to="/es/boost.html" />} />
         {/* Total Wireless .html — render the page directly (no redirect) so gclid/utm params survive for Google Ads. */}
         <Route
           path="/total-wireless.html"
@@ -346,16 +399,16 @@ const App = () => (
             />
           }
         />
-        <Route path="/users/login" element={<Navigate to="/login" replace />} />
-        <Route path="/users/login/" element={<Navigate to="/login" replace />} />
-        <Route path="/es/users/login" element={<Navigate to="/es/login" replace />} />
+        <Route path="/users/login" element={<AliasRedirect to="/login" />} />
+        <Route path="/users/login/" element={<AliasRedirect to="/login" />} />
+        <Route path="/es/users/login" element={<AliasRedirect to="/es/login" />} />
 
 
         {/* AT&T FirstNet — reuses static ATT.tsx (no backend carrier entry). */}
         <Route path="/att-firstnet" element={<ATT />} />
         <Route path="/es/att-firstnet" element={<ATT />} />
-        <Route path="/att-firstnet/pay" element={<Navigate to="/att-firstnet" replace />} />
-        <Route path="/es/att-firstnet/pay" element={<Navigate to="/es/att-firstnet" replace />} />
+        <Route path="/att-firstnet/pay" element={<AliasRedirect to="/att-firstnet" />} />
+        <Route path="/es/att-firstnet/pay" element={<AliasRedirect to="/es/att-firstnet" />} />
 
         {/* Legacy Google Ads landing URLs — keep working for crawlers/bots */}
         <Route path="/amount.php" element={<AmountRedirect />} />
@@ -376,10 +429,10 @@ const App = () => (
           />
         ))}
         {/* PagePlus path-style alias */}
-        <Route path="/pageplus" element={<Navigate to="/pageplus.html" replace />} />
+        <Route path="/pageplus" element={<AliasRedirect to="/pageplus.html" />} />
         {/* Metro PCS legacy alias → canonical /metropcs.html */}
-        <Route path="/metro-pcs.html" element={<Navigate to="/metropcs.html" replace />} />
-        <Route path="/es/metro-pcs.html" element={<Navigate to="/es/metropcs.html" replace />} />
+        <Route path="/metro-pcs.html" element={<AliasRedirect to="/metropcs.html" />} />
+        <Route path="/es/metro-pcs.html" element={<AliasRedirect to="/es/metropcs.html" />} />
         {/* Metro PCS guest/one-time payment landing — renders full Metro PCS content (no redirect) so Google Ads sees real content. */}
         <Route
           path="/guest-metro-pcs.html"
@@ -520,11 +573,15 @@ const App = () => (
         ])}
         <Route path="/movistar-espanol.html" element={<RemovedCarrierRedirect to="/es" />} />
         <Route path="/movistar-flexi-espanol.html" element={<RemovedCarrierRedirect to="/es" />} />
+        {/* Carrier URLs typed without ".html" → the real page (query string and hash kept). */}
+        {NO_HTML_CARRIER_ALIASES.map(([from, to]) => (
+          <Route key={`nohtml-${from}`} path={from} element={<AliasRedirect to={to} />} />
+        ))}
 
 
         {/* Legacy `-espanol` URLs → redirect to canonical /es/* */}
         {legacyEspanolRedirects.map(([from, to]) => (
-          <Route key={from} path={from} element={<Navigate to={to} replace />} />
+          <Route key={from} path={from} element={<AliasRedirect to={to} />} />
         ))}
 
         {/* Checkout / confirmation flow — English + /es/ mirrors. Same components,
@@ -542,26 +599,26 @@ const App = () => (
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/forgot" element={<Navigate to="/forgot-password" replace />} />
+        <Route path="/forgot" element={<AliasRedirect to="/forgot-password" />} />
         <Route path="/es/forgot-password" element={<ForgotPassword />} />
-        <Route path="/es/forgot" element={<Navigate to="/es/forgot-password" replace />} />
+        <Route path="/es/forgot" element={<AliasRedirect to="/es/forgot-password" />} />
         <Route path="/about-us" element={<AboutUs />} />
-        <Route path="/about-us.html" element={<Navigate to="/about-us" replace />} />
+        <Route path="/about-us.html" element={<AliasRedirect to="/about-us" />} />
         <Route path="/contact-us" element={<ContactUs />} />
-        <Route path="/contact-us.html" element={<Navigate to="/contact-us" replace />} />
+        <Route path="/contact-us.html" element={<AliasRedirect to="/contact-us" />} />
         <Route path="/faq" element={<FAQ />} />
-        <Route path="/faq.html" element={<Navigate to="/faq" replace />} />
+        <Route path="/faq.html" element={<AliasRedirect to="/faq" />} />
         <Route path="/how-to-use" element={<HowToUse />} />
-        <Route path="/how-to-use.html" element={<Navigate to="/how-to-use" replace />} />
+        <Route path="/how-to-use.html" element={<AliasRedirect to="/how-to-use" />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/privacy-policy.html" element={<Navigate to="/privacy-policy" replace />} />
+        <Route path="/privacy-policy.html" element={<AliasRedirect to="/privacy-policy" />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-        <Route path="/terms-and-conditions.html" element={<Navigate to="/terms-and-conditions" replace />} />
+        <Route path="/terms-and-conditions.html" element={<AliasRedirect to="/terms-and-conditions" />} />
         <Route path="/returns-policy" element={<ReturnsPolicy />} />
-        <Route path="/returns-policy.html" element={<Navigate to="/returns-policy" replace />} />
-        <Route path="/returns-and-refunds-policy" element={<Navigate to="/returns-policy" replace />} />
-        <Route path="/returns-and-refunds-policy.html" element={<Navigate to="/returns-policy" replace />} />
-        <Route path="/es/returns-and-refunds-policy.html" element={<Navigate to="/returns-policy" replace />} />
+        <Route path="/returns-policy.html" element={<AliasRedirect to="/returns-policy" />} />
+        <Route path="/returns-and-refunds-policy" element={<AliasRedirect to="/returns-policy" />} />
+        <Route path="/returns-and-refunds-policy.html" element={<AliasRedirect to="/returns-policy" />} />
+        <Route path="/es/returns-and-refunds-policy.html" element={<AliasRedirect to="/returns-policy" />} />
         <Route path="/digital-millennium-copyright-act-dmca-compliance.html" element={<DMCA />} />
         <Route path="/es/digital-millennium-copyright-act-dmca-compliance.html" element={<DMCA />} />
         <Route path="/admin/login" element={<AdminLogin />} />
