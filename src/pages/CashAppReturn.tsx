@@ -1,16 +1,59 @@
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { fetchPockytSessionStatus } from "@/services/apiWrapper";
+import { useLang, t } from "@/lib/i18n";
+import { cashAppRetryInfo, cashAppRetryTarget } from "@/lib/checkoutResume";
 
 const POLL_INTERVAL_MS = 15000;
+// CK-0b: after this long without a final status, show the calm "still confirming" panel. Polling keeps going.
+const SLOW_AFTER_MS = 60000;
+
+// CK-0b: page copy EN/ES (server status messages are shown as they come).
+const COPY = {
+  en: {
+    loading: "Loading",
+    confirming: "Confirming your Cash App payment…",
+    stillConfirming: "Still confirming…",
+    missingRef: "Missing payment session reference.",
+    dontClose: "Please don't close this window — we'll update automatically.",
+    slowTitle: "Still confirming your payment",
+    slowBody: "Your payment may still be processing. Check your phone or email for a Cash App receipt before you try again. We'll keep checking in the background.",
+    checkAgain: "Check again",
+    checking: "Checking…",
+    paymentStatus: (s: string) => `Payment ${s}.`,
+  },
+  es: {
+    loading: "Cargando",
+    confirming: "Confirmando su pago con Cash App…",
+    stillConfirming: "Seguimos confirmando…",
+    missingRef: "Falta la referencia de la sesión de pago.",
+    dontClose: "No cierre esta ventana; se actualizará automáticamente.",
+    slowTitle: "Seguimos confirmando su pago",
+    slowBody: "Es posible que su pago todavía se esté procesando. Revise su teléfono o su correo electrónico para ver si recibió un recibo de Cash App antes de volver a intentarlo. Seguiremos verificando en segundo plano.",
+    checkAgain: "Verificar de nuevo",
+    checking: "Verificando…",
+    paymentStatus: (s: string) => `Estado del pago: ${s}.`,
+  },
+};
 
 const CashAppReturn = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const lang = useLang();
+  const tr = t(lang);
+  const c = COPY[lang === "es" ? "es" : "en"];
+  const copyRef = useRef(c);
+  copyRef.current = c;
   const [status, setStatus] = useState<"processing" | "failed">("processing");
-  const [message, setMessage] = useState<string>("Confirming your Cash App payment…");
+  const [message, setMessage] = useState<string>(c.confirming);
   const timerRef = useRef<number | null>(null);
   const cancelledRef = useRef(false);
+  // CK-0b: calm panel after ~60 s, "Check again", and "Try again" when carrier, amount and phone are known.
+  const [slow, setSlow] = useState(false);
+  const [checkingAgain, setCheckingAgain] = useState(false);
+  const pollNowRef = useRef<(() => void) | null>(null);
+  const [retry] = useState(() => cashAppRetryInfo(location.search));
 
   const sessionId =
     searchParams.get("pockyt_session_id") ||
@@ -20,7 +63,7 @@ const CashAppReturn = () => {
   useEffect(() => {
     if (!sessionId) {
       setStatus("failed");
-      setMessage("Missing payment session reference.");
+      setMessage(copyRef.current.missingRef);
       return;
     }
 
@@ -44,6 +87,14 @@ const CashAppReturn = () => {
       navigate(`/order-confirmation?${params.toString()}`, { replace: true });
     };
 
+    // CK-0b: timerRef is null while a check is running, so "Check again" can never start a second polling loop.
+    const schedule = () => {
+      timerRef.current = window.setTimeout(() => {
+        timerRef.current = null;
+        poll();
+      }, POLL_INTERVAL_MS);
+    };
+
     const poll = async () => {
       if (cancelledRef.current) return;
       try {
@@ -64,20 +115,28 @@ const CashAppReturn = () => {
 
         if (failureStatuses.includes(internalStatus)) {
           setStatus("failed");
-          setMessage(apiMsg || `Payment ${internalStatus}.`);
+          setMessage(apiMsg || copyRef.current.paymentStatus(internalStatus));
           return;
         }
 
         // Anything else (processing, pending, unknown, or success-without-txn) → keep polling
         setStatus("processing");
         if (apiMsg) setMessage(apiMsg);
-        timerRef.current = window.setTimeout(poll, POLL_INTERVAL_MS);
+        schedule();
       } catch (err) {
         // Transient error — keep polling
         const msg = err instanceof Error ? err.message : "Network error";
-        setMessage(`Still confirming… (${msg})`);
-        timerRef.current = window.setTimeout(poll, POLL_INTERVAL_MS);
+        setMessage(`${copyRef.current.stillConfirming} (${msg})`);
+        schedule();
       }
+    };
+
+    // CK-0b: "Check again" = the same check, now (only while waiting for the next one).
+    pollNowRef.current = () => {
+      if (cancelledRef.current || timerRef.current === null) return;
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+      poll();
     };
 
     // Kick off immediately, then every 15s
@@ -85,37 +144,87 @@ const CashAppReturn = () => {
 
     return () => {
       cancelledRef.current = true;
+      pollNowRef.current = null;
       if (timerRef.current) window.clearTimeout(timerRef.current);
     };
   }, [sessionId, navigate]);
 
+  // CK-0b: ~60 s without a final status -> calm panel (never a failure). A later success still opens the confirmation page.
+  useEffect(() => {
+    if (status !== "processing" || !sessionId) return;
+    const id = window.setTimeout(() => setSlow(true), SLOW_AFTER_MS);
+    return () => window.clearTimeout(id);
+  }, [status, sessionId]);
+
+  const checkAgain = () => {
+    if (checkingAgain || !pollNowRef.current) return;
+    setCheckingAgain(true);
+    pollNowRef.current();
+    window.setTimeout(() => setCheckingAgain(false), 3000);
+  };
+  // Carrier page with the number and amount filled in (CK-0 prefill), /es and gclid/utm kept.
+  const tryAgain = () => {
+    if (retry) navigate(cashAppRetryTarget(lang, retry, location.search, location.hash));
+  };
+  const goHome = () => navigate(lang === "es" ? "/es" : "/");
+
+  const primaryBtn = "px-8 py-3 rounded-lg bg-cellpay-green text-primary-foreground font-bold disabled:opacity-60";
+  const secondaryBtn = "px-8 py-3 rounded-lg border border-border bg-background text-foreground font-semibold";
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="bg-card rounded-2xl p-8 max-w-sm w-full text-center shadow-xl border border-border">
-        {status === "processing" ? (
+        {status === "processing" && slow ? (
           <>
             <div
               role="status"
-              aria-label="Loading"
+              aria-label={c.slowTitle}
+              className="mx-auto mb-5 h-10 w-10 rounded-full border-4 border-muted border-t-cellpay-green animate-spin"
+            />
+            <h1 className="text-xl font-bold text-foreground mb-2">{c.slowTitle}</h1>
+            <p className="text-sm text-muted-foreground mb-6" data-testid="cashapp-slow">{c.slowBody}</p>
+            <div className="flex flex-col gap-3">
+              <button type="button" onClick={checkAgain} disabled={checkingAgain} className={primaryBtn} data-testid="cashapp-check-again">
+                {checkingAgain ? c.checking : c.checkAgain}
+              </button>
+              {retry && (
+                <button type="button" onClick={tryAgain} className={secondaryBtn} data-testid="cashapp-try-again">
+                  {tr.tryAgain}
+                </button>
+              )}
+              <button type="button" onClick={goHome} className={secondaryBtn} data-testid="cashapp-home">
+                {tr.backToHome}
+              </button>
+            </div>
+          </>
+        ) : status === "processing" ? (
+          <>
+            <div
+              role="status"
+              aria-label={c.loading}
               className="mx-auto mb-5 h-12 w-12 rounded-full border-4 border-muted border-t-cellpay-green animate-spin"
             />
-            <h1 className="text-xl font-bold text-foreground mb-2">Processing your payment</h1>
+            <h1 className="text-xl font-bold text-foreground mb-2">{tr.processingPayment}</h1>
             <p className="text-sm text-muted-foreground">{message}</p>
             <p className="text-xs text-muted-foreground mt-4">
-              Please don't close this window — we'll update automatically.
+              {c.dontClose}
             </p>
           </>
         ) : (
           <>
             <div className="text-5xl mb-4">❌</div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Payment Failed</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-2">{tr.paymentFailed}</h1>
             <p className="text-sm text-muted-foreground mb-6">{message}</p>
-            <button
-              onClick={() => navigate("/")}
-              className="px-8 py-3 rounded-lg bg-cellpay-green text-primary-foreground font-bold"
-            >
-              Back to Home
-            </button>
+            <div className="flex flex-col gap-3">
+              {retry && (
+                <button type="button" onClick={tryAgain} className={primaryBtn} data-testid="cashapp-try-again">
+                  {tr.tryAgain}
+                </button>
+              )}
+              <button type="button" onClick={goHome} className={retry ? secondaryBtn : primaryBtn} data-testid="cashapp-home">
+                {tr.backToHome}
+              </button>
+            </div>
           </>
         )}
       </div>
