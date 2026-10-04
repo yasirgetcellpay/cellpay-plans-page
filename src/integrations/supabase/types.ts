@@ -1178,6 +1178,7 @@ export type Database = {
         Returns: boolean
       }
       log_transaction_attempt: { Args: { _data: Json }; Returns: string }
+      ops_alarm_push_key_ok: { Args: { _k: string }; Returns: boolean }
       ops_alarm_raise: {
         Args: {
           _detail: Json
