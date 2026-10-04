@@ -1,1 +1,4 @@
 project_id = "fzisssddsrhmxxwjxwus"
+
+[functions.ops-alarm-push]
+verify_jwt = false
