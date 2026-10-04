@@ -14,8 +14,9 @@ export function isHelpHiddenPath(pathname: string): boolean {
 
 export interface HelpCarrier { name: string; path: string; aliases: string[]; }
 
-/** CellPay carrier pages (App.tsx carrierRoutes + static StraightTalk / USCellular pages).
- *  Excluded: Page Plus Addon Balance, Red Pocket, XBOX, Movistar, Movistar Flexi (#3 CP-12), AT&T FirstNet (static, on hold).
+/** CellPay carrier pages (App.tsx carrierRoutes + static StraightTalk page).
+ *  Excluded: Page Plus Addon Balance, Red Pocket, XBOX, Movistar, Movistar Flexi (#3 CP-12), AT&T FirstNet (static, on hold),
+ *  US Cellular (AP-1d, Oct 4).
  *  RE-VERIFY against HEAD App.tsx at send time (checks/verify-carriers.py). No international link. */
 export const HELP_CARRIERS: HelpCarrier[] = [
   { name: "Simple Mobile", path: "/s1.html", aliases: ["simple mobile", "simple"] },
@@ -32,6 +33,5 @@ export const HELP_CARRIERS: HelpCarrier[] = [
   { name: "Page Plus", path: "/pageplus.html", aliases: ["page plus", "pageplus"] },
   { name: "TracFone", path: "/tracfone.html", aliases: ["tracfone", "trac fone"] },
   { name: "Ultra Mobile", path: "/ultra-mobile.html", aliases: ["ultra"] },
-  { name: "US Cellular", path: "/us-cellular.html", aliases: ["us cellular", "uscellular"] },
   { name: "Total Wireless", path: "/total-wireless", aliases: ["total wireless"] },
 ];
