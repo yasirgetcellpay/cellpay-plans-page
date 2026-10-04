@@ -23,6 +23,7 @@ import { applySeoHead } from "@/lib/seo";
 import { getGclid } from "@/lib/tracking";
 import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib/subdivisions";
 import { useLang, t } from "@/lib/i18n";
+import { readCheckoutCtx, writeCheckoutCtx, clearCheckoutCtx, resolveCheckoutFromUrl, carrierPageTarget, cashAppReturnTarget, stripResumeParams } from "@/lib/checkoutResume";
 
 interface LocationState {
   phone: string;
@@ -126,7 +127,13 @@ const Checkout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const state = location.state as LocationState | null;
+  // CK-0: no router state (direct load, new tab, shared link) -> this tab's saved hand-off (30 min), else resolved below. Never blank.
+  const routerState = location.state as (LocationState & { resumed?: boolean }) | null;
+  const [savedState] = useState<LocationState | null>(() =>
+    routerState || cashAppReturnTarget(location.pathname, location.search, location.hash) ? null : readCheckoutCtx(location.search)
+  );
+  const state = routerState ?? savedState;
+  const resumed = !routerState || !!routerState.resumed;
   const lang = useLang();
   const tr = t(lang);
 
@@ -213,6 +220,7 @@ const Checkout = () => {
   // Also scroll to top on mount so users always land on the "Checkout" H1 on
   // mobile (feedback Page 4–5 #1).
   useEffect(() => {
+    if (!state) return;
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     (window as unknown as { __cellpayCheckoutMeta?: Record<string, unknown> }).__cellpayCheckoutMeta = {
       carrierName: state.carrierName,
@@ -228,7 +236,7 @@ const Checkout = () => {
           160,
         ),
     });
-  }, [state.carrierName, state.carrierSlug]);
+  }, [state?.carrierName, state?.carrierSlug]);
 
   // Load FingerprintJS Pro and capture visitor identifier
   useEffect(() => {
@@ -305,7 +313,13 @@ const Checkout = () => {
 
   // Load checkout config and validate recharge
   useEffect(() => {
-    if (!state) { navigate("/"); return; }
+    if (!state) return;
+    // Restored checkout that fails validation: back to its carrier page (number + amount filled in), never off-site.
+    const leave = () => {
+      if (!resumed) { navigate(-1); return; }
+      clearCheckoutCtx();
+      navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, state.amount, location.search, location.hash), { replace: true });
+    };
     (async () => {
       try {
         const [result, config] = await Promise.all([
@@ -319,10 +333,11 @@ const Checkout = () => {
         ]);
         if (result.success === false) {
           toast({ title: tr.validationFailedTitle, description: result.message || tr.validationFailedDesc, variant: "destructive" });
-          navigate(-1);
+          leave();
           return;
         }
         setValidation(result);
+        writeCheckoutCtx({ phone: state.phone, amount: String(state.amount), planId: state.planId, carrierSlug: state.carrierSlug, carrierName: state.carrierName, brandColor: state.brandColor });
         if (config) {
           console.log("Checkout config loaded:", config);
           setCheckoutConfig(config);
@@ -330,11 +345,29 @@ const Checkout = () => {
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : tr.validationFailedTitle;
         toast({ title: tr.errorTitle, description: msg, variant: "destructive" });
-        navigate(-1);
+        leave();
       } finally {
         setLoading(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!state]);
+
+  // CK-0: nothing saved in this tab. Cash App return params -> the existing status page; valid ?carrier&plan|amount&phone ->
+  // hand-off rebuilt from the carrier's own data (carriers/view + verify-phone, as PAY NOW does); else carrier page or home.
+  // The rebuilt state goes into history (replace), so a refresh keeps it and the number leaves the URL.
+  useEffect(() => {
+    if (state) return;
+    const cashApp = cashAppReturnTarget(location.pathname, location.search, location.hash);
+    if (cashApp) { navigate(cashApp, { replace: true }); return; }
+    let cancelled = false;
+    resolveCheckoutFromUrl(lang, location.search, location.hash).then((r) => {
+      if (cancelled) return;
+      if (r.state) navigate(`${location.pathname}${stripResumeParams(location.search)}${location.hash}`, { replace: true, state: { ...r.state, resumed: true } });
+      else navigate(r.to, { replace: true });
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Load PayPal SDK when config is available and paypal is selected
@@ -466,7 +499,13 @@ const Checkout = () => {
   const subdivisions = useMemo(() => getSubdivisions(country), [country]);
   const hasSubdivisions = subdivisions.length > 0;
 
-  if (!state) return null;
+  if (!state) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background" aria-busy="true">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   const brandColor = state.brandColor;
   const total = validation?.total ?? Number(state.amount);
@@ -578,6 +617,7 @@ const Checkout = () => {
       // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1).
       try { if (hid) sessionStorage.setItem("cp_purchase_pending", String(hid)); } catch { /* storage unavailable: no purchase event */ }
       const params = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
+      clearCheckoutCtx();
       navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
     } else {
       setErrorMsg((result.msg as string) || (result.message as string) || "Transaction failed");
@@ -967,6 +1007,7 @@ const Checkout = () => {
           const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
           try { if (hid) sessionStorage.setItem("cp_purchase_pending", String(hid)); } catch { /* storage unavailable: no purchase event */ }
           const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
+          clearCheckoutCtx();
           navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${apParams.toString()}`);
         } else {
           console.error("[ApplePay] transaction failed", result);
@@ -1164,6 +1205,7 @@ const Checkout = () => {
           sessionStorage.setItem("cashapp_return_ctx", JSON.stringify(ctx));
         }
       } catch { /* ignore */ }
+      clearCheckoutCtx();
       window.location.href = nestedHostedUrl;
       return;
     }
@@ -1270,7 +1312,7 @@ const Checkout = () => {
           <div className="relative flex justify-center h-14 sm:h-16 items-center">
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={() => (resumed ? navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, state.amount, location.search, location.hash)) : navigate(-1))}
               className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-full hover:bg-muted transition-colors text-foreground"
               aria-label={tr.goBackAria}
             >
