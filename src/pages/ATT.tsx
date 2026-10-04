@@ -92,8 +92,8 @@ const ATT = () => {
   useEffect(() => {
     const isEs = typeof window !== "undefined" && window.location.pathname.startsWith("/es");
     applySeoHead(isEs
-      ? { title: 'Recarga AT&T Prepago en Línea | CellPay', description: 'Recarga tu teléfono AT&T Prepaid en línea con CellPay. Recarga en línea segura desde $5 hasta $300, enviada directamente a tu número.' }
-      : { title: 'AT&T Prepaid Refill Online | CellPay', description: 'Refill your AT&T Prepaid phone online with CellPay. Secure online top-up from $5 to $300, sent directly to your number.' });
+      ? { title: 'Recarga AT&T Prepago en Línea | CellPay', description: 'Recarga tu teléfono AT&T Prepaid en línea con CellPay. Recarga en línea segura desde $5 hasta $150, enviada directamente a tu número.' }
+      : { title: 'AT&T Prepaid Refill Online | CellPay', description: 'Refill your AT&T Prepaid phone online with CellPay. Secure online top-up from $5 to $150, sent directly to your number.' });
   }, []);
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
@@ -112,14 +112,17 @@ const ATT = () => {
   const goCheckout = (amt: number | string) => {
     const amountNum = typeof amt === "number" ? amt : Number(amt);
     const picked = pickPlanForAmount(resolved, amountNum);
-    navigate("/checkout", {
+    // FN-1: same checkout hand-off as the working AT&T page (/topup-at.html): backend slug "topup-at", the AT&T Prepaid carrier id and
+    // plan from the same carriers/view data, /es/checkout in Spanish. Never go to checkout without a plan id (plans may still be loading).
+    if (!picked.planId) { loadResolvedPlans("topup-at").then(setResolved).catch((e) => console.warn("ATT plan load failed", e)); return; }
+    navigate(lang === "es" ? "/es/checkout" : "/checkout", {
       state: {
         phone,
-        amount: String(amountNum), // whole dollars as before ("25.00" → "25")
-        carrierSlug: "att",
-        carrierName: "AT&T Prepaid",
+        amount: amountNum,
+        carrierSlug: "topup-at",
+        carrierName: "AT&T", // same as /topup-at.html (carriers/view carrier.name); checkout sends it as carrier_name
         brandColor: BRAND,
-        carrierId: picked.carrierId,
+        carrierId: picked.carrierId ?? resolved.rangeCarrierId ?? 3,
         planId: picked.planId,
         planName: picked.name,
       },
@@ -148,16 +151,19 @@ const ATT = () => {
 
   const phoneDigits = phone.replace(/\D/g, "");
   const amountNum = parseAmountDollars(amount) || 0; // dollars, same unit checkout uses
-  const amountProblem = getAmountProblem(amount, amountNum, 5, 300);
+  // FN-1: same min/max as the working AT&T page (carriers/view topup-at), not a hardcoded range.
+  const rangeMin = resolved.rangeMin ?? 5;
+  const rangeMax = Math.min(resolved.rangeMax ?? 300, 150); // FirstNet cap $150 (owner decision)
+  const amountProblem = getAmountProblem(amount, amountNum, rangeMin, rangeMax);
   const amountValid = amountProblem === null;
   const amountMessage =
     amountProblem === "range"
-      ? t(lang).invalidAmount(5, 300)
+      ? t(lang).invalidAmount(rangeMin, rangeMax)
       : amountProblem === "step"
       ? wholeDollarMessage(lang, amountNum)
       : null;
   // Over the max shows at once; below-min / cents show after the customer leaves the field.
-  const showAmountMessage = !!amountMessage && (amountTouched || amountNum > 300);
+  const showAmountMessage = !!amountMessage && (amountTouched || amountNum > rangeMax);
   const isValid = phoneDigits.length === 10 && amountValid && confirmed && agreedTerms;
 
   return (
@@ -188,7 +194,7 @@ const ATT = () => {
           <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">Select Amount</label>
           <div className="relative mb-1">
             <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-            <input type="text" inputMode="numeric" value={amount} onChange={handleAmountChange} onPaste={handleAmountPaste} onBlur={handleAmountBlur} aria-invalid={showAmountMessage} aria-describedby={showAmountMessage ? "carrier-amount-error" : undefined} placeholder="$5 - $300"
+            <input type="text" inputMode="numeric" value={amount} onChange={handleAmountChange} onPaste={handleAmountPaste} onBlur={handleAmountBlur} aria-invalid={showAmountMessage} aria-describedby={showAmountMessage ? "carrier-amount-error" : undefined} placeholder={`$${rangeMin} - $${rangeMax}`}
               className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" style={{ "--tw-ring-color": BRAND } as React.CSSProperties} />
           </div>
           {showAmountMessage && (
