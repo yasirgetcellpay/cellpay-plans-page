@@ -314,6 +314,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ops_alarms: {
+        Row: {
+          acked_at: string | null
+          acked_by: string | null
+          created_at: string
+          detail: Json
+          id: number
+          kind: string
+          notified_at: string | null
+          notify_note: string | null
+          notify_request_id: number | null
+          ref: string
+          severity: string
+          source: string
+        }
+        Insert: {
+          acked_at?: string | null
+          acked_by?: string | null
+          created_at?: string
+          detail?: Json
+          id?: never
+          kind: string
+          notified_at?: string | null
+          notify_note?: string | null
+          notify_request_id?: number | null
+          ref: string
+          severity?: string
+          source: string
+        }
+        Update: {
+          acked_at?: string | null
+          acked_by?: string | null
+          created_at?: string
+          detail?: Json
+          id?: never
+          kind?: string
+          notified_at?: string | null
+          notify_note?: string | null
+          notify_request_id?: number | null
+          ref?: string
+          severity?: string
+          source?: string
+        }
+        Relationships: []
+      }
       page_visitors: {
         Row: {
           created_at: string
@@ -673,13 +718,40 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      ap1_cancel_outcomes: {
+        Row: {
+          code: string | null
+          confirmed_by_cellpay: boolean | null
+          created_at: string | null
+          event_id: number | null
+          origin_host: string | null
+          queue_row_id: number | null
+        }
+        Insert: {
+          code?: string | null
+          confirmed_by_cellpay?: never
+          created_at?: string | null
+          event_id?: number | null
+          origin_host?: string | null
+          queue_row_id?: never
+        }
+        Update: {
+          code?: string | null
+          confirmed_by_cellpay?: never
+          created_at?: string | null
+          event_id?: number | null
+          origin_host?: string | null
+          queue_row_id?: never
+        }
+        Relationships: []
+      }
     }
     Functions: {
       ad1_prune_page_visitors: {
         Args: { _archive?: boolean; _batch?: number; _days?: number }
         Returns: number
       }
+      ap1_alarm_sweep: { Args: never; Returns: number }
       ap1_owner_match: {
         Args: { _email: string; _last4: string; _phone: string }
         Returns: string
@@ -761,6 +833,17 @@ export type Database = {
         Returns: boolean
       }
       log_transaction_attempt: { Args: { _data: Json }; Returns: string }
+      ops_alarm_raise: {
+        Args: {
+          _detail: Json
+          _kind: string
+          _ref: string
+          _severity: string
+          _source: string
+          _text: string
+        }
+        Returns: number
+      }
       pockyt_sweep_claim: {
         Args: { _limit: number; _mode: string }
         Returns: {
