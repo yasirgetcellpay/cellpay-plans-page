@@ -599,6 +599,162 @@ function guardRefusal(
 
 const GUARD_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"]);
 
+// ---------------------------------------------------------------------------
+// [SEC-1] Order history needs a verified login (QA account audit, Oct 4 2026, finding 1).
+// Every proxied call carries our API key + secret, so an order-history request without a user token must never reach CellPay.
+// GET "transactions" is served only after GET users/profile with the caller's Bearer returns a user (API 1.2.27); the list call
+// carries that same Bearer and nothing from the client (GET bodies are never forwarded, "?" is refused by 1a). Rows naming another
+// user are dropped; an oversized answer is treated as unscoped and replaced by an empty list. No/bad token -> 401.
+// Every other path in the transactions/orders family is refused (403 not_allowed) except GET transactions/view/{hashid} (receipt).
+// Logs: PII-free proxy_guard_events rows, code "sec1:*" (counts only). Never a token, user id, phone, email or hashid.
+// ---------------------------------------------------------------------------
+const SEC1_VERIFY_TIMEOUT_MS = 4000;
+const SEC1_LIST_TIMEOUT_MS = 10000;
+const SEC1_MAX_ROWS = 500;
+const SEC1_MAX_TOTAL = 5000;
+const SEC1_FAMILY = /^(transactions?|orders?)(\.[a-z0-9]{1,8})?$/;
+const SEC1_LOGIN = { success: false, blocked: true, code: "login_required", error: "Please log in to see your orders.", message: "Please log in to see your orders." };
+const SEC1_TRY_LATER = { success: false, blocked: true, code: "try_later", error: "We couldn't load your orders right now. Please try again later.", message: "We couldn't load your orders right now. Please try again later." };
+
+type Sec1Route = "list" | "receipt" | "refuse" | null;
+
+/** Which SEC route an endpoint belongs to. Canonical spellings only: anything else in the family is refused. */
+function sec1Route(endpoint: string, method: string): Sec1Route {
+  const n = normalizeEndpoint(endpoint);
+  if (!n) return null;
+  if (n.segments.join("/") === "checkout/transaction") return null; // the checkout itself is not order history
+  if (!n.segments.some((s) => SEC1_FAMILY.test(s))) return null;
+  const r = n.rawSegments;
+  if (r.length === 1 && r[0] === "transactions" && method === "GET") return "list";
+  if (r.length === 3 && r[0] === "transactions" && r[1] === "view" && method === "GET" && /^[A-Za-z0-9_-]{1,64}$/.test(r[2])) return "receipt";
+  return "refuse";
+}
+
+function sec1Token(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  const t = v.trim();
+  return t.length >= 16 && t.length <= 4096 && /^[A-Za-z0-9._~+\/=-]+$/.test(t) ? t : null;
+}
+
+function sec1Event(code: string, shape: string, method: unknown, origin: string | null): void {
+  recordGuardEvent({ code, method: methodLabel(method), endpoint_shape: shape, origin_host: originHost(origin), has_origin: origin !== null });
+}
+
+function sec1Json(cors: Record<string, string>, status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
+}
+
+function sec1Headers(apiKey: string, apiSecret: string, callerHost: unknown): Record<string, string> {
+  return {
+    "X-Api-Key": apiKey,
+    "X-Api-Secret": apiSecret,
+    "X-Cellpay-Domain": resolveCellpayDomain(typeof callerHost === "string" ? callerHost : undefined),
+    "Content-Type": "application/json",
+    "Accept": "*/*",
+  };
+}
+
+function sec1IdText(v: unknown): string | null {
+  if (typeof v === "number" && Number.isSafeInteger(v) && v > 0) return String(v);
+  if (typeof v === "string" && /^\d{1,18}$/.test(v.trim())) return v.trim();
+  return null;
+}
+
+/** GET users/profile with the caller's Bearer: the user id, "invalid" (401/403/no user/inactive) or "error" (down, timeout, non-JSON). */
+async function sec1VerifyUser(token: string, base: Record<string, string>): Promise<{ id: string } | "invalid" | "error"> {
+  try {
+    const res = await fetch(`${API_BASE}/users/profile`, {
+      method: "GET",
+      headers: { ...base, Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(SEC1_VERIFY_TIMEOUT_MS),
+    });
+    const raw = await res.text();
+    if (res.status === 401 || res.status === 403) return "invalid";
+    if (!res.ok) return "error";
+    let d: unknown;
+    try { d = JSON.parse(raw); } catch { return "error"; }
+    const top = asRecord(d);
+    if (top.success === false) return "invalid";
+    const data = asRecord(top.data);
+    const user = asRecord(data.user ?? asRecord(data.data).user);
+    const id = sec1IdText(user.id);
+    if (!id || user.active === false) return "invalid";
+    return { id };
+  } catch {
+    return "error";
+  }
+}
+
+function sec1RowOwner(row: unknown): string | null {
+  const r = asRecord(row);
+  return sec1IdText(r.user_id) ?? sec1IdText(r.userId) ?? sec1IdText(asRecord(r.user).id);
+}
+
+/** Keeps only rows of `uid` (rows with no owner field are kept: upstream scoped them by the Bearer). */
+function sec1Scope(data: unknown, uid: string): { data: unknown; rows: number; dropped: number; unknown: number; suspect: boolean } {
+  let holder: Record<string, unknown> | null = null;
+  let key = "";
+  let cur: unknown = data;
+  for (let i = 0; i < 5 && cur && typeof cur === "object" && !Array.isArray(cur); i++) {
+    const o = cur as Record<string, unknown>;
+    const k = ["transactions", "orders", "data"].find((x) => Array.isArray(o[x]));
+    if (k) { holder = o; key = k; break; }
+    cur = o.data;
+  }
+  if (Array.isArray(data)) { holder = { list: data }; key = "list"; }
+  if (!holder) return { data, rows: 0, dropped: 0, unknown: 0, suspect: false };
+  const list = holder[key] as unknown[];
+  const totals = [holder.total, holder.count, holder.totalCount, asRecord(holder.pagination).count, asRecord(holder.pagination).total,
+    asRecord(holder.meta).total, asRecord(holder.paging).count].map(Number).filter((n) => Number.isFinite(n));
+  if (list.length > SEC1_MAX_ROWS || totals.some((n) => n > SEC1_MAX_TOTAL)) {
+    return { data: { transactions: [] }, rows: list.length, dropped: list.length, unknown: 0, suspect: true };
+  }
+  let dropped = 0, unknown = 0;
+  const kept = list.filter((row) => {
+    const owner = sec1RowOwner(row);
+    if (owner === null) { unknown++; return true; }
+    if (owner !== uid) { dropped++; return false; }
+    return true;
+  });
+  holder[key] = kept;
+  return { data: key === "list" ? kept : data, rows: list.length, dropped, unknown, suspect: false };
+}
+
+async function sec1HandleList(req: Request, body: Record<string, unknown>, cors: Record<string, string>, apiKey: string, apiSecret: string): Promise<Response> {
+  const origin = req.headers.get("origin");
+  const token = sec1Token(body.bearerToken);
+  if (!token) {
+    sec1Event(body.bearerToken ? "sec1:bad_token_shape" : "sec1:no_token", "transactions", "GET", origin);
+    return sec1Json(cors, 401, SEC1_LOGIN);
+  }
+  const base = sec1Headers(apiKey, apiSecret, body.callerHost);
+  const who = await sec1VerifyUser(token, base);
+  if (who === "invalid") { sec1Event("sec1:bad_token", "transactions", "GET", origin); return sec1Json(cors, 401, SEC1_LOGIN); }
+  if (who === "error") { sec1Event("sec1:verify_error", "transactions", "GET", origin); return sec1Json(cors, 503, SEC1_TRY_LATER); }
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/transactions`, {
+      method: "GET",
+      headers: { ...base, Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(SEC1_LIST_TIMEOUT_MS),
+    });
+  } catch {
+    sec1Event("sec1:list_error", "transactions", "GET", origin);
+    return sec1Json(cors, 503, SEC1_TRY_LATER);
+  }
+  const raw = await res.text();
+  let data: unknown;
+  try { data = JSON.parse(raw); } catch { data = null; }
+  if (res.status === 401 || res.status === 403) { sec1Event("sec1:list_401", "transactions", "GET", origin); return sec1Json(cors, 401, SEC1_LOGIN); }
+  if (!res.ok || data === null || typeof data !== "object") {
+    sec1Event(`sec1:list_fail:http${res.status}`, "transactions", "GET", origin);
+    return sec1Json(cors, 200, { success: false, error: "Request failed", data: {} });
+  }
+  const s = sec1Scope(data, who.id);
+  sec1Event(s.suspect ? `sec1:scope_suspect:rows=${s.rows}` : `sec1:list_ok:rows=${s.rows}:dropped=${s.dropped}:noowner=${s.unknown}`, "transactions", "GET", origin);
+  return sec1Json(cors, 200, { success: true, data: s.data });
+}
+
 async function blocklistCheck(p: Record<string, unknown>, cardH: string | null): Promise<{ key_type: string; reason: string } | null> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -741,6 +897,15 @@ serve(async (req) => {
     }
     if (!normalizeEndpoint(endpoint)) {
       return guardRefusal(corsHeaders, 403, "invalid_endpoint", method, endpoint, guardOrigin);
+    }
+
+    // [SEC-1] transactions/orders family: the order list needs a verified login, the receipt passes, everything else is refused.
+    const secRoute = sec1Route(endpoint, method);
+    if (secRoute === "refuse") {
+      return guardRefusal(corsHeaders, 403, "not_allowed", method, endpoint, guardOrigin);
+    }
+    if (secRoute === "list") {
+      return await sec1HandleList(req, asRecord(body), corsHeaders, apiKey, apiSecret);
     }
 
     // Resolve dynamic X-Cellpay-Domain from caller's hostname (with fallback for lovable/dev hosts)
