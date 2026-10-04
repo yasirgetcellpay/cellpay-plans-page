@@ -132,16 +132,24 @@ const Verizon = () => {
     loadPlans().catch((e) => console.warn("Verizon plan load failed", e));
   }, [loadPlans]);
 
+  // ARB-0c: send Verizon's range plan for every amount in range, the same shape as Metro (rangePlan id instead of a
+  // fixed plan id), with carrierId 14 (Verizon Wireless Prepaid: its plans, validate and orders all use 14). If the range
+  // plan hasn't loaded or the amount is outside it, the fixed-plan pick is used exactly as before.
+  const pickVerizonPlan = (r: ResolvedPlans, amountNum: number): { planId?: string; carrierId?: number; name?: string } =>
+    r.rangePlanId && amountNum >= (r.rangeMin ?? 10) && amountNum <= (r.rangeMax ?? 300)
+      ? { planId: r.rangePlanId, carrierId: 14 }
+      : pickPlanForAmount(r, amountNum);
+
   const goCheckout = async (amt: number | string, from: "top" | "bottom") => {
     if (resolvingRef.current) return;
     const amountNum = typeof amt === "number" ? amt : Number(amt);
-    let picked = pickPlanForAmount(resolved, amountNum);
+    let picked = pickVerizonPlan(resolved, amountNum);
     if (!picked.planId) {
       resolvingRef.current = true;
       setResolving(true);
       setPlanError(null);
       try {
-        picked = pickPlanForAmount(await loadPlans(), amountNum);
+        picked = pickVerizonPlan(await loadPlans(), amountNum);
       } catch (e) {
         console.warn("Verizon plan load failed", e);
         picked = {};
