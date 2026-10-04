@@ -6,24 +6,9 @@ import { captureTrackingIdsFromUrl } from "@/lib/tracking";
 import { usePresence } from "@/hooks/usePresence";
 import Home from "./pages/Home.tsx";
 import DynamicCarrier from "./pages/DynamicCarrier.tsx";
-import Checkout from "./pages/Checkout.tsx";
 import PaymentCallback from "./pages/PaymentCallback.tsx";
 import OrderConfirmation from "./pages/OrderConfirmation.tsx";
 import CashAppReturn from "./pages/CashAppReturn.tsx";
-import Profile from "./pages/Profile.tsx";
-import Orders from "./pages/Orders.tsx";
-import ForgotPassword from "./pages/ForgotPassword.tsx";
-import AboutUs from "./pages/AboutUs.tsx";
-import ContactUs from "./pages/ContactUs.tsx";
-import FAQ from "./pages/FAQ.tsx";
-import HowToUse from "./pages/HowToUse.tsx";
-import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
-import TermsAndConditions from "./pages/TermsAndConditions.tsx";
-import ReturnsPolicy from "./pages/ReturnsPolicy.tsx";
-import DMCA from "./pages/DMCA.tsx";
-import AdminLogin from "./pages/AdminLogin.tsx";
-import Login from "./pages/Login.tsx";
-import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AmountRedirect from "./pages/AmountRedirect.tsx";
 import LegacyAmountRedirect from "./pages/LegacyAmountRedirect.tsx";
@@ -51,6 +36,82 @@ import uscellularLogo from "@/assets/uscellular-logo.png";
 
 // Help chat (#9): lazy chunk, loaded after first render; renders nothing until help_settings.chat_enabled is true.
 const HelpChat = lazy(() => import("@/components/help/HelpChat"));
+
+// Speed S1c: pages a paid visitor doesn't need on first load are split into their own chunks (landing pages,
+// carrier pages, the static carrier pages and the payment return/confirmation pages stay in the main bundle).
+// If a chunk fails to load (e.g. a tab left open across a new publish) the page reloads once; if it fails again,
+// a short "please refresh" note shows instead of a blank page.
+const CHUNK_RELOAD_KEY = "cp_chunk_reload";
+const ChunkLoadError = () => {
+  const es = typeof window !== "undefined" && /^\/es(\/|$)/.test(window.location.pathname);
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center px-6 text-center">
+      <p className="text-base text-foreground">
+        {es ? "No pudimos cargar esta página. " : "We couldn't load this page. "}
+        <a href={typeof window !== "undefined" ? window.location.href : "/"} className="underline font-semibold">
+          {es ? "Toque para recargar" : "Tap to reload"}
+        </a>
+      </p>
+    </div>
+  );
+};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function lazyPage<T extends import("react").ComponentType<any>>(load: () => Promise<{ default: T }>) {
+  return lazy(() =>
+    load()
+      .then((m) => {
+        try { sessionStorage.removeItem(CHUNK_RELOAD_KEY); } catch { /* private mode */ }
+        return m;
+      })
+      .catch(() => {
+        try {
+          if (!sessionStorage.getItem(CHUNK_RELOAD_KEY)) {
+            sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
+            window.location.reload();
+            return new Promise<{ default: T }>(() => {});
+          }
+        } catch { /* private mode: fall through */ }
+        return { default: ChunkLoadError as unknown as T };
+      }),
+  );
+}
+const loadCheckout = () => import("./pages/Checkout.tsx");
+const Checkout = lazyPage(loadCheckout);
+const Profile = lazyPage(() => import("./pages/Profile.tsx"));
+const Orders = lazyPage(() => import("./pages/Orders.tsx"));
+const ForgotPassword = lazyPage(() => import("./pages/ForgotPassword.tsx"));
+const AboutUs = lazyPage(() => import("./pages/AboutUs.tsx"));
+const ContactUs = lazyPage(() => import("./pages/ContactUs.tsx"));
+const FAQ = lazyPage(() => import("./pages/FAQ.tsx"));
+const HowToUse = lazyPage(() => import("./pages/HowToUse.tsx"));
+const PrivacyPolicy = lazyPage(() => import("./pages/PrivacyPolicy.tsx"));
+const TermsAndConditions = lazyPage(() => import("./pages/TermsAndConditions.tsx"));
+const ReturnsPolicy = lazyPage(() => import("./pages/ReturnsPolicy.tsx"));
+const DMCA = lazyPage(() => import("./pages/DMCA.tsx"));
+const AdminLogin = lazyPage(() => import("./pages/AdminLogin.tsx"));
+const Login = lazyPage(() => import("./pages/Login.tsx"));
+const AdminDashboard = lazyPage(() => import("./pages/AdminDashboard.tsx"));
+
+/** Full-height blank while a split page loads, so the footer never flashes up and nothing jumps. */
+const RouteFallback = () => <div className="min-h-screen bg-background" aria-busy="true" />;
+
+/** Starts downloading the checkout chunk on the visitor's first tap or key press, so PLACE ORDER never waits for it. */
+const CheckoutPrefetch = () => {
+  useEffect(() => {
+    const events = ["pointerdown", "keydown", "touchstart"] as const;
+    let started = false;
+    const off = () => events.forEach((e) => window.removeEventListener(e, start));
+    function start() {
+      if (started) return;
+      started = true;
+      off();
+      loadCheckout().catch(() => { /* lazyPage retries when the route renders */ });
+    }
+    events.forEach((e) => window.addEventListener(e, start, { passive: true }));
+    return off;
+  }, []);
+  return null;
+};
 
 interface CarrierRouteDef {
   path: string;            // English path (without leading /es)
@@ -183,6 +244,8 @@ const App = () => (
   <AuthProvider>
     <BrowserRouter>
       <TrackingCapture />
+      <CheckoutPrefetch />
+      <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/es" element={<Home />} />
@@ -505,6 +568,7 @@ const App = () => (
         <Route path="/es/*" element={<EsFallback />} />
         <Route path="*" element={<CatchAll />} />
       </Routes>
+      </Suspense>
       <Toaster />
       {HELP_CHAT_ENABLED && (
         <Suspense fallback={null}>
