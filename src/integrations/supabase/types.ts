@@ -236,6 +236,33 @@ export type Database = {
         }
         Relationships: []
       }
+      page_visitors_archive_20261003: {
+        Row: {
+          archived_at: string
+          created_at: string
+          last_seen: string
+          path: string
+          session_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          archived_at?: string
+          created_at: string
+          last_seen: string
+          path: string
+          session_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          archived_at?: string
+          created_at?: string
+          last_seen?: string
+          path?: string
+          session_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       proxy_guard_events: {
         Row: {
           code: string
@@ -442,6 +469,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ad1_prune_page_visitors: {
+        Args: { _archive?: boolean; _batch?: number; _days?: number }
+        Returns: number
+      }
       ap1_owner_match: {
         Args: { _email: string; _last4: string; _phone: string }
         Returns: string
