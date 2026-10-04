@@ -485,6 +485,13 @@ const DynamicCarrier = ({
     setAmount(plan.price.replace("$", ""));
   };
 
+  // ARB-0c: Verizon (slug verizon) sends its range plan for every amount in range, the same shape as Metro
+  // (rangePlan id instead of a fixed plan id), with carrierId 14 (Verizon Wireless Prepaid: its plans, validate
+  // and orders all use 14; the carriers/view header record says 75). Every other carrier is unchanged.
+  const VERIZON_CARRIER_ID = 14;
+  const isVerizonRange = (amt: number) =>
+    carrierSlug === "verizon" && rangePlanId !== "" && amt >= rangeMin && amt <= rangeMax;
+
   // Direct checkout from plan card "Pay Now" button (fixed_plans → use that plan's carrier id)
   const handlePlanPayNow = async (plan: { price: string; highlight: string }) => {
     if (phoneDigits.length !== 10) {
@@ -499,16 +506,17 @@ const DynamicCarrier = ({
       return;
     }
     const planAmount = Number(plan.price.replace("$", ""));
-    const selectedPlan = plans.find((p) => p.amount === planAmount);
+    const vzRange = isVerizonRange(planAmount); // ARB-0c
+    const selectedPlan = vzRange ? undefined : plans.find((p) => p.amount === planAmount);
     navigate(lang === "es" ? "/es/checkout" : "/checkout", {
       state: {
         phone,
         amount: planAmount,
         carrierSlug,
-        carrierId: selectedPlan?.carrierId ?? carrierId,
+        carrierId: vzRange ? VERIZON_CARRIER_ID : (selectedPlan?.carrierId ?? carrierId),
         carrierName,
         brandColor,
-        planId: selectedPlan?.plan_id,
+        planId: vzRange ? rangePlanId : selectedPlan?.plan_id,
         planName: selectedPlan?.name,
       },
     });
@@ -541,13 +549,14 @@ const DynamicCarrier = ({
       return;
     }
     // Custom amount path → use carrier_plans.carrier.id when available
-    const selectedPlan = plans.find((p) => p.amount === amountNum);
+    const vzRange = isVerizonRange(amountNum); // ARB-0c
+    const selectedPlan = vzRange ? undefined : plans.find((p) => p.amount === amountNum);
     navigate(lang === "es" ? "/es/checkout" : "/checkout", {
       state: {
         phone,
         amount: amountNum,
         carrierSlug,
-        carrierId: selectedPlan?.carrierId ?? rangeCarrierId ?? carrierId,
+        carrierId: vzRange ? VERIZON_CARRIER_ID : (selectedPlan?.carrierId ?? rangeCarrierId ?? carrierId),
         carrierName,
         brandColor,
         planId: selectedPlan?.plan_id || rangePlanId || undefined,
