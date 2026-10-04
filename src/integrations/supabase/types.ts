@@ -230,6 +230,24 @@ export type Database = {
         }
         Relationships: []
       }
+      fraud_controls: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       help_events: {
         Row: {
           created_at: string
@@ -344,6 +362,111 @@ export type Database = {
           path?: string
           session_id?: string
           user_agent?: string | null
+        }
+        Relationships: []
+      }
+      pockyt_settlement_checks: {
+        Row: {
+          applied: boolean
+          caller_host: string | null
+          check_count: number
+          first_checked_at: string | null
+          last_checked_at: string | null
+          last_error: string | null
+          last_http: number | null
+          last_ok_checked_at: string | null
+          last_upstream: string | null
+          log_created_at: string
+          log_id: string
+          mode: string
+          next_check_at: string
+          ok_check_count: number
+          outcome: string | null
+          outcome_at: string | null
+          session_id: string
+        }
+        Insert: {
+          applied?: boolean
+          caller_host?: string | null
+          check_count?: number
+          first_checked_at?: string | null
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_http?: number | null
+          last_ok_checked_at?: string | null
+          last_upstream?: string | null
+          log_created_at: string
+          log_id: string
+          mode: string
+          next_check_at?: string
+          ok_check_count?: number
+          outcome?: string | null
+          outcome_at?: string | null
+          session_id: string
+        }
+        Update: {
+          applied?: boolean
+          caller_host?: string | null
+          check_count?: number
+          first_checked_at?: string | null
+          last_checked_at?: string | null
+          last_error?: string | null
+          last_http?: number | null
+          last_ok_checked_at?: string | null
+          last_upstream?: string | null
+          log_created_at?: string
+          log_id?: string
+          mode?: string
+          next_check_at?: string
+          ok_check_count?: number
+          outcome?: string | null
+          outcome_at?: string | null
+          session_id?: string
+        }
+        Relationships: []
+      }
+      pockyt_sweep_runs: {
+        Row: {
+          auth_errors: number
+          claimed: number
+          expired: number
+          failed: number
+          finished_at: string
+          http_errors: number
+          id: number
+          mode: string
+          note: string | null
+          paid: number
+          started_at: string
+          still_pending: number
+        }
+        Insert: {
+          auth_errors?: number
+          claimed?: number
+          expired?: number
+          failed?: number
+          finished_at?: string
+          http_errors?: number
+          id?: number
+          mode: string
+          note?: string | null
+          paid?: number
+          started_at: string
+          still_pending?: number
+        }
+        Update: {
+          auth_errors?: number
+          claimed?: number
+          expired?: number
+          failed?: number
+          finished_at?: string
+          http_errors?: number
+          id?: number
+          mode?: string
+          note?: string | null
+          paid?: number
+          started_at?: string
+          still_pending?: number
         }
         Relationships: []
       }
@@ -603,6 +726,17 @@ export type Database = {
         Args: { _id: string; _outcome: string }
         Returns: boolean
       }
+      finalize_pockyt_log: {
+        Args: {
+          _msg: string
+          _pending_log_id: string
+          _raw: Json
+          _session_id: string
+          _status: string
+          _txn: string
+        }
+        Returns: boolean
+      }
       finalize_transaction_log: {
         Args: {
           _error_message: string
@@ -614,6 +748,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      fraud_control_get: { Args: { _key: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -626,6 +761,46 @@ export type Database = {
         Returns: boolean
       }
       log_transaction_attempt: { Args: { _data: Json }; Returns: string }
+      pockyt_sweep_claim: {
+        Args: { _limit: number; _mode: string }
+        Returns: {
+          caller_host: string
+          check_count: number
+          log_created_at: string
+          log_id: string
+          session_id: string
+        }[]
+      }
+      pockyt_sweep_expire: { Args: never; Returns: number }
+      pockyt_sweep_finish_run: {
+        Args: {
+          _auth_errors: number
+          _claimed: number
+          _expired: number
+          _failed: number
+          _http_errors: number
+          _mode: string
+          _note: string
+          _paid: number
+          _started_at: string
+          _still_pending: number
+        }
+        Returns: undefined
+      }
+      pockyt_sweep_record: {
+        Args: {
+          _http: number
+          _log_id: string
+          _msg: string
+          _raw: Json
+          _session_id: string
+          _txn: string
+          _upstream: string
+          _verdict: string
+        }
+        Returns: string
+      }
+      pockyt_sweep_secret_ok: { Args: { _s: string }; Returns: boolean }
       record_presence: {
         Args: { _path: string; _session_id: string; _user_agent: string }
         Returns: undefined
