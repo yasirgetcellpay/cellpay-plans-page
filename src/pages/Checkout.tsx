@@ -6,6 +6,7 @@ import { AccountDropdown } from "@/components/AccountDropdown";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
+import { PLAID_ENABLED } from "@/config/paymentFlags";
 import {
   validateRecharge,
   submitTransaction,
@@ -141,6 +142,8 @@ const Checkout = () => {
   const [submitting, setSubmitting] = useState(false);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
+  // PL-0: a hidden Pay by Bank can never stay selected (falls back to the default, card).
+  useEffect(() => { if (!PLAID_ENABLED && paymentMethod === "plaid") setPaymentMethod("card"); }, [paymentMethod]);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [saveCard, setSaveCard] = useState(false);
   const [autoPay, setAutoPay] = useState(false);
@@ -1292,7 +1295,8 @@ const Checkout = () => {
     ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: tr.methodApplePay, Brand: ApplePayMark }] : []),
     { key: "googlepay", label: tr.methodGooglePay, Brand: GooglePayMark },
     { key: "paypal", label: tr.methodPayPal, Brand: PayPalMark },
-    { key: "plaid", label: tr.methodPayByBank, Brand: BankMark },
+    // PL-0: Pay by Bank (Plaid) only shows while PLAID_ENABLED is true (src/config/paymentFlags.ts).
+    ...(PLAID_ENABLED ? [{ key: "plaid" as PaymentMethod, label: tr.methodPayByBank, Brand: BankMark }] : []),
     { key: "cashapp", label: tr.methodCashApp, Brand: CashAppMark },
     { key: "klarna", label: tr.methodKlarna, Brand: KlarnaMark }, // Klarna last — feedback #31
   ];
