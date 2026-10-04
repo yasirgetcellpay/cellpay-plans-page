@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes, useLocation, Navigate } from "react-router-dom";
-import { lazy, Suspense, useEffect } from "react";
+import { Component, lazy, Suspense, useEffect, type ReactNode } from "react";
 import { HELP_CHAT_ENABLED } from "@/components/help/helpChatFlag";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { captureTrackingIdsFromUrl } from "@/lib/tracking";
@@ -35,7 +35,20 @@ import ultraLogo from "@/assets/ultra-mobile-logo.png";
 import uscellularLogo from "@/assets/uscellular-logo.png";
 
 // Help chat (#9): lazy chunk, loaded after first render; renders nothing until help_settings.chat_enabled is true.
-const HelpChat = lazy(() => import("@/components/help/HelpChat"));
+// SP-1b-fix: if the help chunk can't load (network blip, blocker, load cancelled), render nothing so the page keeps working
+// (never the whole-page "Something went wrong" screen). No retry here: browsers keep the failed module for that URL.
+const HelpChatOff = () => null;
+const HelpChat = lazy(() => import("@/components/help/HelpChat").catch(() => ({ default: HelpChatOff })));
+// Same for anything inside Help chat (its panel / Auto Pay chunks load when Help is opened): an error there hides Help only.
+class HelpChatBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
 
 // Speed S1c: pages a paid visitor doesn't need on first load are split into their own chunks (landing pages,
 // carrier pages, the static carrier pages and the payment return/confirmation pages stay in the main bundle).
@@ -571,9 +584,11 @@ const App = () => (
       </Suspense>
       <Toaster />
       {HELP_CHAT_ENABLED && (
-        <Suspense fallback={null}>
-          <HelpChat />
-        </Suspense>
+        <HelpChatBoundary>
+          <Suspense fallback={null}>
+            <HelpChat />
+          </Suspense>
+        </HelpChatBoundary>
       )}
     </BrowserRouter>
   </AuthProvider>
