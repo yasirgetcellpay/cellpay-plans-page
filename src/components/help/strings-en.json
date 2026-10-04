@@ -10,9 +10,11 @@
     "inputAria": "Your question",
     "send": "Send",
     "back": "Back",
-    "fallback": "Sorry, I didn't catch that. Try one of these topics, or email us.",
+    "fallback": "Sorry, I didn't catch that. Try one of these topics, or type your carrier and the problem (for example \"Cricket no service\").",
     "allCarriers": "See all carriers",
-    "footer": "Need more help? Email support@getcellpay.com"
+    "footer": "Need more help? Email support@getcellpay.com",
+    "stillNeedHelp": "Still need help? Contact support",
+    "carrierAsk": "Tell me your carrier and I'll show its customer care number."
   },
   "quick": {
     "refill_how": "How to refill",
@@ -23,7 +25,11 @@
     "no_account": "Do I need an account?",
     "order_status": "Check order status",
     "autopay": "Cancel Auto Pay",
-    "contact": "Contact support"
+    "contact": "Contact support",
+    "carrier_issue": "Phone, SIM or plan",
+    "refund": "Completed payments",
+    "not_working": "Paid, but phone not working",
+    "balance": "Check balance"
   },
   "answers": {
     "refill_how": [
@@ -39,25 +45,47 @@
     ],
     "declined": [
       "Please double-check your card details, phone number and plan before confirming.",
-      "Before paying again, check whether the first payment went through with \"Check order status\" below, or email us."
+      "Before paying again, check whether the first payment went through with \"Check order status\" below. If your card was declined, your bank can tell you why."
     ],
     "not_received": [
-      "If your refill hasn't arrived within 30 minutes, contact support.",
-      "You can also check your order status here with the phone number and your checkout email (or the last 4 characters of your Order ID).",
+      "First, check your order status here with the phone number and your checkout email (or the last 4 characters of your Order ID).",
+      "If it shows successful, restart your phone and check your balance with your carrier. If your phone still doesn't work, choose \"Paid, but phone not working\".",
       "Please don't pay again while an order is still being confirmed."
     ],
     "no_account": [
       "No. You can check out as a guest.",
       "Creating a CellPay account is optional."
+    ],
+    "carrier_issue": [
+      "SIM cards, keeping or transferring a phone number, phone or service problems, and plan changes are handled by your carrier, not CellPay.",
+      "Please contact your carrier's customer care. You can find their number on your carrier's website or in your account with them.",
+      "CellPay can help with payments, refills and Auto Pay."
+    ],
+    "refund": [
+      "Your payment posted successfully, and completed payments can't be refunded.",
+      "If your phone still isn't working, the most common reasons are paying less than the full bill or plan amount, or a billing cycle that hasn't started yet.",
+      "Try restarting your phone first. If that doesn't fix it, call 611 from your phone (or *611 on some carriers) and check with your carrier.",
+      "Auto Pay can be cancelled at cellpay.us/faq with \"Unsubscribe From Autopay\"."
+    ],
+    "not_working": [
+      "If your phone still isn't working after paying, the most common reasons are paying less than the full plan or bill amount (taxes, fees or a past-due balance can make it higher), or a billing cycle or due date that hasn't started yet.",
+      "Restart your phone: turn it off for 30 seconds, then turn it back on.",
+      "Check your balance and due date with your carrier. Type your carrier and \"balance\" (for example \"Cricket balance\") to see how.",
+      "If calls work but data or picture messages don't, ask your carrier to update your APN (network) settings.",
+      "Still no service? Call your carrier at 611 from your phone (some carriers use *611). Plan, SIM and service problems can only be fixed by the carrier."
+    ],
+    "balance": [
+      "Your carrier keeps your balance, plan and due date. Most carriers let you check them with a code, a text or their app.",
+      "Type your carrier and \"balance\" (for example \"AT&T balance\") and I'll show you how."
     ]
   },
   "autopay": {
     "lines": [
-      "You can cancel Auto Pay yourself: tap \"Unsubscribe From Autopay\" below and enter the phone number on Auto Pay plus your checkout email (or the last 4 characters of your Order ID).",
-      "We confirm by email within 1 business day. Payments already made aren't refunded."
+      "Auto Pay can be cancelled at cellpay.us/faq with \"Unsubscribe From Autopay\"; completed payments can't be refunded.",
+      "Tap \"Unsubscribe From Autopay\" below and enter the phone number on Auto Pay plus your checkout email (or the last 4 characters of your Order ID)."
     ],
     "open": "Cancel Auto Pay",
-    "fallback": "Prefer email? Write to support@getcellpay.com from the email you used at checkout, with the phone number on Auto Pay. We reply within 1 business day.",
+    "fallback": "Prefer email? Write to support@getcellpay.com from the email you used at checkout and include the phone number on Auto Pay.",
     "formLanguageNote": ""
   },
   "orderStatus": {
@@ -72,21 +100,21 @@
     "invalidPhone": "Enter all 10 digits",
     "invalidVerifier": "Enter your checkout email, or the last 4 letters or numbers of your Order ID.",
     "result": {
-      "success": "This order shows as successful.",
-      "pending": "We're still confirming this payment. Please don't pay again. Check back in a few minutes; if your refill hasn't arrived within 30 minutes, contact support.",
-      "unconfirmed": "We couldn't confirm this payment yet. Please don't pay again. Contact support and we'll check it for you.",
+      "success": "This order shows as successful, so the payment was sent to your carrier. If your phone still isn't working, make sure you paid the full plan amount and that your billing cycle has started, restart your phone, then call your carrier at 611.",
+      "pending": "We're still confirming this payment. Please don't pay again. Check again here in a few minutes. If it's still pending after 30 minutes, contact support with your phone number and order details.",
+      "unconfirmed": "We couldn't confirm this payment yet. Please don't pay again. Contact support with your phone number and order details.",
       "failed": "This payment didn't go through. If you see a charge for it, contact support before paying again.",
-      "not_found": "We couldn't find an order with those details. Check the phone number and email (or Order ID), then try again, or contact support.",
+      "not_found": "We couldn't find an order with those details. Check the phone number and email (or Order ID), then try again. If you were charged and still can't find it, contact support.",
       "invalid": "Please check the phone number and your checkout email (or the last 4 characters of your Order ID), then try again.",
-      "rate_limited": "Too many attempts. Please try again later or contact support.",
-      "unavailable": "Order status is temporarily unavailable. Please try again in a few minutes or contact support.",
-      "error": "Something went wrong. Please try again or contact support."
+      "rate_limited": "Too many attempts. Please wait a few minutes and try again.",
+      "unavailable": "Order status is temporarily unavailable. Please try again in a few minutes, and please don't pay again in the meantime.",
+      "error": "Something went wrong. Please try again, and don't pay again until you've checked your order status."
     }
   },
   "contact": {
     "title": "Contact support",
     "intro": "Send us a message about a refill or an order.",
-    "hours": "We typically respond within 24 hours on business days.",
+    "hours": "Messages sent here go to CellPay support.",
     "cardWarning": "Never share card details (card number, expiration date or security code) in this form.",
     "nameLabel": "Name",
     "contactLabel": "Phone or email",
@@ -94,7 +122,7 @@
     "last4Label": "Order ID, last 4 (optional)",
     "submit": "Send message",
     "sending": "Sending…",
-    "sent": "Thanks! Your message was sent. We typically respond within 24 hours on business days.",
+    "sent": "Thanks! Your message was sent to CellPay support.",
     "invalidName": "Please enter your name.",
     "invalidContact": "Enter a 10-digit phone number or a valid email.",
     "invalidMessage": "Please enter a message (up to 1000 characters).",
@@ -104,7 +132,7 @@
     "invalid": "Please check your details and try again.",
     "unavailable": "Messages are temporarily unavailable. Please try again in a few minutes, or email us.",
     "directLabel": "Customer Support",
-    "hoursWeekday": "Monday – Friday: 9:00 AM – 6:00 PM (EST)",
-    "hoursWeekend": "Saturday – Sunday: 10:00 AM – 4:00 PM (EST)"
+    "hoursWeekday": "Monday – Friday: 9:00 AM – 6:00 PM (ET)",
+    "hoursWeekend": "Saturday – Sunday: 10:00 AM – 4:00 PM (ET)"
   }
 }
