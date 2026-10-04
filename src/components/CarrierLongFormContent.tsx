@@ -184,7 +184,7 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
     { name: "$50 — Unlimited Plan", description: "Unlimited talk, text & data with 5GB mobile hotspot for 30 days." },
     { name: "$65 — Unlimited Plus", description: "Unlimited talk, text & data, 15GB hotspot, and HD streaming." },
     { name: "$75 — Unlimited Max", description: "Unlimited everything with priority data, 25GB hotspot, and Mexico/Canada calling." },
-    { name: "Custom Top-Up ($5–$300)", description: "Add airtime in any amount to your existing AT&T Prepaid balance." },
+    { name: "Custom Top-Up ($5–$150)", description: "Add airtime in any amount to your existing AT&T Prepaid balance." },
   ],
   faqH2: "AT&T Prepaid Refill FAQs",
   faqs: [

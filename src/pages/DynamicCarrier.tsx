@@ -401,7 +401,9 @@ const DynamicCarrier = ({
         if (cpRange && cp && !Array.isArray(cp)) {
           setShowRange(true);
           setRangeMin(cp.carrier?.rangeMin ?? 5);
-          setRangeMax(cp.carrier?.rangeMax ?? 300);
+          // CS-1: CellPay's checkout rejects AT&T (topup-at) range-plan amounts over $150 ("Invalid amout for the range plan."),
+          // even when carriers/view says 300 (www.cellpay.us). refill.cellpay.us already gets 150 from the API.
+          setRangeMax(carrierSlug === "topup-at" ? Math.min(cp.carrier?.rangeMax ?? 300, 150) : (cp.carrier?.rangeMax ?? 300));
           if (typeof cp.rangePlan === "string" && cp.rangePlan !== "") {
             setRangePlanId(cp.rangePlan);
           } else if (cp.carrier?.rangePlan) {
