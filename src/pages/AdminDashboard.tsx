@@ -148,10 +148,13 @@ export default function AdminDashboard() {
         if (data.length < PAGE) break;
       }
       setLogs(all);
-      // Unique visitor sessions in the same range (approx funnel top)
-      let vq = supabase.from("page_visitors").select("session_id", { count: "exact", head: true });
-      if (since) vq = vq.gte("last_seen", since);
-      const { count: vCount } = await vq;
+      // Unique visitor sessions in the same range (approx funnel top). Always bounded on last_seen (idx_page_visitors_last_seen);
+      // "All time" = the 90-day page_visitors retention window (AD-1).
+      const vSince = since ?? new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString();
+      const { count: vCount } = await supabase
+        .from("page_visitors")
+        .select("session_id", { count: "exact", head: true })
+        .gte("last_seen", vSince);
       setPeriodVisitors(vCount || 0);
       setLoading(false);
     };
@@ -183,22 +186,38 @@ export default function AdminDashboard() {
     return () => { supabase.removeChannel(ch); };
   }, [isAdmin]);
 
-  // Live visitors (presence) — refresh every 10s
+  // Live visitors (presence) — timer refresh every 30s, paused while the tab is hidden (AD-1: no realtime feed for page_visitors)
   useEffect(() => {
     if (!isAdmin) return;
+    let t: number | undefined;
     const fetchVisitors = async () => {
       const since = new Date(Date.now() - 60_000).toISOString();
       const { data } = await supabase
         .from("page_visitors")
         .select("session_id, path, last_seen")
         .gte("last_seen", since)
-        .order("last_seen", { ascending: false });
+        .order("last_seen", { ascending: false })
+        .limit(1000);
       setVisitors((data as Visitor[]) || []);
       setNow(Date.now());
     };
-    fetchVisitors();
-    const t = window.setInterval(fetchVisitors, 10_000);
-    return () => window.clearInterval(t);
+    const start = () => {
+      if (t !== undefined) return;
+      fetchVisitors();
+      t = window.setInterval(fetchVisitors, 30_000);
+    };
+    const stop = () => {
+      if (t === undefined) return;
+      window.clearInterval(t);
+      t = undefined;
+    };
+    const onVisibility = () => (document.visibilityState === "visible" ? start() : stop());
+    onVisibility();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [isAdmin]);
 
   const liveVisitors = useMemo(() => {
