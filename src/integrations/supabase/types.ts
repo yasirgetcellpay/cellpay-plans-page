@@ -641,6 +641,27 @@ export type Database = {
         }
         Relationships: []
       }
+      plaid_v2_refs: {
+        Row: {
+          bind_h: string
+          created_at: string
+          expires_at: string
+          ref_h: string
+        }
+        Insert: {
+          bind_h: string
+          created_at?: string
+          expires_at: string
+          ref_h: string
+        }
+        Update: {
+          bind_h?: string
+          created_at?: string
+          expires_at?: string
+          ref_h?: string
+        }
+        Relationships: []
+      }
       pockyt_settlement_checks: {
         Row: {
           applied: boolean
@@ -1167,6 +1188,14 @@ export type Database = {
           _text: string
         }
         Returns: number
+      }
+      plaid_v2_bind: {
+        Args: { _bind_h: string; _ref_h: string; _ttl_s?: number }
+        Returns: Json
+      }
+      plaid_v2_claim: {
+        Args: { _bind_h: string; _ref_h: string }
+        Returns: Json
       }
       pockyt_sweep_claim: {
         Args: { _limit: number; _mode: string }
