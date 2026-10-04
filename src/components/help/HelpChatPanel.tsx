@@ -8,7 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { langPath } from "@/lib/i18n";
 import { HELP_CARRIERS, type HelpCarrier } from "./helpRoutes";
 import type { HelpFlags } from "./helpSettings";
-import { QUICK_REPLIES, STRINGS, answerFor, isFaqTopic, matchIntent, type HelpIntent, type HelpLang } from "./helpFaq";
+import { QUICK_REPLIES, STRINGS, answerFor, isFaqTopic, matchIntent, offersSupportAfter, type HelpIntent, type HelpLang } from "./helpFaq";
+import { careFor } from "./helpCarrierCare";
 import { MAX_MESSAGE, MAX_NAME, cleanLast4, cleanPhone, cleanVerifier, errorKindFor, formatPhoneInput, isDoNotPayAgain, isValidContact, parseOrderStatus, type HelpErrorKind, type OrderStatusValue } from "./helpValidate";
 
 const HelpAutoPayCancel = lazy(() => import("./HelpAutoPayCancel"));
@@ -16,7 +17,7 @@ const HelpAutoPayCancel = lazy(() => import("./HelpAutoPayCancel"));
 type View = "chat" | "order" | "contact";
 type OrderResult = OrderStatusValue | HelpErrorKind;
 
-interface Msg { id: number; from: "bot" | "user"; lines: string[]; carriers?: HelpCarrier[] | "all"; quick?: boolean; autopay?: boolean; }
+interface Msg { id: number; from: "bot" | "user"; lines: string[]; carriers?: HelpCarrier[] | "all"; quick?: boolean; autopay?: boolean; support?: boolean; }
 
 const SUPPORT_EMAIL = "support@getcellpay.com"; // CellPay lists no support phone number.
 
@@ -79,8 +80,9 @@ const HelpChatPanel = ({ open, lang, flags, onClose }: Props) => {
       add.push({ id: nextId++, from: "bot", lines: [s.ui.footer], quick: true });
     } else if (isFaqTopic(intent)) {
       add.push({
-        id: nextId++, from: "bot", lines: answerFor(intent, lang),
+        id: nextId++, from: "bot", lines: [...answerFor(intent, lang), ...careFor(intent, carriers, lang)],
         carriers: intent === "carriers" ? (carriers.length ? carriers : "all") : undefined,
+        support: offersSupportAfter(intent) || undefined,
         quick: true,
       });
     } else {
@@ -116,7 +118,7 @@ const HelpChatPanel = ({ open, lang, flags, onClose }: Props) => {
           <p className="text-[16px] font-extrabold leading-tight">{s.ui.title}</p>
           <p className="text-[12px] text-white/85">{s.ui.subtitle}</p>
         </div>
-        <button type="button" onClick={onClose} aria-label={s.ui.close} className="rounded-md p-1 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
+        <button type="button" onClick={onClose} aria-label={s.ui.close} className="-mr-2 -mt-1.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
@@ -135,6 +137,12 @@ const HelpChatPanel = ({ open, lang, flags, onClose }: Props) => {
               : "max-w-[92%] rounded-2xl rounded-bl-sm bg-muted px-3 py-2 text-[14px] text-foreground"}>
               {m.lines.map((l, i) => <p key={i} className={i ? "mt-1.5" : ""}>{l}</p>)}
               {m.carriers && <CarrierLinks lang={lang} carriers={m.carriers} />}
+              {m.support && (
+                <button type="button" onClick={() => respond("contact", s.ui.stillNeedHelp)} data-testid="help-refund-support"
+                  className="mt-2 inline-flex min-h-[44px] items-center text-[13px] font-semibold text-cellpay-green underline underline-offset-2">
+                  {s.ui.stillNeedHelp}
+                </button>
+              )}
               {m.autopay && (
                 <Suspense fallback={null}>
                   <HelpAutoPayCancel openLabel={s.autopay.open} fallback={s.autopay.fallback} formLanguageNote={s.autopay.formLanguageNote} />
