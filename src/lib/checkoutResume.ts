@@ -17,6 +17,11 @@ const CTX_KEY = "cp_checkout_ctx_v1"; // this tab only (sessionStorage)
 const PREFILL_KEY = "cp_checkout_prefill_v1"; // one-shot phone hand-back to the carrier page (keeps the number out of the URL)
 const CTX_TTL_MS = 30 * 60 * 1000;
 const PREFILL_TTL_MS = 10 * 60 * 1000;
+// CK-0b: last validated hand-off in this tab. Unlike CTX_KEY it survives the Cash App redirect, so the return page can offer
+// "Try again" (carrier page with the number and amount filled in). Inputs only (carrier, phone, amount), never a fee or total.
+const LAST_KEY = "cp_checkout_last_v1";
+const LAST_TTL_MS = 24 * 60 * 60 * 1000;
+const METHOD_KEY = "cp_checkout_method_v1"; // CK-0b: payment method chosen for that order (this tab, 30 min)
 
 // Carrier API slug -> carrier page (EN path), name and colour. Dynamic entries mirror App.tsx carrierRoutes; the static pages'
 // hand-off slugs (Straight Talk, US Cellular, AT&T FirstNet) only get a page to send the customer back to.
@@ -104,6 +109,7 @@ export function writeCheckoutCtx(s: CheckoutHandoff): void {
       v: 1, ts: Date.now(), phone: s.phone, amount: String(s.amount), planId: s.planId ?? null,
       carrierSlug: s.carrierSlug, carrierName: s.carrierName, brandColor: s.brandColor,
     }));
+    sessionStorage.setItem(LAST_KEY, JSON.stringify({ v: 1, ts: Date.now(), phone: digits10(s.phone), amount: String(s.amount), carrierSlug: s.carrierSlug }));
   } catch { /* storage unavailable: no resume */ }
 }
 
@@ -213,5 +219,56 @@ export async function resolveCheckoutFromUrl(lang: Language, search: string, has
     };
   } catch {
     return back();
+  }
+}
+
+// ─── CK-0b: Cash App return page "Try again" + payment method kept for the same order ───
+const RETURN_PARAMS = ["pockyt_session_id", "session_id", "transaction_id", "status", "pending_log_id"];
+
+/** Carrier, phone and amount of the order: from the link (?carrier&amount&phone, all three) or this tab's last hand-off (24 h).
+ *  Null unless all three are known. */
+export function cashAppRetryInfo(search: string): { slug: string; phone: string; amount: string } | null {
+  const q = new URLSearchParams(search);
+  const slug = slugFromParam(q.get("carrier") || q.get("carrierSlug") || q.get("slug"));
+  const phone = digits10(q.get("phone") || q.get("phone_number") || "");
+  const amount = Number((q.get("amount") || "").trim());
+  if (slug && phone && Number.isFinite(amount) && amount > 0) return { slug, phone, amount: String(amount) };
+  try {
+    const v = JSON.parse(sessionStorage.getItem(LAST_KEY) || "null");
+    if (!v || v.v !== 1 || typeof v.ts !== "number" || Date.now() - v.ts > LAST_TTL_MS || v.ts > Date.now() + 60000) return null;
+    const s = typeof v.carrierSlug === "string" && CARRIERS[v.carrierSlug] ? v.carrierSlug : null;
+    const d = digits10(String(v.phone || ""));
+    const n = Number(v.amount);
+    return s && d && n > 0 ? { slug: s, phone: d, amount: String(n) } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** "Try again": that carrier's page (EN/ES) with the number (one-shot hand-back, as CK-0) and ?amount= filled in; gclid, utm_*
+ *  and hash kept, Cash App return params dropped. Call it on click only (it writes the hand-back). */
+export function cashAppRetryTarget(lang: Language, info: { slug: string; phone: string; amount: string }, search: string, hash: string): string {
+  const q = new URLSearchParams(search);
+  RETURN_PARAMS.forEach((k) => q.delete(k));
+  const s = q.toString();
+  return carrierPageTarget(lang, info.slug, info.phone, info.amount, s ? `?${s}` : "", hash);
+}
+
+type OrderRef = { carrierSlug: string; phone: string; amount: string | number };
+const orderKey = (o: OrderRef) => `${o.carrierSlug}|${digits10(String(o.phone))}|${Number(o.amount)}`;
+
+/** Remember the payment method chosen for this order (this tab). */
+export function writeCheckoutMethod(o: OrderRef, method: string): void {
+  try { sessionStorage.setItem(METHOD_KEY, JSON.stringify({ v: 1, ts: Date.now(), order: orderKey(o), method })); } catch { /* ignore */ }
+}
+
+/** Payment method chosen before for the same order (same carrier, number and amount) in the last 30 minutes, else null. */
+export function readCheckoutMethod(o: OrderRef): string | null {
+  try {
+    const v = JSON.parse(sessionStorage.getItem(METHOD_KEY) || "null");
+    if (!v || v.v !== 1 || v.order !== orderKey(o) || typeof v.method !== "string" || Date.now() - Number(v.ts) > CTX_TTL_MS) return null;
+    return v.method;
+  } catch {
+    return null;
   }
 }

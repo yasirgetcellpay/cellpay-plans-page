@@ -24,7 +24,7 @@ import { applySeoHead } from "@/lib/seo";
 import { getGclid } from "@/lib/tracking";
 import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib/subdivisions";
 import { useLang, t } from "@/lib/i18n";
-import { readCheckoutCtx, writeCheckoutCtx, clearCheckoutCtx, resolveCheckoutFromUrl, carrierPageTarget, cashAppReturnTarget, stripResumeParams } from "@/lib/checkoutResume";
+import { readCheckoutCtx, writeCheckoutCtx, clearCheckoutCtx, resolveCheckoutFromUrl, carrierPageTarget, cashAppReturnTarget, stripResumeParams, readCheckoutMethod, writeCheckoutMethod } from "@/lib/checkoutResume";
 
 interface LocationState {
   phone: string;
@@ -150,6 +150,24 @@ const Checkout = () => {
   const [autoPayTerms, setAutoPayTerms] = useState(false);
   const [showSaveInfoTip, setShowSaveInfoTip] = useState(false);
   const [applePayAvailable, setApplePayAvailable] = useState(false);
+  // CK-0b: back on checkout for the same order (back from Cash App / PayPal / Klarna, reload, resume) -> keep the method chosen
+  // before. Hidden (PLAID_ENABLED false) or unavailable -> stays card (the default). Saved per order, this tab only.
+  const methodRestoredRef = useRef(false);
+  useEffect(() => {
+    if (!state || methodRestoredRef.current) return;
+    const saved = readCheckoutMethod({ carrierSlug: state.carrierSlug, phone: state.phone, amount: state.amount });
+    if (saved === "applepay" && !applePayAvailable) return; // Apple Pay is detected async: card until it is available
+    methodRestoredRef.current = true;
+    const allowed: PaymentMethod[] = ["card", "googlepay", "paypal", "cashapp", "klarna"];
+    if (applePayAvailable) allowed.push("applepay");
+    if (PLAID_ENABLED) allowed.push("plaid");
+    if (saved && allowed.includes(saved as PaymentMethod)) setPaymentMethod(saved as PaymentMethod);
+  }, [state, applePayAvailable]);
+  useEffect(() => {
+    if (!state || (!methodRestoredRef.current && paymentMethod === "card")) return;
+    methodRestoredRef.current = true;
+    writeCheckoutMethod({ carrierSlug: state.carrierSlug, phone: state.phone, amount: state.amount }, paymentMethod);
+  }, [state, paymentMethod]);
 
   // Unique session identifier — generated once per checkout flow and reused
   // across kount_ssid / riskified_sessionid / cbsys_sessionid on every request.
