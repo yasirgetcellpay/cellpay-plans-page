@@ -20,9 +20,9 @@ interface HelpQuickActionsProps {
 const SUPPORT_EMAIL = "support@getcellpay.com";
 // [AP-1c] Neutral reply, shown for matches and non-matches alike, so it must not promise a cancellation.
 const NEUTRAL_RESULT =
-  "If the details match an Auto Pay on that number, we'll cancel it and confirm by email within 1 business day.";
-const FALLBACK_PREFIX = "No email by then? Email";
-const FALLBACK_SUFFIX = "with your number and we'll take care of it.";
+  "If the details match an Auto Pay on that number, we'll cancel it. Completed payments can't be refunded.";
+const FALLBACK_PREFIX = "Questions? Email";
+const FALLBACK_SUFFIX = "with your phone number.";
 
 // [AP-1c] Keep a focused field visible above the iOS keyboard.
 const revealOnFocus = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -237,7 +237,7 @@ export const HelpQuickActions = ({ brandColor = "hsl(101,67%,44%)" }: HelpQuickA
             </DialogTitle>
             <DialogDescription>
               {mode === "lookup"
-                ? `For your privacy, online lookup isn't available. Email ${SUPPORT_EMAIL} with your phone number and Order ID and we'll check it for you.`
+                ? `For your privacy, online lookup isn't available. If your phone isn't working after paying, make sure the full plan amount was paid and your billing cycle has started, restart the phone, then call your carrier at 611. Otherwise, email ${SUPPORT_EMAIL} with your phone number and order details.`
                 : received
                 ? "Request received."
                 : "Enter the wireless number enrolled in autopay, plus the email you used at checkout or the last 4 characters of your Order ID."}
@@ -316,7 +316,7 @@ export const HelpQuickActions = ({ brandColor = "hsl(101,67%,44%)" }: HelpQuickA
               <p className="text-xs text-muted-foreground">
                 Prefer email? Write to{" "}
                 <a href={autopayMailto} className={TAP_LINK}>{SUPPORT_EMAIL}</a>{" "}
-                with the number on Auto Pay. We reply within 1 business day.
+                with the number on Auto Pay.
               </p>
               <div className="flex justify-end">
                 <button
