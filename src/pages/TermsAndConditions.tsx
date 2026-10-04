@@ -36,7 +36,7 @@ const TermsAndConditions = () => {
         <p>Refills are processed promptly upon successful payment. You are responsible for entering the correct phone number. CellPay is not liable for refills sent to incorrect numbers.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">6. No Refunds</h2>
-        <p>All prepaid refill purchases are final and non-refundable once processed. Please verify your phone number and plan selection before completing your purchase. See our Returns & Refunds Policy for exceptions.</p>
+        <p>All prepaid refill purchases are final and non-refundable once processed. Please verify your phone number and plan selection before completing your purchase. If you have a problem with a payment, such as a duplicate charge, see our Returns & Refunds Policy for how to contact support.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">7. Account Responsibility</h2>
         <p>If you create an account, you are responsible for maintaining the confidentiality of your login credentials. You agree to notify us immediately of any unauthorized use.</p>

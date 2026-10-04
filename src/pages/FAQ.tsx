@@ -18,7 +18,7 @@ const faqs = [
   { q: "How long does a refill take?", a: "It can take up to 30 min for a refill to reflect on your account." },
   { q: "What payment methods do you accept?", a: "We accept Visa, Mastercard, American Express, Discover, and Apple Pay." },
   { q: "Do I need to create an account?", a: "No, you can recharge as a guest. However, creating an account lets you track your order history and speeds up future transactions." },
-  { q: "Can I get a refund?", a: "Once a refill is processed, it cannot be reversed. Please double-check your phone number and plan before confirming. See our Returns & Refunds Policy for more details." },
+  { q: "Can I get a refund or cancel a payment?", a: "Completed payments can't be refunded or cancelled, so please double-check your phone number and plan before you pay. Auto Pay can be cancelled at cellpay.us/faq with 'Unsubscribe From Autopay'." },
   { q: "I didn't receive my refill. What should I do?", a: "First, wait 30 minutes and check your account balance. If the credit hasn't been applied, contact us at support@getcellpay.com with your transaction details." },
   { q: "Is CellPay affiliated with any carrier?", a: "No. CellPay is an independent payment processor. All carrier names and trademarks are property of their respective owners." },
 ];
