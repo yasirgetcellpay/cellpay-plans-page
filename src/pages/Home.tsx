@@ -24,7 +24,6 @@ import net10Logo from "@/assets/net10-logo.png";
 import pageplusLogo from "@/assets/pageplus-logo.png";
 import tracfoneLogo from "@/assets/tracfone-logo.svg";
 import ultraLogo from "@/assets/ultra-mobile-logo.png";
-import uscellularLogo from "@/assets/uscellular-logo.png";
 import totalWirelessLogo from "@/assets/total-wireless-logo.png";
 import { ShieldCheck, Zap, Headphones, Receipt, Smartphone, MousePointerClick, ListChecks, CreditCard } from "lucide-react";
 import {
@@ -51,7 +50,6 @@ const localLogos: Record<string, string> = {
   tmobile: tmobileLogo,
   tracfone: tracfoneLogo,
   "ultra-mobile": ultraLogo,
-  "us-cellular": uscellularLogo,
   verizon: verizonLogo,
   "verizon-wireless-flexi": verizonLogo,
   "straight-talk": straightTalkLogo,
@@ -76,7 +74,6 @@ const slugToPath: Record<string, string> = {
   "total-wireless": "/total-wireless",
   tracfone: "/tracfone.html",
   "ultra-mobile": "/ultra-mobile.html",
-  "us-cellular": "/us-cellular.html",
   verizon: "/verizon",
   "verizon-wireless-flexi": "/verizon-wireless-flexi.html",
   "straight-talk": "/straight-talk.html",
@@ -100,7 +97,6 @@ const slugToColor: Record<string, string> = {
   "total-wireless": "bg-[hsl(200,70%,40%)]",
   tracfone: "bg-[hsl(230,70%,30%)]",
   "ultra-mobile": "bg-[hsl(270,50%,40%)]",
-  "us-cellular": "bg-[hsl(220,80%,35%)]",
   verizon: "bg-[hsl(0,100%,45%)]",
   "verizon-wireless-flexi": "bg-[hsl(0,100%,45%)]",
   "straight-talk": "bg-[hsl(72,74%,44%)]",
@@ -125,7 +121,6 @@ const staticCarriers: DisplayCarrier[] = [
   { name: "Total Wireless", logo: totalWirelessLogo, path: "/total-wireless", bg: "bg-[hsl(200,70%,40%)]" },
   { name: "TracFone", logo: tracfoneLogo, path: "/tracfone.html", bg: "bg-[hsl(230,70%,30%)]" },
   { name: "Ultra Mobile", logo: ultraLogo, path: "/ultra-mobile.html", bg: "bg-[hsl(270,50%,40%)]" },
-  { name: "US Cellular", logo: uscellularLogo, path: "/us-cellular.html", bg: "bg-[hsl(220,80%,35%)]" },
 ];
 
 interface DisplayCarrier {
@@ -155,6 +150,8 @@ const excludedSlugs = new Set<string>([
   "xbox",
   "movistar",
   "movistar-flexi",
+  "us-cellular",
+  "uscellular",
 ]);
 
 function mapApiCarrier(c: Carrier): DisplayCarrier | null {

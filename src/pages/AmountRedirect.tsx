@@ -26,21 +26,19 @@ const CARRIER_MAP: Record<string, string> = {
   tracfone: "/tracfone.html",
   ultra: "/ultra-mobile.html",
   ultramobile: "/ultra-mobile.html",
-  uscellular: "/us-cellular.html",
-  "us-cellular": "/us-cellular.html",
   total: "/total-wireless",
   totalwireless: "/total-wireless",
 };
 
 const AmountRedirect = () => {
-  const { search } = useLocation();
+  const { search, hash } = useLocation();
   const params = new URLSearchParams(search);
   const c = (params.get("c") || "").toLowerCase().trim();
   const target = CARRIER_MAP[c] || "/";
   // Preserve any other query params (e.g. tracking) on the destination
   params.delete("c");
   const qs = params.toString();
-  const to = qs ? `${target}?${qs}` : target;
+  const to = (qs ? `${target}?${qs}` : target) + hash;
 
   // Keep an SEO-visible body so crawlers don't see a blank page if they don't follow the redirect immediately.
   useEffect(() => {
