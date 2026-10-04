@@ -33,4 +33,4 @@ CellPay is a US-based prepaid wireless top-up service. Customers select a carrie
 
 - [Privacy Policy](/privacy-policy): How customer data is collected and used.
 - [Terms & Conditions](/terms-and-conditions): Service terms and payment rules.
-- [Returns & Refunds](/returns-policy): When refunds may be considered.
+- [Returns & Refunds](/returns-policy): Completed payments are final and can't be refunded; how to contact support about a payment problem.
