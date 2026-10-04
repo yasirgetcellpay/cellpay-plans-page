@@ -299,7 +299,7 @@ const AP1_NEUTRAL = {
   data: {
     status: true,
     code: "AP_REQUEST_RECEIVED",
-    msg: "If that number has Auto Pay with us, it's now cancelled. We'll confirm by email within 1 business day.",
+    msg: "If that number has Auto Pay with us, it's now cancelled. We'll confirm by email.",
   },
 };
 const AP1_TRY_LATER = {
@@ -858,7 +858,7 @@ async function dedupeClaim(p: Record<string, unknown>, method: string | null): P
 // Marks ONLY on that result: never on declines, throttles, validation errors, non-JSON/gateway pages (504) or timeouts.
 const REFILL_COOLDOWN_S = 600;
 const REFILL_ERROR_RE = /error during refill|auto[- ]?refunded/i;
-const REFILL_COOLDOWN_MSG = "This plan couldn't be refilled just now. Your earlier attempt was refunded automatically. Please try again in about 10 minutes or choose a different plan.";
+const REFILL_COOLDOWN_MSG = "This plan couldn't be refilled just now. Your earlier attempt didn't go through; any pending charge from it will drop off. Please try again in about 10 minutes or choose a different plan.";
 
 async function refillCooldownKey(p: Record<string, unknown>): Promise<string | null> {
   const hashKey = Deno.env.get("GUARD_HASH_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -897,6 +897,150 @@ function isRefillErrorResult(wrapped: Record<string, unknown>): boolean {
   if (result.status === true || st === "true" || st === "success" || st === "completed") return false; // a success never marks
   const msg = text(result.message ?? result.msg ?? data.message ?? data.msg ?? wrapped.error);
   return msg !== null && REFILL_ERROR_RE.test(msg);
+}
+
+
+// ---------------------------------------------------------------------------
+// [fix C] Plaid (Pay by Bank). The browser only ever holds Plaid's short-lived, single-use public_token
+// (sent in payload.plaid_token, as today). The proxy exchanges it server-side through CellPay's
+// payments/plaid/exchange-token and puts the access token into the upstream checkout body only.
+// The access token is never returned to the browser, never logged and never stored: it lives only in
+// this request's memory. payments/plaid/exchange-token is refused for browser calls (403 not_allowed in serve()).
+// ---------------------------------------------------------------------------
+const PLAID_PUBLIC_TOKEN = /^public-(sandbox|development|production)-[0-9a-f-]{36}$/i;
+const PLAID_ACCESS_TOKEN = /^access-(sandbox|development|production)-[0-9a-f-]{36}$/i;
+const PLAID_TOKEN_ANYWHERE = /\b(access|public)-(sandbox|development|production)-[0-9a-f-]{36}\b/gi;
+const PLAID_SECRET_KEYS = /^(access_token|accessToken|plaid_access_token|public_token|publicToken|plaid_token)$/i;
+const PLAID_FAIL_MESSAGE = "We couldn't confirm your bank connection. Please try again or choose another payment method.";
+
+type PlaidFailCode = "PX1" | "PX2" | "PX3";
+
+/** 200 + success:false, the same shape the proxy already returns for upstream failures (handleResult shows message). */
+function plaidFailure(code: PlaidFailCode): Record<string, unknown> {
+  const message = `${PLAID_FAIL_MESSAGE} (${code})`;
+  return { success: false, error: message, data: { status: false, message } };
+}
+
+function findPlaidAccessToken(value: unknown, depth = 0): string | null {
+  if (depth > 3 || !value || typeof value !== "object" || Array.isArray(value)) return null;
+  const r = value as Record<string, unknown>;
+  for (const k of ["access_token", "accessToken", "plaid_access_token"]) {
+    const v = r[k];
+    if (typeof v === "string" && PLAID_ACCESS_TOKEN.test(v)) return v;
+  }
+  return findPlaidAccessToken(r.data, depth + 1);
+}
+
+/** Request for POST /payments/plaid/exchange-token in CellPay's documented format (OpenAPI 1.2.27): checkout context
+ *  (phone_number is required; carrierId, plan_id, slug, email, amount, payment_method) + public_token + Link metadata.
+ *  Only Link's account_id is forwarded from metadata (sent by the browser as plaid_metadata, optional; never a secret). */
+function plaidExchangeRequest(payload: Record<string, unknown>, publicToken: string): Record<string, unknown> {
+  const rec = (v: unknown) => (v && typeof v === "object" && !Array.isArray(v) ? v as Record<string, unknown> : {});
+  const meta = rec(payload.plaid_metadata), pay = rec(payload.payment);
+  const out: Record<string, unknown> = {};
+  for (const k of ["carrierId", "carrier_id", "plan_id", "phone_number", "amount", "is_postpaid", "is_gift", "is_sim", "international"]) {
+    if (payload[k] !== undefined && payload[k] !== null) out[k] = payload[k];
+  }
+  if (typeof payload.carrier_slug === "string") out.slug = payload.carrier_slug;
+  if (typeof pay.email === "string") out.email = pay.email;
+  out.payment_method = "plaid";
+  out.public_token = publicToken;
+  out.metadata = typeof meta.account_id === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(meta.account_id) ? { account_id: meta.account_id } : {};
+  return out;
+}
+
+/** Names of the fields a CellPay 422 complained about (keys of errors, top level or under data). NAMES only, never values. */
+function plaidErrorFieldNames(value: unknown): string {
+  const rec = (v: unknown) => (v && typeof v === "object" && !Array.isArray(v) ? v as Record<string, unknown> : null);
+  const r = rec(value);
+  const errs = rec(r?.errors) ?? rec(rec(r?.data)?.errors);
+  if (!errs) return "";
+  return Object.keys(errs).filter((k) => /^[A-Za-z0-9_.]{1,40}$/.test(k)).slice(0, 8).join(",").slice(0, 120);
+}
+
+/** The exchange reply's "decision" word (documented field, values not documented), for the edge log only. */
+function findPlaidDecision(value: unknown, depth = 0): string | null {
+  if (depth > 3 || !value || typeof value !== "object" || Array.isArray(value)) return null;
+  const r = value as Record<string, unknown>;
+  if (typeof r.decision === "string" && /^[A-Za-z_ -]{1,32}$/.test(r.decision)) return r.decision;
+  return findPlaidDecision(r.data, depth + 1);
+}
+
+/** Upstream checkout body with the access token, or a failure. Never throws, never logs a token. */
+async function plaidUpstreamBody(
+  payload: Record<string, unknown>,
+  headers: Record<string, string>,
+): Promise<{ body: string; decision?: string | null } | { fail: Record<string, unknown>; why?: string }> {
+  const sent = payload.plaid_token;
+  if (typeof sent === "string" && /^access-/i.test(sent.trim())) {
+    console.warn("[fix-c] refused: the browser sent a Plaid access token");
+    return { fail: plaidFailure("PX3"), why: "PX3" };
+  }
+  if (typeof sent !== "string" || !PLAID_PUBLIC_TOKEN.test(sent.trim())) {
+    console.warn("[fix-c] refused: missing or malformed Plaid public token");
+    return { fail: plaidFailure("PX2"), why: "PX2" };
+  }
+  try {
+    const res = await fetch(`${API_BASE}/payments/plaid/exchange-token`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(plaidExchangeRequest(payload, sent.trim())),
+      signal: AbortSignal.timeout(8000),
+    });
+    const parsed = await res.json().catch(() => null);
+    const accessToken = findPlaidAccessToken(parsed);
+    if (!res.ok || !accessToken) {
+      console.warn(`[fix-c] exchange failed: http ${res.status}, access token ${accessToken ? "present" : "absent"}`);
+      const fields = res.status === 422 ? plaidErrorFieldNames(parsed) : "";
+      if (fields) console.warn(`[fix-c] exchange 422 fields: ${fields}`);   // field NAMES only, never values
+      return { fail: plaidFailure("PX1"), why: `PX1:http${res.status}${accessToken ? "" : ":no_token"}${fields ? `:${fields}` : ""}` };
+    }
+    const decision = findPlaidDecision(parsed);
+    if (decision) console.log(`[fix-c] exchange ok, decision=${decision}`);   // a status word only, never a token
+    const { plaid_metadata: _meta, ...checkoutPayload } = payload;            // Link metadata goes to the exchange only
+    return { body: JSON.stringify({ ...checkoutPayload, plaid_token: accessToken }), decision };
+  } catch (error) {
+    console.warn("[fix-c] exchange error:", error instanceof Error ? error.name : "unknown");
+    return { fail: plaidFailure("PX1"), why: `PX1:${error instanceof Error ? error.name.slice(0, 24) : "error"}` };
+  }
+}
+
+/** Removes any Plaid token from an upstream response before it is logged or returned to the browser. */
+function scrubPlaidSecrets(value: unknown, depth = 0): void {
+  if (depth > 8 || !value || typeof value !== "object") return;
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i++) {
+      if (typeof value[i] === "string") value[i] = (value[i] as string).replace(PLAID_TOKEN_ANYWHERE, "[redacted]");
+      else scrubPlaidSecrets(value[i], depth + 1);
+    }
+    return;
+  }
+  const r = value as Record<string, unknown>;
+  for (const k of Object.keys(r)) {
+    const v = r[k];
+    if (PLAID_SECRET_KEYS.test(k)) delete r[k];
+    else if (typeof v === "string") r[k] = v.replace(PLAID_TOKEN_ANYWHERE, "[redacted]");
+    else scrubPlaidSecrets(v, depth + 1);
+  }
+}
+
+// [fix C] Kill switch: fraud_controls.plaid_exchange_mode = 'off' forwards Plaid checkouts exactly as before Fix C.
+// Missing row = on. A failed or slow read keeps the LAST KNOWN mode (on only if this isolate has never read it), so a slow
+// read right after KILL-C can't switch the exchange back on. Read only for Plaid checkouts, cached 30 s.
+let plaidModeCache: { at: number; on: boolean } | null = null;
+async function plaidExchangeOn(): Promise<boolean> {
+  if (plaidModeCache && Date.now() - plaidModeCache.at < 30000) return plaidModeCache.on;
+  const fallback = plaidModeCache?.on ?? true;
+  let on = fallback;
+  try {
+    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const r = await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/rpc/fraud_control_get`, { method: "POST",
+      headers: { apikey: key, authorization: `Bearer ${key}`, "content-type": "application/json" },
+      body: JSON.stringify({ _key: "plaid_exchange_mode" }), signal: AbortSignal.timeout(800) });
+    if (r.ok) { const t = await r.text(); on = !(t && JSON.parse(t) === "off"); } else { await r.body?.cancel(); }
+  } catch { on = fallback; }
+  plaidModeCache = { at: Date.now(), on };
+  return on;
 }
 
 serve(async (req) => {
@@ -940,6 +1084,10 @@ serve(async (req) => {
     }
     if (!normalizeEndpoint(endpoint)) {
       return guardRefusal(corsHeaders, 403, "invalid_endpoint", method, endpoint, guardOrigin);
+    }
+    // [fix C] payments/plaid/exchange-token is server-to-server only (plaidUpstreamBody); never forwarded for a browser.
+    if (normalizeEndpoint(endpoint)?.segments.join("/") === "payments/plaid/exchange-token") {
+      return guardRefusal(corsHeaders, 403, "not_allowed", method, endpoint, guardOrigin);
     }
 
     // [SEC-1] transactions/orders family: the order list needs a verified login, the receipt passes, everything else is refused.
@@ -1018,6 +1166,24 @@ serve(async (req) => {
       ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), arbLogMeta(payloadRecord, bearerToken, body.lang))
       : null;
 
+    // [fix C] Plaid checkout: server-side public_token -> access_token exchange (plaidUpstreamBody above).
+    const isPlaidCheckout = shouldLogTransaction && (paymentMethod || "").toLowerCase() === "plaid" && await plaidExchangeOn();
+    if (isPlaidCheckout) {
+      const prepared = await plaidUpstreamBody(payloadRecord, headers);
+      // One PII-free row per Plaid checkout for the watch (watch/plaid-first-3.sql): outcome word + this attempt's log id. Never a token.
+      recordGuardEvent({ code: "fail" in prepared ? `fixc:${prepared.why ?? "fail"}` : `fixc:exchange_ok:${prepared.decision ?? "none"}`,
+        method: "POST", endpoint_shape: `checkout/transaction#log=${txLogId ?? "none"}`, origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null });
+      if ("fail" in prepared) {
+        await finishTransactionLog(txLogId, prepared.fail, paymentMethod);
+        if (txLogId) prepared.fail.pending_log_id = txLogId;
+        return new Response(JSON.stringify(prepared.fail), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      fetchOptions.body = prepared.body;
+    }
+
     const response = await fetch(url, fetchOptions);
 
     let data: unknown;
@@ -1039,6 +1205,9 @@ serve(async (req) => {
     if (shouldLogTransaction && refillKey && isRefillErrorResult(wrapped)) {
       try { await refillCooldownRpc("refill_cooldown_mark", refillKey); } catch { /* refill cooldown fails open */ }
     }
+    // [fix C] No Plaid token may reach the log or the browser.
+    if (isPlaidCheckout) scrubPlaidSecrets(wrapped);
+
     if (shouldLogTransaction) {
       await finishTransactionLog(txLogId, wrapped, paymentMethod);
       if (txLogId) wrapped.pending_log_id = txLogId;
