@@ -10,6 +10,7 @@ import { PlanGrid } from "@/components/PlanGrid";
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
+import { takeCheckoutPrefill } from "@/lib/checkoutResume";
 import { t, type Language } from "@/lib/i18n";
 import {
   CricketQuickPayContent,
@@ -212,7 +213,8 @@ const DynamicCarrier = ({
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tr = t(lang);
-  const [phone, setPhone] = useState("");
+  // CK-0: number handed back by Checkout when a direct /checkout load can't be resumed (read once; never in the URL).
+  const [phone, setPhone] = useState(() => formatPhone(takeCheckoutPrefill(carrierSlug)));
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(true);
