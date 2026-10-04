@@ -10,9 +10,11 @@
     "inputAria": "Su pregunta",
     "send": "Enviar",
     "back": "Volver",
-    "fallback": "Lo sentimos, no entendimos su pregunta. Elija uno de estos temas o escríbanos un correo electrónico.",
+    "fallback": "Lo sentimos, no entendimos su pregunta. Elija uno de estos temas o escriba su operador y el problema (por ejemplo, \"Cricket sin servicio\").",
     "allCarriers": "Ver todos los operadores",
-    "footer": "¿Necesita más ayuda? Escriba a support@getcellpay.com"
+    "footer": "¿Necesita más ayuda? Escriba a support@getcellpay.com",
+    "stillNeedHelp": "¿Aún necesita ayuda? Contactar a soporte",
+    "carrierAsk": "Dígame su operador y le mostraré su número de servicio al cliente."
   },
   "quick": {
     "refill_how": "Cómo recargar",
@@ -23,7 +25,11 @@
     "no_account": "¿Necesito una cuenta?",
     "order_status": "Estado del pedido",
     "autopay": "Cancelar pago automático",
-    "contact": "Contactar a soporte"
+    "contact": "Contactar a soporte",
+    "carrier_issue": "Teléfono, SIM o plan",
+    "refund": "Pagos completados",
+    "not_working": "Pagué, pero mi teléfono no funciona",
+    "balance": "Consultar saldo"
   },
   "answers": {
     "refill_how": [
@@ -39,25 +45,47 @@
     ],
     "declined": [
       "Revise bien los datos de su tarjeta, su número de teléfono y su plan antes de confirmar.",
-      "Antes de pagar de nuevo, consulte si el primer pago se completó con \"Estado del pedido\" abajo, o escríbanos un correo electrónico."
+      "Antes de pagar de nuevo, use \"Estado del pedido\" abajo para ver si el primer pago se completó. Si su tarjeta fue rechazada, su banco le puede decir por qué."
     ],
     "not_received": [
-      "Si su recarga no ha llegado en 30 minutos, comuníquese con soporte.",
-      "También puede consultar el estado de su pedido aquí con el número de teléfono y el correo electrónico que usó al pagar (o los últimos 4 caracteres de su ID del pedido).",
-      "No pague de nuevo mientras un pedido se está confirmando."
+      "Primero consulte el estado de su pedido aquí con el número de teléfono y el correo electrónico que usó al pagar (o los últimos 4 caracteres de su ID del pedido).",
+      "Si aparece como completado, reinicie su teléfono y consulte su saldo con su operador. Si su teléfono todavía no funciona, elija \"Pagué, pero mi teléfono no funciona\".",
+      "Por favor, no pague de nuevo mientras se confirma un pedido."
     ],
     "no_account": [
       "No. Puede pagar como invitado.",
       "Crear una cuenta de CellPay es opcional."
+    ],
+    "carrier_issue": [
+      "Las tarjetas SIM, conservar o transferir un número de teléfono, los problemas con el teléfono o el servicio y los cambios de plan los maneja su operador, no CellPay.",
+      "Comuníquese con el servicio al cliente de su operador. Encontrará el número en el sitio web de su operador o en su cuenta con ellos.",
+      "CellPay puede ayudarle con pagos, recargas y el pago automático."
+    ],
+    "refund": [
+      "Su pago se completó correctamente y los pagos completados no se pueden reembolsar.",
+      "Si su teléfono todavía no funciona, los motivos más comunes son haber pagado menos del monto completo de su factura o plan, o que su ciclo de facturación todavía no haya comenzado.",
+      "Primero intente reiniciar su teléfono. Si eso no lo soluciona, llame al 611 desde su teléfono (o al *611 con algunos operadores) y consulte con su operador.",
+      "El pago automático (Auto Pay) se puede cancelar en cellpay.us/faq con «Unsubscribe From Autopay»."
+    ],
+    "not_working": [
+      "Si su teléfono todavía no funciona después de pagar, los motivos más comunes son haber pagado menos del monto completo de su plan o factura (los impuestos, cargos o un saldo vencido pueden aumentarlo), o que su ciclo de facturación o fecha de pago todavía no haya comenzado.",
+      "Reinicie su teléfono: apáguelo por 30 segundos y vuelva a encenderlo.",
+      "Consulte su saldo y su fecha de pago con su operador. Escriba su operador y \"saldo\" (por ejemplo, \"Cricket saldo\") para ver cómo.",
+      "Si las llamadas funcionan pero los datos o los mensajes con fotos no, pida a su operador que actualice su configuración APN (de red).",
+      "¿Sigue sin servicio? Llame a su operador al 611 desde su teléfono (algunos operadores usan *611). Los problemas de plan, SIM y servicio solo los puede resolver su operador."
+    ],
+    "balance": [
+      "Su operador tiene su saldo, su plan y su fecha de pago. La mayoría de los operadores le permiten consultarlos con un código, un mensaje de texto o su app.",
+      "Escriba su operador y \"saldo\" (por ejemplo, \"AT&T saldo\") y le mostraré cómo."
     ]
   },
   "autopay": {
     "lines": [
-      "Puede cancelar el pago automático usted mismo: toque \"Unsubscribe From Autopay\" abajo e ingrese el número de teléfono con pago automático y el correo electrónico que usó al pagar (o los últimos 4 caracteres de su ID del pedido).",
-      "Le confirmamos por correo electrónico en un plazo de 1 día hábil. Los pagos ya realizados no se reembolsan."
+      "El pago automático (Auto Pay) se puede cancelar en cellpay.us/faq con «Unsubscribe From Autopay». Los pagos completados no se pueden reembolsar.",
+      "Toque \"Unsubscribe From Autopay\" abajo e ingrese el número de teléfono inscrito en el pago automático y el correo electrónico que usó al pagar (o los últimos 4 caracteres de su ID del pedido)."
     ],
     "open": "Cancelar pago automático",
-    "fallback": "¿Prefiere el correo electrónico? Escriba a support@getcellpay.com desde el correo que usó al pagar, con el número de teléfono con pago automático. Respondemos en un plazo de 1 día hábil.",
+    "fallback": "¿Prefiere el correo electrónico? Escriba a support@getcellpay.com desde el correo que usó al pagar e incluya el número de teléfono inscrito en el pago automático.",
     "formLanguageNote": "El formulario de cancelación está en inglés: \"Wireless number\" es su número de teléfono y \"Checkout email or last 4 of Order ID\" es su correo electrónico o los últimos 4 caracteres de su ID del pedido."
   },
   "orderStatus": {
@@ -65,28 +93,28 @@
     "intro": "Ingrese el número de teléfono que recargó y el correo electrónico que usó al pagar. También puede usar los últimos 4 caracteres de su ID del pedido.",
     "phoneLabel": "Número de teléfono",
     "phonePlaceholder": "(XXX) XXX-XXXX",
-    "verifierLabel": "Correo electrónico o últimos 4 del ID del pedido",
-    "verifierPlaceholder": "usted@ejemplo.com o 1A2B",
+    "verifierLabel": "Correo electrónico o ID del pedido (últimos 4)",
+    "verifierPlaceholder": "nombre@ejemplo.com o 1A2B",
     "submit": "Consultar estado",
     "checking": "Consultando…",
     "invalidPhone": "Ingrese los 10 dígitos",
     "invalidVerifier": "Ingrese el correo electrónico que usó al pagar, o los últimos 4 caracteres (letras o números) de su ID del pedido.",
     "result": {
-      "success": "Este pedido aparece como completado.",
-      "pending": "Todavía estamos confirmando este pago. No pague de nuevo. Vuelva a consultar en unos minutos; si su recarga no ha llegado en 30 minutos, comuníquese con soporte.",
-      "unconfirmed": "Todavía no pudimos confirmar este pago. No pague de nuevo. Comuníquese con soporte y lo revisaremos.",
-      "failed": "Este pago no se completó. Si ve un cargo por este pago, comuníquese con soporte antes de pagar de nuevo.",
-      "not_found": "No encontramos un pedido con esos datos. Revise el número de teléfono y el correo electrónico (o el ID del pedido) e inténtelo de nuevo, o comuníquese con soporte.",
-      "invalid": "Revise el número de teléfono y el correo electrónico que usó al pagar (o los últimos 4 caracteres del ID de su pedido) e inténtelo de nuevo.",
-      "rate_limited": "Demasiados intentos. Inténtelo más tarde o comuníquese con soporte.",
-      "unavailable": "El estado del pedido no está disponible en este momento. Inténtelo de nuevo en unos minutos o comuníquese con soporte.",
-      "error": "Ocurrió un error. Inténtelo de nuevo o comuníquese con soporte."
+      "success": "Este pedido aparece como completado, así que el pago se envió a su operador. Si su teléfono todavía no funciona, verifique que pagó el monto completo de su plan y que su ciclo de facturación ya comenzó, reinicie su teléfono y luego llame a su operador al 611.",
+      "pending": "Todavía estamos confirmando este pago. No pague de nuevo. Vuelva a consultar aquí en unos minutos. Si sigue pendiente después de 30 minutos, comuníquese con soporte con su número de teléfono y los datos de su pedido.",
+      "unconfirmed": "Aún no pudimos confirmar este pago. No pague de nuevo. Comuníquese con soporte con su número de teléfono y los datos de su pedido.",
+      "failed": "Este pago no se completó. Si ve un cargo, comuníquese con soporte antes de volver a pagar.",
+      "not_found": "No encontramos un pedido con esos datos. Revise el número de teléfono y el correo electrónico (o el ID del pedido) e inténtelo de nuevo. Si se le hizo un cargo y aún no lo encuentra, comuníquese con soporte.",
+      "invalid": "Revise el número de teléfono y el correo electrónico que usó al pagar (o los últimos 4 caracteres de su ID del pedido) e inténtelo de nuevo.",
+      "rate_limited": "Demasiados intentos. Espere unos minutos e inténtelo de nuevo.",
+      "unavailable": "El estado del pedido no está disponible en este momento. Inténtelo de nuevo en unos minutos y, por favor, no pague de nuevo mientras tanto.",
+      "error": "Ocurrió un error. Inténtelo de nuevo y no pague de nuevo hasta consultar el estado de su pedido."
     }
   },
   "contact": {
     "title": "Contactar a soporte",
     "intro": "Envíenos un mensaje sobre una recarga o un pedido.",
-    "hours": "Normalmente respondemos en un plazo de 24 horas en días hábiles.",
+    "hours": "Los mensajes enviados aquí van al equipo de soporte de CellPay.",
     "cardWarning": "Nunca comparta datos de su tarjeta (número de tarjeta, fecha de vencimiento o código de seguridad) en este formulario.",
     "nameLabel": "Nombre",
     "contactLabel": "Teléfono o correo electrónico",
@@ -94,7 +122,7 @@
     "last4Label": "ID del pedido, últimos 4 (opcional)",
     "submit": "Enviar mensaje",
     "sending": "Enviando…",
-    "sent": "¡Gracias! Su mensaje se envió. Normalmente respondemos en un plazo de 24 horas en días hábiles.",
+    "sent": "¡Gracias! Su mensaje se envió al equipo de soporte de CellPay.",
     "invalidName": "Por favor ingrese su nombre.",
     "invalidContact": "Ingrese un teléfono de 10 dígitos o un correo electrónico válido.",
     "invalidMessage": "Por favor escriba un mensaje (hasta 1000 caracteres).",
