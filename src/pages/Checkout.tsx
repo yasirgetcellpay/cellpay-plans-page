@@ -140,6 +140,13 @@ const Checkout = () => {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  // Coming BACK from Cash App's hosted page (or PayPal/bank) can restore this page from the browser's
+  // back-forward cache with "Processing..." still showing. Reset it so PLACE ORDER NOW works again.
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => { if (e.persisted) setSubmitting(false); };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   // PL-0: a hidden Pay by Bank can never stay selected (falls back to the default, card).
@@ -1098,7 +1105,7 @@ const Checkout = () => {
       setSubmitting(false);
       return;
     }
-    return; // keep submitting true
+    return "pending" as const; // Apple Pay sheet is open; its callbacks reset submitting
   };
 
   // ─── Klarna ───
@@ -1269,7 +1276,7 @@ const Checkout = () => {
       } catch { /* ignore */ }
       clearCheckoutCtx();
       window.location.href = nestedHostedUrl;
-      return;
+      return "redirect" as const; // leaving for Cash App: keep "Processing" until the page unloads
     }
 
     // Cash App requires the customer to complete payment in the Pockyt-hosted
@@ -1324,23 +1331,24 @@ const Checkout = () => {
     setSubmitting(true);
     setErrorMsg(null);
 
+    // "Processing..." stays ONLY while the Apple Pay sheet is open or the browser is leaving for Cash App's
+    // hosted page. Every other outcome (failure, cancel, close, error) resets it here (QA #19).
+    let keepProcessing = false;
     try {
       switch (paymentMethod) {
         case "card": await handleCard(); break;
-        case "paypal": return; // PayPal is handled by SDK Buttons in the UI
-        case "plaid": await handlePlaid(); return;
+        case "paypal": break; // PayPal is handled by SDK Buttons in the UI
+        case "plaid": await handlePlaid(); break; // resolves after Plaid success/exit
         case "googlepay": await handleGooglePay(); break;
-        case "applepay": await handleApplePay(); return;
-        case "klarna": await handleKlarna(); return;
-        case "cashapp": await handleCashApp(); return;
+        case "applepay": keepProcessing = (await handleApplePay()) === "pending"; break;
+        case "klarna": await handleKlarna(); break; // resolves after the Klarna callback
+        case "cashapp": keepProcessing = (await handleCashApp()) === "redirect"; break;
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Payment failed";
       setErrorMsg(msg);
     } finally {
-      if (!["paypal", "plaid", "applepay", "klarna", "cashapp"].includes(paymentMethod)) {
-        setSubmitting(false);
-      }
+      if (!keepProcessing) setSubmitting(false);
     }
   };
 
