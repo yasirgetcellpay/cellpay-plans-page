@@ -146,6 +146,90 @@ export type Database = {
         }
         Relationships: []
       }
+      checkout_guard_events: {
+        Row: {
+          amount: number | null
+          card_h: string | null
+          card_type: string | null
+          carrier_slug: string | null
+          created_at: string
+          decision: string
+          email_h: string | null
+          id: string
+          ip_class: string | null
+          ip_h: string | null
+          ip_src: string | null
+          mode: string | null
+          outcome: string
+          payment_method: string | null
+          phone_h: string | null
+          reason: string | null
+          sess_h: string | null
+          turnstile: string | null
+          visitor_h: string | null
+        }
+        Insert: {
+          amount?: number | null
+          card_h?: string | null
+          card_type?: string | null
+          carrier_slug?: string | null
+          created_at?: string
+          decision?: string
+          email_h?: string | null
+          id?: string
+          ip_class?: string | null
+          ip_h?: string | null
+          ip_src?: string | null
+          mode?: string | null
+          outcome?: string
+          payment_method?: string | null
+          phone_h?: string | null
+          reason?: string | null
+          sess_h?: string | null
+          turnstile?: string | null
+          visitor_h?: string | null
+        }
+        Update: {
+          amount?: number | null
+          card_h?: string | null
+          card_type?: string | null
+          carrier_slug?: string | null
+          created_at?: string
+          decision?: string
+          email_h?: string | null
+          id?: string
+          ip_class?: string | null
+          ip_h?: string | null
+          ip_src?: string | null
+          mode?: string | null
+          outcome?: string
+          payment_method?: string | null
+          phone_h?: string | null
+          reason?: string | null
+          sess_h?: string | null
+          turnstile?: string | null
+          visitor_h?: string | null
+        }
+        Relationships: []
+      }
+      checkout_guard_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       help_events: {
         Row: {
           created_at: string
@@ -513,6 +597,11 @@ export type Database = {
           _window_s?: number
         }
         Returns: Json
+      }
+      checkout_guard_check: { Args: { _k: Json }; Returns: Json }
+      checkout_guard_outcome: {
+        Args: { _id: string; _outcome: string }
+        Returns: boolean
       }
       finalize_transaction_log: {
         Args: {
