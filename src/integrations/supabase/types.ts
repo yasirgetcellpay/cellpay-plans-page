@@ -803,6 +803,48 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_tag_fires: {
+        Row: {
+          created_at: string
+          hashid: string | null
+          source: string
+          transaction_id: string
+          value: number | null
+        }
+        Insert: {
+          created_at?: string
+          hashid?: string | null
+          source?: string
+          transaction_id: string
+          value?: number | null
+        }
+        Update: {
+          created_at?: string
+          hashid?: string | null
+          source?: string
+          transaction_id?: string
+          value?: number | null
+        }
+        Relationships: []
+      }
+      purchase_tag_guard_config: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       refill_cooldown: {
         Row: {
           created_at: string
@@ -1177,6 +1219,15 @@ export type Database = {
         Args: { _bucket: string; _max: number; _window_seconds: number }
         Returns: boolean
       }
+      log_purchase_fire: {
+        Args: {
+          _hashid?: string
+          _source?: string
+          _transaction_id: string
+          _value?: number
+        }
+        Returns: undefined
+      }
       log_transaction_attempt: { Args: { _data: Json }; Returns: string }
       ops_alarm_push_key_ok: { Args: { _k: string }; Returns: boolean }
       ops_alarm_raise: {
@@ -1238,6 +1289,7 @@ export type Database = {
         Returns: string
       }
       pockyt_sweep_secret_ok: { Args: { _s: string }; Returns: boolean }
+      purchase_tag_cliff_sweep: { Args: never; Returns: number }
       record_presence: {
         Args: { _path: string; _session_id: string; _user_agent: string }
         Returns: undefined
