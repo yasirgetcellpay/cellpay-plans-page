@@ -27,6 +27,13 @@ const HTML_ROUTES = [
   "guest-lyca.html",
   "guest-metropcs.html",
   "guest-boost.html",
+  // GO-1 dedicated ad landers (EN): .html shells + folder shells for clean /go/* URLs
+  "go/boost.html",
+  "go/metro.html",
+  "go/simple-mobile.html",
+  "go/boost/index.html",
+  "go/metro/index.html",
+  "go/simple-mobile/index.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
@@ -200,6 +207,34 @@ const htmlAliasPlugin = (): Plugin => ({
       },
     };
 
+    // GO-1 ad landers: H1 + intro in static shell for AdsBot; pages are noindex (see GO_SHELLS).
+    const GO_CONTENT: Record<string, { h1: string; intro: string }> = {
+      "go/boost.html": {
+        h1: "Pay Your Boost Mobile Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+      },
+      "go/metro.html": {
+        h1: "Pay Your Metro by T-Mobile Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+      },
+      "go/simple-mobile.html": {
+        h1: "Pay Your Simple Mobile Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+      },
+      "go/boost/index.html": {
+        h1: "Pay Your Boost Mobile Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+      },
+      "go/metro/index.html": {
+        h1: "Pay Your Metro by T-Mobile Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+      },
+      "go/simple-mobile/index.html": {
+        h1: "Pay Your Simple Mobile Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+      },
+    };
+
 
     // Per-route SEO metadata for static alias HTML files.
     // Bots and social scrapers read the static HTML before JS runs, so each
@@ -243,6 +278,13 @@ const htmlAliasPlugin = (): Plugin => ({
       "guest-metropcs.html":       { title: "Metro PCS Guest Refill — Online Top-Up | CellPay",      description: "Recharge Metro PCS as a guest. No login needed. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "guest-boost.html":          { title: "Boost Mobile Guest Refill — Online Top-Up | CellPay",   description: "Recharge Boost Mobile as a guest. No login needed. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "total-wireless.html":       { title: "Total Wireless Refill — Online Top-Up | CellPay",       description: "Recharge Total Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      // GO-1 titles (noindex applied via GO_SHELLS in buildMeta)
+      "go/boost.html":             { title: "Pay Your Boost Mobile Bill Online | CellPay", description: "Pay your Boost Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay." },
+      "go/metro.html":             { title: "Pay Your Metro by T-Mobile Bill Online | CellPay", description: "Pay your Metro by T-Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay." },
+      "go/simple-mobile.html":     { title: "Pay Your Simple Mobile Bill Online | CellPay", description: "Refill Simple Mobile online in 3 steps. No login. Low service fee shown before you pay." },
+      "go/boost/index.html":       { title: "Pay Your Boost Mobile Bill Online | CellPay", description: "Pay your Boost Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay." },
+      "go/metro/index.html":       { title: "Pay Your Metro by T-Mobile Bill Online | CellPay", description: "Pay your Metro by T-Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay." },
+      "go/simple-mobile/index.html": { title: "Pay Your Simple Mobile Bill Online | CellPay", description: "Refill Simple Mobile online in 3 steps. No login. Low service fee shown before you pay." },
     };
     const ES_TITLE_PREFIX: Record<string, string> = {};
     // Carriers removed from the site (Oct 2026). Their old URLs keep a noindex shell.
@@ -268,6 +310,11 @@ const htmlAliasPlugin = (): Plugin => ({
       "returns-policy.html", "returns-and-refunds-policy.html",
       "es/returns-and-refunds-policy.html", "es/privacy-policy.html",
       "es/terms-and-conditions.html", "es/returns-policy.html",
+    ]);
+    // GO-1 dedicated ad landers: always noindex,follow (ads only; not for organic).
+    const GO_SHELLS = new Set([
+      "go/boost.html", "go/metro.html", "go/simple-mobile.html",
+      "go/boost/index.html", "go/metro/index.html", "go/simple-mobile/index.html",
     ]);
     const buildMeta = (route: string): Meta => {
       // Legacy per-amount redirect shells: noindex,follow
@@ -296,6 +343,14 @@ const htmlAliasPlugin = (): Plugin => ({
           noindex: true,
           lang: "en",
         };
+      }
+      // GO-1 dedicated ad landers: noindex,follow (titles from CARRIER_META)
+      if (GO_SHELLS.has(route)) {
+        const meta = CARRIER_META[route] || {
+          title: "Pay Your Bill Online | CellPay",
+          description: "No login. Pay for anyone. Low service fee shown before you pay.",
+        };
+        return { ...meta, noindex: true, lang: "en" };
       }
       // Removed carriers (Red Pocket, Movistar, Xbox, US Cellular): generic noindex,follow shell;
       // the React route sends visitors to the home page.
@@ -443,7 +498,7 @@ const htmlAliasPlugin = (): Plugin => ({
       // React's createRoot replaces #root children on hydration, so users
       // briefly see this fallback then the full app mounts — no lasting
       // visual change to the app's design.
-      const guest = GUEST_CONTENT[route];
+      const guest = GUEST_CONTENT[route] || GO_CONTENT[route];
       if (guest) {
         const prerender =
           `<div id="root">` +
