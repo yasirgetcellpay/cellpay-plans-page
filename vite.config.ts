@@ -62,6 +62,9 @@ const HTML_ROUTES = [
   // GO-ES-LYCA: ES Lyca Mobile shells
   "es/go/lyca.html",
   "es/go/lyca/index.html",
+  // GO-ES-H2O: ES H2O Wireless shells
+  "es/go/h2o.html",
+  "es/go/h2o/index.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
@@ -349,6 +352,14 @@ const htmlAliasPlugin = (): Plugin => ({
         h1: "Pague Lyca Mobile en línea",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
+      "es/go/h2o.html": {
+        h1: "Pague H2O Wireless en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/h2o/index.html": {
+        h1: "Pague H2O Wireless en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
     };
 
 
@@ -428,6 +439,9 @@ const htmlAliasPlugin = (): Plugin => ({
       // GO-ES-LYCA
       "es/go/lyca.html": { title: "Pague Lyca Mobile en línea | CellPay", description: "Pague su Lyca Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/lyca/index.html": { title: "Pague Lyca Mobile en línea | CellPay", description: "Pague su Lyca Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      // GO-ES-H2O
+      "es/go/h2o.html": { title: "Pague H2O Wireless en línea | CellPay", description: "Pague su H2O Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/h2o/index.html": { title: "Pague H2O Wireless en línea | CellPay", description: "Pague su H2O Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
     };
     const ES_TITLE_PREFIX: Record<string, string> = {};
     // Carriers removed from the site (Oct 2026). Their old URLs keep a noindex shell.
@@ -474,6 +488,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/go/ultra.html", "es/go/ultra/index.html",
       // GO-ES-LYCA
       "es/go/lyca.html", "es/go/lyca/index.html",
+      // GO-ES-H2O
+      "es/go/h2o.html", "es/go/h2o/index.html",
     ]);
     const buildMeta = (route: string): Meta => {
       // Legacy per-amount redirect shells: noindex,follow
