@@ -336,7 +336,16 @@ const GoLander = ({
         } else if (cp && !cpRange) {
           if (Array.isArray(cp)) {
             setShowFixedPlans(true);
-            setPlans(normalizePlans(cp as Array<Record<string, unknown>>));
+            // Straight Talk API returns wireless + Broadband-* + addon-* together; ads lander shows wireless only.
+            const raw = cp as Array<Record<string, unknown>>;
+            const filtered =
+              carrierSlug === "straight-talk"
+                ? raw.filter((p) => {
+                    const id = String(p.plan_id || p.planId || p.id || p.ID || "");
+                    return !/^(broadband-|addon-)/i.test(id);
+                  })
+                : raw;
+            setPlans(normalizePlans(filtered));
           } else if (Array.isArray(cp.plans) && cp.plans.length > 0) {
             setShowFixedPlans(true);
             setPlans(normalizePlans(cp.plans));

@@ -848,6 +848,70 @@ const App = () => (
           }
         />
 
+        {/* GO-ES-ST Batch A: EN + ES Straight Talk ad landers (keep legacy /straight-talk.html). */}
+        <Route
+          path="/go/straight-talk"
+          element={
+            <GoLander
+              carrierName="Straight Talk"
+              carrierSlug="straight-talk"
+              carrierId={333370}
+              brandColor="hsl(72,74%,44%)"
+              logo={straightTalkLogo}
+              h1="Pay Your Straight Talk Bill Online"
+              title="Pay Your Straight Talk Bill Online | CellPay"
+              description="Pay your Straight Talk bill online. No login. Pay for anyone. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/straight-talk.html"
+          element={
+            <GoLander
+              carrierName="Straight Talk"
+              carrierSlug="straight-talk"
+              carrierId={333370}
+              brandColor="hsl(72,74%,44%)"
+              logo={straightTalkLogo}
+              h1="Pay Your Straight Talk Bill Online"
+              title="Pay Your Straight Talk Bill Online | CellPay"
+              description="Pay your Straight Talk bill online. No login. Pay for anyone. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/es/go/straight-talk"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Straight Talk"
+              carrierSlug="straight-talk"
+              carrierId={333370}
+              brandColor="hsl(72,74%,44%)"
+              logo={straightTalkLogo}
+              h1="Pague Straight Talk en línea"
+              title="Pague Straight Talk en línea | CellPay"
+              description="Pague su Straight Talk en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/straight-talk.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Straight Talk"
+              carrierSlug="straight-talk"
+              carrierId={333370}
+              brandColor="hsl(72,74%,44%)"
+              logo={straightTalkLogo}
+              h1="Pague Straight Talk en línea"
+              title="Pague Straight Talk en línea | CellPay"
+              description="Pague su Straight Talk en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+
         {/* Removed carriers (Red Pocket, Xbox, Movistar) — noindex + redirect to the home page. */}
         {REMOVED_CARRIER_PATHS.flatMap((p) => [
           <Route key={`removed-${p}`} path={p} element={<RemovedCarrierRedirect to="/" />} />,
