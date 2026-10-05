@@ -568,7 +568,7 @@ const App = () => (
           }
         />
 
-        {/* GO-1: dedicated EN ad landers (Ads §6). noindex, ads only, legal footer only. Clean + .html URLs. */}
+        {/* GO-1 / GO-1b / GO-2: dedicated ad landers. noindex, ads only, legal footer only. Clean + .html URLs. */}
         <Route
           path="/go/boost"
           element={
@@ -578,9 +578,9 @@ const App = () => (
               carrierId={36}
               brandColor="hsl(27,100%,50%)"
               logo={boostLogo}
-              h1="Pay Your Boost Mobile Bill Online"
-              title="Pay Your Boost Mobile Bill Online | CellPay"
-              description="Pay your Boost Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay."
+              h1="Pay Your Boost Bill Without Signing In"
+              title="Pay Your Boost Bill Without Signing In | CellPay"
+              description="Pay your Boost Mobile bill without signing in. Enter the phone number, pick the amount, pay. Low service fee shown before you pay."
             />
           }
         />
@@ -593,9 +593,9 @@ const App = () => (
               carrierId={36}
               brandColor="hsl(27,100%,50%)"
               logo={boostLogo}
-              h1="Pay Your Boost Mobile Bill Online"
-              title="Pay Your Boost Mobile Bill Online | CellPay"
-              description="Pay your Boost Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay."
+              h1="Pay Your Boost Bill Without Signing In"
+              title="Pay Your Boost Bill Without Signing In | CellPay"
+              description="Pay your Boost Mobile bill without signing in. Enter the phone number, pick the amount, pay. Low service fee shown before you pay."
             />
           }
         />
@@ -608,9 +608,9 @@ const App = () => (
               carrierId={38}
               brandColor="hsl(270,60%,32%)"
               logo={metroLogo}
-              h1="Pay Your Metro by T-Mobile Bill Online"
-              title="Pay Your Metro by T-Mobile Bill Online | CellPay"
-              description="Pay your Metro by T-Mobile (Metro PCS) bill online. No login. Pay for anyone. Low service fee shown before you pay."
+              h1="Pay Your Metro Bill as a Guest"
+              title="Pay Your Metro Bill as a Guest | CellPay"
+              description="Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
             />
           }
         />
@@ -623,9 +623,9 @@ const App = () => (
               carrierId={38}
               brandColor="hsl(270,60%,32%)"
               logo={metroLogo}
-              h1="Pay Your Metro by T-Mobile Bill Online"
-              title="Pay Your Metro by T-Mobile Bill Online | CellPay"
-              description="Pay your Metro by T-Mobile (Metro PCS) bill online. No login. Pay for anyone. Low service fee shown before you pay."
+              h1="Pay Your Metro Bill as a Guest"
+              title="Pay Your Metro Bill as a Guest | CellPay"
+              description="Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
             />
           }
         />
@@ -640,7 +640,7 @@ const App = () => (
               logo={simpleMobileLogo}
               h1="Pay Your Simple Mobile Bill Online"
               title="Pay Your Simple Mobile Bill Online | CellPay"
-              description="Refill Simple Mobile online in 3 steps: number, amount, pay. No login. Low service fee shown before you pay."
+              description="Pay your Simple Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay."
             />
           }
         />
@@ -655,106 +655,67 @@ const App = () => (
               logo={simpleMobileLogo}
               h1="Pay Your Simple Mobile Bill Online"
               title="Pay Your Simple Mobile Bill Online | CellPay"
-              description="Refill Simple Mobile online in 3 steps: number, amount, pay. No login. Low service fee shown before you pay."
-            />
-          }
-        />
-
-
-        {/* GO-1b: ES ad landers + Ultra EN (Ads §6). noindex. No Total Wireless. */}
-        <Route
-          path="/es/go/metro"
-          element={
-            <GoLander
-              lang="es"
-              carrierName="Metro PCS"
-              carrierSlug="metropcs"
-              carrierId={38}
-              brandColor="hsl(270,60%,32%)"
-              logo={metroLogo}
-              h1="Pague su factura de Metro en línea"
-              title="Pague su factura de Metro en línea | CellPay"
-              description="Pague su Metro by T-Mobile en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar."
+              description="Pay your Simple Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay."
             />
           }
         />
         <Route
-          path="/es/go/metro.html"
+          path="/go/cricket"
           element={
             <GoLander
-              lang="es"
-              carrierName="Metro PCS"
-              carrierSlug="metropcs"
-              carrierId={38}
-              brandColor="hsl(270,60%,32%)"
-              logo={metroLogo}
-              h1="Pague su factura de Metro en línea"
-              title="Pague su factura de Metro en línea | CellPay"
-              description="Pague su Metro by T-Mobile en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar."
-            />
-          }
-        />
-        <Route
-          path="/es/go/boost"
-          element={
-            <GoLander
-              lang="es"
-              carrierName="Boost Mobile"
-              carrierSlug="boost"
-              carrierId={36}
-              brandColor="hsl(27,100%,50%)"
-              logo={boostLogo}
-              h1="Pague su factura de Boost Mobile en línea"
-              title="Pague su factura de Boost Mobile en línea | CellPay"
-              description="Pague su Boost Mobile en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar."
-            />
-          }
-        />
-        <Route
-          path="/es/go/boost.html"
-          element={
-            <GoLander
-              lang="es"
-              carrierName="Boost Mobile"
-              carrierSlug="boost"
-              carrierId={36}
-              brandColor="hsl(27,100%,50%)"
-              logo={boostLogo}
-              h1="Pague su factura de Boost Mobile en línea"
-              title="Pague su factura de Boost Mobile en línea | CellPay"
-              description="Pague su Boost Mobile en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar."
-            />
-          }
-        />
-        <Route
-          path="/es/go/cricket"
-          element={
-            <GoLander
-              lang="es"
               carrierName="Cricket Wireless"
               carrierSlug="topup-crc"
               carrierId={45}
               brandColor="hsl(82,60%,42%)"
               logo={cricketLogo}
-              h1="Pague su factura de Cricket en línea"
-              title="Pague su factura de Cricket en línea | CellPay"
-              description="Pague su Cricket Wireless en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar."
+              h1="Pay Your Cricket Bill as a Guest"
+              title="Pay Your Cricket Bill as a Guest | CellPay"
+              description="Pay your Cricket Wireless bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
             />
           }
         />
         <Route
-          path="/es/go/cricket.html"
+          path="/go/cricket.html"
           element={
             <GoLander
-              lang="es"
               carrierName="Cricket Wireless"
               carrierSlug="topup-crc"
               carrierId={45}
               brandColor="hsl(82,60%,42%)"
               logo={cricketLogo}
-              h1="Pague su factura de Cricket en línea"
-              title="Pague su factura de Cricket en línea | CellPay"
-              description="Pague su Cricket Wireless en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar."
+              h1="Pay Your Cricket Bill as a Guest"
+              title="Pay Your Cricket Bill as a Guest | CellPay"
+              description="Pay your Cricket Wireless bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/att"
+          element={
+            <GoLander
+              carrierName="AT&T Prepaid"
+              carrierSlug="topup-at"
+              carrierId={3}
+              brandColor="hsl(196,100%,44%)"
+              logo={attLogo}
+              h1="Pay Your AT&T Prepaid Bill Online"
+              title="Pay Your AT&T Prepaid Bill Online | CellPay"
+              description="Pay or refill your AT&T Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/att.html"
+          element={
+            <GoLander
+              carrierName="AT&T Prepaid"
+              carrierSlug="topup-at"
+              carrierId={3}
+              brandColor="hsl(196,100%,44%)"
+              logo={attLogo}
+              h1="Pay Your AT&T Prepaid Bill Online"
+              title="Pay Your AT&T Prepaid Bill Online | CellPay"
+              description="Pay or refill your AT&T Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay."
             />
           }
         />
@@ -769,7 +730,7 @@ const App = () => (
               logo={ultraLogo}
               h1="Pay Your Ultra Mobile Bill Online"
               title="Pay Your Ultra Mobile Bill Online | CellPay"
-              description="Pay your Ultra Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay."
+              description="Pay your Ultra Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay."
             />
           }
         />
@@ -784,7 +745,105 @@ const App = () => (
               logo={ultraLogo}
               h1="Pay Your Ultra Mobile Bill Online"
               title="Pay Your Ultra Mobile Bill Online | CellPay"
-              description="Pay your Ultra Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay."
+              description="Pay your Ultra Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay."
+            />
+          }
+        />
+
+        {/* GO-1b / GO-2: ES ad landers. Fully Spanish UI. noindex. No Total Wireless. */}
+        <Route
+          path="/es/go/metro"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Metro PCS"
+              carrierSlug="metropcs"
+              carrierId={38}
+              brandColor="hsl(270,60%,32%)"
+              logo={metroLogo}
+              h1="Pague su factura de Metro como invitado"
+              title="Pague su factura de Metro como invitado | CellPay"
+              description="Pague su Metro by T-Mobile (Metro PCS) como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/metro.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Metro PCS"
+              carrierSlug="metropcs"
+              carrierId={38}
+              brandColor="hsl(270,60%,32%)"
+              logo={metroLogo}
+              h1="Pague su factura de Metro como invitado"
+              title="Pague su factura de Metro como invitado | CellPay"
+              description="Pague su Metro by T-Mobile (Metro PCS) como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/boost"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Boost Mobile"
+              carrierSlug="boost"
+              carrierId={36}
+              brandColor="hsl(27,100%,50%)"
+              logo={boostLogo}
+              h1="Pague Boost sin iniciar sesión"
+              title="Pague Boost sin iniciar sesión | CellPay"
+              description="Pague su Boost Mobile sin iniciar sesión. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/boost.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Boost Mobile"
+              carrierSlug="boost"
+              carrierId={36}
+              brandColor="hsl(27,100%,50%)"
+              logo={boostLogo}
+              h1="Pague Boost sin iniciar sesión"
+              title="Pague Boost sin iniciar sesión | CellPay"
+              description="Pague su Boost Mobile sin iniciar sesión. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/cricket"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Cricket Wireless"
+              carrierSlug="topup-crc"
+              carrierId={45}
+              brandColor="hsl(82,60%,42%)"
+              logo={cricketLogo}
+              h1="Pague Cricket en línea"
+              title="Pague Cricket en línea | CellPay"
+              description="Pague su Cricket Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/cricket.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Cricket Wireless"
+              carrierSlug="topup-crc"
+              carrierId={45}
+              brandColor="hsl(82,60%,42%)"
+              logo={cricketLogo}
+              h1="Pague Cricket en línea"
+              title="Pague Cricket en línea | CellPay"
+              description="Pague su Cricket Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
             />
           }
         />
