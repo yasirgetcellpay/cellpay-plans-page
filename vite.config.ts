@@ -53,6 +53,9 @@ const HTML_ROUTES = [
   "go/straight-talk/index.html",
   "es/go/straight-talk.html",
   "es/go/straight-talk/index.html",
+  // GO-ES-SM: ES Simple Mobile shells
+  "es/go/simple-mobile.html",
+  "es/go/simple-mobile/index.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
@@ -316,6 +319,14 @@ const htmlAliasPlugin = (): Plugin => ({
         h1: "Pague Straight Talk en línea",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
+      "es/go/simple-mobile.html": {
+        h1: "Pague Simple Mobile en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/simple-mobile/index.html": {
+        h1: "Pague Simple Mobile en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
     };
 
 
@@ -386,6 +397,9 @@ const htmlAliasPlugin = (): Plugin => ({
       "go/straight-talk/index.html": { title: "Pay Your Straight Talk Bill Online | CellPay", description: "Pay your Straight Talk bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       "es/go/straight-talk.html": { title: "Pague Straight Talk en línea | CellPay", description: "Pague su Straight Talk en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/straight-talk/index.html": { title: "Pague Straight Talk en línea | CellPay", description: "Pague su Straight Talk en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      // GO-ES-SM
+      "es/go/simple-mobile.html": { title: "Pague Simple Mobile en línea | CellPay", description: "Pague su Simple Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/simple-mobile/index.html": { title: "Pague Simple Mobile en línea | CellPay", description: "Pague su Simple Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
     };
     const ES_TITLE_PREFIX: Record<string, string> = {};
     // Carriers removed from the site (Oct 2026). Their old URLs keep a noindex shell.
@@ -426,6 +440,8 @@ const htmlAliasPlugin = (): Plugin => ({
       // GO-ES-ST Batch A
       "go/straight-talk.html", "go/straight-talk/index.html",
       "es/go/straight-talk.html", "es/go/straight-talk/index.html",
+      // GO-ES-SM
+      "es/go/simple-mobile.html", "es/go/simple-mobile/index.html",
     ]);
     const buildMeta = (route: string): Meta => {
       // Legacy per-amount redirect shells: noindex,follow

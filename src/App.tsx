@@ -912,6 +912,40 @@ const App = () => (
           }
         />
 
+        {/* GO-ES-SM: ES Simple Mobile ad lander (/es/go/simple-mobile). */}
+        <Route
+          path="/es/go/simple-mobile"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Simple Mobile"
+              carrierSlug="s1"
+              carrierId={15}
+              brandColor="hsl(101,67%,44%)"
+              logo={simpleMobileLogo}
+              h1="Pague Simple Mobile en línea"
+              title="Pague Simple Mobile en línea | CellPay"
+              description="Pague su Simple Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/simple-mobile.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Simple Mobile"
+              carrierSlug="s1"
+              carrierId={15}
+              brandColor="hsl(101,67%,44%)"
+              logo={simpleMobileLogo}
+              h1="Pague Simple Mobile en línea"
+              title="Pague Simple Mobile en línea | CellPay"
+              description="Pague su Simple Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+
         {/* Removed carriers (Red Pocket, Xbox, Movistar) — noindex + redirect to the home page. */}
         {REMOVED_CARRIER_PATHS.flatMap((p) => [
           <Route key={`removed-${p}`} path={p} element={<RemovedCarrierRedirect to="/" />} />,
