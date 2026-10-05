@@ -168,7 +168,7 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with debit, credit, Apple Pay, Google Pay, PayPal, Cash App, Klarna, or bank pay. Every AT&T Prepaid payment is encrypted in transit (TLS).",
+      body: "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every AT&T Prepaid payment is encrypted in transit (TLS).",
     },
     {
       title: "Step 4 — AT&T Refill Confirmation",
@@ -202,7 +202,7 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
     },
     {
       q: "What payment methods can I use for AT&T Prepaid?",
-      a: "Visa, Mastercard, American Express, Discover, JCB, Diners, Apple Pay, Google Pay, PayPal, Cash App Pay, Klarna, and bank payment via Plaid.",
+      a: "Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, and Cash App.",
     },
     {
       q: "Are AT&T autopay discounts included?",
@@ -236,7 +236,7 @@ export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with debit, credit, Apple Pay, Google Pay, PayPal, Cash App, Klarna, or bank pay. Every Straight Talk payment is encrypted in transit (TLS).",
+      body: "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every Straight Talk payment is encrypted in transit (TLS).",
     },
     {
       title: "Step 4 — Straight Talk Refill Confirmation",
@@ -274,7 +274,7 @@ export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
     },
     {
       q: "What payment methods can I use for Straight Talk?",
-      a: "Visa, Mastercard, American Express, Discover, JCB, Diners, Apple Pay, Google Pay, PayPal, Cash App Pay, Klarna, and bank payment via Plaid.",
+      a: "Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, and Cash App.",
     },
     {
       q: "Will a Straight Talk refill restore suspended service?",
@@ -304,7 +304,7 @@ export const VERIZON_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with debit, credit, Apple Pay, Google Pay, PayPal, Cash App, Klarna, or bank pay. Every Verizon Prepaid payment is encrypted in transit (TLS).",
+      body: "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every Verizon Prepaid payment is encrypted in transit (TLS).",
     },
     {
       title: "Step 4 — Verizon Refill Confirmation",
@@ -338,7 +338,7 @@ export const VERIZON_CONFIG: CarrierLongFormConfig = {
     },
     {
       q: "What payment methods can I use for Verizon Prepaid?",
-      a: "Visa, Mastercard, American Express, Discover, JCB, Diners, Apple Pay, Google Pay, PayPal, Cash App Pay, Klarna, and bank payment via Plaid.",
+      a: "Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, and Cash App.",
     },
     {
       q: "Do Verizon Prepaid autopay discounts apply on CellPay?",
