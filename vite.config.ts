@@ -48,6 +48,11 @@ const HTML_ROUTES = [
   "go/att.html",
   "go/cricket/index.html",
   "go/att/index.html",
+  // GO-ES-ST Batch A: Straight Talk EN + ES shells
+  "go/straight-talk.html",
+  "go/straight-talk/index.html",
+  "es/go/straight-talk.html",
+  "es/go/straight-talk/index.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
@@ -295,6 +300,22 @@ const htmlAliasPlugin = (): Plugin => ({
         h1: "Pay Your AT&T Prepaid Bill Online",
         intro: "Guest OK. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
+      "go/straight-talk.html": {
+        h1: "Pay Your Straight Talk Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "go/straight-talk/index.html": {
+        h1: "Pay Your Straight Talk Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "es/go/straight-talk.html": {
+        h1: "Pague Straight Talk en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/straight-talk/index.html": {
+        h1: "Pague Straight Talk en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
     };
 
 
@@ -360,6 +381,11 @@ const htmlAliasPlugin = (): Plugin => ({
       "go/att.html": { title: "Pay Your AT&T Prepaid Bill Online | CellPay", description: "Pay or refill your AT&T Prepaid bill online. Guest OK. Low service fee shown before you pay." },
       "go/cricket/index.html": { title: "Pay Your Cricket Bill as a Guest | CellPay", description: "Pay your Cricket Wireless bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
       "go/att/index.html": { title: "Pay Your AT&T Prepaid Bill Online | CellPay", description: "Pay or refill your AT&T Prepaid bill online. Guest OK. Low service fee shown before you pay." },
+      // GO-ES-ST Batch A
+      "go/straight-talk.html": { title: "Pay Your Straight Talk Bill Online | CellPay", description: "Pay your Straight Talk bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
+      "go/straight-talk/index.html": { title: "Pay Your Straight Talk Bill Online | CellPay", description: "Pay your Straight Talk bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
+      "es/go/straight-talk.html": { title: "Pague Straight Talk en línea | CellPay", description: "Pague su Straight Talk en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/straight-talk/index.html": { title: "Pague Straight Talk en línea | CellPay", description: "Pague su Straight Talk en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
     };
     const ES_TITLE_PREFIX: Record<string, string> = {};
     // Carriers removed from the site (Oct 2026). Their old URLs keep a noindex shell.
@@ -397,6 +423,9 @@ const htmlAliasPlugin = (): Plugin => ({
       // GO-2
       "go/cricket.html", "go/att.html",
       "go/cricket/index.html", "go/att/index.html",
+      // GO-ES-ST Batch A
+      "go/straight-talk.html", "go/straight-talk/index.html",
+      "es/go/straight-talk.html", "es/go/straight-talk/index.html",
     ]);
     const buildMeta = (route: string): Meta => {
       // Legacy per-amount redirect shells: noindex,follow
