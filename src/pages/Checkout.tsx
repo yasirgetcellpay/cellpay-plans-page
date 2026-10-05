@@ -1550,15 +1550,24 @@ const Checkout = () => {
                   key={m.key}
                   type="button"
                   onClick={() => setPaymentMethod(m.key)}
-                  className={`rounded-lg border-2 py-2.5 px-2 text-xs font-bold transition-all flex flex-col items-center justify-center gap-1.5 min-h-[60px] ${
+                  aria-pressed={paymentMethod === m.key}
+                  className={`relative rounded-lg border-2 py-2.5 px-2 text-xs font-bold transition-all flex flex-col items-center justify-center gap-1.5 min-h-[68px] ${
                     paymentMethod === m.key
-                      ? "border-current text-primary-foreground"
+                      ? "text-foreground shadow-sm"
                       : "border-border text-muted-foreground hover:border-current bg-card"
                   }`}
-                  style={paymentMethod === m.key ? { backgroundColor: brandColor, borderColor: brandColor } : undefined}
+                  style={paymentMethod === m.key ? { borderColor: brandColor, backgroundColor: /^#[0-9a-f]{6}$/i.test(brandColor || "") ? `${brandColor}14` : undefined, boxShadow: `0 0 0 1px ${brandColor}` } : undefined}
                 >
-                  <m.Brand className="h-5 w-auto max-w-[60px]" />
-                  <span className="text-[10px] leading-none">{m.label}</span>
+                  {paymentMethod === m.key && (
+                    <CheckCircle2 className="absolute top-1 right-1 h-3.5 w-3.5" style={{ color: brandColor }} aria-hidden="true" />
+                  )}
+                  <span className="h-6 w-full flex items-center justify-center">
+                    <m.Brand className="h-5 w-auto max-w-[64px] object-contain" />
+                  </span>
+                  <span className="text-[11px] leading-tight">{m.label}</span>
+                  {m.key === "plaid" && (
+                    <span className="text-[10px] leading-none font-medium text-muted-foreground">{lang === "es" ? "Vincule su banco" : "Link your bank"}</span>
+                  )}
                 </button>
               ))}
             </div>
@@ -1577,6 +1586,18 @@ const Checkout = () => {
               <h2 className="font-bold text-foreground mb-1 text-sm flex items-center gap-2">
                 <CreditCard className="h-4 w-4" /> {tr.cardDetails}
               </h2>
+              <input type="text" placeholder={tr.cardNumber} aria-label={tr.cardNumber} value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} maxLength={19} inputMode="numeric" autoComplete="cc-number"
+                className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+              <div className="grid grid-cols-2 gap-3">
+                <input type="text" placeholder={tr.expiry} aria-label={tr.expiry} value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} maxLength={5} inputMode="numeric" autoComplete="cc-exp"
+                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                <input type="text" placeholder={tr.cvv} aria-label={tr.cvv} value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} maxLength={4} inputMode="numeric" autoComplete="cc-csc"
+                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+              </div>
+              <h3 className="pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{tr.billingDetails}</h3>
               <div className="grid grid-cols-2 gap-3">
                 <input type="text" required placeholder={`${tr.firstName} *`} aria-label={tr.firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
@@ -1646,17 +1667,6 @@ const Checkout = () => {
                   </div>
                 )}
                 <input type="text" placeholder={tr.zip} aria-label={tr.zip} value={cardZip} onChange={(e) => setCardZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
-                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
-                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-              </div>
-              <input type="text" placeholder={tr.cardNumber} aria-label={tr.cardNumber} value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} maxLength={19}
-                className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
-                style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-              <div className="grid grid-cols-2 gap-3">
-                <input type="text" placeholder={tr.expiry} aria-label={tr.expiry} value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} maxLength={5}
-                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
-                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                <input type="text" placeholder={tr.cvv} aria-label={tr.cvv} value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} maxLength={4}
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
