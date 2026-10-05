@@ -946,6 +946,40 @@ const App = () => (
           }
         />
 
+        {/* GO-ES-ULTRA: ES Ultra Mobile ad lander (/es/go/ultra). */}
+        <Route
+          path="/es/go/ultra"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Ultra Mobile"
+              carrierSlug="ultra-mobile"
+              carrierId={25}
+              brandColor="hsl(270,50%,40%)"
+              logo={ultraLogo}
+              h1="Pague Ultra Mobile en línea"
+              title="Pague Ultra Mobile en línea | CellPay"
+              description="Pague su Ultra Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/ultra.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Ultra Mobile"
+              carrierSlug="ultra-mobile"
+              carrierId={25}
+              brandColor="hsl(270,50%,40%)"
+              logo={ultraLogo}
+              h1="Pague Ultra Mobile en línea"
+              title="Pague Ultra Mobile en línea | CellPay"
+              description="Pague su Ultra Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+
         {/* Removed carriers (Red Pocket, Xbox, Movistar) — noindex + redirect to the home page. */}
         {REMOVED_CARRIER_PATHS.flatMap((p) => [
           <Route key={`removed-${p}`} path={p} element={<RemovedCarrierRedirect to="/" />} />,
