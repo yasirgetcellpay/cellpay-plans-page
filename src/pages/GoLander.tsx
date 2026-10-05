@@ -17,10 +17,11 @@ import {
 } from "@/components/ui/accordion";
 
 /**
- * GO-1 / GO-1b dedicated paid-ad lander (refill.cellpay.us/go/* and /es/go/*).
+ * GO-1 / GO-1b / GO-2 dedicated paid-ad lander (refill.cellpay.us/go/* and /es/go/*).
  * noindex, ads only. No carrier nav. Legal footer only.
  * Same 3-step checkout hand-off as DynamicCarrier (number → amount → pay).
  * Auto Pay: optional unchecked checkbox + benefit line; never required, never pre-checked.
+ * GO-2: guest/phone FAQs first; tighter above-fold phone+amount/plan; ES chrome.
  */
 
 const formatPhone = (value: string): string => {
@@ -131,6 +132,18 @@ const PAY_METHODS =
 
 const GO_FAQS_EN = [
   {
+    q: "Can I pay without signing in / as a guest?",
+    a: "Yes. No account needed. Enter the phone number, pick the amount or plan, and pay. You can pay your own bill or someone else's.",
+  },
+  {
+    q: "Can I pay for someone else?",
+    a: "Yes. Enter their phone number, choose the amount or plan, and pay. They get the refill on that line.",
+  },
+  {
+    q: "Do I just enter the phone number?",
+    a: "Yes. Enter the 10-digit phone number for the line you want to refill. Then pick the amount or plan and pay.",
+  },
+  {
     q: "How long does a refill take?",
     a: "Most refills finish in a few minutes. Some can take up to 30 minutes. You get a receipt by email when it is done.",
   },
@@ -146,6 +159,18 @@ const GO_FAQS_EN = [
 
 /** Very simple Spanish. Never "cualquier". No refunds / 24/7 / instant / authorized. */
 const GO_FAQS_ES = [
+  {
+    q: "¿Puedo pagar sin cuenta / como invitado?",
+    a: "Sí. No necesita cuenta. Escriba el número de teléfono, elija el monto o plan y pague. Puede pagar su factura o la de otra persona.",
+  },
+  {
+    q: "¿Puedo pagar por otra persona?",
+    a: "Sí. Escriba el número de esa persona, elija el monto o plan y pague. La recarga llega a esa línea.",
+  },
+  {
+    q: "¿Solo escribo el número de teléfono?",
+    a: "Sí. Escriba el número de 10 dígitos de la línea que quiere recargar. Luego elija el monto o plan y pague.",
+  },
   {
     q: "¿Cuánto tarda la recarga?",
     a: "La mayoría termina en unos minutos. Algunas pueden tardar hasta 30 minutos. Recibe un recibo por correo cuando esté lista.",
@@ -483,9 +508,9 @@ const GoLander = ({
       </header>
 
       <section style={{ backgroundColor: bc }} className="text-primary-foreground">
-        <div className="max-w-7xl mx-auto px-5 py-4 sm:py-5 text-center">
-          <h1 className="text-xl md:text-2xl font-extrabold">{h1}</h1>
-          <p className="text-sm opacity-90 mt-1">{tagline}</p>
+        <div className="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">{h1}</h1>
+          <p className="text-xs sm:text-sm opacity-90 mt-1">{tagline}</p>
         </div>
       </section>
 
@@ -495,8 +520,8 @@ const GoLander = ({
         </div>
       ) : (
         <>
-          <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-2 sm:pt-6">
-            <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">
+          <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4">
+            <div className="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">
               <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">
                 {stepsLine}
               </p>
@@ -592,8 +617,25 @@ const GoLander = ({
                 </div>
               )}
 
-              {/* Auto Pay: optional, never pre-checked, never hidden, never required */}
-              <label className="mt-4 flex items-start gap-2 text-left cursor-pointer">
+
+            </div>
+          </div>
+
+          {showFixedPlans && plans.length > 0 && (
+            <div className="pt-1 sm:pt-2">
+              <PlanGrid
+                plans={plans.map((p) => ({ price: p.price, highlight: p.highlight }))}
+                brandColor={bc}
+                onSelect={handlePlanPayNow}
+                popularIndex={Math.min(plans.length - 1, Math.floor(plans.length / 2))}
+              />
+            </div>
+          )}
+
+          {/* Auto Pay + fee below phone/amount so plan picker stays above the fold on mobile */}
+          <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">
+            <div className="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">
+              <label className="flex items-start gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={autoPayInterest}
@@ -605,24 +647,14 @@ const GoLander = ({
                   {autoPayLine}
                 </span>
               </label>
-
-              <p className="mt-3 text-[11px] sm:text-xs font-semibold text-foreground">
+              <p className="mt-2 text-[11px] sm:text-xs font-semibold text-foreground text-center">
                 {feeLine}
               </p>
-              <p className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug">
+              <p className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug text-center">
                 {PAY_METHODS}
               </p>
             </div>
           </div>
-
-          {showFixedPlans && plans.length > 0 && (
-            <PlanGrid
-              plans={plans.map((p) => ({ price: p.price, highlight: p.highlight }))}
-              brandColor={bc}
-              onSelect={handlePlanPayNow}
-              popularIndex={Math.min(plans.length - 1, Math.floor(plans.length / 2))}
-            />
-          )}
 
           {showRange && (
             <div className="max-w-[420px] mx-auto px-4 pb-24 sm:pb-8">
@@ -666,8 +698,8 @@ const GoLander = ({
             </div>
           )}
 
-          {/* Below-fold: 3 short FAQs (plain EN or ES) */}
-          <section className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+          {/* Below-fold: guest/phone FAQs first (plain EN or ES) */}
+          <section className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
             <h2 className="text-xl sm:text-2xl font-extrabold text-foreground mb-4 text-left">
               {faqHeading}
             </h2>
