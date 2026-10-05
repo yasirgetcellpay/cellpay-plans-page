@@ -102,6 +102,8 @@ const DMCA = lazyPage(() => import("./pages/DMCA.tsx"));
 const AdminLogin = lazyPage(() => import("./pages/AdminLogin.tsx"));
 const Login = lazyPage(() => import("./pages/Login.tsx"));
 const AdminDashboard = lazyPage(() => import("./pages/AdminDashboard.tsx"));
+// GO-1: dedicated paid-ad landers (/go/*) — split chunk; noindex shells in vite.config.ts
+const GoLander = lazyPage(() => import("./pages/GoLander.tsx"));
 
 /** Full-height blank while a split page loads, so the footer never flashes up and nothing jumps. */
 const RouteFallback = () => <div className="min-h-screen bg-background" aria-busy="true" />;
@@ -562,6 +564,98 @@ const App = () => (
               seoDescriptionOverride="Make a Lycamobile guest payment online. No login needed — enter your phone number, choose your 30-day plan, and pay securely."
               seoH1Override="Lycamobile Guest Payment — One-Time Refill, No login needed"
               seoIntroOverride="Pay your Lycamobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment."
+            />
+          }
+        />
+
+        {/* GO-1: dedicated EN ad landers (Ads §6). noindex, ads only, legal footer only. Clean + .html URLs. */}
+        <Route
+          path="/go/boost"
+          element={
+            <GoLander
+              carrierName="Boost Mobile"
+              carrierSlug="boost"
+              carrierId={36}
+              brandColor="hsl(27,100%,50%)"
+              logo={boostLogo}
+              h1="Pay Your Boost Mobile Bill Online"
+              title="Pay Your Boost Mobile Bill Online | CellPay"
+              description="Pay your Boost Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/boost.html"
+          element={
+            <GoLander
+              carrierName="Boost Mobile"
+              carrierSlug="boost"
+              carrierId={36}
+              brandColor="hsl(27,100%,50%)"
+              logo={boostLogo}
+              h1="Pay Your Boost Mobile Bill Online"
+              title="Pay Your Boost Mobile Bill Online | CellPay"
+              description="Pay your Boost Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/metro"
+          element={
+            <GoLander
+              carrierName="Metro PCS"
+              carrierSlug="metropcs"
+              carrierId={38}
+              brandColor="hsl(270,60%,32%)"
+              logo={metroLogo}
+              h1="Pay Your Metro by T-Mobile Bill Online"
+              title="Pay Your Metro by T-Mobile Bill Online | CellPay"
+              description="Pay your Metro by T-Mobile (Metro PCS) bill online. No login. Pay for anyone. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/metro.html"
+          element={
+            <GoLander
+              carrierName="Metro PCS"
+              carrierSlug="metropcs"
+              carrierId={38}
+              brandColor="hsl(270,60%,32%)"
+              logo={metroLogo}
+              h1="Pay Your Metro by T-Mobile Bill Online"
+              title="Pay Your Metro by T-Mobile Bill Online | CellPay"
+              description="Pay your Metro by T-Mobile (Metro PCS) bill online. No login. Pay for anyone. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/simple-mobile"
+          element={
+            <GoLander
+              carrierName="Simple Mobile"
+              carrierSlug="s1"
+              carrierId={15}
+              brandColor="hsl(101,67%,44%)"
+              logo={simpleMobileLogo}
+              h1="Pay Your Simple Mobile Bill Online"
+              title="Pay Your Simple Mobile Bill Online | CellPay"
+              description="Refill Simple Mobile online in 3 steps: number, amount, pay. No login. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/simple-mobile.html"
+          element={
+            <GoLander
+              carrierName="Simple Mobile"
+              carrierSlug="s1"
+              carrierId={15}
+              brandColor="hsl(101,67%,44%)"
+              logo={simpleMobileLogo}
+              h1="Pay Your Simple Mobile Bill Online"
+              title="Pay Your Simple Mobile Bill Online | CellPay"
+              description="Refill Simple Mobile online in 3 steps: number, amount, pay. No login. Low service fee shown before you pay."
             />
           }
         />
