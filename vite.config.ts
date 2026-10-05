@@ -65,6 +65,9 @@ const HTML_ROUTES = [
   // GO-ES-H2O: ES H2O Wireless shells
   "es/go/h2o.html",
   "es/go/h2o/index.html",
+  // GO-ES-NET10: ES Net10 Wireless shells
+  "es/go/net10.html",
+  "es/go/net10/index.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
@@ -360,6 +363,14 @@ const htmlAliasPlugin = (): Plugin => ({
         h1: "Pague H2O Wireless en línea",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
+      "es/go/net10.html": {
+        h1: "Pague Net10 en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/net10/index.html": {
+        h1: "Pague Net10 en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
     };
 
 
@@ -442,6 +453,9 @@ const htmlAliasPlugin = (): Plugin => ({
       // GO-ES-H2O
       "es/go/h2o.html": { title: "Pague H2O Wireless en línea | CellPay", description: "Pague su H2O Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/h2o/index.html": { title: "Pague H2O Wireless en línea | CellPay", description: "Pague su H2O Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      // GO-ES-NET10
+      "es/go/net10.html": { title: "Pague Net10 en línea | CellPay", description: "Pague su Net10 en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/net10/index.html": { title: "Pague Net10 en línea | CellPay", description: "Pague su Net10 en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
     };
     const ES_TITLE_PREFIX: Record<string, string> = {};
     // Carriers removed from the site (Oct 2026). Their old URLs keep a noindex shell.
@@ -490,6 +504,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/go/lyca.html", "es/go/lyca/index.html",
       // GO-ES-H2O
       "es/go/h2o.html", "es/go/h2o/index.html",
+      // GO-ES-NET10
+      "es/go/net10.html", "es/go/net10/index.html",
     ]);
     const buildMeta = (route: string): Meta => {
       // Legacy per-amount redirect shells: noindex,follow

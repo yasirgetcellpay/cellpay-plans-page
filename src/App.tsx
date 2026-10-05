@@ -1048,6 +1048,40 @@ const App = () => (
           }
         />
 
+        {/* GO-ES-NET10: ES Net10 Wireless ad lander (/es/go/net10). */}
+        <Route
+          path="/es/go/net10"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Net10 Wireless"
+              carrierSlug="net10"
+              carrierId={7}
+              brandColor="hsl(195,100%,50%)"
+              logo={net10Logo}
+              h1="Pague Net10 en línea"
+              title="Pague Net10 en línea | CellPay"
+              description="Pague su Net10 en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/net10.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Net10 Wireless"
+              carrierSlug="net10"
+              carrierId={7}
+              brandColor="hsl(195,100%,50%)"
+              logo={net10Logo}
+              h1="Pague Net10 en línea"
+              title="Pague Net10 en línea | CellPay"
+              description="Pague su Net10 en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+
         {/* Removed carriers (Red Pocket, Xbox, Movistar) — noindex + redirect to the home page. */}
         {REMOVED_CARRIER_PATHS.flatMap((p) => [
           <Route key={`removed-${p}`} path={p} element={<RemovedCarrierRedirect to="/" />} />,
