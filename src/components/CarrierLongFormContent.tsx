@@ -17,7 +17,7 @@ export interface CarrierLongFormConfig {
   /** Page H2 + intro paragraph (keyword-anchored). */
   introH2: string;
   intro: string;
-  /** "How to refill" heading + 4 step copy. */
+  /** "How to refill" heading + 3 step copy (number, amount, pay). */
   stepsH2: string;
   steps: { title: string; body: string }[];
   /** Supported plans heading + bullet list. */
@@ -156,7 +156,7 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
   introH2: "AT&T Prepaid Refill — Pay Your AT&T Bill Online",
   intro:
     "Refill any AT&T Prepaid line online with CellPay. No AT&T login, no app, no store visit — just enter the phone number, pick a plan or top-up amount, and pay with the card or wallet you already use. It can take up to 30 min for a refill to reflect on your account.",
-  stepsH2: "How to Refill AT&T Prepaid in 4 Steps",
+  stepsH2: "How to Refill AT&T Prepaid in 3 Steps",
   steps: [
     {
       title: "Step 1 — Enter Your AT&T Prepaid Phone Number",
@@ -168,11 +168,7 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every AT&T Prepaid payment is encrypted in transit (TLS).",
-    },
-    {
-      title: "Step 4 — AT&T Refill Confirmation",
-      body: "AT&T usually sends an SMS confirming the new balance or plan renewal.",
+      body: "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every AT&T Prepaid payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
     },
   ],
   plansH2: "Supported AT&T Prepaid Plans",
@@ -224,7 +220,7 @@ export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
   introH2: "Straight Talk Refill — Pay Your Straight Talk Bill Online",
   intro:
     "Refill any Straight Talk Wireless phone online with CellPay. Skip the Walmart line, the Straight Talk login, and the refill card scratch-off — just enter the phone number, pick a service plan, and pay with the card or wallet you already use. It can take up to 30 min for a refill to reflect on your account.",
-  stepsH2: "How to Refill Straight Talk in 4 Steps",
+  stepsH2: "How to Refill Straight Talk in 3 Steps",
   steps: [
     {
       title: "Step 1 — Enter Your Straight Talk Phone Number",
@@ -236,11 +232,7 @@ export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every Straight Talk payment is encrypted in transit (TLS).",
-    },
-    {
-      title: "Step 4 — Straight Talk Refill Confirmation",
-      body: "Straight Talk usually sends an SMS confirming the new service period.",
+      body: "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every Straight Talk payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
     },
   ],
   plansH2: "Supported Straight Talk Service Plans",
@@ -292,7 +284,7 @@ export const VERIZON_CONFIG: CarrierLongFormConfig = {
   introH2: "Verizon Prepaid Refill — Pay Your Verizon Bill Online",
   intro:
     "Refill any Verizon Prepaid phone online with CellPay. No My Verizon login, no app, no store visit — just enter the phone number, pick a Verizon Prepaid plan, and pay with the card or wallet you already use. It can take up to 30 min for a refill to reflect on your account.",
-  stepsH2: "How to Refill Verizon Prepaid in 4 Steps",
+  stepsH2: "How to Refill Verizon Prepaid in 3 Steps",
   steps: [
     {
       title: "Step 1 — Enter Your Verizon Prepaid Phone Number",
@@ -304,11 +296,7 @@ export const VERIZON_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every Verizon Prepaid payment is encrypted in transit (TLS).",
-    },
-    {
-      title: "Step 4 — Verizon Refill Confirmation",
-      body: "Verizon usually sends an SMS confirming the new plan or balance.",
+      body: "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every Verizon Prepaid payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
     },
   ],
   plansH2: "Supported Verizon Prepaid Plans",

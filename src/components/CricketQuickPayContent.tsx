@@ -4,7 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Phone, DollarSign, CreditCard, CheckCircle2 } from "lucide-react";
+import { Phone, DollarSign, CreditCard } from "lucide-react";
 
 /**
  * Cricket-specific long-form content for /topup-crc.html.
@@ -31,13 +31,7 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
       icon: CreditCard,
       title: "Step 3 — Pay Securely With Any Card or Wallet",
       body:
-        "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every Cricket quick pay transaction is encrypted in transit (TLS).",
-    },
-    {
-      icon: CheckCircle2,
-      title: "Step 4 — Refill and Confirmation",
-      body:
-        "Cricket usually sends an SMS confirming the new balance or plan renewal. It can take up to 30 min for a refill to reflect on your account.",
+        "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every Cricket quick pay transaction is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
     },
   ];
 
@@ -97,7 +91,7 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
       {/* Step-by-step payment guide */}
       <section className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
         <h2 className="text-xl sm:text-2xl font-extrabold text-foreground mb-4 text-left">
-          How to Pay Your Cricket Bill in 4 Steps
+          How to Pay Your Cricket Bill in 3 Steps
         </h2>
         <ol className="space-y-3">
           {steps.map((s) => {
