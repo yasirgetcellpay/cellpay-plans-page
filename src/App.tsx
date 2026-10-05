@@ -980,6 +980,40 @@ const App = () => (
           }
         />
 
+        {/* GO-ES-LYCA: ES Lyca Mobile ad lander (/es/go/lyca). */}
+        <Route
+          path="/es/go/lyca"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Lyca Mobile"
+              carrierSlug="lyca"
+              carrierId={29}
+              brandColor="hsl(220,50%,22%)"
+              logo={lycaLogo}
+              h1="Pague Lyca Mobile en línea"
+              title="Pague Lyca Mobile en línea | CellPay"
+              description="Pague su Lyca Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/lyca.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Lyca Mobile"
+              carrierSlug="lyca"
+              carrierId={29}
+              brandColor="hsl(220,50%,22%)"
+              logo={lycaLogo}
+              h1="Pague Lyca Mobile en línea"
+              title="Pague Lyca Mobile en línea | CellPay"
+              description="Pague su Lyca Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+
         {/* Removed carriers (Red Pocket, Xbox, Movistar) — noindex + redirect to the home page. */}
         {REMOVED_CARRIER_PATHS.flatMap((p) => [
           <Route key={`removed-${p}`} path={p} element={<RemovedCarrierRedirect to="/" />} />,

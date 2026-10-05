@@ -59,6 +59,9 @@ const HTML_ROUTES = [
   // GO-ES-ULTRA: ES Ultra Mobile shells
   "es/go/ultra.html",
   "es/go/ultra/index.html",
+  // GO-ES-LYCA: ES Lyca Mobile shells
+  "es/go/lyca.html",
+  "es/go/lyca/index.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
@@ -338,6 +341,14 @@ const htmlAliasPlugin = (): Plugin => ({
         h1: "Pague Ultra Mobile en línea",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
+      "es/go/lyca.html": {
+        h1: "Pague Lyca Mobile en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/lyca/index.html": {
+        h1: "Pague Lyca Mobile en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
     };
 
 
@@ -414,6 +425,9 @@ const htmlAliasPlugin = (): Plugin => ({
       // GO-ES-ULTRA
       "es/go/ultra.html": { title: "Pague Ultra Mobile en línea | CellPay", description: "Pague su Ultra Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/ultra/index.html": { title: "Pague Ultra Mobile en línea | CellPay", description: "Pague su Ultra Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      // GO-ES-LYCA
+      "es/go/lyca.html": { title: "Pague Lyca Mobile en línea | CellPay", description: "Pague su Lyca Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/lyca/index.html": { title: "Pague Lyca Mobile en línea | CellPay", description: "Pague su Lyca Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
     };
     const ES_TITLE_PREFIX: Record<string, string> = {};
     // Carriers removed from the site (Oct 2026). Their old URLs keep a noindex shell.
@@ -458,6 +472,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/go/simple-mobile.html", "es/go/simple-mobile/index.html",
       // GO-ES-ULTRA
       "es/go/ultra.html", "es/go/ultra/index.html",
+      // GO-ES-LYCA
+      "es/go/lyca.html", "es/go/lyca/index.html",
     ]);
     const buildMeta = (route: string): Meta => {
       // Legacy per-amount redirect shells: noindex,follow
