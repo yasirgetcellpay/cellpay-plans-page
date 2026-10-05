@@ -1082,6 +1082,40 @@ const App = () => (
           }
         />
 
+        {/* GO-ES-ATT: ES AT&T Prepaid ad lander (/es/go/att). */}
+        <Route
+          path="/es/go/att"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="AT&T Prepaid"
+              carrierSlug="topup-at"
+              carrierId={3}
+              brandColor="hsl(196,100%,44%)"
+              logo={attLogo}
+              h1="Pague AT&T Prepaid en línea"
+              title="Pague AT&T Prepaid en línea | CellPay"
+              description="Pague su AT&T Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/att.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="AT&T Prepaid"
+              carrierSlug="topup-at"
+              carrierId={3}
+              brandColor="hsl(196,100%,44%)"
+              logo={attLogo}
+              h1="Pague AT&T Prepaid en línea"
+              title="Pague AT&T Prepaid en línea | CellPay"
+              description="Pague su AT&T Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+
         {/* Removed carriers (Red Pocket, Xbox, Movistar) — noindex + redirect to the home page. */}
         {REMOVED_CARRIER_PATHS.flatMap((p) => [
           <Route key={`removed-${p}`} path={p} element={<RemovedCarrierRedirect to="/" />} />,

@@ -68,6 +68,9 @@ const HTML_ROUTES = [
   // GO-ES-NET10: ES Net10 Wireless shells
   "es/go/net10.html",
   "es/go/net10/index.html",
+  // GO-ES-ATT: ES AT&T Prepaid shells
+  "es/go/att.html",
+  "es/go/att/index.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
@@ -371,6 +374,14 @@ const htmlAliasPlugin = (): Plugin => ({
         h1: "Pague Net10 en línea",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
+      "es/go/att.html": {
+        h1: "Pague AT&T Prepaid en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/att/index.html": {
+        h1: "Pague AT&T Prepaid en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
     };
 
 
@@ -456,6 +467,9 @@ const htmlAliasPlugin = (): Plugin => ({
       // GO-ES-NET10
       "es/go/net10.html": { title: "Pague Net10 en línea | CellPay", description: "Pague su Net10 en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/net10/index.html": { title: "Pague Net10 en línea | CellPay", description: "Pague su Net10 en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      // GO-ES-ATT
+      "es/go/att.html": { title: "Pague AT&T Prepaid en línea | CellPay", description: "Pague su AT&T Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/att/index.html": { title: "Pague AT&T Prepaid en línea | CellPay", description: "Pague su AT&T Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
     };
     const ES_TITLE_PREFIX: Record<string, string> = {};
     // Carriers removed from the site (Oct 2026). Their old URLs keep a noindex shell.
@@ -506,6 +520,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/go/h2o.html", "es/go/h2o/index.html",
       // GO-ES-NET10
       "es/go/net10.html", "es/go/net10/index.html",
+      // GO-ES-ATT
+      "es/go/att.html", "es/go/att/index.html",
     ]);
     const buildMeta = (route: string): Meta => {
       // Legacy per-amount redirect shells: noindex,follow
