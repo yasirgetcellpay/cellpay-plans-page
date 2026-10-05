@@ -515,7 +515,7 @@ const GoLander = ({
       </section>
 
       {loading ? (
-        <div className="flex justify-center py-16 flex-1">
+        <div className="flex justify-center items-start py-16 flex-1 min-h-screen">
           <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
         </div>
       ) : (
