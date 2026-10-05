@@ -124,6 +124,13 @@ const loadScript = (src: string, id: string): Promise<void> =>
     document.head.appendChild(s);
   });
 
+// CV-1b: write pending to sessionStorage AND a SameSite=Lax Secure cookie so Apple Pay / Cash App / redirect returns still match.
+const setPurchasePending = (hid: string) => {
+  if (!hid) return;
+  try { sessionStorage.setItem("cp_purchase_pending", String(hid)); } catch { /* storage unavailable */ }
+  try { document.cookie = `cp_purchase_pending=${encodeURIComponent(String(hid))}; path=/; Max-Age=3600; SameSite=Lax; Secure`; } catch { /* cookie unavailable */ }
+};
+
 const Checkout = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -707,8 +714,8 @@ const Checkout = () => {
     const isSuccess = status === true || status === "true" || String(status || "").toLowerCase() === "success" || String(status || "").toLowerCase() === "completed";
     if (isSuccess) {
       const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
-      // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1).
-      try { if (hid) sessionStorage.setItem("cp_purchase_pending", String(hid)); } catch { /* storage unavailable: no purchase event */ }
+      // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1b: sessionStorage + cookie).
+      setPurchasePending(hid);
       const params = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
       clearCheckoutCtx();
       navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
@@ -1163,7 +1170,7 @@ const Checkout = () => {
           console.log("[ApplePay] transaction success");
           session.completePayment({ status: session.STATUS_SUCCESS });
           const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
-          try { if (hid) sessionStorage.setItem("cp_purchase_pending", String(hid)); } catch { /* storage unavailable: no purchase event */ }
+          setPurchasePending(hid);
           const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
           clearCheckoutCtx();
           navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${apParams.toString()}`);

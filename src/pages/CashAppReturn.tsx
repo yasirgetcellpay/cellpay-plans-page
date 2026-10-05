@@ -36,6 +36,13 @@ const COPY = {
   },
 };
 
+// CV-1b: sessionStorage + cookie backup for purchase pending across redirects.
+const setPurchasePending = (hid: string) => {
+  if (!hid) return;
+  try { sessionStorage.setItem("cp_purchase_pending", String(hid)); } catch { /* storage unavailable */ }
+  try { document.cookie = `cp_purchase_pending=${encodeURIComponent(String(hid))}; path=/; Max-Age=3600; SameSite=Lax; Secure`; } catch { /* cookie unavailable */ }
+};
+
 const CashAppReturn = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -77,8 +84,8 @@ const CashAppReturn = () => {
     }
 
     const goSuccess = (transactionId: string) => {
-      // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1).
-      try { sessionStorage.setItem("cp_purchase_pending", transactionId); } catch { /* storage unavailable: no purchase event */ }
+      // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1b: sessionStorage + cookie).
+      setPurchasePending(transactionId);
       const params = new URLSearchParams({
         hashid: transactionId,
         color: ctx.brandColor || "",

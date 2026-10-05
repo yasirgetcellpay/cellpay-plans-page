@@ -130,17 +130,27 @@ const OrderConfirmation = () => {
         const itemName = txn.carrier?.name || carrierName || "Recharge";
         const itemId = txn.carrier?.slug || carrierName || "recharge";
         const txnId = String(txn.transactionId || txn.transaction_id || txn.hashid || txn.id || hashid);
-        // CV-1: fire once per transaction id, and only right after a success hand-off (pending flag set by
-        // Checkout / Apple Pay / Cash App for this hashid). Reload, back/forward, new tab and shared links never fire.
+        // CV-1b: on a confirmed receipt, fire once per transaction id even if pending is missing
+        // (Apple Pay / Cash App / redirect returns can drop sessionStorage). Cookie OR sessionStorage
+        // pending matching this hashid is cleared when present. Keep sentKey dedupe. Fail-closed already applied above.
         const sentKey = `cp_purchase_sent:${txnId}`;
         let fire = false;
         try {
-          if (sessionStorage.getItem("cp_purchase_pending") === hashid) {
-            sessionStorage.removeItem("cp_purchase_pending");
-            if (localStorage.getItem(sentKey) === null) {
-              localStorage.setItem(sentKey, String(Date.now()));
-              fire = true;
+          try {
+            if (sessionStorage.getItem("cp_purchase_pending") === hashid) {
+              sessionStorage.removeItem("cp_purchase_pending");
             }
+          } catch { /* ignore */ }
+          try {
+            const m = document.cookie.match(/(?:^|;\s*)cp_purchase_pending=([^;]*)/);
+            const cookieVal = m ? decodeURIComponent(m[1]) : "";
+            if (cookieVal === hashid) {
+              document.cookie = "cp_purchase_pending=; path=/; Max-Age=0; SameSite=Lax; Secure";
+            }
+          } catch { /* ignore */ }
+          if (localStorage.getItem(sentKey) === null) {
+            localStorage.setItem(sentKey, String(Date.now()));
+            fire = true;
           }
         } catch { fire = false; }
         if (fire) {
