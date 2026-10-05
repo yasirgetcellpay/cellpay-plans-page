@@ -30,7 +30,7 @@ const TermsAndConditions = () => {
         <p>All prices are displayed at the time of purchase. A service fee may be applied and will be shown before you confirm payment. Taxes and carrier-specific fees may vary by location.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">4. Payment</h2>
-        <p>We accept Visa, Mastercard, American Express, Discover, and Apple Pay. Payment is processed at the time of purchase. You are responsible for ensuring your payment method is valid and has sufficient funds.</p>
+        <p>We accept Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, and Cash App. Payment is processed at the time of purchase. You are responsible for ensuring your payment method is valid and has sufficient funds.</p>
 
         <h2 className="text-lg font-bold text-foreground pt-3">5. Refills & Delivery</h2>
         <p>Refills are processed promptly upon successful payment. You are responsible for entering the correct phone number. CellPay is not liable for refills sent to incorrect numbers.</p>

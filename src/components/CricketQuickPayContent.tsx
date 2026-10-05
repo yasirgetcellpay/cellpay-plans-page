@@ -31,7 +31,7 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
       icon: CreditCard,
       title: "Step 3 — Pay Securely With Any Card or Wallet",
       body:
-        "Check out with debit, credit, Apple Pay, Google Pay, PayPal, Cash App, Klarna, or your bank account. Every Cricket quick pay transaction is encrypted in transit (TLS).",
+        "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every Cricket quick pay transaction is encrypted in transit (TLS).",
     },
     {
       icon: CheckCircle2,
@@ -56,7 +56,7 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
     },
     {
       q: "What payment methods can I use for Cricket Wireless?",
-      a: "CellPay accepts Visa, Mastercard, American Express, Discover, JCB, Diners, Apple Pay, Google Pay, PayPal, Cash App Pay, Klarna, and direct bank payment via Plaid.",
+      a: "CellPay accepts Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, and Cash App.",
     },
     {
       q: "Can I pay someone else's Cricket bill?",
@@ -187,7 +187,7 @@ export const CRICKET_QUICK_PAY_FAQ_SCHEMA = JSON.stringify({
       name: "What payment methods can I use for Cricket Wireless?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "CellPay accepts Visa, Mastercard, American Express, Discover, JCB, Diners, Apple Pay, Google Pay, PayPal, Cash App Pay, Klarna, and bank payment via Plaid.",
+        text: "CellPay accepts Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, and Cash App.",
       },
     },
     {
