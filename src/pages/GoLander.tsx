@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/accordion";
 
 /**
- * GO-1 dedicated paid-ad lander (refill.cellpay.us/go/*).
+ * GO-1 / GO-1b dedicated paid-ad lander (refill.cellpay.us/go/* and /es/go/*).
  * noindex, ads only. No carrier nav. Legal footer only.
  * Same 3-step checkout hand-off as DynamicCarrier (number → amount → pay).
  * Auto Pay: optional unchecked checkbox + benefit line; never required, never pre-checked.
@@ -129,7 +129,7 @@ const wholeDollarMessage = (lang: string, n: number): string =>
 const PAY_METHODS =
   "Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, Cash App";
 
-const GO_FAQS = [
+const GO_FAQS_EN = [
   {
     q: "How long does a refill take?",
     a: "Most refills finish in a few minutes. Some can take up to 30 minutes. You get a receipt by email when it is done.",
@@ -141,6 +141,22 @@ const GO_FAQS = [
   {
     q: "How do I get help?",
     a: "Support: Monday–Friday 9:00 AM–6:00 PM (EST) · Saturday–Sunday 10:00 AM–4:00 PM (EST) · support@getcellpay.com",
+  },
+];
+
+/** Very simple Spanish. Never "cualquier". No refunds / 24/7 / instant / authorized. */
+const GO_FAQS_ES = [
+  {
+    q: "¿Cuánto tarda la recarga?",
+    a: "La mayoría termina en unos minutos. Algunas pueden tardar hasta 30 minutos. Recibe un recibo por correo cuando esté lista.",
+  },
+  {
+    q: "¿Qué pasa si el pago falla?",
+    a: "Si falla, su tarjeta NO fue cobrada. Si ve un cargo pendiente, su banco lo quita en 1–2 días. Puede probar otra tarjeta u otra forma de pago.",
+  },
+  {
+    q: "¿Cómo pido ayuda?",
+    a: "Soporte: lunes–viernes 9:00 AM–6:00 PM (EST) · sábado–domingo 10:00 AM–4:00 PM (EST) · support@getcellpay.com",
   },
 ];
 
@@ -428,6 +444,20 @@ const GoLander = ({
   };
 
   const bc = brandColor;
+  const isEs = lang === "es";
+  const tagline = isEs ? "Sin cuenta. Pague por otra persona." : "No login. Pay for anyone.";
+  const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
+  const autoPayLine = isEs
+    ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano."
+    : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.";
+  const feeLine = isEs
+    ? "Cargo por servicio bajo, mostrado antes de pagar"
+    : "Low service fee shown before you pay";
+  const faqHeading = isEs ? "Preguntas frecuentes" : "Common questions";
+  const faqs = isEs ? GO_FAQS_ES : GO_FAQS_EN;
+  const privacyLabel = isEs ? "Política de Privacidad" : "Privacy Policy";
+  const termsLabel = isEs ? "Términos y Condiciones" : "Terms and Conditions";
+  const returnsLabel = isEs ? "Política de Devoluciones" : "Returns Policy";
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
@@ -455,7 +485,7 @@ const GoLander = ({
       <section style={{ backgroundColor: bc }} className="text-primary-foreground">
         <div className="max-w-7xl mx-auto px-5 py-4 sm:py-5 text-center">
           <h1 className="text-xl md:text-2xl font-extrabold">{h1}</h1>
-          <p className="text-sm opacity-90 mt-1">No login. Pay for anyone.</p>
+          <p className="text-sm opacity-90 mt-1">{tagline}</p>
         </div>
       </section>
 
@@ -468,7 +498,7 @@ const GoLander = ({
           <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-2 sm:pt-6">
             <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">
               <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">
-                3 steps: number → amount → pay
+                {stepsLine}
               </p>
               <label
                 htmlFor="go-phone-input"
@@ -572,13 +602,12 @@ const GoLander = ({
                   style={{ accentColor: bc }}
                 />
                 <span className="text-[11px] sm:text-xs text-foreground leading-relaxed">
-                  Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is
-                  never pre-checked.
+                  {autoPayLine}
                 </span>
               </label>
 
               <p className="mt-3 text-[11px] sm:text-xs font-semibold text-foreground">
-                Low service fee shown before you pay
+                {feeLine}
               </p>
               <p className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug">
                 {PAY_METHODS}
@@ -637,13 +666,13 @@ const GoLander = ({
             </div>
           )}
 
-          {/* Below-fold: 3 short FAQs (fixed; plain EN) */}
+          {/* Below-fold: 3 short FAQs (plain EN or ES) */}
           <section className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
             <h2 className="text-xl sm:text-2xl font-extrabold text-foreground mb-4 text-left">
-              Common questions
+              {faqHeading}
             </h2>
             <Accordion type="single" collapsible className="w-full">
-              {GO_FAQS.map((faq, i) => (
+              {faqs.map((faq, i) => (
                 <AccordionItem key={i} value={`go-faq-${i}`}>
                   <AccordionTrigger
                     className="text-left font-bold text-foreground"
@@ -667,17 +696,17 @@ const GoLander = ({
           <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm mb-6">
             <li>
               <a href="/privacy-policy" className="hover:text-primary-foreground underline-offset-2 hover:underline">
-                Privacy Policy
+                {privacyLabel}
               </a>
             </li>
             <li>
               <a href="/terms-and-conditions" className="hover:text-primary-foreground underline-offset-2 hover:underline">
-                Terms and Conditions
+                {termsLabel}
               </a>
             </li>
             <li>
               <a href="/returns-policy" className="hover:text-primary-foreground underline-offset-2 hover:underline">
-                Returns Policy
+                {returnsLabel}
               </a>
             </li>
           </ul>

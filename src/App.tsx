@@ -660,6 +660,135 @@ const App = () => (
           }
         />
 
+
+        {/* GO-1b: ES ad landers + Ultra EN (Ads §6). noindex. No Total Wireless. */}
+        <Route
+          path="/es/go/metro"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Metro PCS"
+              carrierSlug="metropcs"
+              carrierId={38}
+              brandColor="hsl(270,60%,32%)"
+              logo={metroLogo}
+              h1="Pague su factura de Metro en línea"
+              title="Pague su factura de Metro en línea | CellPay"
+              description="Pague su Metro by T-Mobile en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/metro.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Metro PCS"
+              carrierSlug="metropcs"
+              carrierId={38}
+              brandColor="hsl(270,60%,32%)"
+              logo={metroLogo}
+              h1="Pague su factura de Metro en línea"
+              title="Pague su factura de Metro en línea | CellPay"
+              description="Pague su Metro by T-Mobile en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/boost"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Boost Mobile"
+              carrierSlug="boost"
+              carrierId={36}
+              brandColor="hsl(27,100%,50%)"
+              logo={boostLogo}
+              h1="Pague su factura de Boost Mobile en línea"
+              title="Pague su factura de Boost Mobile en línea | CellPay"
+              description="Pague su Boost Mobile en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/boost.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Boost Mobile"
+              carrierSlug="boost"
+              carrierId={36}
+              brandColor="hsl(27,100%,50%)"
+              logo={boostLogo}
+              h1="Pague su factura de Boost Mobile en línea"
+              title="Pague su factura de Boost Mobile en línea | CellPay"
+              description="Pague su Boost Mobile en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/cricket"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Cricket Wireless"
+              carrierSlug="topup-crc"
+              carrierId={45}
+              brandColor="hsl(82,60%,42%)"
+              logo={cricketLogo}
+              h1="Pague su factura de Cricket en línea"
+              title="Pague su factura de Cricket en línea | CellPay"
+              description="Pague su Cricket Wireless en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/cricket.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Cricket Wireless"
+              carrierSlug="topup-crc"
+              carrierId={45}
+              brandColor="hsl(82,60%,42%)"
+              logo={cricketLogo}
+              h1="Pague su factura de Cricket en línea"
+              title="Pague su factura de Cricket en línea | CellPay"
+              description="Pague su Cricket Wireless en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/go/ultra"
+          element={
+            <GoLander
+              carrierName="Ultra Mobile"
+              carrierSlug="ultra-mobile"
+              carrierId={25}
+              brandColor="hsl(270,50%,40%)"
+              logo={ultraLogo}
+              h1="Pay Your Ultra Mobile Bill Online"
+              title="Pay Your Ultra Mobile Bill Online | CellPay"
+              description="Pay your Ultra Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/ultra.html"
+          element={
+            <GoLander
+              carrierName="Ultra Mobile"
+              carrierSlug="ultra-mobile"
+              carrierId={25}
+              brandColor="hsl(270,50%,40%)"
+              logo={ultraLogo}
+              h1="Pay Your Ultra Mobile Bill Online"
+              title="Pay Your Ultra Mobile Bill Online | CellPay"
+              description="Pay your Ultra Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay."
+            />
+          }
+        />
+
         {/* Removed carriers (Red Pocket, Xbox, Movistar) — noindex + redirect to the home page. */}
         {REMOVED_CARRIER_PATHS.flatMap((p) => [
           <Route key={`removed-${p}`} path={p} element={<RemovedCarrierRedirect to="/" />} />,

@@ -34,6 +34,15 @@ const HTML_ROUTES = [
   "go/boost/index.html",
   "go/metro/index.html",
   "go/simple-mobile/index.html",
+  // GO-1b: ES /es/go/* + Ultra EN shells
+  "es/go/metro.html",
+  "es/go/boost.html",
+  "es/go/cricket.html",
+  "es/go/metro/index.html",
+  "es/go/boost/index.html",
+  "es/go/cricket/index.html",
+  "go/ultra.html",
+  "go/ultra/index.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
@@ -233,6 +242,39 @@ const htmlAliasPlugin = (): Plugin => ({
         h1: "Pay Your Simple Mobile Bill Online",
         intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
+      // GO-1b ES + Ultra
+      "es/go/metro.html": {
+        h1: "Pague su factura de Metro en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/boost.html": {
+        h1: "Pague su factura de Boost Mobile en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/cricket.html": {
+        h1: "Pague su factura de Cricket en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/metro/index.html": {
+        h1: "Pague su factura de Metro en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/boost/index.html": {
+        h1: "Pague su factura de Boost Mobile en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/cricket/index.html": {
+        h1: "Pague su factura de Cricket en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "go/ultra.html": {
+        h1: "Pay Your Ultra Mobile Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+      },
+      "go/ultra/index.html": {
+        h1: "Pay Your Ultra Mobile Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+      },
     };
 
 
@@ -285,6 +327,15 @@ const htmlAliasPlugin = (): Plugin => ({
       "go/boost/index.html":       { title: "Pay Your Boost Mobile Bill Online | CellPay", description: "Pay your Boost Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay." },
       "go/metro/index.html":       { title: "Pay Your Metro by T-Mobile Bill Online | CellPay", description: "Pay your Metro by T-Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay." },
       "go/simple-mobile/index.html": { title: "Pay Your Simple Mobile Bill Online | CellPay", description: "Refill Simple Mobile online in 3 steps. No login. Low service fee shown before you pay." },
+      // GO-1b titles
+      "es/go/metro.html": { title: "Pague su factura de Metro en línea | CellPay", description: "Pague su Metro en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/boost.html": { title: "Pague su factura de Boost Mobile en línea | CellPay", description: "Pague su Boost Mobile en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/cricket.html": { title: "Pague su factura de Cricket en línea | CellPay", description: "Pague su Cricket en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/metro/index.html": { title: "Pague su factura de Metro en línea | CellPay", description: "Pague su Metro en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/boost/index.html": { title: "Pague su factura de Boost Mobile en línea | CellPay", description: "Pague su Boost Mobile en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/cricket/index.html": { title: "Pague su factura de Cricket en línea | CellPay", description: "Pague su Cricket en línea. Sin cuenta. Pague por otra persona. Cargo por servicio bajo, mostrado antes de pagar." },
+      "go/ultra.html": { title: "Pay Your Ultra Mobile Bill Online | CellPay", description: "Pay your Ultra Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay." },
+      "go/ultra/index.html": { title: "Pay Your Ultra Mobile Bill Online | CellPay", description: "Pay your Ultra Mobile bill online. No login. Pay for anyone. Low service fee shown before you pay." },
     };
     const ES_TITLE_PREFIX: Record<string, string> = {};
     // Carriers removed from the site (Oct 2026). Their old URLs keep a noindex shell.
@@ -315,6 +366,10 @@ const htmlAliasPlugin = (): Plugin => ({
     const GO_SHELLS = new Set([
       "go/boost.html", "go/metro.html", "go/simple-mobile.html",
       "go/boost/index.html", "go/metro/index.html", "go/simple-mobile/index.html",
+      // GO-1b
+      "es/go/metro.html", "es/go/boost.html", "es/go/cricket.html",
+      "es/go/metro/index.html", "es/go/boost/index.html", "es/go/cricket/index.html",
+      "go/ultra.html", "go/ultra/index.html",
     ]);
     const buildMeta = (route: string): Meta => {
       // Legacy per-amount redirect shells: noindex,follow
@@ -350,7 +405,8 @@ const htmlAliasPlugin = (): Plugin => ({
           title: "Pay Your Bill Online | CellPay",
           description: "No login. Pay for anyone. Low service fee shown before you pay.",
         };
-        return { ...meta, noindex: true, lang: "en" };
+        const isEs = route.startsWith("es/");
+        return { ...meta, noindex: true, lang: isEs ? "es" : "en" };
       }
       // Removed carriers (Red Pocket, Movistar, Xbox, US Cellular): generic noindex,follow shell;
       // the React route sends visitors to the home page.
