@@ -168,6 +168,24 @@ const OrderConfirmation = () => {
               items: [{ item_id: itemId, item_name: itemName, price: amount, quantity: 1 }],
             },
           });
+          // CV-1c: first-party purchase-tag fire log (no PII). Fire-and-forget; never blocks checkout.
+          try {
+            const _su = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+            const _sk = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+            if (_su && _sk && txnId) {
+              fetch(_su + "/rest/v1/rpc/log_purchase_fire", {
+                method: "POST",
+                keepalive: true,
+                headers: { apikey: _sk, Authorization: "Bearer " + _sk, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  _transaction_id: txnId,
+                  _hashid: hashid || null,
+                  _value: Math.round((amount + fee) * 100) / 100,
+                  _source: "order_confirmation",
+                }),
+              }).catch(() => {});
+            }
+          } catch { /* ignore beacon errors */ }
         }
       } catch { /* ignore analytics errors */ }
     } catch {
