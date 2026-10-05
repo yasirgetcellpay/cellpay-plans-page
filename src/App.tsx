@@ -1014,6 +1014,40 @@ const App = () => (
           }
         />
 
+        {/* GO-ES-H2O: ES H2O Wireless ad lander (/es/go/h2o). */}
+        <Route
+          path="/es/go/h2o"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="H2O Wireless"
+              carrierSlug="h2o"
+              carrierId={6}
+              brandColor="hsl(195,85%,50%)"
+              logo={h2oLogo}
+              h1="Pague H2O Wireless en línea"
+              title="Pague H2O Wireless en línea | CellPay"
+              description="Pague su H2O Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/h2o.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="H2O Wireless"
+              carrierSlug="h2o"
+              carrierId={6}
+              brandColor="hsl(195,85%,50%)"
+              logo={h2oLogo}
+              h1="Pague H2O Wireless en línea"
+              title="Pague H2O Wireless en línea | CellPay"
+              description="Pague su H2O Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+
         {/* Removed carriers (Red Pocket, Xbox, Movistar) — noindex + redirect to the home page. */}
         {REMOVED_CARRIER_PATHS.flatMap((p) => [
           <Route key={`removed-${p}`} path={p} element={<RemovedCarrierRedirect to="/" />} />,
