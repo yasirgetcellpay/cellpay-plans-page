@@ -1550,15 +1550,24 @@ const Checkout = () => {
                   key={m.key}
                   type="button"
                   onClick={() => setPaymentMethod(m.key)}
-                  className={`rounded-lg border-2 py-2.5 px-2 text-xs font-bold transition-all flex flex-col items-center justify-center gap-1.5 min-h-[60px] ${
+                  aria-pressed={paymentMethod === m.key}
+                  className={`relative rounded-lg border-2 py-2.5 px-2 text-xs font-bold transition-all flex flex-col items-center justify-center gap-1.5 min-h-[68px] ${
                     paymentMethod === m.key
-                      ? "border-current text-primary-foreground"
+                      ? "text-foreground shadow-sm"
                       : "border-border text-muted-foreground hover:border-current bg-card"
                   }`}
-                  style={paymentMethod === m.key ? { backgroundColor: brandColor, borderColor: brandColor } : undefined}
+                  style={paymentMethod === m.key ? { borderColor: brandColor, backgroundColor: /^#[0-9a-f]{6}$/i.test(brandColor || "") ? `${brandColor}14` : undefined, boxShadow: `0 0 0 1px ${brandColor}` } : undefined}
                 >
-                  <m.Brand className="h-5 w-auto max-w-[60px]" />
-                  <span className="text-[10px] leading-none">{m.label}</span>
+                  {paymentMethod === m.key && (
+                    <CheckCircle2 className="absolute top-1 right-1 h-3.5 w-3.5" style={{ color: brandColor }} aria-hidden="true" />
+                  )}
+                  <span className="h-6 w-full flex items-center justify-center">
+                    <m.Brand className="h-5 w-auto max-w-[64px] object-contain" />
+                  </span>
+                  <span className="text-[11px] leading-tight">{m.label}</span>
+                  {m.key === "plaid" && (
+                    <span className="text-[10px] leading-none font-medium text-muted-foreground">{lang === "es" ? "Vincule su banco" : "Link your bank"}</span>
+                  )}
                 </button>
               ))}
             </div>
