@@ -15,6 +15,8 @@ import LegacyAmountRedirect from "./pages/LegacyAmountRedirect.tsx";
 import StraightTalk from "./pages/StraightTalk.tsx";
 import Verizon from "./pages/Verizon.tsx";
 import ATT from "./pages/ATT.tsx";
+// SPEED-1006: paid-ad landers (/go/*, /es/go/*) load with the main bundle, so the headline paints in the first render (no extra file to wait for).
+import GoLander from "./pages/GoLander.tsx";
 import { Toaster } from "@/components/ui/toaster";
 
 import simpleMobileLogo from "@/assets/simple-mobile-logo.png";
@@ -102,8 +104,7 @@ const DMCA = lazyPage(() => import("./pages/DMCA.tsx"));
 const AdminLogin = lazyPage(() => import("./pages/AdminLogin.tsx"));
 const Login = lazyPage(() => import("./pages/Login.tsx"));
 const AdminDashboard = lazyPage(() => import("./pages/AdminDashboard.tsx"));
-// GO-1: dedicated paid-ad landers (/go/*) — split chunk; noindex shells in vite.config.ts
-const GoLander = lazyPage(() => import("./pages/GoLander.tsx"));
+// GO-1: dedicated paid-ad landers (/go/*) — noindex shells in vite.config.ts. SPEED-1006: GoLander is imported at the top (main bundle), not split.
 // RT-3: pay-again page (number saved on this device after a confirmed order) — split chunk
 const PayAgain = lazyPage(() => import("./pages/PayAgain.tsx"));
 // retention-1006: pages behind email links (unsubscribe, refill link, Auto Pay cancel confirm) — split chunk
