@@ -100,6 +100,7 @@ export interface Translations {
   processing: string;
   securePoweredBy: string;
   paymentFailed: string;
+  notChargedNote: string;
   tryAgain: string;
   validationFailedTitle: string;
   validationFailedDesc: string;
@@ -258,6 +259,7 @@ const en: Translations = {
   processing: "Processing...",
   securePoweredBy: "Secure payment powered by CellPay. Your refill is sent directly to your phone.",
   paymentFailed: "Payment Failed",
+  notChargedNote: "Your card was NOT charged. If you see a pending amount, your bank removes it in 1-2 days. You can try another card.",
   tryAgain: "Try Again",
   validationFailedTitle: "Validation failed",
   validationFailedDesc: "Unable to validate this recharge",
@@ -416,6 +418,7 @@ const es: Translations = {
   processing: "Procesando...",
   securePoweredBy: "Pago seguro con tecnología de CellPay. Su recarga se envía a su teléfono.",
   paymentFailed: "Pago fallido",
+  notChargedNote: "No se cobró a su tarjeta. Si ve un cargo pendiente, su banco lo quita en 1-2 días. Puede usar otra tarjeta.",
   tryAgain: "Intentar de nuevo",
   validationFailedTitle: "Validación fallida",
   validationFailedDesc: "No se pudo validar esta recarga",

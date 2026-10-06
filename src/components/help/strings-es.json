@@ -44,6 +44,7 @@
       "El cargo por servicio, si aplica, se muestra en la página de pago antes de pagar, para que pueda revisar el total primero."
     ],
     "declined": [
+      "No se cobró a su tarjeta. Si ve un cargo pendiente, su banco lo quita en 1-2 días. Puede usar otra tarjeta.",
       "Revise bien los datos de su tarjeta, su número de teléfono y su plan antes de confirmar.",
       "Antes de pagar de nuevo, use \"Estado del pedido\" abajo para ver si el primer pago se completó. Si su tarjeta fue rechazada, su banco le puede decir por qué."
     ],

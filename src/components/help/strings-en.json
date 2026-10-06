@@ -44,6 +44,7 @@
       "Any service fee is shown at checkout before you pay, so you can review the total first."
     ],
     "declined": [
+      "Your card was NOT charged. If you see a pending amount, your bank removes it in 1-2 days. You can try another card.",
       "Please double-check your card details, phone number and plan before confirming.",
       "Before paying again, check whether the first payment went through with \"Check order status\" below. If your card was declined, your bank can tell you why."
     ],

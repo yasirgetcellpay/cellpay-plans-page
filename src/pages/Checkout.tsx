@@ -291,6 +291,8 @@ const Checkout = () => {
   // Success / error dialogs
   // Success now redirects to /order-confirmation page
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // CX-HOLD: show "card was NOT charged" on declines with no txn id (not on auto-refund).
+  const [showNotChargedNote, setShowNotChargedNote] = useState(false);
 
   // Klarna
   const klarnaContainerRef = useRef<HTMLDivElement>(null);
@@ -758,7 +760,11 @@ const Checkout = () => {
       clearCheckoutCtx();
       navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
     } else {
-      setErrorMsg((result.msg as string) || (result.message as string) || "Transaction failed");
+      const msg = (result.msg as string) || (result.message as string) || "Transaction failed";
+      const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
+      const autoRefund = /auto[\s-]?refund/i.test(msg);
+      setShowNotChargedNote(!autoRefund && !txn);
+      setErrorMsg(msg);
     }
   };
 
@@ -1215,7 +1221,11 @@ const Checkout = () => {
         } else {
           console.error("[ApplePay] transaction failed", result);
           session.completePayment({ status: session.STATUS_FAILURE });
-          setErrorMsg((result.msg as string) || (result.message as string) || "Apple Pay transaction failed");
+          const msg = (result.msg as string) || (result.message as string) || "Apple Pay transaction failed";
+          const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
+          const autoRefund = /auto[\s-]?refund/i.test(msg);
+          setShowNotChargedNote(!autoRefund && !txn);
+          setErrorMsg(msg);
         }
       } catch (err) {
         console.error("[ApplePay] onpaymentauthorized error", err);
@@ -1464,6 +1474,7 @@ const Checkout = () => {
     if (!canSubmit) return;
     setSubmitting(true);
     setErrorMsg(null);
+    setShowNotChargedNote(false);
 
     // "Processing..." stays ONLY while the Apple Pay sheet is open or the browser is leaving for Cash App's
     // hosted page. Every other outcome (failure, cancel, close, error) resets it here (QA #19).
@@ -1952,12 +1963,16 @@ const Checkout = () => {
 
       {/* Error dialog */}
       {errorMsg && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => setErrorMsg(null)}>
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => { setErrorMsg(null); setShowNotChargedNote(false); }}>
           <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="text-4xl mb-3">❌</div>
             <h3 className="text-xl font-bold text-foreground mb-2">{tr.paymentFailed}</h3>
-            <p className="text-sm text-muted-foreground mb-4">{errorMsg}</p>
-            <button type="button" onClick={() => setErrorMsg(null)}
+            <p className="text-sm text-muted-foreground mb-2">{errorMsg}</p>
+            {showNotChargedNote && (
+              <p className="text-sm text-muted-foreground mb-4" data-testid="cx-hold-not-charged">{tr.notChargedNote}</p>
+            )}
+            {!showNotChargedNote && <div className="mb-4" />}
+            <button type="button" onClick={() => { setErrorMsg(null); setShowNotChargedNote(false); }}
               className="px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
               {tr.tryAgain}
             </button>
