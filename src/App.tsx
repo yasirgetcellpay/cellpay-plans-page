@@ -106,6 +106,10 @@ const AdminDashboard = lazyPage(() => import("./pages/AdminDashboard.tsx"));
 const GoLander = lazyPage(() => import("./pages/GoLander.tsx"));
 // RT-3: pay-again page (number saved on this device after a confirmed order) — split chunk
 const PayAgain = lazyPage(() => import("./pages/PayAgain.tsx"));
+// retention-1006: pages behind email links (unsubscribe, refill link, Auto Pay cancel confirm) — split chunk
+const EmailUnsubscribe = lazyPage(() => import("./pages/EmailLinks.tsx").then((m) => ({ default: m.EmailUnsubscribe })));
+const RefillLink = lazyPage(() => import("./pages/EmailLinks.tsx").then((m) => ({ default: m.RefillLink })));
+const AutoPayCancel = lazyPage(() => import("./pages/EmailLinks.tsx").then((m) => ({ default: m.AutoPayCancel })));
 
 /** Full-height blank while a split page loads, so the footer never flashes up and nothing jumps. */
 const RouteFallback = () => <div className="min-h-screen bg-background" aria-busy="true" />;
@@ -1146,6 +1150,12 @@ const App = () => (
         <Route path="/es/order-confirmation" element={<OrderConfirmation />} />
         <Route path="/pay-again" element={<PayAgain />} />
         <Route path="/es/pay-again" element={<PayAgain />} />
+        <Route path="/unsubscribe" element={<EmailUnsubscribe />} />
+        <Route path="/es/unsubscribe" element={<EmailUnsubscribe />} />
+        <Route path="/r" element={<RefillLink />} />
+        <Route path="/es/r" element={<RefillLink />} />
+        <Route path="/ap/cancel" element={<AutoPayCancel />} />
+        <Route path="/es/ap/cancel" element={<AutoPayCancel />} />
         <Route path="/checkout/cashapp-return" element={<CashAppReturn />} />
         <Route path="/es/checkout/cashapp-return" element={<CashAppReturn />} />
 
