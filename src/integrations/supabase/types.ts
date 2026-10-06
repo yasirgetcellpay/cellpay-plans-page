@@ -230,6 +230,114 @@ export type Database = {
         }
         Relationships: []
       }
+      email_send_log: {
+        Row: {
+          amount: number | null
+          carrier_slug: string | null
+          charge_date: string | null
+          charge_date_source: string | null
+          created_at: string
+          cycle_key: string
+          email_sha256: string | null
+          error: string | null
+          holdout: boolean | null
+          id: string
+          kind: string
+          lang: string | null
+          last_refill_at: string | null
+          mode: string
+          optin_id: string | null
+          order_id: string | null
+          phone_last4: string | null
+          provider: string | null
+          provider_ref: string | null
+          sent_at: string | null
+          skip_reason: string | null
+          status: string
+          token_expires_at: string | null
+          token_hash: string | null
+          token_used_at: string | null
+          touch: string
+        }
+        Insert: {
+          amount?: number | null
+          carrier_slug?: string | null
+          charge_date?: string | null
+          charge_date_source?: string | null
+          created_at?: string
+          cycle_key: string
+          email_sha256?: string | null
+          error?: string | null
+          holdout?: boolean | null
+          id?: string
+          kind: string
+          lang?: string | null
+          last_refill_at?: string | null
+          mode: string
+          optin_id?: string | null
+          order_id?: string | null
+          phone_last4?: string | null
+          provider?: string | null
+          provider_ref?: string | null
+          sent_at?: string | null
+          skip_reason?: string | null
+          status: string
+          token_expires_at?: string | null
+          token_hash?: string | null
+          token_used_at?: string | null
+          touch: string
+        }
+        Update: {
+          amount?: number | null
+          carrier_slug?: string | null
+          charge_date?: string | null
+          charge_date_source?: string | null
+          created_at?: string
+          cycle_key?: string
+          email_sha256?: string | null
+          error?: string | null
+          holdout?: boolean | null
+          id?: string
+          kind?: string
+          lang?: string | null
+          last_refill_at?: string | null
+          mode?: string
+          optin_id?: string | null
+          order_id?: string | null
+          phone_last4?: string | null
+          provider?: string | null
+          provider_ref?: string | null
+          sent_at?: string | null
+          skip_reason?: string | null
+          status?: string
+          token_expires_at?: string | null
+          token_hash?: string | null
+          token_used_at?: string | null
+          touch?: string
+        }
+        Relationships: []
+      }
+      email_suppression: {
+        Row: {
+          created_at: string
+          email_sha256: string
+          reason: string
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_sha256: string
+          reason: string
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_sha256?: string
+          reason?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
       fraud_controls: {
         Row: {
           key: string
@@ -872,6 +980,120 @@ export type Database = {
         }
         Relationships: []
       }
+      reminder_consent_texts: {
+        Row: {
+          consent_text: string
+          created_at: string
+          lang: string
+          version: string
+        }
+        Insert: {
+          consent_text: string
+          created_at?: string
+          lang: string
+          version: string
+        }
+        Update: {
+          consent_text?: string
+          created_at?: string
+          lang?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      reminder_optins: {
+        Row: {
+          amount: number | null
+          carrier: string | null
+          carrier_slug: string | null
+          consent_at: string
+          consent_text: string
+          consent_version: string
+          created_at: string
+          email: string
+          email_sha256: string
+          hashid: string | null
+          holdout: boolean
+          host: string | null
+          id: string
+          ip_hash: string | null
+          lang: string
+          order_id: string | null
+          phone: string
+          source: string
+          token: string
+          unsubscribe_source: string | null
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          carrier?: string | null
+          carrier_slug?: string | null
+          consent_at: string
+          consent_text: string
+          consent_version: string
+          created_at?: string
+          email: string
+          email_sha256: string
+          hashid?: string | null
+          holdout?: boolean
+          host?: string | null
+          id?: string
+          ip_hash?: string | null
+          lang: string
+          order_id?: string | null
+          phone: string
+          source: string
+          token?: string
+          unsubscribe_source?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          carrier?: string | null
+          carrier_slug?: string | null
+          consent_at?: string
+          consent_text?: string
+          consent_version?: string
+          created_at?: string
+          email?: string
+          email_sha256?: string
+          hashid?: string | null
+          holdout?: boolean
+          host?: string | null
+          id?: string
+          ip_hash?: string | null
+          lang?: string
+          order_id?: string | null
+          phone?: string
+          source?: string
+          token?: string
+          unsubscribe_source?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      retention_email_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       support_requests: {
         Row: {
           category: string | null
@@ -1062,6 +1284,28 @@ export type Database = {
           _status: number
         }
         Returns: number
+      }
+      autopay_notice_plan: {
+        Args: { _now?: string }
+        Returns: {
+          amount: number
+          carrier_slug: string
+          charge_date: string
+          cycle_key: string
+          email_sha256: string
+          lang: string
+          order_id: string
+          phone_last4: string
+          skip_reason: string
+        }[]
+      }
+      autopay_notice_run: {
+        Args: { _ignore_window?: boolean; _now?: string }
+        Returns: {
+          log_id: string
+          skip_reason: string
+          status: string
+        }[]
       }
       blocklist_norm: { Args: { _raw: string; _type: string }; Returns: string }
       checkout_blocklist_check: {
@@ -1298,6 +1542,56 @@ export type Database = {
       refill_cooldown_mark: {
         Args: { _key: string; _seconds?: number }
         Returns: Json
+      }
+      reminder_optin_create: {
+        Args: {
+          _consent_version: string
+          _email?: string
+          _hashid: string
+          _lang: string
+          _source?: string
+        }
+        Returns: string
+      }
+      reminder_unsubscribe: {
+        Args: { _source: string; _token: string }
+        Returns: string
+      }
+      retention_bucket: { Args: { _phone: string }; Returns: number }
+      retention_email_cron_auth: { Args: { _token: string }; Returns: boolean }
+      retention_email_hmac_key: { Args: never; Returns: string }
+      retention_email_setting: {
+        Args: { _default: string; _key: string }
+        Returns: string
+      }
+      retention_is_fraud: {
+        Args: { _email: string; _phone: string }
+        Returns: boolean
+      }
+      retention_reminder_plan: {
+        Args: { _now?: string }
+        Returns: {
+          amount: number
+          carrier_slug: string
+          cycle_key: string
+          email_sha256: string
+          holdout: boolean
+          lang: string
+          last_refill_at: string
+          optin_id: string
+          order_id: string
+          phone_last4: string
+          skip_reason: string
+          touch: string
+        }[]
+      }
+      retention_reminder_run: {
+        Args: { _ignore_window?: boolean; _now?: string }
+        Returns: {
+          log_id: string
+          skip_reason: string
+          status: string
+        }[]
       }
     }
     Enums: {
