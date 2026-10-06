@@ -10,7 +10,7 @@ import { HELP_CARRIERS, type HelpCarrier } from "./helpRoutes";
 import type { HelpFlags } from "./helpSettings";
 import { QUICK_REPLIES, STRINGS, answerFor, isFaqTopic, matchIntent, offersSupportAfter, type HelpIntent, type HelpLang } from "./helpFaq";
 import { careFor } from "./helpCarrierCare";
-import { MAX_MESSAGE, MAX_NAME, cleanLast4, cleanPhone, cleanVerifier, errorKindFor, formatPhoneInput, isDoNotPayAgain, isValidContact, parseOrderStatus, type HelpErrorKind, type OrderStatusValue } from "./helpValidate";
+import { MAX_MESSAGE, MAX_NAME, cleanLast4, cleanPhone, errorKindFor, formatPhoneInput, isDoNotPayAgain, isValidContact, parseOrderCards, parseOrderStatus, type HelpErrorKind, type OrderCard, type OrderStatusValue } from "./helpValidate";
 
 const HelpAutoPayCancel = lazy(() => import("./HelpAutoPayCancel"));
 
@@ -205,22 +205,23 @@ const labelCls = "block text-[13px] font-semibold text-foreground";
 const OrderStatusForm = ({ lang, onContact }: { lang: HelpLang; onContact: () => void }) => {
   const s = STRINGS[lang].orderStatus;
   const [phone, setPhone] = useState("");
-  const [verifier, setVerifier] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<OrderResult | null>(null);
+  const [cards, setCards] = useState<OrderCard[]>([]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     const p = cleanPhone(phone);
-    const v = cleanVerifier(verifier);
     if (!p) return setErr(s.invalidPhone);
-    if (!v) return setErr(s.invalidVerifier);
-    setErr(null); setBusy(true); setResult(null);
+    setErr(null); setBusy(true); setResult(null); setCards([]);
     try {
-      const { data, error } = await supabase.functions.invoke("order-status", { body: { phone: p, verifier: v, lang } });
+      const { data, error } = await supabase.functions.invoke("order-status", { body: { phone: p, lang } });
       if (error) setResult(errorKindFor(errorStatus(error)));
-      else setResult(parseOrderStatus(data) ?? "error");
+      else {
+        setResult(parseOrderStatus(data) ?? "error");
+        setCards(parseOrderCards(data));
+      }
     } catch { setResult("error"); } finally { setBusy(false); }
   };
 
@@ -236,6 +237,12 @@ const OrderStatusForm = ({ lang, onContact }: { lang: HelpLang; onContact: () =>
     error: { cls: "border-border bg-muted text-foreground", Icon: AlertCircle },
   };
 
+  const cardLine = (c: OrderCard) => {
+    const parts = [c.carrier || null, c.amount ? `$${c.amount}` : null, c.time_ct || null].filter(Boolean);
+    const label = ({ success: s.cardSuccess, pending: s.cardPending, unconfirmed: s.cardUnconfirmed, failed: s.cardFailed } as Record<string, string>)[c.status] || c.status;
+    return `${parts.join(" · ")}${parts.length ? " — " : ""}${label}`;
+  };
+
   return (
     <form onSubmit={submit} noValidate data-testid="help-order-form">
       <h3 className="text-[16px] font-extrabold">{s.title}</h3>
@@ -244,10 +251,6 @@ const OrderStatusForm = ({ lang, onContact }: { lang: HelpLang; onContact: () =>
         <input value={phone} onChange={(e) => setPhone(formatPhoneInput(e.target.value))} inputMode="tel" autoComplete="tel-national"
           placeholder={s.phonePlaceholder} className={fieldCls} data-testid="help-order-phone" />
       </label>
-      <label className={`${labelCls} mt-3`}>{s.verifierLabel}
-        <input value={verifier} onChange={(e) => setVerifier(e.target.value.slice(0, 254))} maxLength={254} inputMode="email"
-          autoComplete="email" autoCapitalize="none" spellCheck={false} placeholder={s.verifierPlaceholder} className={fieldCls} data-testid="help-order-verifier" />
-      </label>
       {err && <p className="mt-2 text-[13px] font-semibold text-red-700" role="alert">{err}</p>}
       <button type="submit" disabled={busy} className="mt-3 h-10 w-full rounded-lg bg-primary text-[14px] font-bold text-primary-foreground hover:opacity-90 disabled:opacity-60">
         {busy ? s.checking : s.submit}
@@ -255,8 +258,15 @@ const OrderStatusForm = ({ lang, onContact }: { lang: HelpLang; onContact: () =>
       {result && (() => { const { cls, Icon } = tone[result]; return (
         <div className={`mt-3 flex items-start gap-2 rounded-lg border px-3 py-2.5 text-[13.5px] ${cls}`} role="status" data-testid="help-order-result" data-do-not-pay-again={isDoNotPayAgain(result) ? "" : undefined}>
           <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          <div>
+          <div className="min-w-0">
             <p>{s.result[result]}</p>
+            {cards.length > 0 && result !== "not_found" && result !== "invalid" && result !== "error" && result !== "rate_limited" && result !== "unavailable" && (
+              <ul className="mt-2 space-y-1" data-testid="help-order-cards">
+                {cards.map((c, i) => (
+                  <li key={i} className="text-[12.5px] leading-snug">{cardLine(c)}</li>
+                ))}
+              </ul>
+            )}
             {result !== "success" && (
               <button type="button" onClick={onContact} className="mt-1 text-[13px] font-bold underline">{STRINGS[lang].quick.contact}</button>
             )}

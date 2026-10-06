@@ -91,7 +91,7 @@
   },
   "orderStatus": {
     "title": "Check order status",
-    "intro": "Enter the phone number you refilled and the email you used at checkout. You can use the last 4 characters of your Order ID instead.",
+    "intro": "Enter the phone number you refilled.",
     "phoneLabel": "Phone number",
     "phonePlaceholder": "(XXX) XXX-XXXX",
     "verifierLabel": "Checkout email or last 4 of Order ID",
@@ -104,13 +104,17 @@
       "success": "This order shows as successful, so the payment was sent to your carrier. If your phone still isn't working, make sure you paid the full plan amount and that your billing cycle has started, restart your phone, then call your carrier at 611.",
       "pending": "We're still confirming this payment. Please don't pay again. Check again here in a few minutes. If it's still pending after 30 minutes, contact support with your phone number and order details.",
       "unconfirmed": "We couldn't confirm this payment yet. Please don't pay again. Contact support with your phone number and order details.",
-      "failed": "This payment didn't go through. If you see a charge for it, contact support before paying again.",
-      "not_found": "We couldn't find an order with those details. Check the phone number and email (or Order ID), then try again. If you were charged and still can't find it, contact support.",
-      "invalid": "Please check the phone number and your checkout email (or the last 4 characters of your Order ID), then try again.",
+      "failed": "This payment didn't go through. Your card was NOT charged. If you see a pending amount, your bank removes it in 1-2 days. You can try another card.",
+      "not_found": "We couldn't find an order for that phone number. Check the number and try again. If you were charged and still can't find it, contact support.",
+      "invalid": "Please check the phone number, then try again.",
       "rate_limited": "Too many attempts. Please wait a few minutes and try again.",
       "unavailable": "Order status is temporarily unavailable. Please try again in a few minutes, and please don't pay again in the meantime.",
       "error": "Something went wrong. Please try again, and don't pay again until you've checked your order status."
-    }
+    },
+    "cardSuccess": "successful",
+    "cardPending": "still confirming",
+    "cardUnconfirmed": "not confirmed yet",
+    "cardFailed": "did not go through"
   },
   "contact": {
     "title": "Contact support",

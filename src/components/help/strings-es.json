@@ -91,7 +91,7 @@
   },
   "orderStatus": {
     "title": "Estado del pedido",
-    "intro": "Ingrese el número de teléfono que recargó y el correo electrónico que usó al pagar. También puede usar los últimos 4 caracteres de su ID del pedido.",
+    "intro": "Ingrese el número de teléfono que recargó.",
     "phoneLabel": "Número de teléfono",
     "phonePlaceholder": "(XXX) XXX-XXXX",
     "verifierLabel": "Correo electrónico o ID del pedido (últimos 4)",
@@ -104,13 +104,17 @@
       "success": "Este pedido aparece como completado, así que el pago se envió a su operador. Si su teléfono todavía no funciona, verifique que pagó el monto completo de su plan y que su ciclo de facturación ya comenzó, reinicie su teléfono y luego llame a su operador al 611.",
       "pending": "Todavía estamos confirmando este pago. No pague de nuevo. Vuelva a consultar aquí en unos minutos. Si sigue pendiente después de 30 minutos, comuníquese con soporte con su número de teléfono y los datos de su pedido.",
       "unconfirmed": "Aún no pudimos confirmar este pago. No pague de nuevo. Comuníquese con soporte con su número de teléfono y los datos de su pedido.",
-      "failed": "Este pago no se completó. Si ve un cargo, comuníquese con soporte antes de volver a pagar.",
-      "not_found": "No encontramos un pedido con esos datos. Revise el número de teléfono y el correo electrónico (o el ID del pedido) e inténtelo de nuevo. Si se le hizo un cargo y aún no lo encuentra, comuníquese con soporte.",
-      "invalid": "Revise el número de teléfono y el correo electrónico que usó al pagar (o los últimos 4 caracteres de su ID del pedido) e inténtelo de nuevo.",
+      "failed": "Este pago no se completó. No se cobró a su tarjeta. Si ve un cargo pendiente, su banco lo quita en 1-2 días. Puede usar otra tarjeta.",
+      "not_found": "No encontramos un pedido con ese número de teléfono. Revise el número e inténtelo de nuevo. Si se le hizo un cargo y aún no lo encuentra, comuníquese con soporte.",
+      "invalid": "Revise el número de teléfono e inténtelo de nuevo.",
       "rate_limited": "Demasiados intentos. Espere unos minutos e inténtelo de nuevo.",
       "unavailable": "El estado del pedido no está disponible en este momento. Inténtelo de nuevo en unos minutos y, por favor, no pague de nuevo mientras tanto.",
       "error": "Ocurrió un error. Inténtelo de nuevo y no pague de nuevo hasta consultar el estado de su pedido."
-    }
+    },
+    "cardSuccess": "completado",
+    "cardPending": "aún se confirma",
+    "cardUnconfirmed": "aún no confirmado",
+    "cardFailed": "no se completó"
   },
   "contact": {
     "title": "Contactar a soporte",

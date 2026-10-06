@@ -1,9 +1,7 @@
-// order-status: phone + ONE verifier (last 4 of the Order ID, or the checkout email) -> ONLY {status}.
-// - Never returns a PIN, name, email, amount, carrier, date or card data. raw_response (PINs) is never read or selected (deviation c).
-// - A last-4 match and an email match give byte-identical responses, and the same work is done either way
-//   (same rate-limit calls, same query, both comparisons over every row, same minimum response time).
-// - "No order", "wrong last 4" and "wrong email" all give the identical {"status":"not_found"}.
-// - Calls no proxy and no CellPay API: it reads public.transaction_logs server-side with the service role.
+// order-status (HC-ORDER-PHONE): phone only -> {status} plus up to MAX_ORDERS recent {status,amount,carrier,time_ct}.
+// - Never returns a PIN, name, email, card data, or raw_response (PINs never read).
+// - Rate limits: per-IP + per-phone (verifier bucket removed). Minimum response time kept.
+// - Calls no proxy and no CellPay API: reads public.transaction_logs server-side with the service role.
 import {
   bucketKey, corsFor, errorClass, isAllowedOrigin, json, normalizeEmail, normalizeLast4, normalizeUsPhone, rateLimitIp, readJsonBody,
   type HelpSettings, type LogEventFn, type RateLimitFn,
@@ -19,6 +17,10 @@ export interface OrderRow {
   payment_method: string | null;
   created_at: string | null;
   email: string | null;
+  amount?: number | string | null;
+  total?: number | string | null;
+  carrier_name?: string | null;
+  carrier_slug?: string | null;
   /** Used only to spot an upstream reply with no CellPay message (504/HTML timeout or gateway error). Never returned. */
   error_message?: string | null;
 }
@@ -33,6 +35,8 @@ export const UNCONFIRMED_AFTER_MS = 60 * 60_000;
 /** Every answer (200, 400, 429, 503) takes at least this long, so match / no-match / email / last-4 look the same. */
 export const MIN_RESPONSE_MS = 400;
 export const LOOKBACK_DAYS = 180;
+/** How many recent orders for this phone to return (newest first). */
+export const MAX_ORDERS = 3;
 
 export function mapStatus(raw: string | null | undefined): "success" | "failed" | "pending" {
   const s = (raw ?? "").trim().toLowerCase();
@@ -103,6 +107,58 @@ export function resolveStatus(rows: OrderRow[], v: Verifier, now: number = Date.
   return s === "pending" && isStalePending(hit.created_at, now) ? "unconfirmed" : s;
 }
 
+/** Map one DB row to the public status (same rules as resolveStatus's hit path). */
+export function publicStatusForRow(hit: OrderRow, now: number = Date.now()): Exclude<PublicStatus, "not_found"> {
+  if ((hit.payment_method ?? "").trim().toLowerCase() === "pockyt") return "unconfirmed";
+  const s = mapStatus(hit.status);
+  if (s === "failed" && isAmbiguousFailure(hit)) return "unconfirmed";
+  return s === "pending" && isStalePending(hit.created_at, now) ? "unconfirmed" : s;
+}
+
+/** Format created_at in America/Chicago for the help UI (no zone abbreviation jargon beyond CT). */
+export function formatTimeCt(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) return "";
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Chicago", month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+    }).format(new Date(t)) + " CT";
+  } catch {
+    return "";
+  }
+}
+
+export function formatAmount(r: OrderRow): string {
+  const raw = r.amount ?? r.total;
+  if (raw === null || raw === undefined || raw === "") return "";
+  const n = typeof raw === "number" ? raw : Number(String(raw).replace(/[^0-9.]/g, ""));
+  if (!Number.isFinite(n)) return "";
+  return Number.isInteger(n) ? String(n) : n.toFixed(2);
+}
+
+export function formatCarrier(r: OrderRow): string {
+  const name = String(r.carrier_name ?? "").trim();
+  if (name) return name;
+  const slug = String(r.carrier_slug ?? "").trim();
+  return slug ? slug.replace(/-/g, " ") : "";
+}
+
+/** Newest-first rows for this phone -> up to MAX_ORDERS public order cards (no email/ids/PINs). */
+export function publicOrdersForPhone(rows: OrderRow[], now: number = Date.now()): Array<{ status: string; amount: string; carrier: string; time_ct: string }> {
+  const out: Array<{ status: string; amount: string; carrier: string; time_ct: string }> = [];
+  for (const r of rows) {
+    if (out.length >= MAX_ORDERS) break;
+    out.push({
+      status: publicStatusForRow(r, now),
+      amount: formatAmount(r),
+      carrier: formatCarrier(r),
+      time_ct: formatTimeCt(r.created_at),
+    });
+  }
+  return out;
+}
+
 export interface OrderStatusDeps {
   rateLimit: RateLimitFn;
   findOrders: (phone10: string) => Promise<OrderRow[]>;
@@ -126,16 +182,17 @@ export async function handleOrderStatus(input: unknown, ip: string, deps: OrderS
 
   const o = (input && typeof input === "object") ? input as Record<string, unknown> : {};
   const phone = normalizeUsPhone(o.phone);
-  const v = parseVerifier(o.verifier);
-  if (!phone || !v) return { status: 400, body: { error: "invalid_input" } };
+  // HC-ORDER-PHONE: phone only (verifier ignored if sent). Keep invalid when phone missing.
+  if (!phone) return { status: 400, body: { error: "invalid_input" } };
 
-  // Same two calls for both verifier types: the phone bucket and one verifier bucket ("os:vf").
   const phoneOk = await deps.rateLimit(await bucketKey(deps.secret, "os:ph", phone), LIMIT_PER_HOUR, WINDOW_SECONDS);
-  const vfOk = await deps.rateLimit(await bucketKey(deps.secret, "os:vf", v.email || v.last4), LIMIT_PER_HOUR, WINDOW_SECONDS);
-  if (!phoneOk || !vfOk) return { status: 429, body: { error: "rate_limited" } };
+  if (!phoneOk) return { status: 429, body: { error: "rate_limited" } };
 
+  const nowMs = (deps.now ?? Date.now)();
   const rows = await deps.findOrders(phone);
-  return { status: 200, body: { status: resolveStatus(rows, v, (deps.now ?? Date.now)()) } };
+  if (!rows.length) return { status: 200, body: { status: "not_found" } };
+  const orders = publicOrdersForPhone(rows, nowMs);
+  return { status: 200, body: { status: orders[0]?.status ?? "not_found", orders } };
 }
 
 /** Outcome label for help_events (no PII). */
@@ -181,7 +238,7 @@ export function makeOrderStatusHandler(deps: OrderStatusDeps): (req: Request) =>
 /** PostgREST query (service role, server-side only). Only the columns needed for matching + staleness. */
 export function ordersQueryUrl(supabaseUrl: string, phone10: string, nowMs: number = Date.now()): string {
   const params = new URLSearchParams({
-    select: "status,transaction_id,hashid,payment_method,created_at,email,error_message",
+    select: "status,transaction_id,hashid,payment_method,created_at,email,error_message,amount,total,carrier_name,carrier_slug",
     phone_number: `eq.${phone10}`,
     created_at: `gte.${new Date(nowMs - LOOKBACK_DAYS * 86400_000).toISOString()}`,
     order: "created_at.desc",
