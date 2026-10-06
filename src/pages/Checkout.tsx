@@ -131,6 +131,43 @@ const setPurchasePending = (hid: string) => {
   try { document.cookie = `cp_purchase_pending=${encodeURIComponent(String(hid))}; path=/; Max-Age=3600; SameSite=Lax; Secure`; } catch { /* cookie unavailable */ }
 };
 
+// ARB-1a: Auto Pay offer + disclosure copy (EN/ES), v2. Display only; payload fields unchanged (autopay / autopay_agreement).
+// AP_CYCLE_CONFIRMED stays false until CellPay confirms the renewal cycle and fee (open with the CellPay backend via the
+// Callingmart Lead). While false, no new copy states a frequency, a $ amount or a date; flip to true only after the answer.
+const AP_CYCLE_CONFIRMED = false;
+const AP_COPY = {
+  en: {
+    offerTitle: "Turn on Auto Pay (optional)",
+    offerBenefit: "Never miss a refill · cancel anytime",
+    chargeInterim: "Auto Pay recharges this number with this card. Renews monthly on your payment date, cancel anytime.",
+    chargeKnown: (amount: string, date: string) => `Auto Pay charges today's total, ${amount}, to this card every 30 days, starting ${date}, until you cancel.`,
+    chargeUnknown: (date: string) => `Auto Pay charges the same amount as today's order to this card every 30 days, starting ${date}, until you cancel.`,
+    cancelLead: "Cancel anytime online: use ",
+    cancelLink: "Unsubscribe From Autopay on our FAQ page",
+    cancelTail: " (no login needed), or email support@getcellpay.com.",
+    consent: "I agree to the Auto Pay terms below and authorize CellPay to charge this card monthly on my payment date until I cancel.",
+    consentConfirmed: "I agree to the Auto Pay terms below and authorize CellPay to charge this card every 30 days until I cancel.",
+    placeHint: "Tick the Auto Pay authorization above to continue.",
+    termsNote: "",
+    dateLocale: "en-US",
+  },
+  es: {
+    offerTitle: "Activar pago automático (opcional)",
+    offerBenefit: "Nunca se quede sin recarga · cancele cuando quiera",
+    chargeInterim: "El pago automático recarga este número con esta tarjeta. Se renueva cada mes en la fecha de su pago; cancele cuando quiera.",
+    chargeKnown: (amount: string, date: string) => `El pago automático cobra el total de hoy, ${amount}, a esta tarjeta cada 30 días, a partir del ${date}, hasta que usted cancele.`,
+    chargeUnknown: (date: string) => `El pago automático cobra el mismo monto del pedido de hoy a esta tarjeta cada 30 días, a partir del ${date}, hasta que usted cancele.`,
+    cancelLead: "Cancele en línea cuando quiera: use ",
+    cancelLink: "«Unsubscribe From Autopay» en nuestra página de Preguntas frecuentes",
+    cancelTail: " (sin iniciar sesión), o escriba a support@getcellpay.com.",
+    consent: "Acepto los términos de pago automático a continuación y autorizo a CellPay a cobrar esta tarjeta cada mes en mi fecha de pago hasta que yo cancele.",
+    consentConfirmed: "Acepto los términos de pago automático a continuación y autorizo a CellPay a cobrar esta tarjeta cada 30 días hasta que yo cancele.",
+    placeHint: "Marque la autorización de pago automático arriba para continuar.",
+    termsNote: "Términos completos de pago automático (en inglés):",
+    dateLocale: "es-US",
+  },
+} as const;
+
 const Checkout = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -144,6 +181,7 @@ const Checkout = () => {
   const resumed = !routerState || !!routerState.resumed;
   const lang = useLang();
   const tr = t(lang);
+  const apCopy = AP_COPY[lang === "es" ? "es" : "en"];
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -1786,26 +1824,39 @@ const Checkout = () => {
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" checked={autoPay} onChange={(e) => setAutoPay(e.target.checked)}
                     className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
-                  <span className="text-sm font-bold text-foreground leading-snug">
-                    {tr.subscribeAutoPay}
+                  <span data-testid="autopay-offer" className="flex-1 text-sm leading-snug rounded-lg border-2 px-3 py-2 -mt-1" style={{ borderColor: brandColor }}>
+                    <span className="block font-bold text-foreground">{apCopy.offerTitle}</span>
+                    <span className="block text-muted-foreground mt-0.5">{apCopy.offerBenefit}</span>
                   </span>
-
                 </label>
 
 
                 {autoPay && (
                   <div className="rounded-lg bg-muted/40 p-4 space-y-3">
-                    <p className="text-sm text-foreground leading-relaxed">
-                      Choose auto pay for automatic recurring recharge every 30 days.
-                    </p>
+                    <div data-testid="autopay-disclosure" className="space-y-2">
+                      <p className="text-sm text-foreground leading-relaxed">
+                        {!AP_CYCLE_CONFIRMED ? apCopy.chargeInterim : (() => {
+                          const startDate = new Date(Date.now() + 30 * 86400000).toLocaleDateString(apCopy.dateLocale, { month: "long", day: "numeric", year: "numeric" });
+                          return validation?.total != null
+                            ? apCopy.chargeKnown(`$${Number(validation.total).toFixed(2)}`, startDate)
+                            : apCopy.chargeUnknown(startDate);
+                        })()}
+                      </p>
+                      <p className="text-sm text-foreground leading-relaxed">
+                        {apCopy.cancelLead}
+                        <a href="/faq" target="_blank" rel="noopener noreferrer" className="underline font-semibold" style={{ color: brandColor }}>{apCopy.cancelLink}</a>
+                        {apCopy.cancelTail}
+                      </p>
+                    </div>
 
 
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input type="checkbox" checked={autoPayTerms} onChange={(e) => setAutoPayTerms(e.target.checked)}
                         className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
-                      <span className="text-sm font-bold text-foreground">{tr.acceptAutoPayTerms}</span>
+                      <span data-testid="autopay-consent" className="text-sm font-bold text-foreground">{AP_CYCLE_CONFIRMED ? apCopy.consentConfirmed : apCopy.consent}</span>
                     </label>
 
+                    {apCopy.termsNote && <p className="text-xs text-muted-foreground">{apCopy.termsNote}</p>}
                     <div className="max-h-48 overflow-y-auto rounded-md border border-border bg-background p-3 text-xs text-muted-foreground leading-relaxed space-y-2">
 
                       <p className="font-semibold text-foreground">GENERAL AND PAYMENT-SPECIFIC TERMS &amp; CONDITIONS; RECURRING CHARGE AUTHORIZATION</p>
@@ -1853,6 +1904,12 @@ const Checkout = () => {
                 {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
                 {submitting ? tr.processing : tr.placeOrder}
               </button>
+            )}
+
+            {paymentMethod === "card" && autoPay && !autoPayTerms && (
+              <p data-testid="autopay-place-hint" role="status" aria-live="polite" className="text-sm font-semibold text-center" style={{ color: brandColor }}>
+                {apCopy.placeHint}
+              </p>
             )}
 
             <p className="text-center text-xs text-muted-foreground">
