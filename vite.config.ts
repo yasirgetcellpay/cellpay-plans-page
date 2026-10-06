@@ -161,6 +161,22 @@ const HTML_ROUTES = [
   "es/privacy-policy.html",
   "es/terms-and-conditions.html",
   "es/returns-policy.html",
+  // SEO-SHELL-1: indexable clean sitemap paths (folder/index.html) so raw HTML title/description
+  // match the page (not the home shell). Home "/" stays the root index.html. Keep no-host rule.
+  "es/index.html",
+  "verizon/index.html",
+  "es/verizon/index.html",
+  "total-wireless/index.html",
+  "es/total-wireless/index.html",
+  "att-firstnet/index.html",
+  "es/att-firstnet/index.html",
+  "about-us/index.html",
+  "contact-us/index.html",
+  "faq/index.html",
+  "how-to-use/index.html",
+  "privacy-policy/index.html",
+  "terms-and-conditions/index.html",
+  "returns-policy/index.html",
   // DMCA page (real page, indexable): its only URL ends in .html, so it needs a static shell too.
   "digital-millennium-copyright-act-dmca-compliance.html",
   "es/digital-millennium-copyright-act-dmca-compliance.html",
@@ -572,6 +588,70 @@ const htmlAliasPlugin = (): Plugin => ({
           noindex: true,
           lang: isEs ? "es" : "en",
         };
+      }
+      // SEO-SHELL-1: clean sitemap paths (indexable). Titles/descriptions match applySeoHead at runtime.
+      // Not in ALIAS_REDIRECT_SHELLS (those .html twins stay noindex redirects).
+      const SITE_PAGE_META: Record<string, { title: string; description: string }> = {
+        "es/index.html": {
+          title: "Recargas Móviles y Pagos Prepagados en Línea | CellPay",
+          description: "Recargas prepagadas para más de 15 operadores de EE. UU.: AT&T, T-Mobile, Metro, Cricket, Verizon, Boost y más. Sin iniciar sesión. Cargo por servicio bajo, mostrado antes de pagar.",
+        },
+        "verizon/index.html": {
+          title: "Verizon Prepaid Refill — Pay Bill Online | CellPay",
+          description: "Refill any Verizon Prepaid phone online. No My Verizon login, all major cards & wallets. Pay your Verizon Prepaid bill online on CellPay.",
+        },
+        "es/verizon/index.html": {
+          title: "Verizon Wireless Prepaid Refill Online | CellPay",
+          description: "Recharge your Verizon Prepaid plan instantly online with CellPay online bill payments. Easy, fast and secure way to pay Verizon Prepaid",
+        },
+        "total-wireless/index.html": {
+          title: "Total Wireless Refills and Online Bill Payments",
+          description: "Recharge your Total Wireless plan instantly online with CellPay online bill payments. Easy, fast and secure way to pay Total Wireless",
+        },
+        "es/total-wireless/index.html": {
+          title: "Total Wireless Refills and Online Bill Payments",
+          description: "Recharge your Total Wireless plan instantly online with CellPay online bill payments. Easy, fast and secure way to pay Total Wireless",
+        },
+        "att-firstnet/index.html": {
+          title: "AT&T Prepaid Refill Online | CellPay",
+          description: "Refill your AT&T Prepaid phone online with CellPay. Secure online top-up from $5 to $150, sent directly to your number.",
+        },
+        "es/att-firstnet/index.html": {
+          title: "Recarga AT&T Prepago en Línea | CellPay",
+          description: "Recarga tu teléfono AT&T Prepaid en línea con CellPay. Recarga en línea segura desde $5 hasta $150, enviada directamente a tu número.",
+        },
+        "about-us/index.html": {
+          title: "About CellPay — Online Prepaid Wireless Refills",
+          description: "Learn about CellPay, an independent online prepaid refill service supporting 15+ US wireless carriers with online top-ups, secure checkout, and a low service fee shown before you pay.",
+        },
+        "contact-us/index.html": {
+          title: "Contact CellPay Support — Help With Your Prepaid Refill",
+          description: "Need help with a CellPay refill? Email support@getcellpay.com. Business hours, response times, and tips for resolving common refill issues.",
+        },
+        "faq/index.html": {
+          title: "Prepaid Refill FAQ — CellPay Help & Answers",
+          description: "Answers to the most common questions about CellPay prepaid refills: supported carriers, payment methods, delivery time, refunds, and account help.",
+        },
+        "how-to-use/index.html": {
+          title: "How to Refill a Prepaid Phone Online — CellPay Guide",
+          description: "Step-by-step guide to recharging a US prepaid phone with CellPay: pick a carrier, enter the number, choose a plan, pay securely, and get your top-up.",
+        },
+        "privacy-policy/index.html": {
+          title: "Privacy Policy — CellPay",
+          description: "How CellPay collects, uses, and protects customer information when you purchase a prepaid mobile refill: data we collect, how we share it, and your choices.",
+        },
+        "terms-and-conditions/index.html": {
+          title: "Terms & Conditions — CellPay",
+          description: "The terms governing your use of CellPay: services, pricing, payment, refill delivery, refund rules, account responsibilities, and limitations of liability.",
+        },
+        "returns-policy/index.html": {
+          title: "Returns & Refunds Policy — CellPay",
+          description: "CellPay's returns policy: completed refill payments are final and can't be refunded. How to contact support about a duplicate charge or a missing refill.",
+        },
+      };
+      if (SITE_PAGE_META[route]) {
+        const isEs = route === "es/index.html" || route.startsWith("es/");
+        return { ...SITE_PAGE_META[route], lang: isEs ? "es" : "en" };
       }
       // Old alias .html URLs: noindex,follow shell; the React route redirects (query string and hash kept).
       if (ALIAS_REDIRECT_SHELLS.has(route)) {
