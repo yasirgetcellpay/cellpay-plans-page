@@ -8,6 +8,7 @@ import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 import { useLang, t, langPath } from "@/lib/i18n";
 import { applySeoHead } from "@/lib/seo";
 import { PayAgainCard } from "@/components/PayAgainCard";
+import { ReminderOptIn } from "@/components/ReminderOptIn";
 
 interface TransactionData {
   id?: number;
@@ -318,6 +319,9 @@ const OrderConfirmation = () => {
               amount={transaction.amount}
               brandColor={brandColor}
             />
+
+            {/* retention-1006: optional refill reminder email (UNCHECKED; saved only on tick; no payment/tracking change) */}
+            <ReminderOptIn lang={lang} hashid={hashid} email={transaction.user?.email} brandColor={brandColor} />
           </div>
         ) : null}
       </main>
