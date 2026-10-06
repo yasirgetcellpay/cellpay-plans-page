@@ -104,6 +104,8 @@ const Login = lazyPage(() => import("./pages/Login.tsx"));
 const AdminDashboard = lazyPage(() => import("./pages/AdminDashboard.tsx"));
 // GO-1: dedicated paid-ad landers (/go/*) — split chunk; noindex shells in vite.config.ts
 const GoLander = lazyPage(() => import("./pages/GoLander.tsx"));
+// RT-3: pay-again page (number saved on this device after a confirmed order) — split chunk
+const PayAgain = lazyPage(() => import("./pages/PayAgain.tsx"));
 
 /** Full-height blank while a split page loads, so the footer never flashes up and nothing jumps. */
 const RouteFallback = () => <div className="min-h-screen bg-background" aria-busy="true" />;
@@ -1142,6 +1144,8 @@ const App = () => (
         <Route path="/es/payment-callback" element={<PaymentCallback />} />
         <Route path="/order-confirmation" element={<OrderConfirmation />} />
         <Route path="/es/order-confirmation" element={<OrderConfirmation />} />
+        <Route path="/pay-again" element={<PayAgain />} />
+        <Route path="/es/pay-again" element={<PayAgain />} />
         <Route path="/checkout/cashapp-return" element={<CashAppReturn />} />
         <Route path="/es/checkout/cashapp-return" element={<CashAppReturn />} />
 

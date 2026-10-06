@@ -7,6 +7,7 @@ import { LegalBar } from "@/components/LegalBar";
 import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 import { useLang, t, langPath } from "@/lib/i18n";
 import { applySeoHead } from "@/lib/seo";
+import { PayAgainCard } from "@/components/PayAgainCard";
 
 interface TransactionData {
   id?: number;
@@ -307,6 +308,16 @@ const OrderConfirmation = () => {
                 </button>
               </div>
             </div>
+
+            {/* RT-3: pay again next time (number saved on this device only; display + localStorage, no tracking change) */}
+            <PayAgainCard
+              lang={lang}
+              slug={transaction.carrier?.slug}
+              carrierName={transaction.carrier?.name || carrierName}
+              phone={transaction.phone_number}
+              amount={transaction.amount}
+              brandColor={brandColor}
+            />
           </div>
         ) : null}
       </main>
