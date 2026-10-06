@@ -60,6 +60,27 @@ export function parseOrderStatus(data: unknown): OrderStatusValue | null {
   return typeof st === "string" && (ORDER_STATUSES as readonly string[]).includes(st) ? (st as OrderStatusValue) : null;
 }
 
+/** HC-ORDER-PHONE: optional recent-order cards (status + amount + carrier + time CT). */
+export interface OrderCard { status: OrderStatusValue; amount: string; carrier: string; time_ct: string; }
+export function parseOrderCards(data: unknown): OrderCard[] {
+  const raw = (data && typeof data === "object") ? (data as { orders?: unknown }).orders : undefined;
+  if (!Array.isArray(raw)) return [];
+  const out: OrderCard[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const st = typeof o.status === "string" && (ORDER_STATUSES as readonly string[]).includes(o.status) ? (o.status as OrderStatusValue) : null;
+    if (!st || st === "not_found") continue;
+    out.push({
+      status: st,
+      amount: typeof o.amount === "string" ? o.amount : "",
+      carrier: typeof o.carrier === "string" ? o.carrier : "",
+      time_ct: typeof o.time_ct === "string" ? o.time_ct : "",
+    });
+  }
+  return out;
+}
+
 /** Statuses that must never invite a second payment (pending / ambiguous). */
 export function isDoNotPayAgain(s: OrderStatusValue | HelpErrorKind | null): boolean {
   return s === "pending" || s === "unconfirmed";
