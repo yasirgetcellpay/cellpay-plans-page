@@ -635,6 +635,100 @@ const htmlAliasPlugin = (): Plugin => ({
     const escAttr = (s: string) =>
       s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+    // SPEED-1006b: /go/* and /es/go/* shells carry a static copy of GoLander's first screen (header, colored
+    // headline bar, loading block) with the same classes, so the headline paints before the app code runs.
+    // main.tsx lets the browser paint it, then React replaces #root with the same markup, so nothing moves.
+    // Keep in sync with GoLander.tsx (header / headline bar / loading block) and the /go routes in App.tsx.
+    const GO_LOOK: Record<string, { name: string; color: string; logo: string }> = {
+      boost: { name: "Boost Mobile", color: "hsl(27,100%,50%)", logo: "boost-logo.png" },
+      metro: { name: "Metro PCS", color: "hsl(270,60%,32%)", logo: "metro-logo.svg" },
+      "simple-mobile": { name: "Simple Mobile", color: "hsl(101,67%,44%)", logo: "simple-mobile-logo.png" },
+      cricket: { name: "Cricket Wireless", color: "hsl(82,60%,42%)", logo: "cricket-logo.webp" },
+      att: { name: "AT&T Prepaid", color: "hsl(196,100%,44%)", logo: "att-prepaid-logo.webp" },
+      ultra: { name: "Ultra Mobile", color: "hsl(270,50%,40%)", logo: "ultra-mobile-logo.png" },
+      "straight-talk": { name: "Straight Talk", color: "hsl(72,74%,44%)", logo: "straight-talk-logo.svg" },
+      lyca: { name: "Lyca Mobile", color: "hsl(220,50%,22%)", logo: "lyca-logo.webp" },
+      h2o: { name: "H2O Wireless", color: "hsl(195,85%,50%)", logo: "h2o-logo.png" },
+      net10: { name: "Net10 Wireless", color: "hsl(195,100%,50%)", logo: "net10-logo.png" },
+    };
+    const distAssets: string[] = (() => {
+      try {
+        return fs.readdirSync(path.join(outDir, "assets"));
+      } catch {
+        return [];
+      }
+    })();
+    // Same URL the app gets for the image import: the hashed file in dist/assets, or the same data: URI
+    // Vite inlines for small files (under 4 KB), so the browser reuses the image when React mounts.
+    const goAssetUrl = (file: string): string | null => {
+      const dot = file.lastIndexOf(".");
+      const base = file.slice(0, dot);
+      const ext = file.slice(dot + 1);
+      const hit = distAssets.find(
+        (f) =>
+          f.startsWith(base + "-") &&
+          f.endsWith("." + ext) &&
+          /^[A-Za-z0-9_-]{8}$/.test(f.slice(base.length + 1, f.length - ext.length - 1)),
+      );
+      if (hit) return `/assets/${hit}`;
+      const src = path.resolve(__dirname, "src/assets", file);
+      if (!fs.existsSync(src)) return null;
+      const buf = fs.readFileSync(src);
+      if (buf.length >= 4096) return null;
+      if (ext === "svg") {
+        const s = buf.toString();
+        if (s.includes("<text") || s.includes("<foreignObject") || /"[^"']*'[^"]*"|'[^'"]*"[^']*'/.test(s)) {
+          return `data:image/svg+xml;base64,${buf.toString("base64")}`;
+        }
+        return (
+          "data:image/svg+xml," +
+          s
+            .trim()
+            .replace(/>\s+</g, "><")
+            .replace(/"/g, "'")
+            .replace(/%/g, "%25")
+            .replace(/#/g, "%23")
+            .replace(/</g, "%3c")
+            .replace(/>/g, "%3e")
+            .replace(/\s+/g, "%20")
+        );
+      }
+      const mime: Record<string, string> = { png: "image/png", webp: "image/webp", jpg: "image/jpeg", jpeg: "image/jpeg" };
+      return mime[ext] ? `data:${mime[ext]};base64,${buf.toString("base64")}` : null;
+    };
+    const goFirstScreen = (route: string): string | null => {
+      const content = GO_CONTENT[route];
+      const slug = route.replace(/^es\//, "").replace(/^go\//, "").replace(/(\/index)?\.html$/, "");
+      const look = GO_LOOK[slug];
+      if (!content || !look) return null;
+      const cellpayLogo = goAssetUrl("cellpay-logo.svg");
+      if (!cellpayLogo) return null;
+      const logo = goAssetUrl(look.logo);
+      const tagline = route.startsWith("es/") ? "Sin cuenta. Pague por otra persona." : "No login. Pay for anyone.";
+      const carrier = logo
+        ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)} logo" class="h-[28px] sm:h-[36px] w-auto object-contain">`
+        : `<span class="text-lg font-extrabold" style="color:${look.color}">${escAttr(look.name)}</span>`;
+      return (
+        `<div id="root" data-go-prerender="1">` +
+        `<div class="min-h-screen bg-background font-sans antialiased flex flex-col">` +
+        `<header class="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style="border-color:${look.color}">` +
+        `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">` +
+        `<div class="flex justify-center h-14 sm:h-16 items-center gap-3">` +
+        `<img src="${escAttr(cellpayLogo)}" alt="CellPay" class="h-7 sm:h-8 w-auto">` +
+        `<span class="text-muted-foreground text-sm hidden sm:inline">·</span>` +
+        carrier +
+        `</div></div></header>` +
+        `<section class="text-primary-foreground" style="background-color:${look.color}">` +
+        `<div class="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">` +
+        `<h1 class="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">${escAttr(content.h1)}</h1>` +
+        `<p class="text-xs sm:text-sm opacity-90 mt-1">${tagline}</p>` +
+        `</div></section>` +
+        `<div class="flex justify-center items-start py-16 flex-1 min-h-screen">` +
+        `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle h-10 w-10 animate-spin text-muted-foreground"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>` +
+        `</div></div></div>`
+      );
+    };
+
     const renderHtml = (route: string): string => {
       const meta = buildMeta(route);
       const url = `/${route.replace(/\/index\.html$/, "/")}`; // relative: resolves to whichever host serves the file
@@ -706,7 +800,19 @@ const htmlAliasPlugin = (): Plugin => ({
       // React's createRoot replaces #root children on hydration, so users
       // briefly see this fallback then the full app mounts — no lasting
       // visual change to the app's design.
-      const guest = GUEST_CONTENT[route] || GO_CONTENT[route];
+      // SPEED-1006b: /go landers get the GoLander first screen instead (see goFirstScreen); any problem
+      // building it falls back to the plain H1 + intro block below, so the build never fails on it.
+      let goScreen: string | null = null;
+      try {
+        goScreen = GO_SHELLS.has(route) ? goFirstScreen(route) : null;
+      } catch {
+        goScreen = null;
+      }
+      if (goScreen) {
+        const screen = goScreen;
+        out = out.replace(/<div id="root"><\/div>/i, () => screen);
+      }
+      const guest = goScreen ? undefined : GUEST_CONTENT[route] || GO_CONTENT[route];
       if (guest) {
         const prerender =
           `<div id="root">` +
