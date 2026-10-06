@@ -82,8 +82,10 @@ const KEYWORDS: Array<[HelpIntent, string[]]> = [
     "declined", "decline", "denied", "rejected", "card not working", "card doesnt work", "card didnt work",
     "payment failed", "payment error", "didnt go through", "did not go through", "wont go through", "not going through",
     "transaction failed", "card error", "failed payment",
+    "charged but failed", "pending charge", "payment failed and i was charged", "said not completed", "money was taken",
     "rechazada", "rechazado", "rechazo", "rechazan", "declinada", "declinado", "no paso", "no pasa",
     "pago fallido", "fallo el pago", "error de pago", "tarjeta no funciona", "no acepta mi tarjeta",
+    "cargo pendiente", "dijo que no se completo", "me cobraron pero fallo", "me descontaron",
   ]],
   ["fee", [
     "fee", "fees", "service fee", "service charge", "extra charge", "convenience fee", "how much is the fee",
