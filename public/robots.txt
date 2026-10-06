@@ -1,6 +1,6 @@
 # CellPay US robots.txt. The same file is served on every CellPay US host. Each host is a separate,
-# self-canonical site, so this file names no host and has no Sitemap line. Each host submits only its
-# own sitemap (sitemap-refill.xml or sitemap-www.xml) in its own Search Console property.
+# self-canonical site with its own sitemap, and each sitemap lists only its own host's pages. Both are
+# listed at the end of this file; /sitemap.xml is an index of the same two files.
 # The Googlebot group is merged with * so the Disallow lines apply to Googlebot too.
 # (A crawler obeys only its most specific group; a separate "Googlebot: Allow /" group would cancel them.)
 User-agent: *
@@ -22,3 +22,6 @@ Allow: /
 
 User-agent: AdsBot-Google-Mobile
 Allow: /
+
+Sitemap: https://refill.cellpay.us/sitemap-refill.xml
+Sitemap: https://www.cellpay.us/sitemap-www.xml

@@ -164,6 +164,21 @@ function mapApiCarrier(c: Carrier): DisplayCarrier | null {
   return { name: c.name, logo, path, bg };
 }
 
+// MUSE-1 (Oct 6, 2026): home page title/description for / and /es. The carriers API also returns title_for_layout and
+// seo_description ("Payment Solutions for the Wireless Industry"); those overwrote this copy on both hosts and are no longer applied.
+const HOME_SEO = {
+  en: {
+    title: "CellPay — Mobile Recharge & Prepaid Phone Refills Online",
+    description:
+      "Mobile recharge and prepaid refills for 15+ US carriers — AT&T, T-Mobile, Metro, Cricket, Verizon, Boost & more. No login needed. Low service fee shown before you pay.",
+  },
+  es: {
+    title: "Recargas Móviles y Pagos Prepagados en Línea | CellPay",
+    description:
+      "Recargas prepagadas para más de 15 operadores de EE. UU.: AT&T, T-Mobile, Metro, Cricket, Verizon, Boost y más. Sin iniciar sesión. Cargo por servicio bajo, mostrado antes de pagar.",
+  },
+};
+
 const Home = () => {
   const [carriers, setCarriers] = useState<DisplayCarrier[]>(staticCarriers);
   const [authOpen, setAuthOpen] = useState(false);
@@ -185,17 +200,18 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    applySeoHead(HOME_SEO[lang === "es" ? "es" : "en"]);
+  }, [lang]);
+
+  useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const { carriers: apiCarriers, seo } = await fetchCarriers();
         if (cancelled) return;
 
-        // Apply SEO from the same response — no extra request
+        // Schema from the same response. Title/description come from HOME_SEO (MUSE-1), not from the API.
         applySeoHead({
-          title: seo.title_for_layout,
-          description: seo.seo_description,
-          keywords: seo.seo_keywords,
           schema: seo.seo_schema,
         });
 

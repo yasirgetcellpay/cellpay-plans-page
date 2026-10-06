@@ -2,8 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- TG-1 tag guard (permanent; keep it the first script in head, before GTM). GTM-T7KGLV8T still injects Meta and Bing UET
-         (Bing loads Clarity). Refuses script/iframe/img, Image() and sendBeacon to those hosts and AppLovin/Axon; fbq/uetq/clarity are no-ops. -->
+    <!-- Keep this script first in head. -->
     <script>
       (function (w, d) {
         var B = /(^|\.)(clarity\.ms|axon\.ai|applovin\.com)$|^(connect\.facebook\.net|bat\.bing\.com)$/i;
@@ -53,29 +52,27 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" /></noscript>
 
-    <!-- Sitewide og:* fallbacks for non-JS social crawlers (LinkedIn, Slack, Facebook).
-         Per-route values are set dynamically via src/lib/seo.ts applySeoHead(). -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="CellPay" />
     <meta property="og:title" content="CellPay — Mobile Recharge & Prepaid Phone Refills Online" />
     <meta property="og:description" content="Prepaid refills for 15+ US carriers — AT&amp;T, T-Mobile, Metro PCS, Cricket, Verizon, Boost & more. No login needed. Low service fee shown before you pay." />
-    
-    <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4a763476-ef4b-432f-a5b1-2d46293223eb/id-preview-24913b40--570d1df0-fd6b-4a23-a70a-aa337f1f02ef.lovable.app-1773768058303.png" />
+    <meta property="og:image" content="https://refill.cellpay.us/og-cellpay.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="CellPay: prepaid refills for 15+ US carriers. No login needed. Service fee shown before you pay." />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@CellPay" />
     <meta name="twitter:title" content="CellPay — Mobile Recharge & Prepaid Phone Refills Online" />
     <meta name="twitter:description" content="Prepaid refills for 15+ US carriers — AT&amp;T, T-Mobile, Metro PCS, Cricket, Verizon, Boost & more. No login needed. Low service fee shown before you pay." />
-    <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4a763476-ef4b-432f-a5b1-2d46293223eb/id-preview-24913b40--570d1df0-fd6b-4a23-a70a-aa337f1f02ef.lovable.app-1773768058303.png" />
+    <meta name="twitter:image" content="https://refill.cellpay.us/og-cellpay.png" />
+    <meta name="twitter:image:alt" content="CellPay: prepaid refills for 15+ US carriers. No login needed. Service fee shown before you pay." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png?v=2" />
     <link rel="shortcut icon" href="/favicon.ico?v=2" />
     <link rel="apple-touch-icon" href="/favicon.png?v=2" />
 
-    <!-- Site-wide structured data -->
-    <!-- TODO(address/phone): Organization "address" and "telephone" pending from Saurabh/Parvez. Do not invent or fill. -->
-    <!-- refill.cellpay.us (paid ads) and www.cellpay.us (organic) are separate sites that serve this same file, so the
-         schema URLs are built from the current host, never the other one. Other hosts fall back to refill.cellpay.us. -->
     <script>
       (function () {
         var h = location.hostname.toLowerCase();
