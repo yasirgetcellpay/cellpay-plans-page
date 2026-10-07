@@ -1123,6 +1123,162 @@ const App = () => (
           }
         />
 
+                {/* GO-EN-MISSING: EN Net10 Wireless ad lander (/go/net10). */}
+        <Route
+          path="/go/net10"
+          element={
+            <GoLander
+              carrierName="Net10 Wireless"
+              carrierSlug="net10"
+              carrierId={7}
+              brandColor="hsl(195,100%,50%)"
+              logo={net10Logo}
+              h1="Pay Your Net10 Bill Online"
+              title="Pay Your Net10 Bill Online | CellPay"
+              description="Pay your Net10 bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/net10.html"
+          element={
+            <GoLander
+              carrierName="Net10 Wireless"
+              carrierSlug="net10"
+              carrierId={7}
+              brandColor="hsl(195,100%,50%)"
+              logo={net10Logo}
+              h1="Pay Your Net10 Bill Online"
+              title="Pay Your Net10 Bill Online | CellPay"
+              description="Pay your Net10 bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        {/* GO-EN-MISSING: EN H2O Wireless ad lander (/go/h2o). */}
+        <Route
+          path="/go/h2o"
+          element={
+            <GoLander
+              carrierName="H2O Wireless"
+              carrierSlug="h2o"
+              carrierId={6}
+              brandColor="hsl(195,85%,50%)"
+              logo={h2oLogo}
+              h1="Pay Your H2O Wireless Bill Online"
+              title="Pay Your H2O Wireless Bill Online | CellPay"
+              description="Pay your H2O Wireless bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/h2o.html"
+          element={
+            <GoLander
+              carrierName="H2O Wireless"
+              carrierSlug="h2o"
+              carrierId={6}
+              brandColor="hsl(195,85%,50%)"
+              logo={h2oLogo}
+              h1="Pay Your H2O Wireless Bill Online"
+              title="Pay Your H2O Wireless Bill Online | CellPay"
+              description="Pay your H2O Wireless bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        {/* GO-EN-MISSING: EN Lyca Mobile ad lander (/go/lyca). */}
+        <Route
+          path="/go/lyca"
+          element={
+            <GoLander
+              carrierName="Lyca Mobile"
+              carrierSlug="lyca"
+              carrierId={29}
+              brandColor="hsl(220,50%,22%)"
+              logo={lycaLogo}
+              h1="Pay Your Lyca Mobile Bill Online"
+              title="Pay Your Lyca Mobile Bill Online | CellPay"
+              description="Pay your Lyca Mobile bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/lyca.html"
+          element={
+            <GoLander
+              carrierName="Lyca Mobile"
+              carrierSlug="lyca"
+              carrierId={29}
+              brandColor="hsl(220,50%,22%)"
+              logo={lycaLogo}
+              h1="Pay Your Lyca Mobile Bill Online"
+              title="Pay Your Lyca Mobile Bill Online | CellPay"
+              description="Pay your Lyca Mobile bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        {/* GO-EN-MISSING: EN T-Mobile ad lander (/go/tmobile). */}
+        <Route
+          path="/go/tmobile"
+          element={
+            <GoLander
+              carrierName="T-Mobile"
+              carrierSlug="tmobile"
+              carrierId={43}
+              brandColor="hsl(330,100%,45%)"
+              logo={tmobileLogo}
+              h1="Pay Your T-Mobile Bill Online"
+              title="Pay Your T-Mobile Bill Online | CellPay"
+              description="Pay your T-Mobile bill online. No login. Pay for anyone. Enter the phone number, pick the amount, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/tmobile.html"
+          element={
+            <GoLander
+              carrierName="T-Mobile"
+              carrierSlug="tmobile"
+              carrierId={43}
+              brandColor="hsl(330,100%,45%)"
+              logo={tmobileLogo}
+              h1="Pay Your T-Mobile Bill Online"
+              title="Pay Your T-Mobile Bill Online | CellPay"
+              description="Pay your T-Mobile bill online. No login. Pay for anyone. Enter the phone number, pick the amount, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        {/* GO-EN-MISSING: EN Verizon Wireless Prepaid ad lander (/go/verizon). */}
+        <Route
+          path="/go/verizon"
+          element={
+            <GoLander
+              carrierName="Verizon Wireless Prepaid"
+              carrierSlug="verizon"
+              carrierId={14}
+              brandColor="hsl(0,100%,45%)"
+              logo={verizonLogo}
+              h1="Pay Your Verizon Prepaid Bill Online"
+              title="Pay Your Verizon Prepaid Bill Online | CellPay"
+              description="Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/verizon.html"
+          element={
+            <GoLander
+              carrierName="Verizon Wireless Prepaid"
+              carrierSlug="verizon"
+              carrierId={14}
+              brandColor="hsl(0,100%,45%)"
+              logo={verizonLogo}
+              h1="Pay Your Verizon Prepaid Bill Online"
+              title="Pay Your Verizon Prepaid Bill Online | CellPay"
+              description="Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+
         {/* Removed carriers (Red Pocket, Xbox, Movistar) — noindex + redirect to the home page. */}
         {REMOVED_CARRIER_PATHS.flatMap((p) => [
           <Route key={`removed-${p}`} path={p} element={<RemovedCarrierRedirect to="/" />} />,
