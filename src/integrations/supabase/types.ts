@@ -1297,6 +1297,36 @@ export type Database = {
         }
         Relationships: []
       }
+      velocity_shadow_keys: {
+        Row: {
+          created_at: string
+          email_l: string | null
+          id: number
+          log_id: string
+          name_l: string | null
+          phone: string | null
+          visitor_h: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_l?: string | null
+          id?: number
+          log_id: string
+          name_l?: string | null
+          phone?: string | null
+          visitor_h?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_l?: string | null
+          id?: number
+          log_id?: string
+          name_l?: string | null
+          phone?: string | null
+          visitor_h?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       ap1_cancel_outcomes: {
@@ -1659,6 +1689,17 @@ export type Database = {
           skip_reason: string
           status: string
         }[]
+      }
+      velocity_shadow_record: {
+        Args: {
+          _email: string
+          _first: string
+          _last: string
+          _log_id: string
+          _phone: string
+          _visitor_h: string
+        }
+        Returns: Json
       }
     }
     Enums: {
