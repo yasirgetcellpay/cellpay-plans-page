@@ -71,6 +71,17 @@ const HTML_ROUTES = [
   // GO-ES-ATT: ES AT&T Prepaid shells
   "es/go/att.html",
   "es/go/att/index.html",
+  // GO-EN-MISSING: EN Net10 / H2O / Lyca / T-Mobile / Verizon shells
+  "go/net10.html",
+  "go/net10/index.html",
+  "go/h2o.html",
+  "go/h2o/index.html",
+  "go/lyca.html",
+  "go/lyca/index.html",
+  "go/tmobile.html",
+  "go/tmobile/index.html",
+  "go/verizon.html",
+  "go/verizon/index.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
@@ -398,6 +409,46 @@ const htmlAliasPlugin = (): Plugin => ({
         h1: "Pague AT&T Prepaid en línea",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
+      "go/net10.html": {
+        h1: "Pay Your Net10 Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "go/net10/index.html": {
+        h1: "Pay Your Net10 Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "go/h2o.html": {
+        h1: "Pay Your H2O Wireless Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "go/h2o/index.html": {
+        h1: "Pay Your H2O Wireless Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "go/lyca.html": {
+        h1: "Pay Your Lyca Mobile Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "go/lyca/index.html": {
+        h1: "Pay Your Lyca Mobile Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "go/tmobile.html": {
+        h1: "Pay Your T-Mobile Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+      },
+      "go/tmobile/index.html": {
+        h1: "Pay Your T-Mobile Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+      },
+      "go/verizon.html": {
+        h1: "Pay Your Verizon Prepaid Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+      },
+      "go/verizon/index.html": {
+        h1: "Pay Your Verizon Prepaid Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+      },
     };
 
 
@@ -486,6 +537,16 @@ const htmlAliasPlugin = (): Plugin => ({
       // GO-ES-ATT
       "es/go/att.html": { title: "Pague AT&T Prepaid en línea | CellPay", description: "Pague su AT&T Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/att/index.html": { title: "Pague AT&T Prepaid en línea | CellPay", description: "Pague su AT&T Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "go/net10.html": { title: "Pay Your Net10 Bill Online | CellPay", description: "Pay your Net10 bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/net10/index.html": { title: "Pay Your Net10 Bill Online | CellPay", description: "Pay your Net10 bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/h2o.html": { title: "Pay Your H2O Wireless Bill Online | CellPay", description: "Pay your H2O Wireless bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/h2o/index.html": { title: "Pay Your H2O Wireless Bill Online | CellPay", description: "Pay your H2O Wireless bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/lyca.html": { title: "Pay Your Lyca Mobile Bill Online | CellPay", description: "Pay your Lyca Mobile bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/lyca/index.html": { title: "Pay Your Lyca Mobile Bill Online | CellPay", description: "Pay your Lyca Mobile bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/tmobile.html": { title: "Pay Your T-Mobile Bill Online | CellPay", description: "Pay your T-Mobile bill online. No login. Pay for anyone. Enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
+      "go/tmobile/index.html": { title: "Pay Your T-Mobile Bill Online | CellPay", description: "Pay your T-Mobile bill online. No login. Pay for anyone. Enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
+      "go/verizon.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
+      "go/verizon/index.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
     };
     const ES_TITLE_PREFIX: Record<string, string> = {};
     // Carriers removed from the site (Oct 2026). Their old URLs keep a noindex shell.
@@ -538,6 +599,12 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/go/net10.html", "es/go/net10/index.html",
       // GO-ES-ATT
       "es/go/att.html", "es/go/att/index.html",
+      // GO-EN-MISSING
+      "go/net10.html", "go/net10/index.html",
+      "go/h2o.html", "go/h2o/index.html",
+      "go/lyca.html", "go/lyca/index.html",
+      "go/tmobile.html", "go/tmobile/index.html",
+      "go/verizon.html", "go/verizon/index.html",
     ]);
     const buildMeta = (route: string): Meta => {
       // Legacy per-amount redirect shells: noindex,follow
@@ -730,6 +797,8 @@ const htmlAliasPlugin = (): Plugin => ({
       lyca: { name: "Lyca Mobile", color: "hsl(220,50%,22%)", logo: "lyca-logo.webp" },
       h2o: { name: "H2O Wireless", color: "hsl(195,85%,50%)", logo: "h2o-logo.png" },
       net10: { name: "Net10 Wireless", color: "hsl(195,100%,50%)", logo: "net10-logo.png" },
+      tmobile: { name: "T-Mobile", color: "hsl(330,100%,45%)", logo: "tmobile-logo.svg" },
+      verizon: { name: "Verizon Wireless Prepaid", color: "hsl(0,100%,45%)", logo: "verizon-logo.png" },
     };
     const distAssets: string[] = (() => {
       try {
