@@ -10,6 +10,7 @@ import { applySeoHead } from "@/lib/seo";
 import { PayAgainCard } from "@/components/PayAgainCard";
 import { ReminderOptIn } from "@/components/ReminderOptIn";
 import { AutoPayReceiptCard } from "@/components/AutoPayReceiptCard";
+import { NotWorkingYet } from "@/components/NotWorkingYet";
 
 interface TransactionData {
   id?: number;
@@ -276,27 +277,28 @@ const OrderConfirmation = () => {
               </div>
 
               <div className="p-5 border-t border-border bg-muted/40">
+                {/* OC-NOTYET-1007: Spanish promo text when lang === "es" (English unchanged); shop link without the old frozen _gl value */}
                 <h2 className="text-base sm:text-lg font-bold text-foreground">
-                  As a thank-you, enjoy 30% off cell phone accessories
+                  {lang === "es" ? "Como agradecimiento, 30% de descuento en accesorios para celular" : "As a thank-you, enjoy 30% off cell phone accessories"}
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Phone cases, chargers, screen protectors, and more.
+                  {lang === "es" ? "Fundas, cargadores, protectores de pantalla y más." : "Phone cases, chargers, screen protectors, and more."}
                 </p>
                 <p className="text-sm mt-3">
-                  <span className="font-bold text-foreground">Promo code: </span>
+                  <span className="font-bold text-foreground">{lang === "es" ? "Código de descuento: " : "Promo code: "}</span>
                   <span className="font-mono font-bold" style={{ color: brandColor }}>BuyCellPay</span>
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  (Apply at checkout on our accessories page)
+                  {lang === "es" ? "(Úselo al pagar en nuestra página de accesorios)" : "(Apply at checkout on our accessories page)"}
                 </p>
                 <a
-                  href="https://shop.cellpay.us/?_gl=1*1ofqb7k*_gcl_au*MTA1MTE3MTcxOS4xNzg5MDU2NjU1*_ga*MzIwMTk2MjQ1LjE3ODkwNTY2NTU.*_ga_G5QH60Z2GZ*czE3ODkwNTY2NTUkbzEkZzEkdDE3ODkwNTc3NjYkajYwJGwwJGgxOTcyMzI0NTMw*_ga_4T3FK9DBTR*czE3ODkwNTY2NTUkbzEkZzEkdDE3ODkwNTc3NjYkajYwJGwwJGg2MTk5MzE2MjI."
+                  href="https://shop.cellpay.us/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-4 inline-flex items-center justify-center px-6 py-3 rounded-full text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity"
                   style={{ backgroundColor: brandColor }}
                 >
-                  Shop Accessories &amp; Save 30%
+                  {lang === "es" ? "Comprar accesorios con 30% de descuento" : <>Shop Accessories &amp; Save 30%</>}
                 </a>
               </div>
 
@@ -310,6 +312,9 @@ const OrderConfirmation = () => {
                 </button>
               </div>
             </div>
+
+            {/* OC-NOTYET-1007: "don't pay again / phone not working yet?" card (text only; confirmed receipts only) */}
+            <NotWorkingYet lang={lang} orderId={String(transaction.id || transaction.hashid || "")} brandColor={brandColor} />
 
             {/* GROWTH-1007-B: Auto Pay prompt (display + link only; never enrolls, never charges) */}
             <AutoPayReceiptCard lang={lang} hashid={hashid} brandColor={brandColor} />
