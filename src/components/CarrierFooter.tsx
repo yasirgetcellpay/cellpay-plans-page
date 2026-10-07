@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthDialog } from "@/components/AuthDialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { t, type Language } from "@/lib/i18n";
+import { t, useLang, type Language } from "@/lib/i18n";
 
 interface CarrierFooterProps {
   brandColor: string;
@@ -17,6 +17,9 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const tr = t(lang);
+  // PRIVACY-1007: on Spanish pages the footer links the Spanish privacy policy.
+  const urlLang = useLang();
+  const privacyPath = lang === "es" || urlLang === "es" ? "/es/privacy-policy" : "/privacy-policy";
 
   return (
     <>
@@ -51,7 +54,7 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
             <div>
               <h5 className="font-bold mb-5 uppercase tracking-widest text-sm" style={{ color: brandColor }}>{tr.legal}</h5>
               <ul className="space-y-3 text-sm">
-                <li><button onClick={() => navigate("/privacy-policy")} className="hover:text-primary-foreground">{tr.privacyPolicy}</button></li>
+                <li><button onClick={() => navigate(privacyPath)} className="hover:text-primary-foreground">{tr.privacyPolicy}</button></li>
                 <li><button onClick={() => navigate("/terms-and-conditions")} className="hover:text-primary-foreground">{tr.termsAndConditions}</button></li>
                 <li><button onClick={() => navigate("/returns-policy")} className="hover:text-primary-foreground">{tr.returnsPolicy}</button></li>
               </ul>

@@ -1343,6 +1343,9 @@ const App = () => (
         <Route path="/es/como-pagar/att-prepaid" element={<HowToPay />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/privacy-policy.html" element={<AliasRedirect to="/privacy-policy" />} />
+        {/* PRIVACY-1007: Spanish privacy policy (same page; text in src/content/privacyPolicy.ts) */}
+        <Route path="/es/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/es/privacy-policy.html" element={<AliasRedirect to="/es/privacy-policy" />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/terms-and-conditions.html" element={<AliasRedirect to="/terms-and-conditions" />} />
         {/* AEO-PAGES-1007: short legal/about URLs (footer + external links) were the SPA 404 */}

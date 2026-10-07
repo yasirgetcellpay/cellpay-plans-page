@@ -5,6 +5,8 @@ import fs from "fs";
 import { componentTagger } from "lovable-tagger";
 // AEO-PAGES-1007: how-to-pay page text (shared with src/pages/HowToPay.tsx) for static raw HTML + JSON-LD.
 import { HOW_TO_PAY_PAGES, howToPayJsonLd, howToPayStaticHtml } from "./src/content/howToPay";
+// PRIVACY-1007: privacy policy text (shared with src/pages/PrivacyPolicy.tsx) for the static raw HTML (EN + ES).
+import { PRIVACY_PAGES, privacyMainHtml, type PpPage } from "./src/content/privacyPolicy";
 
 /**
  * Lovable's static host returns 404 for any URL ending in `.html` (it treats it
@@ -188,6 +190,8 @@ const HTML_ROUTES = [
   "faq/index.html",
   "how-to-use/index.html",
   "privacy-policy/index.html",
+  // PRIVACY-1007: Spanish privacy policy (indexable; www canonical + en/es hreflang via pairFor)
+  "es/privacy-policy/index.html",
   "terms-and-conditions/index.html",
   "returns-policy/index.html",
   // DMCA page (real page, indexable): its only URL ends in .html, so it needs a static shell too.
@@ -733,6 +737,11 @@ const htmlAliasPlugin = (): Plugin => ({
           title: "Privacy Policy — CellPay",
           description: "How CellPay collects, uses, and protects customer information when you purchase a prepaid mobile refill: data we collect, how we share it, and your choices.",
         },
+        // PRIVACY-1007: same title/description PrivacyPolicy.tsx sets at runtime (src/content/privacyPolicy.ts)
+        "es/privacy-policy/index.html": {
+          title: PRIVACY_PAGES.es.title,
+          description: PRIVACY_PAGES.es.description,
+        },
         "terms-and-conditions/index.html": {
           title: "Terms & Conditions — CellPay",
           description: "The terms governing your use of CellPay: services, pricing, payment, refill delivery, refund rules, account responsibilities, and limitations of liability.",
@@ -1127,6 +1136,25 @@ const htmlAliasPlugin = (): Plugin => ({
       "terms/index.html": "terms-and-conditions/index.html", "about/index.html": "about-us/index.html",
     };
 
+    // PRIVACY-1007: privacy policy pages carry the full policy in the raw HTML: Navbar look + the same <main> as
+    // PrivacyPolicy.tsx (same classes), so the text paints before the app code runs and sits in the same place after.
+    const PRIVACY_BY_ROUTE: Record<string, PpPage> = {
+      "privacy-policy/index.html": PRIVACY_PAGES.en,
+      "es/privacy-policy/index.html": PRIVACY_PAGES.es,
+    };
+    const privacyFirstScreen = (pg: PpPage): string => {
+      const logo = goAssetUrl("cellpay-logo.svg");
+      const nav = logo
+        ? `<nav class="sticky top-0 z-50 bg-card border-b-4 border-cellpay-green shadow-sm">` +
+          `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="relative flex justify-center h-14 sm:h-20 items-center">` +
+          `<a href="/" aria-label="CellPay home" class="flex items-center"><img src="${escAttr(logo)}" alt="CellPay" class="h-8 sm:h-11 w-auto object-contain"></a>` +
+          `</div></div>` +
+          navMenu +
+          `</nav>`
+        : "";
+      return `<div id="root"><div class="min-h-screen flex flex-col bg-background">${nav}${privacyMainHtml(pg)}</div></div>`;
+    };
+
     const renderHtml = (route: string): string => {
       const meta = buildMeta(route);
       const url = `/${route.replace(/\/index\.html$/, "/")}`; // relative: resolves to whichever host serves the file
@@ -1220,6 +1248,16 @@ const htmlAliasPlugin = (): Plugin => ({
           const ld = `<script type="application/ld+json" data-htp="1">${howToPayJsonLd(htpPage)}</script>`;
           const body = howToPayStaticHtml(htpPage);
           out = out.replace(/<\/head>/i, () => `  ${ld}\n  </head>`).replace(/<div id="root"><\/div>/i, () => body);
+        } catch {
+          /* keep plain shell */
+        }
+      }
+      // PRIVACY-1007: full privacy policy text in the raw HTML (EN + ES). Any problem keeps the plain shell.
+      const ppPage = PRIVACY_BY_ROUTE[route];
+      if (ppPage) {
+        try {
+          const body = privacyFirstScreen(ppPage);
+          out = out.replace(/<div id="root"><\/div>/i, () => body);
         } catch {
           /* keep plain shell */
         }
