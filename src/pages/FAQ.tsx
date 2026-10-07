@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { HelpQuickActions } from "@/components/HelpQuickActions";
@@ -24,6 +25,28 @@ const faqs = [
 ];
 
 const FAQ = () => {
+  // APAP-1007: /faq#unsubscribe-autopay (Apple Pay Auto Pay managementURL) opens the existing "Unsubscribe From Autopay" form
+  // and scrolls to it. FAQ page only: HelpQuickActions is not edited; this just clicks its existing button once.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (hash !== "#unsubscribe-autopay") return;
+    let tries = 0; let done = false;
+    const t = window.setInterval(() => {
+      tries += 1;
+      const box = document.getElementById("unsubscribe-autopay");
+      const btn = box ? Array.from(box.querySelectorAll("button")).find((b) => /unsubscribe from autopay/i.test(b.textContent || "")) : undefined;
+      if (btn && !done) {
+        done = true; window.clearInterval(t);
+        box!.scrollIntoView({ block: "start" });
+        btn.click();
+        window.setTimeout(() => {
+          const input = document.querySelector<HTMLInputElement>('input[placeholder*="10-digit"]');
+          if (input) { input.scrollIntoView({ block: "center" }); input.focus({ preventScroll: true }); }
+        }, 250);
+      } else if (tries > 40) window.clearInterval(t);
+    }, 100);
+    return () => window.clearInterval(t);
+  }, [hash]);
   useEffect(() => {
     applySeoHead({
       title: "Prepaid Refill FAQ — CellPay Help & Answers",
@@ -56,7 +79,9 @@ const FAQ = () => {
           ))}
         </Accordion>
       </main>
-      <HelpQuickActions />
+      <div id="unsubscribe-autopay" style={{ scrollMarginTop: 80 }}>
+        <HelpQuickActions />
+      </div>
       <CarrierFooter brandColor="hsl(101,67%,44%)" carrierName="CellPay" />
     </div>
   );

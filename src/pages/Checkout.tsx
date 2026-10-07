@@ -81,6 +81,7 @@ declare global {
       };
       canMakePayments: () => boolean;
       canMakePaymentsWithActiveCard?: (merchantId: string) => Promise<boolean>;
+      supportsVersion?: (version: number) => boolean; // APAP-1007: v14 is needed for recurringPaymentRequest
     };
     Klarna?: {
       Payments: {
@@ -207,12 +208,24 @@ const Checkout = () => {
   const [saveCard, setSaveCard] = useState(false);
   const [autoPay, setAutoPay] = useState(false);
   const [autoPayTerms, setAutoPayTerms] = useState(false);
+  const checkoutConfigRef = useRef<Record<string, unknown> | null>(null); // APAP-1007: mirror of checkoutConfig (state is declared below)
+  const [, setApConfigTick] = useState(0);
   // ARB-0: Auto Pay is offered with card only. Leaving card clears Auto Pay and its terms tick, so hidden state can't keep
   // PLACE ORDER disabled or let another method pay as if Auto Pay were on. Back on card, the customer's own earlier choice
   // comes back. Nothing is ever ticked for a customer who didn't tick it.
   const autoPayChoiceRef = useRef<{ autoPay: boolean; autoPayTerms: boolean } | null>(null);
+  // APAP-1007: Apple Pay Auto Pay. Offered ONLY when the API says applePay.recurringSupported === true AND this Safari supports
+  // ApplePaySession version 14. Otherwise Apple Pay stays today's one-time session and Auto Pay is not offered on it.
+  const applePayRecurringOk = (() => {
+    try {
+      const ap = checkoutConfigRef.current?.applePay as Record<string, unknown> | undefined;
+      const aps = typeof window !== "undefined" ? window.ApplePaySession : undefined;
+      return ap?.recurringSupported === true && !!aps && typeof aps.supportsVersion === "function" && aps.supportsVersion(14) === true;
+    } catch { return false; }
+  })();
+  const autoPayMethodOk = paymentMethod === "card" || (paymentMethod === "applepay" && applePayRecurringOk);
   useEffect(() => {
-    if (paymentMethod !== "card") {
+    if (!autoPayMethodOk) {
       if (autoPay || autoPayTerms) {
         autoPayChoiceRef.current = { autoPay, autoPayTerms };
         setAutoPay(false);
@@ -224,7 +237,7 @@ const Checkout = () => {
       setAutoPay(choice.autoPay);
       setAutoPayTerms(choice.autoPayTerms);
     }
-  }, [paymentMethod, autoPay, autoPayTerms]);
+  }, [paymentMethod, autoPayMethodOk, autoPay, autoPayTerms]);
   // ARB-1b: keep the customer's OWN Auto Pay, Auto Pay-terms and Terms ticks through a refresh or Back, for THIS checkout only
   // (same carrier + number + amount, this tab's sessionStorage, 30 min). Card only: any other method clears it, and so does a
   // successful order. Only a box the customer ticked in this tab comes back; nothing is ever ticked for anyone who didn't tick it.
@@ -517,6 +530,7 @@ const Checkout = () => {
         if (config) {
           console.log("Checkout config loaded:", config);
           setCheckoutConfig(config);
+          checkoutConfigRef.current = config as Record<string, unknown>; setApConfigTick((n) => n + 1); // APAP-1007
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : tr.validationFailedTitle;
@@ -1164,16 +1178,34 @@ const Checkout = () => {
     const displayName = (appleConfig?.displayName as string) || "Cellpay.us";
     console.log("[ApplePay] config", { displayName, total, host: window.location.hostname });
 
+    // APAP-1007: recurring ONLY with both Auto Pay ticks AND recurring support. Anything else = today's v3 one-time session, no recurringPaymentRequest.
+    const apRecurring = autoPay && autoPayTerms && applePayRecurringOk;
+    const apRequest: Record<string, unknown> = {
+      countryCode: "US",
+      currencyCode: "USD",
+      supportedNetworks: ["visa", "masterCard", "amex", "discover"],
+      merchantCapabilities: ["supports3DS"],
+      total: { label: displayName, amount: String(total) },
+      requiredBillingContactFields: ["postalAddress", "email", "phone"],
+    };
+    if (apRecurring) {
+      apRequest.recurringPaymentRequest = {
+        paymentDescription: "Cellpay Auto Pay refill every 30 days",
+        regularBilling: {
+          label: "Auto Pay refill",
+          amount: String(total),
+          paymentTiming: "recurring",
+          recurringPaymentStartDate: new Date(Date.now() + 30 * 86400000),
+          recurringPaymentIntervalUnit: "day",
+          recurringPaymentIntervalCount: 30,
+        },
+        managementURL: `${window.location.origin}${lang === "es" ? "/es" : ""}/faq#unsubscribe-autopay`, // FAQ deep link: auto-opens "Unsubscribe From Autopay"
+      };
+    }
     let session: InstanceType<NonNullable<typeof window.ApplePaySession>>;
     try {
-      session = new window.ApplePaySession!(3, {
-        countryCode: "US",
-        currencyCode: "USD",
-        supportedNetworks: ["visa", "masterCard", "amex", "discover"],
-        merchantCapabilities: ["supports3DS"],
-        total: { label: displayName, amount: String(total) },
-        requiredBillingContactFields: ["postalAddress", "email", "phone"],
-      });
+      session = new window.ApplePaySession!(apRecurring ? 14 : 3, apRequest);
+      console.log("[ApplePay] session version", apRecurring ? 14 : 3, "recurring", apRecurring);
       console.log("[ApplePay] session created", session);
     } catch (e) {
       console.error("[ApplePay] new ApplePaySession failed", e);
@@ -1271,6 +1303,9 @@ const Checkout = () => {
             firstName: (billingContact as Record<string, unknown>)?.givenName || firstName.trim() || "Customer",
             lastName: (billingContact as Record<string, unknown>)?.familyName || lastName.trim() || "User",
             email: email.trim() || "customer@cellpay.us",
+            // APAP-1007: same field names as card; never a profileId. true only when the v14 recurring session was used.
+            autopay: apRecurring,
+            autopay_agreement: apRecurring,
           },
           apple_pay_token: JSON.stringify(fullToken),
           apple_pay_billing_contact: JSON.stringify(billingContact),
@@ -1303,6 +1338,7 @@ const Checkout = () => {
           const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
           clearCheckoutCtx();
           try { sessionStorage.removeItem(AP_TICKS_KEY); } catch { /* ignore */ } // ARB-1b: order placed, forget the ticks
+          try { if (apRecurring && hid) sessionStorage.setItem(AP_LAST_KEY, hid); else sessionStorage.removeItem(AP_LAST_KEY); } catch { /* ignore */ } // APAP-1007
           navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${apParams.toString()}`);
         } else {
           console.error("[ApplePay] transaction failed", result);
@@ -1934,7 +1970,11 @@ const Checkout = () => {
                     </button>
                   </span>
                 </label>
+              </>
+            )}
 
+            {autoPayMethodOk && (
+              <>
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" checked={autoPay} onChange={(e) => setAutoPay(e.target.checked)}
                     className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
@@ -2051,7 +2091,7 @@ const Checkout = () => {
               </button>
             )}
 
-            {paymentMethod === "card" && autoPay && !autoPayTerms && (
+            {autoPayMethodOk && autoPay && !autoPayTerms && (
               <p data-testid="autopay-place-hint" role="status" aria-live="polite" className="text-sm font-semibold text-center" style={{ color: brandColor }}>
                 {apCopy.placeHint}
               </p>
