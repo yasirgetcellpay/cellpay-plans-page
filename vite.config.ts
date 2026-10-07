@@ -927,7 +927,33 @@ const htmlAliasPlugin = (): Plugin => ({
       "topup-crc.html", "es/topup-crc.html", "s1.html", "es/s1.html", "net10.html", "h2o.html", "es/h2o.html",
       "lyca.html", "es/lyca.html", "pageplus.html", "es/pageplus.html", "tracfone.html",
       "ultra-mobile.html", "es/ultra-mobile.html", "topup-at.html",
+      // LCP-ADS-1007 batch 3 (es names via CARRIER_ES_NAME)
+      "es/net10.html", "es/tracfone.html", "es/topup-at.html", "tmobile-flexi.html", "es/tmobile-flexi.html",
     ]);
+    // Spanish carrier name the app shows when it differs from CARRIER_LOOK name (keeps the es H1 identical).
+    const CARRIER_ES_NAME: Record<string, string> = {
+      net10: "NET10", tracfone: "Tracfone", "topup-at": "AT&T", "tmobile-flexi": "T-Mobile Flexi",
+    };
+    // LCP-ADS-1007 batch 3: Verizon (Verizon.tsx) first screen = nav + red H1 bar; card area blank until React.
+    const VERIZON_SHELLS = new Set<string>(["verizon-wireless-flexi.html", "es/verizon-wireless-flexi.html"]);
+    const verizonFirstScreen = (): string | null => {
+      const logo = goAssetUrl("verizon-logo.png");
+      if (!logo) return null;
+      return (
+        `<div id="root" data-go-prerender="1">` +
+        `<div class="min-h-screen bg-background font-sans antialiased">` +
+        `<nav class="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style="border-color:rgb(230,0,0)">` +
+        `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="relative flex justify-center h-14 sm:h-20 items-center">` +
+        `<img src="${escAttr(logo)}" alt="Verizon Prepaid logo" class="h-[32px] sm:h-[44px] w-auto object-contain">` +
+        `</div></div></nav>` +
+        `<section class="text-primary-foreground" style="background-color:rgb(230,0,0)">` +
+        `<div class="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">` +
+        `<h1 class="text-xl md:text-2xl font-extrabold">Verizon Prepaid Bill Pay</h1>` +
+        `</div></section>` +
+        `<div class="min-h-screen"></div>` +
+        `</div></div>`
+      );
+    };
     const NAV_ITEMS: Array<[string, string, string]> = [
       ["Domestic Payments", "/", ""],
       ["Bill Payments", "https://billpay.cellpay.us/billpayment", ` rel="noopener noreferrer"`],
@@ -950,13 +976,14 @@ const htmlAliasPlugin = (): Plugin => ({
       if (!look) return null;
       const logo = goAssetUrl(look.logo);
       if (!logo) return null;
+      const esName = CARRIER_ES_NAME[slug] || look.name;
       const h1 = isEs
-        ? `Soluciones Rápidas y Seguras para Recargas Prepagadas de ${look.name}`
+        ? `Soluciones Rápidas y Seguras para Recargas Prepagadas de ${esName}`
         : slug === "metropcs"
         ? "Metro PCS Pay Bill Online"
         : "Top Up Your Mobile Number—Online & Securely";
       const h2 = isEs
-        ? `Transacciones Sencillas y Seguras para Usuarios Prepagados de ${look.name}`
+        ? `Transacciones Sencillas y Seguras para Usuarios Prepagados de ${esName}`
         : slug === "metropcs"
         ? "Pay your Metro by T-Mobile prepaid bill online. No login needed."
         : "No login needed. Enter your phone number, choose your plan, and you're recharged.";
@@ -988,7 +1015,8 @@ const htmlAliasPlugin = (): Plugin => ({
     // LCP-ADS-1007: home page (/) first screen = Home.tsx nav + green headline bar; the rest is a full-height blank
     // until React renders (nothing visible moves). Written into dist/index.html with a guard script: any other path the
     // host serves index.html for (checkout, order confirmation, unknown paths) clears it before the first paint.
-    const homeFirstScreen = (): string | null => {
+    const homeFirstScreen = (lang: "en" | "es" = "en"): string | null => {
+      const es = lang === "es";
       const cellpayLogo = goAssetUrl("cellpay-logo.svg");
       if (!cellpayLogo) return null;
       return (
@@ -1002,12 +1030,15 @@ const htmlAliasPlugin = (): Plugin => ({
         `</nav>` +
         `<section class="bg-cellpay-green text-primary-foreground">` +
         `<div class="max-w-7xl mx-auto px-5 py-5 sm:py-6 sm:px-6 lg:px-8 text-center">` +
-        `<h1 class="text-2xl md:text-3xl font-extrabold leading-tight">Mobile Recharge &amp; Prepaid Phone Refills Online</h1>` +
-        `<p class="text-sm sm:text-base opacity-95 mt-1.5">CellPay top-ups for 15+ US carriers · No login needed</p>` +
+        (es
+          ? `<h1 class="text-2xl md:text-3xl font-extrabold leading-tight">Recargue su Teléfono Prepagado en Línea</h1>` +
+            `<p class="text-sm sm:text-base opacity-95 mt-1.5">Recargas para más de 15 operadores · Sin necesidad de iniciar sesión</p>`
+          : `<h1 class="text-2xl md:text-3xl font-extrabold leading-tight">Mobile Recharge &amp; Prepaid Phone Refills Online</h1>` +
+            `<p class="text-sm sm:text-base opacity-95 mt-1.5">CellPay top-ups for 15+ US carriers · No login needed</p>`) +
         `</div></section>` +
         `<div class="min-h-screen"></div>` +
         `</div></div>` +
-        `<script>(function(){if(location.pathname!=="/"){var r=document.getElementById("root");r.removeAttribute("data-go-prerender");r.innerHTML="";` +
+        `<script>(function(){if(${es ? `!/^\\/es\\/?$/.test(location.pathname)` : `location.pathname!=="/"`}){var r=document.getElementById("root");r.removeAttribute("data-go-prerender");r.innerHTML="";` +
         // GSC-DUP-1007: any other path served by this fallback file (unknown URLs, /index.html, checkout) is noindex and has no canonical/hreflang.
         `var m=document.querySelector('meta[name="robots"]');if(m)m.setAttribute("content","noindex,follow");` +
         `document.querySelectorAll('link[rel="canonical"],link[rel="alternate"][hreflang]').forEach(function(l){l.parentNode.removeChild(l);});}})();</script>`
@@ -1142,6 +1173,10 @@ const htmlAliasPlugin = (): Plugin => ({
           ? goFirstScreen(route)
           : CARRIER_SHELLS.has(route)
           ? carrierFirstScreen(route)
+          : VERIZON_SHELLS.has(route)
+          ? verizonFirstScreen()
+          : route === "es/index.html"
+          ? homeFirstScreen("es")
           : null;
       } catch {
         goScreen = null;
