@@ -371,7 +371,8 @@ const DynamicCarrier = ({
         if (lang === "es") {
           applySeoHead({
             title: `Recarga de ${initialName} en Línea — Pague su Factura | CellPay`,
-            description: "Recarga en línea. Planes de 30 días, pago seguro. Cargo por servicio bajo, mostrado antes de pagar.",
+            // SEO-ES-META: keep in sync with esCarrierDesc in vite.config.ts.
+            description: `Pague su factura de ${initialName} en línea. Sin cuenta y sin iniciar sesión. Puede pagar por otra persona. Verá el cargo por servicio antes de pagar.`,
           });
         }
 
