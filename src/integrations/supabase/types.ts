@@ -1138,7 +1138,6 @@ export type Database = {
       }
       transaction_card_facts: {
         Row: {
-          avs_result: string | null
           billing_country: string | null
           billing_zip: string | null
           card_bin: string | null
@@ -1149,18 +1148,14 @@ export type Database = {
           cellpay_hashid: string | null
           cellpay_transaction_id: string | null
           created_at: string
-          cvv_result: string | null
           decline_message: string | null
           facts_version: number
           outcome: string | null
           payment_method: string | null
-          processor_auth_code: string | null
           processor_txn_id: string | null
-          three_ds_result: string | null
           transaction_log_id: string
         }
         Insert: {
-          avs_result?: string | null
           billing_country?: string | null
           billing_zip?: string | null
           card_bin?: string | null
@@ -1171,18 +1166,14 @@ export type Database = {
           cellpay_hashid?: string | null
           cellpay_transaction_id?: string | null
           created_at?: string
-          cvv_result?: string | null
           decline_message?: string | null
           facts_version?: number
           outcome?: string | null
           payment_method?: string | null
-          processor_auth_code?: string | null
           processor_txn_id?: string | null
-          three_ds_result?: string | null
           transaction_log_id: string
         }
         Update: {
-          avs_result?: string | null
           billing_country?: string | null
           billing_zip?: string | null
           card_bin?: string | null
@@ -1193,14 +1184,11 @@ export type Database = {
           cellpay_hashid?: string | null
           cellpay_transaction_id?: string | null
           created_at?: string
-          cvv_result?: string | null
           decline_message?: string | null
           facts_version?: number
           outcome?: string | null
           payment_method?: string | null
-          processor_auth_code?: string | null
           processor_txn_id?: string | null
-          three_ds_result?: string | null
           transaction_log_id?: string
         }
         Relationships: [
@@ -1571,6 +1559,7 @@ export type Database = {
         Args: { _bind_h: string; _ref_h: string }
         Returns: Json
       }
+      pockyt_mark_abandoned: { Args: never; Returns: number }
       pockyt_sweep_claim: {
         Args: { _limit: number; _mode: string }
         Returns: {

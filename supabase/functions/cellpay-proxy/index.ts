@@ -165,7 +165,9 @@ async function finishTransactionLog(
   // the customer returns from the hosted flow and the session status confirms
   // the final outcome.
   const hostedUrl = (result.HostedURL || result.hostedUrl || result.hosted_url) as string | undefined;
-  if ((paymentMethod || "").toLowerCase() === "pockyt" && hostedUrl && !isSuccess) {
+  // [CASHAPP-LOG-1007] A Cash App session with a HostedURL is never a confirmed payment, even when CellPay says "success"
+  // at session create: always leave it 'pending'. cashapp-settlement-sweep (enforce) / the return poll set success|failed.
+  if ((paymentMethod || "").toLowerCase() === "pockyt" && hostedUrl) {
     return; // leave as pending
   }
 
