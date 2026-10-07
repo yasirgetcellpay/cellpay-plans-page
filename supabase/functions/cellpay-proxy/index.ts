@@ -169,6 +169,15 @@ async function finishTransactionLog(
   // [CASHAPP-LOG-1007] A Cash App session with a HostedURL is never a confirmed payment, even when CellPay says "success"
   // at session create: always leave it 'pending'. cashapp-settlement-sweep (enforce) / the return poll set success|failed.
   if ((paymentMethod || "").toLowerCase() === "pockyt" && hostedUrl) {
+    // [CASHAPP-STUCK-1007] Still 'pending', but the create reply (data.pockyt_session_id + HostedURL) is now saved on the row so
+    // cashapp-settlement-sweep can check it and the browser settle merges into it. No hashid/txn yet. Never throws; reply unchanged.
+    try {
+      await callDatabaseRpc("finalize_transaction_log", {
+        _id: id, _status: "pending", _hashid: null, _transaction_id: null, _error_message: null, _raw_response: result,
+      });
+    } catch (error) {
+      console.error("[tx-log] pockyt pending save failed:", error instanceof Error ? error.message : error);
+    }
     return; // leave as pending
   }
 
@@ -183,6 +192,27 @@ async function finishTransactionLog(
     });
   } catch (error) {
     console.error("[tx-log] finalize failed:", error instanceof Error ? error.message : error);
+  }
+}
+
+// [CASHAPP-STUCK-1007] The Cash App create call to CellPay threw or passed POCKYT_CREATE_TIMEOUT_MS: close the pending log row as
+// 'failed' (error_message 'timeout' | 'cashapp_create_error') so it is never left open. Not final: a later paid answer for this
+// row still flips it to success (finalize_pockyt_log). 2 s budget; never throws.
+const POCKYT_CREATE_TIMEOUT_MS = 30000;
+async function markPockytCreateError(id: string | null, error: unknown): Promise<void> {
+  if (!id) return;
+  const name = error instanceof Error ? error.name : "";
+  const kind = name === "TimeoutError" || name === "AbortError" ? "timeout" : "cashapp_create_error";
+  try {
+    await Promise.race([
+      callDatabaseRpc("finalize_transaction_log", {
+        _id: id, _status: "failed", _hashid: null, _transaction_id: null, _error_message: kind,
+        _raw_response: { pockyt_create_error: kind, error_name: name ? name.slice(0, 40) : null },
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("db timeout")), 2000)),
+    ]);
+  } catch (e) {
+    console.error("[tx-log] pockyt create-error finalize failed:", e instanceof Error ? e.message : e);
   }
 }
 
@@ -1458,11 +1488,22 @@ serve(async (req) => {
       fetchOptions.body = prepared.body;
     }
 
-    const response = await fetch(url, fetchOptions);
+    // [CASHAPP-STUCK-1007] Cash App create only: 30 s cap on the CellPay call. A throw or timeout marks the log row 'failed' and is
+    // rethrown, so the browser gets the same error reply as before (no HostedURL reaches it, so that session cannot be paid).
+    // Every other call is sent exactly as before.
+    const isPockytCreate = shouldLogTransaction && (paymentMethod || "").toLowerCase() === "pockyt";
+    let response: Response;
+    let rawText: string;
+    try {
+      response = await fetch(url, isPockytCreate ? { ...fetchOptions, signal: AbortSignal.timeout(POCKYT_CREATE_TIMEOUT_MS) } : fetchOptions);
+      rawText = await response.text();
+    } catch (error) {
+      if (isPockytCreate) await markPockytCreateError(txLogId, error);
+      throw error;
+    }
 
     let data: unknown;
     const contentType = response.headers.get("content-type") || "";
-    const rawText = await response.text();
 
     try {
       data = JSON.parse(rawText);
@@ -1527,6 +1568,17 @@ serve(async (req) => {
             });
           } catch (error) {
             console.error("[tx-log] pockyt finalize failed:", error instanceof Error ? error.message : error);
+          }
+          // [CASHAPP-STUCK-1007] failed/abandoned are not final: a paid answer flips THIS row to success only when its saved session id
+          // and our log id both match (and the txn is not on another row). No-op when the row was pending (settled just above).
+          if (finalStatus === "success") {
+            try {
+              await callDatabaseRpc("finalize_pockyt_log", {
+                _session_id: endpoint.split("/")[3] || "", _pending_log_id: logId, _status: "success", _txn: txnId, _msg: null, _raw: result,
+              });
+            } catch (error) {
+              console.error("[tx-log] pockyt late-paid flip failed:", error instanceof Error ? error.message : error);
+            }
           }
         }
       }
