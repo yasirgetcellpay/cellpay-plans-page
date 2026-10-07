@@ -525,8 +525,32 @@ const GoLander = ({
         </div>
       </section>
 
+      {/* SPEED-LANDER-LCP2: Autopay benefit always after H1 (matches goFirstScreen; checkbox stays unchecked). */}
+      <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">
+        <div className="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoPayInterest}
+              onChange={(e) => setAutoPayInterest(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-input"
+              style={{ accentColor: bc }}
+            />
+            <span className="text-[11px] sm:text-xs text-foreground leading-relaxed">
+              {autoPayLine}
+            </span>
+          </label>
+          <p className="mt-2 text-[11px] sm:text-xs font-semibold text-foreground text-center">
+            {feeLine}
+          </p>
+          <p className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug text-center">
+            {PAY_METHODS}
+          </p>
+        </div>
+      </div>
+
       {loading ? (
-        <div className="flex justify-center items-start py-16 flex-1 min-h-screen">
+        <div className="flex justify-center items-start py-16 flex-1">
           <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
         </div>
       ) : (
@@ -642,30 +666,6 @@ const GoLander = ({
               />
             </div>
           )}
-
-          {/* Auto Pay + fee below phone/amount so plan picker stays above the fold on mobile */}
-          <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">
-            <div className="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">
-              <label className="flex items-start gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={autoPayInterest}
-                  onChange={(e) => setAutoPayInterest(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-input"
-                  style={{ accentColor: bc }}
-                />
-                <span className="text-[11px] sm:text-xs text-foreground leading-relaxed">
-                  {autoPayLine}
-                </span>
-              </label>
-              <p className="mt-2 text-[11px] sm:text-xs font-semibold text-foreground text-center">
-                {feeLine}
-              </p>
-              <p className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug text-center">
-                {PAY_METHODS}
-              </p>
-            </div>
-          </div>
 
           {showRange && (
             <div className="max-w-[420px] mx-auto px-4 pb-24 sm:pb-8">

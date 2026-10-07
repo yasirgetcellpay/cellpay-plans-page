@@ -785,6 +785,16 @@ const htmlAliasPlugin = (): Plugin => ({
       if (!cellpayLogo) return null;
       const logo = goAssetUrl(look.logo);
       const tagline = route.startsWith("es/") ? "Sin cuenta. Pague por otra persona." : "No login. Pay for anyone.";
+      // SPEED-LANDER-LCP2: Autopay benefit in the static shell (same classes/copy as GoLander) so LCP can paint with H1.
+      const isEs = route.startsWith("es/");
+      const autoPayLine = isEs
+        ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano."
+        : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.";
+      const feeLine = isEs
+        ? "Cargo por servicio bajo, mostrado antes de pagar"
+        : "Low service fee shown before you pay";
+      const payMethods =
+        "Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, Cash App";
       const carrier = logo
         ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)} logo" width="94" height="28" class="h-[28px] sm:h-[36px] w-auto object-contain">`
         : `<span class="text-lg font-extrabold" style="color:${look.color}">${escAttr(look.name)}</span>`;
@@ -803,7 +813,16 @@ const htmlAliasPlugin = (): Plugin => ({
         `<h1 class="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">${escAttr(content.h1)}</h1>` +
         `<p class="text-xs sm:text-sm opacity-90 mt-1">${tagline}</p>` +
         `</div></section>` +
-        `<div class="flex justify-center items-start py-16 flex-1 min-h-screen">` +
+        `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">` +
+        `<div class="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">` +
+        `<label class="flex items-start gap-2">` +
+        `<input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-input" style="accent-color:${look.color}">` +
+        `<span class="text-[11px] sm:text-xs text-foreground leading-relaxed">${autoPayLine}</span>` +
+        `</label>` +
+        `<p class="mt-2 text-[11px] sm:text-xs font-semibold text-foreground text-center">${feeLine}</p>` +
+        `<p class="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug text-center">${payMethods}</p>` +
+        `</div></div>` +
+        `<div class="flex justify-center items-start py-16 flex-1">` +
         `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle h-10 w-10 animate-spin text-muted-foreground"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>` +
         `</div></div></div>`
       );
