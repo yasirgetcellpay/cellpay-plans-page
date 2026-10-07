@@ -364,30 +364,76 @@ const Checkout = () => {
   }, [state?.carrierName, state?.carrierSlug]);
 
   // Load FingerprintJS Pro and capture visitor identifier
+  // FP-IDLE-1007 (Fraud & QA approved): start FP when the browser is idle (requestIdleCallback, ~1s setTimeout
+  // fallback) instead of on mount. Every submit path calls fpReady(): it starts FP if not started yet and waits at
+  // most 1500ms. On timeout the payment goes ahead without visitorId and browser_info carries fp_timeout=true.
+  // FP never blocks or fails checkout.
+  const fpStartRef = useRef<(() => Promise<void>) | null>(null);
+  const fpPromiseRef = useRef<Promise<void> | null>(null);
   useEffect(() => {
-    let cancelled = false;
     // Set a baseline payload immediately so we always send something
     browserInfoRef.current = JSON.stringify(getClientProps());
 
-    (async () => {
-      try {
-        const FingerprintJS = await (new Function(
-          "return import('https://fpjscdn.net/v3/4zITUeuShmfN065uFVho')"
-        )() as Promise<{ load: () => Promise<{ get: () => Promise<{ visitorId: string; requestId?: string }> }> }>);
-        const fp = await FingerprintJS.load();
-        const result = await fp.get();
-        if (cancelled) return;
-        browserInfoRef.current = JSON.stringify({
-          visitorId: result.visitorId,
-          requestId: result.requestId || "",
-          ...getClientProps(),
-        });
-      } catch (err) {
-        console.warn("FingerprintJS Pro error", err);
-      }
-    })();
+    const run = (): Promise<void> => {
+      if (fpPromiseRef.current) return fpPromiseRef.current;
+      fpPromiseRef.current = (async () => {
+        try {
+          const FingerprintJS = await (new Function(
+            "return import('https://fpjscdn.net/v3/4zITUeuShmfN065uFVho')"
+          )() as Promise<{ load: () => Promise<{ get: () => Promise<{ visitorId: string; requestId?: string }> }> }>);
+          const fp = await FingerprintJS.load();
+          const result = await fp.get();
+          browserInfoRef.current = JSON.stringify({
+            visitorId: result.visitorId,
+            requestId: result.requestId || "",
+            ...getClientProps(),
+          });
+        } catch (err) {
+          console.warn("FingerprintJS Pro error", err);
+        }
+      })();
+      return fpPromiseRef.current;
+    };
+    fpStartRef.current = run;
 
-    return () => { cancelled = true; };
+    const w = window as unknown as {
+      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    let idleId: number | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (typeof w.requestIdleCallback === "function") {
+      idleId = w.requestIdleCallback(() => { void run(); }, { timeout: 1000 });
+    } else {
+      timer = setTimeout(() => { void run(); }, 1000);
+    }
+    return () => {
+      if (idleId !== undefined && w.cancelIdleCallback) w.cancelIdleCallback(idleId);
+      if (timer) clearTimeout(timer);
+    };
+  }, [getClientProps]);
+
+  // FP-IDLE-1007: wait for the visitorId at submit, max 1500ms. Never throws.
+  const fpReady = useCallback(async (): Promise<void> => {
+    try {
+      const p = fpStartRef.current ? fpStartRef.current() : null;
+      let timedOut = !p;
+      if (p) {
+        let t: ReturnType<typeof setTimeout> | undefined;
+        timedOut = await Promise.race([
+          p.then(() => false),
+          new Promise<boolean>((resolve) => { t = setTimeout(() => resolve(true), 1500); }),
+        ]);
+        if (t) clearTimeout(t);
+      }
+      let info: Record<string, unknown> = {};
+      try { info = JSON.parse(browserInfoRef.current || "{}") as Record<string, unknown>; } catch { info = {}; }
+      if (!info.visitorId) {
+        browserInfoRef.current = JSON.stringify({ ...getClientProps(), ...info, fp_timeout: timedOut });
+      }
+    } catch {
+      /* never block checkout on FP */
+    }
   }, [getClientProps]);
 
   // Resolve visitor public IP for the `source` field. Best-effort — if the
@@ -797,6 +843,7 @@ const Checkout = () => {
 
   // ─── Credit Card ───
   const handleCard = async () => {
+    await fpReady();
     const payload = {
       checkout_version: "5.0",
       payment_method: "cardpayment",
@@ -1051,6 +1098,7 @@ const Checkout = () => {
     console.log("[GooglePay] paymentMethodData:", pmd);
     console.log("[GooglePay] billingAddress:", billingAddress);
 
+    await fpReady();
     const result = await submitTransaction({
       checkout_version: "5.0",
       payment_method: "googlepay",
@@ -1198,6 +1246,7 @@ const Checkout = () => {
         const billingContact = payment.billingContact;
         console.log("[ApplePay] payment authorized, submitting transaction", { hasToken: !!fullToken });
 
+        await fpReady();
         const raw = await submitTransaction({
           checkout_version: "5.0",
           payment_method: "applepay",
@@ -1308,6 +1357,7 @@ const Checkout = () => {
 
   const handleKlarna = async () => {
     if (klarnaToken) {
+      await fpReady();
       const result = await submitTransaction(buildKlarnaPayload(klarnaToken)) as Record<string, unknown>;
       handleResult(result);
       return;
@@ -1363,6 +1413,7 @@ const Checkout = () => {
           if (res.approved && res.authorization_token) {
             setKlarnaToken(res.authorization_token);
             try {
+              await fpReady();
               const result = await submitTransaction(buildKlarnaPayload(res.authorization_token)) as Record<string, unknown>;
               handleResult(result);
             } catch {
@@ -1393,6 +1444,7 @@ const Checkout = () => {
       /* ignore */
     }
 
+    await fpReady();
     const raw = await submitTransaction({
       checkout_version: "5.0",
       payment_method: "pockyt",

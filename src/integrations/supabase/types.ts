@@ -1142,7 +1142,9 @@ export type Database = {
           billing_country: string | null
           billing_zip: string | null
           card_bin: string | null
+          card_bin8: string | null
           card_brand: string | null
+          card_funding: string | null
           card_last4: string | null
           cellpay_hashid: string | null
           cellpay_transaction_id: string | null
@@ -1162,7 +1164,9 @@ export type Database = {
           billing_country?: string | null
           billing_zip?: string | null
           card_bin?: string | null
+          card_bin8?: string | null
           card_brand?: string | null
+          card_funding?: string | null
           card_last4?: string | null
           cellpay_hashid?: string | null
           cellpay_transaction_id?: string | null
@@ -1182,7 +1186,9 @@ export type Database = {
           billing_country?: string | null
           billing_zip?: string | null
           card_bin?: string | null
+          card_bin8?: string | null
           card_brand?: string | null
+          card_funding?: string | null
           card_last4?: string | null
           cellpay_hashid?: string | null
           cellpay_transaction_id?: string | null
