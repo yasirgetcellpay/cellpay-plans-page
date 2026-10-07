@@ -499,12 +499,14 @@ const GoLander = ({
       <header className="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style={{ borderColor: bc }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center h-14 sm:h-16 items-center gap-3">
-            <img src={cellpayLogo} alt="CellPay" className="h-7 sm:h-8 w-auto" />
+            <img src={cellpayLogo} alt="CellPay" width={110} height={28} className="h-7 sm:h-8 w-auto" />
             <span className="text-muted-foreground text-sm hidden sm:inline">·</span>
             {logo ? (
               <img
                 src={logo}
                 alt={`${carrierName} logo`}
+                width={94}
+                height={28}
                 className="h-[28px] sm:h-[36px] w-auto object-contain"
               />
             ) : (

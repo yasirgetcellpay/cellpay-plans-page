@@ -117,29 +117,70 @@
     </script>
 
     <!-- Google Tag Manager -->
-
+    <!-- SPEED-LANDER-1006: on /go/* and /es/go/* only, defer GTM + direct gtag until first input,
+         load+idle (1.5s), or 4s cap. All other paths (checkout, confirmation, Cash App, home, .html)
+         load immediately — same as before. dataLayer stub always present so early pushes queue. -->
     <script>
     (function(w, d, s, l, i) {
       w[l] = w[l] || [];
-      w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-      var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
-      j.async = true;
-      j.defer = true;
-      j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-      f.parentNode.insertBefore(j, f);
-    })(window, document, 'script', 'dataLayer', 'GTM-T7KGLV8T');
-    </script>
-    <!-- End Google Tag Manager -->
-
-    <!-- Google Analytics 4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4T3FK9DBTR"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){ dataLayer.push(arguments); }
+      function gtag(){ w[l].push(arguments); }
+      w.gtag = w.gtag || gtag;
       gtag('js', new Date());
       gtag('config', 'G-4T3FK9DBTR');
       gtag('config', 'AW-1017130069');
+
+      function isGoLanderPath() {
+        try {
+          var p = w.location.pathname || '';
+          return p === '/go' || p.indexOf('/go/') === 0 || p === '/es/go' || p.indexOf('/es/go/') === 0;
+        } catch (e) { return false; }
+      }
+
+      function loadGtm() {
+        if (w.__gtmLoaded) return;
+        w.__gtmLoaded = true;
+        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+        var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
+        j.async = true;
+        j.defer = true;
+        j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+        f.parentNode.insertBefore(j, f);
+        if (!w.__gtagJsLoaded) {
+          w.__gtagJsLoaded = true;
+          var g = d.createElement(s);
+          g.async = true;
+          g.src = 'https://www.googletagmanager.com/gtag/js?id=G-4T3FK9DBTR';
+          f.parentNode.insertBefore(g, f);
+        }
+      }
+
+      if (!isGoLanderPath()) {
+        loadGtm();
+        return;
+      }
+
+      var done = false;
+      function arm() {
+        if (done) return;
+        done = true;
+        loadGtm();
+      }
+      ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) {
+        d.addEventListener(ev, arm, { passive: true, once: true });
+      });
+      function afterLoad() {
+        if (w.requestIdleCallback) {
+          w.requestIdleCallback(arm, { timeout: 1500 });
+        } else {
+          setTimeout(arm, 1500);
+        }
+      }
+      if (d.readyState === 'complete') afterLoad();
+      else w.addEventListener('load', afterLoad);
+      setTimeout(arm, 4000);
+    })(window, document, 'script', 'dataLayer', 'GTM-T7KGLV8T');
     </script>
+    <!-- End Google Tag Manager -->
 
 </head>
 

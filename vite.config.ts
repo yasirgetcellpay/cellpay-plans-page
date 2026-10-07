@@ -786,7 +786,7 @@ const htmlAliasPlugin = (): Plugin => ({
       const logo = goAssetUrl(look.logo);
       const tagline = route.startsWith("es/") ? "Sin cuenta. Pague por otra persona." : "No login. Pay for anyone.";
       const carrier = logo
-        ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)} logo" class="h-[28px] sm:h-[36px] w-auto object-contain">`
+        ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)} logo" width="94" height="28" class="h-[28px] sm:h-[36px] w-auto object-contain">`
         : `<span class="text-lg font-extrabold" style="color:${look.color}">${escAttr(look.name)}</span>`;
       return (
         `<div id="root" data-go-prerender="1">` +
@@ -794,7 +794,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<header class="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style="border-color:${look.color}">` +
         `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">` +
         `<div class="flex justify-center h-14 sm:h-16 items-center gap-3">` +
-        `<img src="${escAttr(cellpayLogo)}" alt="CellPay" class="h-7 sm:h-8 w-auto">` +
+        `<img src="${escAttr(cellpayLogo)}" alt="CellPay" width="110" height="28" class="h-7 sm:h-8 w-auto">` +
         `<span class="text-muted-foreground text-sm hidden sm:inline">·</span>` +
         carrier +
         `</div></div></header>` +
