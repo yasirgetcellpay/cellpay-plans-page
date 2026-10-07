@@ -241,6 +241,9 @@ const NO_HTML_CARRIER_ALIASES: Array<[string, string]> = [
   ["/es/tmobile", "/es/tmobile-flexi.html"],
   ["/es/bmobile", "/es/boost.html"],
   ["/es/pageplus", "/es/pageplus.html"],
+  // GSC-DUP-1007: stale landing URLs go to the carrier page on the same host.
+  ["/lp/metro", "/metropcs.html"],
+  ["/lp/boost", "/boost.html"],
 ];
 
 const TrackingCapture = () => {

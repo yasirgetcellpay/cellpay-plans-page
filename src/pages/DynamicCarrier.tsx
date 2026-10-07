@@ -367,6 +367,14 @@ const DynamicCarrier = ({
           });
         }
 
+        // GSC-DUP-1007: Spanish pages keep a Spanish title/description (same text as the static HTML in vite.config.ts).
+        if (lang === "es") {
+          applySeoHead({
+            title: `Recarga de ${initialName} en Línea — Pague su Factura | CellPay`,
+            description: "Recarga en línea. Planes de 30 días, pago seguro. Cargo por servicio bajo, mostrado antes de pagar.",
+          });
+        }
+
         // Per-route overrides (e.g. /guest-metro-pcs.html) — applied LAST so they win.
         if (seoTitleOverride || seoDescriptionOverride) {
           applySeoHead({

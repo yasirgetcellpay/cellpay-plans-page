@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- CellPay US sitemap index. Each host has its own sitemap that lists only that host's pages. -->
+<!-- CellPay US sitemap index. GSC-DUP-1007: www.cellpay.us is the one canonical host, so only its sitemap is listed. -->
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <sitemap>
-    <loc>https://refill.cellpay.us/sitemap-refill.xml</loc>
-  </sitemap>
   <sitemap>
     <loc>https://www.cellpay.us/sitemap-www.xml</loc>
   </sitemap>
