@@ -428,9 +428,21 @@
   </url>
   <url>
     <loc>https://www.cellpay.us/privacy-policy</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-07</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/privacy-policy" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/privacy-policy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/privacy-policy" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/es/privacy-policy</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/privacy-policy" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/privacy-policy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/privacy-policy" />
   </url>
   <url>
     <loc>https://www.cellpay.us/terms-and-conditions</loc>
