@@ -165,10 +165,24 @@
       }
 
       try {
-        var H = w.history;
+        var H = w.history, carryDone = false, CK = ['gclid', 'gbraid', 'wbraid', 'msclkid'], LP = new URLSearchParams(w.location.search);
+        var carry = CK.filter(function (k) { return LP.get(k); });
+        w.__clickCarryOff = function () { setTimeout(function () { carryDone = true; }, 3000); };
         ['pushState', 'replaceState'].forEach(function (m) {
           var o = H[m];
-          if (o) H[m] = function () { var r = o.apply(this, arguments); if (!w.__gtmLoaded && isConversionPage()) loadGtm(); return r; };
+          if (o) H[m] = function (st, ti, url) {
+            var args = arguments;
+            if (!carryDone && carry.length && url != null) {
+              try {
+                var u = new URL(String(url), w.location.href), ch = false;
+                if (u.origin === w.location.origin) {
+                  carry.forEach(function (k) { if (!u.searchParams.get(k)) { u.searchParams.set(k, LP.get(k)); ch = true; } });
+                  if (ch) args = [st, ti, u.pathname + u.search + u.hash];
+                }
+              } catch (e) {}
+            }
+            var r = o.apply(this, args); if (!w.__gtmLoaded && isConversionPage()) loadGtm(); return r;
+          };
         });
         w.addEventListener('popstate', function () { if (!w.__gtmLoaded && isConversionPage()) loadGtm(); });
         var CV = /^(purchase|begin_checkout|add_payment_info|add_shipping_info|conversion)$/;
@@ -190,20 +204,19 @@
         if (done) return;
         done = true;
         loadGtm();
+        if (w.__clickCarryOff) w.__clickCarryOff();
       }
       ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) {
         d.addEventListener(ev, arm, { passive: true, once: true });
       });
       function afterLoad() {
-        if (w.requestIdleCallback) {
-          w.requestIdleCallback(arm, { timeout: 1500 });
-        } else {
-          setTimeout(arm, 1500);
-        }
+        setTimeout(function () {
+          if (w.requestIdleCallback) w.requestIdleCallback(arm, { timeout: 2000 });
+          else arm();
+        }, 6000);
       }
       if (d.readyState === 'complete') afterLoad();
       else w.addEventListener('load', afterLoad);
-      setTimeout(arm, 4000);
     })(window, document, 'script', 'dataLayer', 'GTM-T7KGLV8T');
     </script>
     <!-- End Google Tag Manager -->
