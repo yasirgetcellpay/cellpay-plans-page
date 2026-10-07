@@ -174,6 +174,65 @@ async function finishTransactionLog(
   }
 }
 
+// ---------------------------------------------------------------------------
+// [CARDLOG-1007] Logging-only card facts for Fraud & QA (Parvez, Oct 7 2026). One row per logged checkout in
+// transaction_card_facts (rpc log_card_facts), linked to transaction_logs.id. Stores BIN (first 6), last 4, brand, billing
+// country/ZIP, CellPay's CCTransactionId, the decline text, and auth/AVS/CVV/3DS result codes only when the response carries
+// them. NEVER the full PAN, the expiry, or the CVV. Runs after the log is finalized; 800 ms timeout; never throws; the request
+// sent to CellPay and the reply to the browser are unchanged.
+// ---------------------------------------------------------------------------
+function cardFactPick(o: Record<string, unknown>, keys: string[]): string | null {
+  for (const k of keys) {
+    const v = o[k];
+    if (typeof v === "string" && v.trim() !== "") return v.trim().slice(0, 64);
+    if (typeof v === "number" && Number.isFinite(v)) return String(v);
+  }
+  return null;
+}
+
+async function logCardFacts(id: string | null, payload: Record<string, unknown>, wrapped: Record<string, unknown>, paymentMethod: string | null): Promise<void> {
+  try {
+    if (!id) return;
+    const pay = asRecord(payload.payment);
+    const billing = asRecord(payload.billing);
+    const pan = String(pay.cc_number ?? payload.cc_number ?? "").replace(/\D/g, "");
+    const result = unwrapTransactionResult(wrapped);
+    const st = String(result.status ?? "").toLowerCase();
+    const ok = wrapped.success === true && (result.status === true || st === "true" || st === "success" || st === "completed");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceKey) return;
+    const zip = String(pay.zip ?? "").replace(/\D/g, "").slice(0, 10);
+    const facts = {
+      transaction_log_id: id,
+      payment_method: text(paymentMethod),
+      outcome: ok ? "success" : "failed",
+      card_bin: pan.length >= 12 ? pan.slice(0, 6) : null,
+      card_last4: pan.length >= 12 ? pan.slice(-4) : null,
+      card_brand: text(pay.cc_type ?? payload.ctype ?? payload.card_type),
+      processor_txn_id: cardFactPick(result, ["CCTransactionId", "ccTransactionId", "cc_transaction_id", "processor_transaction_id"]),
+      processor_auth_code: cardFactPick(result, ["AuthCode", "authCode", "auth_code", "authorization_code", "ApprovalCode"]),
+      avs_result: cardFactPick(result, ["AVSResult", "avsResult", "avs_result", "avs_response", "AvsCode", "avs_code"]),
+      cvv_result: cardFactPick(result, ["CVVResult", "cvvResult", "cvv_result", "cvv_response", "CvnCode", "cvn_code"]),
+      three_ds_result: cardFactPick(result, ["ThreeDSResult", "threeDSResult", "three_ds_result", "eci", "ECI"]),
+      billing_country: text(billing.country_id ?? pay.country),
+      billing_zip: zip || null,
+      decline_message: ok ? null : text(result.msg ?? result.message ?? wrapped.error),
+      cellpay_transaction_id: text(result.transactionId ?? result.transaction_id),
+      cellpay_hashid: text(result.hashid),
+    };
+    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/log_card_facts`, {
+      method: "POST",
+      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
+      body: JSON.stringify({ _data: facts }),
+      signal: AbortSignal.timeout(800),
+    });
+    if (!res.ok) console.warn(`[cardlog] insert failed: ${res.status}`);
+  } catch (error) {
+    console.warn("[cardlog] skipped:", error instanceof Error ? error.name : "error");
+  }
+}
+
 /**
  * Derive the registrable ("top") domain from a hostname (e.g. "recharge.cellpay.us" -> "cellpay.us").
  * Falls back to FALLBACK_DOMAIN for lovable preview / dev hosts or invalid input.
@@ -1359,6 +1418,7 @@ serve(async (req) => {
 
     if (shouldLogTransaction) {
       await finishTransactionLog(txLogId, wrapped, paymentMethod);
+      if (!isPlaidCheckout && /^card/i.test(String(paymentMethod || ""))) await logCardFacts(txLogId, payloadRecord, wrapped, paymentMethod); // [CARDLOG-1007] never throws
       if (txLogId) wrapped.pending_log_id = txLogId;
     }
 
