@@ -1351,6 +1351,195 @@ const App = () => (
           }
         />
 
+        {/* GO-LANDERS-1007: EN Page Plus ad lander (/go/pageplus). */}
+        <Route
+          path="/go/pageplus"
+          element={
+            <GoLander
+              carrierName="Page Plus"
+              carrierSlug="pageplus"
+              carrierId={1}
+              brandColor="hsl(0,70%,50%)"
+              logo={pageplusLogo}
+              h1="Pay Your Page Plus Bill Online"
+              title="Pay Your Page Plus Bill Online | CellPay"
+              description="Pay your Page Plus bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/pageplus.html"
+          element={
+            <GoLander
+              carrierName="Page Plus"
+              carrierSlug="pageplus"
+              carrierId={1}
+              brandColor="hsl(0,70%,50%)"
+              logo={pageplusLogo}
+              h1="Pay Your Page Plus Bill Online"
+              title="Pay Your Page Plus Bill Online | CellPay"
+              description="Pay your Page Plus bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        {/* GO-LANDERS-1007: EN Total Wireless ad lander (/go/totalwireless). */}
+        <Route
+          path="/go/totalwireless"
+          element={
+            <GoLander
+              carrierName="Total Wireless"
+              carrierSlug="total-wireless"
+              carrierId={79}
+              brandColor="hsl(200,70%,40%)"
+              h1="Pay Your Total Wireless Bill Online"
+              title="Pay Your Total Wireless Bill Online | CellPay"
+              description="Pay your Total Wireless bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/totalwireless.html"
+          element={
+            <GoLander
+              carrierName="Total Wireless"
+              carrierSlug="total-wireless"
+              carrierId={79}
+              brandColor="hsl(200,70%,40%)"
+              h1="Pay Your Total Wireless Bill Online"
+              title="Pay Your Total Wireless Bill Online | CellPay"
+              description="Pay your Total Wireless bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        {/* GO-LANDERS-1007: EN Tracfone ad lander (/go/tracfone). */}
+        <Route
+          path="/go/tracfone"
+          element={
+            <GoLander
+              carrierName="Tracfone"
+              carrierSlug="tracfone"
+              carrierId={10}
+              brandColor="hsl(230,70%,30%)"
+              logo={tracfoneLogo}
+              h1="Pay Your Tracfone Bill Online"
+              title="Pay Your Tracfone Bill Online | CellPay"
+              description="Pay your Tracfone bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        <Route
+          path="/go/tracfone.html"
+          element={
+            <GoLander
+              carrierName="Tracfone"
+              carrierSlug="tracfone"
+              carrierId={10}
+              brandColor="hsl(230,70%,30%)"
+              logo={tracfoneLogo}
+              h1="Pay Your Tracfone Bill Online"
+              title="Pay Your Tracfone Bill Online | CellPay"
+              description="Pay your Tracfone bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+            />
+          }
+        />
+        {/* GO-LANDERS-1007: ES Page Plus ad lander (/es/go/pageplus). */}
+        <Route
+          path="/es/go/pageplus"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Page Plus"
+              carrierSlug="pageplus"
+              carrierId={1}
+              brandColor="hsl(0,70%,50%)"
+              logo={pageplusLogo}
+              h1="Pague Page Plus en línea"
+              title="Pague Page Plus en línea | CellPay"
+              description="Pague su Page Plus en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/pageplus.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Page Plus"
+              carrierSlug="pageplus"
+              carrierId={1}
+              brandColor="hsl(0,70%,50%)"
+              logo={pageplusLogo}
+              h1="Pague Page Plus en línea"
+              title="Pague Page Plus en línea | CellPay"
+              description="Pague su Page Plus en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        {/* GO-LANDERS-1007: ES Total Wireless ad lander (/es/go/totalwireless). */}
+        <Route
+          path="/es/go/totalwireless"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Total Wireless"
+              carrierSlug="total-wireless"
+              carrierId={79}
+              brandColor="hsl(200,70%,40%)"
+              h1="Pague Total Wireless en línea"
+              title="Pague Total Wireless en línea | CellPay"
+              description="Pague su Total Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/totalwireless.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Total Wireless"
+              carrierSlug="total-wireless"
+              carrierId={79}
+              brandColor="hsl(200,70%,40%)"
+              h1="Pague Total Wireless en línea"
+              title="Pague Total Wireless en línea | CellPay"
+              description="Pague su Total Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        {/* GO-LANDERS-1007: ES Tracfone ad lander (/es/go/tracfone). */}
+        <Route
+          path="/es/go/tracfone"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Tracfone"
+              carrierSlug="tracfone"
+              carrierId={10}
+              brandColor="hsl(230,70%,30%)"
+              logo={tracfoneLogo}
+              h1="Pague Tracfone en línea"
+              title="Pague Tracfone en línea | CellPay"
+              description="Pague su Tracfone en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/tracfone.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Tracfone"
+              carrierSlug="tracfone"
+              carrierId={10}
+              brandColor="hsl(230,70%,30%)"
+              logo={tracfoneLogo}
+              h1="Pague Tracfone en línea"
+              title="Pague Tracfone en línea | CellPay"
+              description="Pague su Tracfone en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+
         {/* Removed carriers (Red Pocket, Xbox, Movistar) — noindex + redirect to the home page. */}
         {REMOVED_CARRIER_PATHS.flatMap((p) => [
           <Route key={`removed-${p}`} path={p} element={<RemovedCarrierRedirect to="/" />} />,
