@@ -822,7 +822,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<p class="mt-2 text-[11px] sm:text-xs font-semibold text-foreground text-center">${feeLine}</p>` +
         `<p class="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug text-center">${payMethods}</p>` +
         `</div></div>` +
-        `<div class="flex justify-center items-start py-16 flex-1">` +
+        `<div class="flex justify-center items-start py-16 flex-1 min-h-screen">` +
         `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle h-10 w-10 animate-spin text-muted-foreground"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>` +
         `</div></div></div>`
       );
