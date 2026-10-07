@@ -199,6 +199,7 @@ async function logCardFacts(id: string | null, payload: Record<string, unknown>,
     const result = unwrapTransactionResult(wrapped);
     const st = String(result.status ?? "").toLowerCase();
     const ok = wrapped.success === true && (result.status === true || st === "true" || st === "success" || st === "completed");
+    const proc = { ...asRecord(result.data), ...result }; // [CARDLOG-1007 v2] CellPay nests CCTransactionId one level deeper
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!supabaseUrl || !serviceKey) return;
@@ -210,11 +211,11 @@ async function logCardFacts(id: string | null, payload: Record<string, unknown>,
       card_bin: pan.length >= 12 ? pan.slice(0, 6) : null,
       card_last4: pan.length >= 12 ? pan.slice(-4) : null,
       card_brand: text(pay.cc_type ?? payload.ctype ?? payload.card_type),
-      processor_txn_id: cardFactPick(result, ["CCTransactionId", "ccTransactionId", "cc_transaction_id", "processor_transaction_id"]),
-      processor_auth_code: cardFactPick(result, ["AuthCode", "authCode", "auth_code", "authorization_code", "ApprovalCode"]),
-      avs_result: cardFactPick(result, ["AVSResult", "avsResult", "avs_result", "avs_response", "AvsCode", "avs_code"]),
-      cvv_result: cardFactPick(result, ["CVVResult", "cvvResult", "cvv_result", "cvv_response", "CvnCode", "cvn_code"]),
-      three_ds_result: cardFactPick(result, ["ThreeDSResult", "threeDSResult", "three_ds_result", "eci", "ECI"]),
+      processor_txn_id: cardFactPick(proc, ["CCTransactionId", "ccTransactionId", "cc_transaction_id", "processor_transaction_id"]),
+      processor_auth_code: cardFactPick(proc, ["AuthCode", "authCode", "auth_code", "authorization_code", "ApprovalCode"]),
+      avs_result: cardFactPick(proc, ["AVSResult", "avsResult", "avs_result", "avs_response", "AvsCode", "avs_code"]),
+      cvv_result: cardFactPick(proc, ["CVVResult", "cvvResult", "cvv_result", "cvv_response", "CvnCode", "cvn_code"]),
+      three_ds_result: cardFactPick(proc, ["ThreeDSResult", "threeDSResult", "three_ds_result", "eci", "ECI"]),
       billing_country: text(billing.country_id ?? pay.country),
       billing_zip: zip || null,
       decline_message: ok ? null : text(result.msg ?? result.message ?? wrapped.error),
