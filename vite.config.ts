@@ -668,16 +668,16 @@ const htmlAliasPlugin = (): Plugin => ({
           description: "Refill any Verizon Prepaid phone online. No My Verizon login, all major cards & wallets. Pay your Verizon Prepaid bill online on CellPay.",
         },
         "es/verizon/index.html": {
-          title: "Verizon Wireless Prepaid Refill Online | CellPay",
-          description: "Recharge your Verizon Prepaid plan instantly online with CellPay online bill payments. Easy, fast and secure way to pay Verizon Prepaid",
+          title: "Recarga de Verizon Wireless Prepaid en Línea — Pague su Factura | CellPay",
+          description: "Recarga en línea. Planes de 30 días, pago seguro. Cargo por servicio bajo, mostrado antes de pagar.",
         },
         "total-wireless/index.html": {
           title: "Total Wireless Refills and Online Bill Payments",
           description: "Recharge your Total Wireless plan instantly online with CellPay online bill payments. Easy, fast and secure way to pay Total Wireless",
         },
         "es/total-wireless/index.html": {
-          title: "Total Wireless Refills and Online Bill Payments",
-          description: "Recharge your Total Wireless plan instantly online with CellPay online bill payments. Easy, fast and secure way to pay Total Wireless",
+          title: "Recarga de Total Wireless en Línea — Pague su Factura | CellPay",
+          description: "Recarga en línea. Planes de 30 días, pago seguro. Cargo por servicio bajo, mostrado antes de pagar.",
         },
         "att-firstnet/index.html": {
           title: "AT&T Prepaid Refill Online | CellPay",
@@ -746,8 +746,12 @@ const htmlAliasPlugin = (): Plugin => ({
         const base = route.slice(3);
         const meta = CARRIER_META[base];
         if (meta) {
+          // GSC-DUP-1007: Spanish title (same text DynamicCarrier sets at runtime for lang="es").
+          const esLook = CARRIER_LOOK[base.replace(/\.html$/, "")];
           return {
-            title: meta.title.replace(" | CellPay", " — Español | CellPay"),
+            title: esLook
+              ? `Recarga de ${esLook.name} en Línea — Pague su Factura | CellPay`
+              : meta.title.replace(" | CellPay", " — Español | CellPay"),
             description: "Recarga en línea. Planes de 30 días, pago seguro. Cargo por servicio bajo, mostrado antes de pagar.",
             lang: "es",
             esPath: "/" + route,
@@ -999,8 +1003,61 @@ const htmlAliasPlugin = (): Plugin => ({
         `</div></section>` +
         `<div class="min-h-screen"></div>` +
         `</div></div>` +
-        `<script>(function(){if(location.pathname!=="/"){var r=document.getElementById("root");r.removeAttribute("data-go-prerender");r.innerHTML="";}})();</script>`
+        `<script>(function(){if(location.pathname!=="/"){var r=document.getElementById("root");r.removeAttribute("data-go-prerender");r.innerHTML="";` +
+        // GSC-DUP-1007: any other path served by this fallback file (unknown URLs, /index.html, checkout) is noindex and has no canonical/hreflang.
+        `var m=document.querySelector('meta[name="robots"]');if(m)m.setAttribute("content","noindex,follow");` +
+        `document.querySelectorAll('link[rel="canonical"],link[rel="alternate"][hreflang]').forEach(function(l){l.parentNode.removeChild(l);});}})();</script>`
       );
+    };
+
+    // GSC-DUP-1007: one canonical host for organic search (www). Static absolute canonical + hreflang helpers.
+    // Both hosts serve this same file, so every tag points at https://www.cellpay.us (a tag, not a redirect).
+    const WWW = "https://www.cellpay.us";
+    const ROUTE_SET = new Set<string>(HTML_ROUTES);
+    const VARIANT_CANON: Record<string, string> = {
+      "metro-pcs.html": "/metropcs.html",
+      "es/metro-pcs.html": "/es/metropcs.html",
+      "total-wireless.html": "/total-wireless",
+      "es/total-wireless.html": "/es/total-wireless",
+    };
+    const routeToPath = (route: string): string => {
+      const p = "/" + route.replace(/(^|\/)index\.html$/, "");
+      return p.length > 1 ? p.replace(/\/$/, "") : "/";
+    };
+    const canonicalPathFor = (route: string, meta: Meta): string =>
+      meta.canonical || VARIANT_CANON[route] || routeToPath(route);
+    const pairFor = (canonPath: string): [string, string] | null => {
+      const en = canonPath === "/es" ? "/" : canonPath.replace(/^\/es(?=\/)/, "");
+      const es = en === "/" ? "/es" : "/es" + en;
+      const has = (p: string) => p === "/" || ROUTE_SET.has(p.slice(1)) || ROUTE_SET.has(p.slice(1) + "/index.html");
+      return has(en) && has(es) ? [en, es] : null;
+    };
+    const seoHeadLinks = (canonPath: string, withHreflang: boolean): string => {
+      const links = [`<link rel="canonical" href="${WWW}${canonPath}" />`];
+      const pair = withHreflang ? pairFor(canonPath) : null;
+      if (pair) {
+        links.push(`<link rel="alternate" hreflang="en" href="${WWW}${pair[0]}" />`);
+        links.push(`<link rel="alternate" hreflang="es" href="${WWW}${pair[1]}" />`);
+        links.push(`<link rel="alternate" hreflang="x-default" href="${WWW}${pair[0]}" />`);
+      }
+      return links.join("\n    ");
+    };
+    // GSC-DUP-1007: variant URLs without ".html" (and stale /lp/*) get their own folder shell = the target page's HTML,
+    // so the raw HTML carries the target's canonical. App.tsx sends them to the target on the same host.
+    const VARIANT_SHELLS: Record<string, string> = {
+      "boost/index.html": "boost.html", "bmobile/index.html": "boost.html",
+      "metropcs/index.html": "metropcs.html", "metro-pcs/index.html": "metropcs.html",
+      "s1/index.html": "s1.html", "topup-crc/index.html": "topup-crc.html",
+      "tmobile-flexi/index.html": "tmobile-flexi.html", "tmobile/index.html": "tmobile-flexi.html",
+      "topup-at/index.html": "topup-at.html", "h2o/index.html": "h2o.html", "lyca/index.html": "lyca.html",
+      "net10/index.html": "net10.html", "tracfone/index.html": "tracfone.html",
+      "ultra-mobile/index.html": "ultra-mobile.html", "straight-talk/index.html": "straight-talk.html",
+      "verizon-wireless-flexi/index.html": "verizon-wireless-flexi.html",
+      "es/boost/index.html": "es/boost.html", "es/metropcs/index.html": "es/metropcs.html",
+      "es/s1/index.html": "es/s1.html", "es/topup-crc/index.html": "es/topup-crc.html",
+      "es/tmobile-flexi/index.html": "es/tmobile-flexi.html", "es/topup-at/index.html": "es/topup-at.html",
+      "es/ultra-mobile/index.html": "es/ultra-mobile.html",
+      "lp/metro/index.html": "metropcs.html", "lp/boost/index.html": "boost.html",
     };
 
     const renderHtml = (route: string): string => {
@@ -1058,16 +1115,15 @@ const htmlAliasPlugin = (): Plugin => ({
         }
       }
 
-      // Static self-canonical (only pages that set meta.canonical, e.g. DMCA): relative href = the host that serves the file.
-      if (meta.canonical) {
-        const tag = `<link rel="canonical" href="${escAttr(meta.canonical)}" />`;
-        out = /<link\s+rel="canonical"/i.test(out)
-          ? out.replace(/<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i, tag)
-          : out.replace(/<\/head>/i, `  ${tag}\n  </head>`);
+      // GSC-DUP-1007: static absolute canonical to www on every indexable page (both hosts), plus hreflang en/es/x-default
+      // when the page is self-canonical and has an EN/ES twin. noindex shells (/go, aliases, -espanol, removed carriers, admin)
+      // get none. seo.ts sets the same canonical at runtime.
+      out = out.replace(/\s*<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/gi, "");
+      if (!meta.noindex) {
+        const canonPath = canonicalPathFor(route, meta);
+        const headLinks = seoHeadLinks(canonPath, !meta.canonical && canonPath === routeToPath(route));
+        out = out.replace(/<\/head>/i, () => `  ${headLinks}\n  </head>`);
       }
-
-      // hreflang: not emitted in the static HTML. It must be an absolute URL and this file is
-      // served on two hosts; each host's own sitemap carries the en/es/x-default alternates.
 
       // Inject H1 + intro into the static body for guest landing pages so
       // crawlers see real above-the-fold content in raw HTML (before JS).
@@ -1110,11 +1166,23 @@ const htmlAliasPlugin = (): Plugin => ({
       fs.mkdirSync(path.dirname(dest), { recursive: true });
       fs.writeFileSync(dest, renderHtml(route));
     }
+    // GSC-DUP-1007: variant folder shells (see VARIANT_SHELLS); never overwrite a route that has its own shell.
+    for (const [variant, target] of Object.entries(VARIANT_SHELLS)) {
+      if (ROUTE_SET.has(variant) || !ROUTE_SET.has(target)) continue;
+      const dest = path.join(outDir, variant);
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.writeFileSync(dest, renderHtml(target));
+    }
     // LCP-ADS-1007: home first screen in dist/index.html (see homeFirstScreen). Any problem keeps the plain file.
     try {
       const homeScreen = homeFirstScreen();
       if (homeScreen && /<div id="root"><\/div>/i.test(html)) {
-        fs.writeFileSync(indexPath, html.replace(/<div id="root"><\/div>/i, () => homeScreen));
+        // GSC-DUP-1007: home canonical + hreflang (www) in the raw HTML.
+        const homeHead = `  ${seoHeadLinks("/", true)}\n  </head>`;
+        fs.writeFileSync(
+          indexPath,
+          html.replace(/<div id="root"><\/div>/i, () => homeScreen).replace(/<\/head>/i, () => homeHead),
+        );
       }
     } catch {
       /* keep plain index.html */

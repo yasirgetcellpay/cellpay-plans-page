@@ -6,12 +6,11 @@ const DYNAMIC_ATTR = "data-dynamic-seo";
 // refill.cellpay.us (paid ads) and www.cellpay.us (organic) are separate sites that serve this same build.
 // Each host is self-canonical: canonical and og:url use the host the page is served from, never the other one.
 // Any other host (Lovable build/preview domains) keeps refill.cellpay.us, as before.
-const OWN_HOSTS = ["refill.cellpay.us", "www.cellpay.us"];
-const FALLBACK_ORIGIN = "https://refill.cellpay.us";
+// GSC-DUP-1007: one canonical host for organic search. On every host the canonical and og:url point at www.cellpay.us
+// (same URL as the static canonical in vite.config.ts). No redirect between hosts.
+const CANONICAL_ORIGIN = "https://www.cellpay.us";
 function siteOrigin(): string {
-  if (typeof window === "undefined") return FALLBACK_ORIGIN;
-  const host = window.location.hostname.toLowerCase();
-  return OWN_HOSTS.includes(host) ? `https://${host}` : FALLBACK_ORIGIN;
+  return CANONICAL_ORIGIN;
 }
 
 function upsertMeta(name: string, content: string) {
@@ -90,7 +89,9 @@ export function applySeoHead(data: SeoHeadData) {
   }
   if (data.keywords !== undefined) upsertMeta("keywords", data.keywords || "");
 
-  const path = data.path ?? (typeof window !== "undefined" ? window.location.pathname : "/");
+  const rawPath = data.path ?? (typeof window !== "undefined" ? window.location.pathname : "/");
+  // GSC-DUP-1007: same path form as the static canonical (no trailing slash except the home page).
+  const path = rawPath.length > 1 ? rawPath.replace(/\/+$/, "") || "/" : rawPath;
   const url = `${siteOrigin()}${path}`;
   upsertCanonical(url);
   upsertProperty("og:url", url);
