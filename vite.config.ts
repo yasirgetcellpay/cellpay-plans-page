@@ -91,6 +91,19 @@ const HTML_ROUTES = [
   "es/go/tmobile/index.html",
   "es/go/verizon.html",
   "es/go/verizon/index.html",
+  // GO-LANDERS-1007 Batch B: Page Plus, Total Wireless, Tracfone (EN + ES) shells
+  "go/pageplus.html",
+  "go/pageplus/index.html",
+  "go/totalwireless.html",
+  "go/totalwireless/index.html",
+  "go/tracfone.html",
+  "go/tracfone/index.html",
+  "es/go/pageplus.html",
+  "es/go/pageplus/index.html",
+  "es/go/totalwireless.html",
+  "es/go/totalwireless/index.html",
+  "es/go/tracfone.html",
+  "es/go/tracfone/index.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
@@ -482,6 +495,55 @@ const htmlAliasPlugin = (): Plugin => ({
         h1: "Pague Verizon Prepaid en línea",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
+      // GO-LANDERS-1007 Batch B
+      "go/pageplus.html": {
+        h1: "Pay Your Page Plus Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "go/pageplus/index.html": {
+        h1: "Pay Your Page Plus Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "go/totalwireless.html": {
+        h1: "Pay Your Total Wireless Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "go/totalwireless/index.html": {
+        h1: "Pay Your Total Wireless Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "go/tracfone.html": {
+        h1: "Pay Your Tracfone Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "go/tracfone/index.html": {
+        h1: "Pay Your Tracfone Bill Online",
+        intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
+      },
+      "es/go/pageplus.html": {
+        h1: "Pague Page Plus en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/pageplus/index.html": {
+        h1: "Pague Page Plus en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/totalwireless.html": {
+        h1: "Pague Total Wireless en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/totalwireless/index.html": {
+        h1: "Pague Total Wireless en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/tracfone.html": {
+        h1: "Pague Tracfone en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/tracfone/index.html": {
+        h1: "Pague Tracfone en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
     };
 
 
@@ -587,6 +649,19 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/go/tmobile/index.html": { title: "Pague T-Mobile en línea | CellPay", description: "Pague su T-Mobile en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/verizon.html": { title: "Pague Verizon Prepaid en línea | CellPay", description: "Pague su Verizon Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/verizon/index.html": { title: "Pague Verizon Prepaid en línea | CellPay", description: "Pague su Verizon Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      // GO-LANDERS-1007 Batch B
+      "go/pageplus.html": { title: "Pay Your Page Plus Bill Online | CellPay", description: "Pay your Page Plus bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/pageplus/index.html": { title: "Pay Your Page Plus Bill Online | CellPay", description: "Pay your Page Plus bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/totalwireless.html": { title: "Pay Your Total Wireless Bill Online | CellPay", description: "Pay your Total Wireless bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/totalwireless/index.html": { title: "Pay Your Total Wireless Bill Online | CellPay", description: "Pay your Total Wireless bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/tracfone.html": { title: "Pay Your Tracfone Bill Online | CellPay", description: "Pay your Tracfone bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/tracfone/index.html": { title: "Pay Your Tracfone Bill Online | CellPay", description: "Pay your Tracfone bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "es/go/pageplus.html": { title: "Pague Page Plus en línea | CellPay", description: "Pague su Page Plus en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/pageplus/index.html": { title: "Pague Page Plus en línea | CellPay", description: "Pague su Page Plus en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/totalwireless.html": { title: "Pague Total Wireless en línea | CellPay", description: "Pague su Total Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/totalwireless/index.html": { title: "Pague Total Wireless en línea | CellPay", description: "Pague su Total Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/tracfone.html": { title: "Pague Tracfone en línea | CellPay", description: "Pague su Tracfone en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/tracfone/index.html": { title: "Pague Tracfone en línea | CellPay", description: "Pague su Tracfone en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
     };
     const ES_TITLE_PREFIX: Record<string, string> = {};
     // Carriers removed from the site (Oct 2026). Their old URLs keep a noindex shell.
@@ -648,6 +723,13 @@ const htmlAliasPlugin = (): Plugin => ({
       // GO-LANDERS-1007 Batch A
       "es/go/tmobile.html", "es/go/tmobile/index.html",
       "es/go/verizon.html", "es/go/verizon/index.html",
+      // GO-LANDERS-1007 Batch B
+      "go/pageplus.html", "go/pageplus/index.html",
+      "go/totalwireless.html", "go/totalwireless/index.html",
+      "go/tracfone.html", "go/tracfone/index.html",
+      "es/go/pageplus.html", "es/go/pageplus/index.html",
+      "es/go/totalwireless.html", "es/go/totalwireless/index.html",
+      "es/go/tracfone.html", "es/go/tracfone/index.html",
     ]);
     // GO-LANDERS-1007: /go shells that stay noindex,follow but still carry the www self-canonical + EN/ES hreflang pair in the raw HTML
     // (same canonical seo.ts sets at runtime). Both sides of each pair must be listed.
@@ -656,6 +738,13 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/go/tmobile.html", "es/go/tmobile/index.html",
       "go/verizon.html", "go/verizon/index.html",
       "es/go/verizon.html", "es/go/verizon/index.html",
+      // GO-LANDERS-1007 Batch B
+      "go/pageplus.html", "go/pageplus/index.html",
+      "go/totalwireless.html", "go/totalwireless/index.html",
+      "go/tracfone.html", "go/tracfone/index.html",
+      "es/go/pageplus.html", "es/go/pageplus/index.html",
+      "es/go/totalwireless.html", "es/go/totalwireless/index.html",
+      "es/go/tracfone.html", "es/go/tracfone/index.html",
     ]);
     // SEO-ES-META-1007: one carrier-named Spanish description for Spanish carrier pages.
     // SEO-ES-META: keep in sync with src/pages/DynamicCarrier.tsx (lang === "es" applySeoHead).
@@ -868,7 +957,8 @@ const htmlAliasPlugin = (): Plugin => ({
     // headline bar, loading block) with the same classes, so the headline paints before the app code runs.
     // main.tsx lets the browser paint it, then React replaces #root with the same markup, so nothing moves.
     // Keep in sync with GoLander.tsx (header / headline bar / loading block) and the /go routes in App.tsx.
-    const GO_LOOK: Record<string, { name: string; color: string; logo: string }> = {
+    // GO-LANDERS-1007: logo is optional; without it the header shows the carrier name in its color (same as GoLander with no logo prop).
+    const GO_LOOK: Record<string, { name: string; color: string; logo?: string }> = {
       boost: { name: "Boost Mobile", color: "hsl(27,100%,50%)", logo: "boost-logo.png" },
       metro: { name: "Metro PCS", color: "hsl(270,60%,32%)", logo: "metro-logo.svg" },
       "simple-mobile": { name: "Simple Mobile", color: "hsl(101,67%,44%)", logo: "simple-mobile-logo.png" },
@@ -881,6 +971,10 @@ const htmlAliasPlugin = (): Plugin => ({
       net10: { name: "Net10 Wireless", color: "hsl(195,100%,50%)", logo: "net10-logo.png" },
       tmobile: { name: "T-Mobile", color: "hsl(330,100%,45%)", logo: "tmobile-logo.svg" },
       verizon: { name: "Verizon Wireless Prepaid", color: "hsl(0,100%,45%)", logo: "verizon-logo.png" },
+      // GO-LANDERS-1007 Batch B (key = /go path segment)
+      pageplus: { name: "Page Plus", color: "hsl(0,70%,50%)", logo: "pageplus-logo.png" },
+      totalwireless: { name: "Total Wireless", color: "hsl(200,70%,40%)" },
+      tracfone: { name: "Tracfone", color: "hsl(230,70%,30%)", logo: "tracfone-logo.svg" },
     };
     const distAssets: string[] = (() => {
       try {
@@ -934,7 +1028,7 @@ const htmlAliasPlugin = (): Plugin => ({
       if (!content || !look) return null;
       const cellpayLogo = goAssetUrl("cellpay-logo.svg");
       if (!cellpayLogo) return null;
-      const logo = goAssetUrl(look.logo);
+      const logo = look.logo ? goAssetUrl(look.logo) : null;
       const tagline = route.startsWith("es/") ? "Sin cuenta. Pague por otra persona." : "No login. Pay for anyone.";
       // SPEED-LANDER-LCP2: Autopay benefit in the static shell (same classes/copy as GoLander) so LCP can paint with H1.
       const isEs = route.startsWith("es/");
