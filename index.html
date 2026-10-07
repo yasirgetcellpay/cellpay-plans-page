@@ -117,9 +117,11 @@
     </script>
 
     <!-- Google Tag Manager -->
-    <!-- SPEED-LANDER-1006: on /go/* and /es/go/* only, defer GTM + direct gtag until first input,
-         load+idle (1.5s), or 4s cap. All other paths (checkout, confirmation, Cash App, home, .html)
-         load immediately — same as before. dataLayer stub always present so early pushes queue. -->
+    <!-- TAGS-1007: defer GTM + direct gtag on every page EXCEPT payment/conversion pages, until first input,
+         load+idle (1.5s), or 4s cap. Checkout, order confirmation, payment callback, Cash App return, */pay pages
+         and any URL with hashid= load immediately (same as before). If the app navigates to one of those pages,
+         or pushes a purchase / checkout / conversion event, GTM loads at once. dataLayer stub always present so
+         early pushes queue and run when GTM arrives. -->
     <script>
     (function(w, d, s, l, i) {
       w[l] = w[l] || [];
@@ -129,11 +131,14 @@
       gtag('config', 'G-4T3FK9DBTR');
       gtag('config', 'AW-1017130069');
 
-      function isGoLanderPath() {
+      function isConversionPage() {
         try {
-          var p = w.location.pathname || '';
-          return p === '/go' || p.indexOf('/go/') === 0 || p === '/es/go' || p.indexOf('/es/go/') === 0;
-        } catch (e) { return false; }
+          var p = (w.location.pathname || '').toLowerCase().replace(/^\/es(?=\/|$)/, '');
+          var q = (w.location.search || '').toLowerCase();
+          return p.indexOf('/checkout') === 0 || p.indexOf('/order-confirmation') === 0 ||
+            p.indexOf('/payment-callback') === 0 || p.indexOf('cashapp') !== -1 || /\/pay\/?$/.test(p) ||
+            p.indexOf('/admin') === 0 || q.indexOf('hashid=') !== -1 || q.indexOf('cashapp') !== -1;
+        } catch (e) { return true; }
       }
 
       function loadGtm() {
@@ -154,10 +159,31 @@
         }
       }
 
-      if (!isGoLanderPath()) {
+      if (isConversionPage()) {
         loadGtm();
         return;
       }
+
+      try {
+        var H = w.history;
+        ['pushState', 'replaceState'].forEach(function (m) {
+          var o = H[m];
+          if (o) H[m] = function () { var r = o.apply(this, arguments); if (!w.__gtmLoaded && isConversionPage()) loadGtm(); return r; };
+        });
+        w.addEventListener('popstate', function () { if (!w.__gtmLoaded && isConversionPage()) loadGtm(); });
+        var CV = /^(purchase|begin_checkout|add_payment_info|add_shipping_info|conversion)$/;
+        var dl = w[l], dp = dl.push;
+        dl.push = function () {
+          var r = dp.apply(dl, arguments);
+          if (!w.__gtmLoaded) {
+            for (var k = 0; k < arguments.length; k++) {
+              var a = arguments[k];
+              if (a && (CV.test(String(a.event || '')) || (a[0] === 'event' && CV.test(String(a[1] || ''))))) { loadGtm(); break; }
+            }
+          }
+          return r;
+        };
+      } catch (e) { loadGtm(); return; }
 
       var done = false;
       function arm() {
