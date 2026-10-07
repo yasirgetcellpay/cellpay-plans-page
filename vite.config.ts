@@ -897,6 +897,112 @@ const htmlAliasPlugin = (): Plugin => ({
       );
     };
 
+    // LCP-ADS-1007: static first screen for DynamicCarrier pages (nav, colored headline bar, Auto Pay info card,
+    // loading block) with the same classes/copy as DynamicCarrier.tsx, so LCP paints before the app code runs.
+    // Uses data-go-prerender so main.tsx lets the browser paint it first. Keep in sync with DynamicCarrier.tsx.
+    // Only routes in CARRIER_SHELLS get it; anything missing falls back to the old output (build never fails on it).
+    const CARRIER_LOOK: Record<string, { name: string; color: string; logo: string }> = {
+      s1: { name: "Simple Mobile", color: "hsl(101,67%,44%)", logo: "simple-mobile-logo.png" },
+      "topup-crc": { name: "Cricket Wireless", color: "hsl(82,60%,42%)", logo: "cricket-logo.webp" },
+      metropcs: { name: "Metro PCS", color: "hsl(270,60%,32%)", logo: "metro-logo.svg" },
+      "tmobile-flexi": { name: "T-Mobile", color: "hsl(330,100%,45%)", logo: "tmobile-logo.svg" },
+      "topup-at": { name: "AT&T Prepaid", color: "hsl(196,100%,44%)", logo: "att-prepaid-logo.webp" },
+      boost: { name: "Boost Mobile", color: "hsl(27,100%,50%)", logo: "boost-logo.png" },
+      h2o: { name: "H2O Wireless", color: "hsl(195,85%,50%)", logo: "h2o-logo.png" },
+      lyca: { name: "Lyca Mobile", color: "hsl(220,50%,22%)", logo: "lyca-logo.webp" },
+      net10: { name: "Net10 Wireless", color: "hsl(195,100%,50%)", logo: "net10-logo.png" },
+      pageplus: { name: "Page Plus", color: "hsl(0,70%,50%)", logo: "pageplus-logo.png" },
+      tracfone: { name: "TracFone", color: "hsl(230,70%,30%)", logo: "tracfone-logo.svg" },
+      "ultra-mobile": { name: "Ultra Mobile", color: "hsl(270,50%,40%)", logo: "ultra-mobile-logo.png" },
+    };
+    const CARRIER_SHELLS = new Set<string>([
+      // LCP-ADS-1007 batch 1
+      "metropcs.html", "metro-pcs.html", "es/metropcs.html", "metropcs-espanol.html",
+      "boost.html", "es/boost.html", "boost-espanol.html",
+    ]);
+    const NAV_ITEMS: Array<[string, string, string]> = [
+      ["Domestic Payments", "/", ""],
+      ["Bill Payments", "https://billpay.cellpay.us/billpayment", ` rel="noopener noreferrer"`],
+      ["International Topups", "https://international.cellpay.us/international/", ` rel="noopener noreferrer"`],
+      ["Accessories", "https://shop.cellpay.us/", ` rel="noopener noreferrer" target="_blank"`],
+    ];
+    const navMenu =
+      `<div class="bg-[hsl(174,45%,12%)] text-white"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">` +
+      `<ul class="flex items-center justify-center gap-1 sm:gap-2 overflow-x-auto whitespace-nowrap py-2 sm:py-3 text-sm sm:text-base font-medium scrollbar-none">` +
+      NAV_ITEMS.map(
+        ([label, href, extra]) =>
+          `<li><a href="${href}"${extra} class="inline-block px-3 sm:px-4 py-1.5 rounded-md hover:bg-white/10 transition-colors">${label}</a></li>`,
+      ).join("") +
+      `</ul></div></div>`;
+    const carrierFirstScreen = (route: string): string | null => {
+      const isEs = route.startsWith("es/") || route.endsWith("-espanol.html");
+      let slug = route.replace(/^es\//, "").replace(/-espanol\.html$/, ".html").replace(/\.html$/, "");
+      if (slug === "metro-pcs") slug = "metropcs";
+      const look = CARRIER_LOOK[slug];
+      if (!look) return null;
+      const logo = goAssetUrl(look.logo);
+      if (!logo) return null;
+      const h1 = isEs
+        ? `Soluciones Rápidas y Seguras para Recargas Prepagadas de ${look.name}`
+        : slug === "metropcs"
+        ? "Metro PCS Pay Bill Online"
+        : "Top Up Your Mobile Number—Online & Securely";
+      const h2 = isEs
+        ? `Transacciones Sencillas y Seguras para Usuarios Prepagados de ${look.name}`
+        : slug === "metropcs"
+        ? "Pay your Metro by T-Mobile prepaid bill online. No login needed."
+        : "No login needed. Enter your phone number, choose your plan, and you're recharged.";
+      const info = isEs
+        ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano. Cargo por servicio bajo, mostrado antes de pagar. Aceptamos Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna y Cash App."
+        : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked. Low service fee shown before you pay. We accept Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna and Cash App.";
+      return (
+        `<div id="root" data-go-prerender="1">` +
+        `<div class="min-h-screen bg-background font-sans antialiased">` +
+        `<nav class="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style="border-color:${look.color}">` +
+        `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="relative flex justify-center h-14 sm:h-20 items-center">` +
+        `<img src="${escAttr(logo)}" alt="${escAttr(look.name)} prepaid refill logo" class="h-[32px] sm:h-[44px] w-auto object-contain">` +
+        `</div></div>` +
+        navMenu +
+        `</nav>` +
+        `<section class="text-primary-foreground" style="background-color:${look.color}">` +
+        `<div class="max-w-7xl mx-auto px-5 py-4 sm:py-5 sm:px-6 lg:px-8 text-center">` +
+        `<h1 class="text-xl md:text-2xl font-extrabold">${escAttr(h1)}</h1>` +
+        `<p class="text-sm opacity-90 mt-1">${escAttr(h2)}</p>` +
+        `</div></section>` +
+        `<div class="max-w-[420px] mx-auto px-4 pt-3">` +
+        `<p class="bg-card rounded-xl border border-border px-3 py-2.5 text-xs text-foreground leading-relaxed text-center">${info}</p>` +
+        `</div>` +
+        `<div class="flex justify-center py-16 min-h-screen">` +
+        `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle h-10 w-10 animate-spin text-muted-foreground"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>` +
+        `</div></div></div>`
+      );
+    };
+    // LCP-ADS-1007: home page (/) first screen = Home.tsx nav + green headline bar; the rest is a full-height blank
+    // until React renders (nothing visible moves). Written into dist/index.html with a guard script: any other path the
+    // host serves index.html for (checkout, order confirmation, unknown paths) clears it before the first paint.
+    const homeFirstScreen = (): string | null => {
+      const cellpayLogo = goAssetUrl("cellpay-logo.svg");
+      if (!cellpayLogo) return null;
+      return (
+        `<div id="root" data-go-prerender="1">` +
+        `<div class="min-h-screen bg-background font-sans antialiased flex flex-col">` +
+        `<nav class="sticky top-0 z-50 bg-card border-b-4 border-cellpay-green shadow-sm">` +
+        `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="relative flex justify-center h-14 sm:h-20 items-center">` +
+        `<div class="flex items-center"><img src="${escAttr(cellpayLogo)}" alt="CellPay" width="160" height="44" decoding="async" fetchpriority="high" class="h-8 sm:h-11 w-auto object-contain"></div>` +
+        `</div></div>` +
+        navMenu +
+        `</nav>` +
+        `<section class="bg-cellpay-green text-primary-foreground">` +
+        `<div class="max-w-7xl mx-auto px-5 py-5 sm:py-6 sm:px-6 lg:px-8 text-center">` +
+        `<h1 class="text-2xl md:text-3xl font-extrabold leading-tight">Mobile Recharge &amp; Prepaid Phone Refills Online</h1>` +
+        `<p class="text-sm sm:text-base opacity-95 mt-1.5">CellPay top-ups for 15+ US carriers · No login needed</p>` +
+        `</div></section>` +
+        `<div class="min-h-screen"></div>` +
+        `</div></div>` +
+        `<script>(function(){if(location.pathname!=="/"){var r=document.getElementById("root");r.removeAttribute("data-go-prerender");r.innerHTML="";}})();</script>`
+      );
+    };
+
     const renderHtml = (route: string): string => {
       const meta = buildMeta(route);
       const url = `/${route.replace(/\/index\.html$/, "/")}`; // relative: resolves to whichever host serves the file
@@ -972,7 +1078,11 @@ const htmlAliasPlugin = (): Plugin => ({
       // building it falls back to the plain H1 + intro block below, so the build never fails on it.
       let goScreen: string | null = null;
       try {
-        goScreen = GO_SHELLS.has(route) ? goFirstScreen(route) : null;
+        goScreen = GO_SHELLS.has(route)
+          ? goFirstScreen(route)
+          : CARRIER_SHELLS.has(route)
+          ? carrierFirstScreen(route)
+          : null;
       } catch {
         goScreen = null;
       }
@@ -999,6 +1109,15 @@ const htmlAliasPlugin = (): Plugin => ({
       const dest = path.join(outDir, route);
       fs.mkdirSync(path.dirname(dest), { recursive: true });
       fs.writeFileSync(dest, renderHtml(route));
+    }
+    // LCP-ADS-1007: home first screen in dist/index.html (see homeFirstScreen). Any problem keeps the plain file.
+    try {
+      const homeScreen = homeFirstScreen();
+      if (homeScreen && /<div id="root"><\/div>/i.test(html)) {
+        fs.writeFileSync(indexPath, html.replace(/<div id="root"><\/div>/i, () => homeScreen));
+      }
+    } catch {
+      /* keep plain index.html */
     }
 
     // Build regression check: every route in HTML_ROUTES must exist in dist/

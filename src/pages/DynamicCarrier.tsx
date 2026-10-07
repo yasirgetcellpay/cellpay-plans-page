@@ -235,8 +235,12 @@ const DynamicCarrier = ({
   const [rangeCarrierId, setRangeCarrierId] = useState<number | undefined>(undefined); // carrier_plans.carrier.id
   const [plans, setPlans] = useState<NormalizedPlan[]>([]);
   const [faqs, setFaqs] = useState<Array<{ question: string; answer: string }>>([]);
-  const [heading, setHeading] = useState(seoH1Override || "");
-  const [subheading, setSubheading] = useState(seoIntroOverride || "");
+  // LCP-ADS-1007: Metro PCS (EN) headline is known up front, so it matches the static first screen (vite.config.ts) and never changes after load.
+  const isMetroEn = carrierSlug === "metropcs" && lang !== "es";
+  const [heading, setHeading] = useState(seoH1Override || (isMetroEn ? "Metro PCS Pay Bill Online" : ""));
+  const [subheading, setSubheading] = useState(
+    seoIntroOverride || (isMetroEn ? "Pay your Metro by T-Mobile prepaid bill online. No login needed." : ""),
+  );
 
   // Apply per-route SEO overrides synchronously on mount so they're set before the API roundtrip.
   useEffect(() => {
@@ -616,6 +620,16 @@ const DynamicCarrier = ({
           </p>
         </div>
       </section>
+
+      {/* LCP-ADS-1007: Auto Pay info card, always shown under the headline (same markup/copy as the static first screen in
+          vite.config.ts carrierFirstScreen). Information only: Auto Pay is chosen at checkout and is never pre-checked. */}
+      <div className="max-w-[420px] mx-auto px-4 pt-3">
+        <p className="bg-card rounded-xl border border-border px-3 py-2.5 text-xs text-foreground leading-relaxed text-center">
+          {lang === "es"
+            ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano. Cargo por servicio bajo, mostrado antes de pagar. Aceptamos Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna y Cash App."
+            : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked. Low service fee shown before you pay. We accept Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna and Cash App."}
+        </p>
+      </div>
 
       {loading ? (
         <div className="flex justify-center py-16 min-h-screen">
