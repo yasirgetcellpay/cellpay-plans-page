@@ -613,6 +613,21 @@ const htmlAliasPlugin = (): Plugin => ({
       "go/tmobile.html", "go/tmobile/index.html",
       "go/verizon.html", "go/verizon/index.html",
     ]);
+    // SEO-ES-META-1007: one carrier-named Spanish description for Spanish carrier pages.
+    // SEO-ES-META: keep in sync with src/pages/DynamicCarrier.tsx (lang === "es" applySeoHead).
+    const esCarrierDesc = (name: string) =>
+      `Pague su factura de ${name} en línea. Sin cuenta y sin iniciar sesión. Puede pagar por otra persona. Verá el cargo por servicio antes de pagar.`;
+    // SEO-ES-META-1007: raw title/description = the text these pages set at runtime (StraightTalk.tsx / Verizon.tsx, lang es).
+    const ES_RUNTIME_META: Record<string, { title: string; description: string }> = {
+      "es/straight-talk.html": {
+        title: "Recarga Straight Talk en Línea | CellPay",
+        description: "Recarga tu plan Straight Talk Wireless en línea con CellPay. Recarga segura enviada directamente a tu número.",
+      },
+      "es/verizon-wireless-flexi.html": {
+        title: "Recarga Verizon Prepago en Línea | CellPay",
+        description: "Recarga tu teléfono Verizon Prepaid en línea con CellPay. Recarga segura enviada directamente a tu número Verizon. La recarga puede tardar hasta 30 min en reflejarse.",
+      },
+    };
     // AEO-PAGES-1007: route -> how-to-pay page (title/description/lang from src/content/howToPay.ts)
     const HTP_BY_ROUTE = new Map(HOW_TO_PAY_PAGES.map((p) => [p.path.slice(1) + "/index.html", p] as const));
     const buildMeta = (route: string): Meta => {
@@ -680,7 +695,7 @@ const htmlAliasPlugin = (): Plugin => ({
         },
         "es/verizon/index.html": {
           title: "Recarga de Verizon Wireless Prepaid en Línea — Pague su Factura | CellPay",
-          description: "Recarga en línea. Planes de 30 días, pago seguro. Cargo por servicio bajo, mostrado antes de pagar.",
+          description: esCarrierDesc("Verizon Wireless Prepaid"),
         },
         "total-wireless/index.html": {
           title: "Total Wireless Refills and Online Bill Payments",
@@ -688,7 +703,7 @@ const htmlAliasPlugin = (): Plugin => ({
         },
         "es/total-wireless/index.html": {
           title: "Recarga de Total Wireless en Línea — Pague su Factura | CellPay",
-          description: "Recarga en línea. Planes de 30 días, pago seguro. Cargo por servicio bajo, mostrado antes de pagar.",
+          description: esCarrierDesc("Total Wireless"),
         },
         "att-firstnet/index.html": {
           title: "AT&T Prepaid Refill Online | CellPay",
@@ -759,11 +774,14 @@ const htmlAliasPlugin = (): Plugin => ({
         if (meta) {
           // GSC-DUP-1007: Spanish title (same text DynamicCarrier sets at runtime for lang="es").
           const esLook = CARRIER_LOOK[base.replace(/\.html$/, "")];
+          const esFixed = ES_RUNTIME_META[route]; // SEO-ES-META-1007
           return {
-            title: esLook
+            title: esFixed
+              ? esFixed.title
+              : esLook
               ? `Recarga de ${esLook.name} en Línea — Pague su Factura | CellPay`
               : meta.title.replace(" | CellPay", " — Español | CellPay"),
-            description: "Recarga en línea. Planes de 30 días, pago seguro. Cargo por servicio bajo, mostrado antes de pagar.",
+            description: esFixed ? esFixed.description : esLook ? esCarrierDesc(esLook.name) : "Recarga en línea. Planes de 30 días, pago seguro. Cargo por servicio bajo, mostrado antes de pagar.",
             lang: "es",
             esPath: "/" + route,
             enPath: "/" + base,
