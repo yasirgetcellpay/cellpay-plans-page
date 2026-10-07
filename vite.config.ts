@@ -482,12 +482,14 @@ const htmlAliasPlugin = (): Plugin => ({
     };
     const CARRIER_META: Record<string, { title: string; description: string }> = {
       "topup-at.html":             { title: "AT&T Prepaid Refill — Online Top-Up | CellPay",        description: "Recharge your AT&T Prepaid phone online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
-      "boost.html":                { title: "Boost Mobile Refill — Online Top-Up | CellPay",        description: "Recharge Boost Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
-      "topup-crc.html":            { title: "Cricket Wireless Refill — Online Top-Up | CellPay",    description: "Recharge Cricket Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      // EN-META-1007: boost / topup-crc / metropcs (+ metro-pcs variant) use the same title/description that
+      // src/pages/DynamicCarrier.tsx sets at runtime for these pages (lang en). Keep in sync.
+      "boost.html":                { title: "Boost Mobile Bill Payment Online | CellPay", description: "Recharge Boost Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "topup-crc.html":            { title: "Cricket Quick Pay — Pay Your Cricket Bill Online | CellPay", description: "Cricket Quick Pay on CellPay: refill any Cricket Wireless phone online. No login needed. All major cards & wallets. Pay your Cricket bill online now." },
       "h2o.html":                  { title: "H2O Wireless Refill — Online Top-Up | CellPay",        description: "Recharge H2O Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "lyca.html":                 { title: "Lycamobile Refill — Online Top-Up | CellPay",          description: "Recharge Lycamobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
-      "metropcs.html":             { title: "Metro by T-Mobile Refill — Online Top-Up | CellPay",   description: "Recharge Metro by T-Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
-      "metro-pcs.html":            { title: "Metro PCS Refill — Online Top-Up | CellPay",           description: "Recharge Metro PCS online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "metropcs.html":             { title: "Metro PCS Refill — Pay Metro by T-Mobile | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." },
+      "metro-pcs.html":            { title: "Metro PCS Refill — Pay Metro by T-Mobile | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." },
       "guest-metro-pcs.html":      { title: "Metro PCS Guest Refill — Online Top-Up | CellPay",     description: "Recharge Metro PCS as a guest. No login needed. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "guest-h2o.html":            { title: "H2O Wireless Guest Refill — Online Top-Up | CellPay",  description: "Make an H2O Wireless guest payment online. No login needed — pick a 30-day plan, pay securely, and your refill is sent to your line after payment." },
       "guest-pageplus.html":       { title: "Page Plus Guest Refill — Online Top-Up | CellPay",     description: "Pay your Page Plus Cellular bill as a guest. No login needed — pick a 30-day plan, check out securely, and your refill is sent to your line after payment." },
@@ -629,7 +631,7 @@ const htmlAliasPlugin = (): Plugin => ({
       },
       "es/verizon-wireless-flexi.html": {
         title: "Recarga Verizon Prepago en Línea | CellPay",
-        description: "Recarga tu teléfono Verizon Prepaid en línea con CellPay. Recarga segura enviada directamente a tu número Verizon. La recarga puede tardar hasta 30 min en reflejarse.",
+        description: "Recarga tu teléfono Verizon Prepago en línea con CellPay. Recarga segura enviada directamente a tu número Verizon. Puede tardar hasta 30 min en reflejarse.",
       },
     };
     // AEO-PAGES-1007: route -> how-to-pay page (title/description/lang from src/content/howToPay.ts)
