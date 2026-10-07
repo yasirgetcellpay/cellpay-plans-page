@@ -158,12 +158,11 @@ const AP_COPY = {
     chargeKnown: (amount: string, date: string) => `El pago automático cobra el total de hoy, ${amount}, a esta tarjeta cada 30 días, a partir del ${date}, hasta que usted cancele.`,
     chargeUnknown: (date: string) => `El pago automático cobra el mismo monto del pedido de hoy a esta tarjeta cada 30 días, a partir del ${date}, hasta que usted cancele.`,
     cancelLead: "Cancele en línea cuando quiera: use ",
-    cancelLink: "«Unsubscribe From Autopay» en nuestra página de Preguntas frecuentes",
-    cancelTail: " (sin iniciar sesión), o escriba a support@getcellpay.com.",
-    consent: "Acepto los términos de pago automático a continuación y autorizo a CellPay a cobrar esta tarjeta cada mes en mi fecha de pago hasta que yo cancele.",
-    consentConfirmed: "Acepto los términos de pago automático a continuación y autorizo a CellPay a cobrar esta tarjeta cada 30 días hasta que yo cancele.",
+    cancelLink: "«Unsubscribe From Autopay» en nuestra página de Preguntas Frecuentes",
+    cancelTail: " (en inglés; sin necesidad de iniciar sesión), o escriba a support@getcellpay.com.",
+    consent: "Acepto los términos de pago automático a continuación y autorizo a CellPay a hacer cargos a esta tarjeta cada mes en mi fecha de pago hasta que yo cancele.",
+    consentConfirmed: "Acepto los términos de pago automático a continuación y autorizo a CellPay a hacer cargos a esta tarjeta cada 30 días hasta que yo cancele.",
     placeHint: "Marque la autorización de pago automático arriba para continuar.",
-    termsNote: "Términos completos de pago automático (en inglés):",
     dateLocale: "es-US",
   },
 } as const;
@@ -224,6 +223,33 @@ const Checkout = () => {
       setAutoPayTerms(choice.autoPayTerms);
     }
   }, [paymentMethod, autoPay, autoPayTerms]);
+  // ARB-1b: keep the customer's OWN Auto Pay, Auto Pay-terms and Terms ticks through a refresh or Back, for THIS checkout only
+  // (same carrier + number + amount, this tab's sessionStorage, 30 min). Card only: any other method clears it, and so does a
+  // successful order. Only a box the customer ticked in this tab comes back; nothing is ever ticked for anyone who didn't tick it.
+  // Works with ARB-0 (which clears Auto Pay off card and puts the customer's choice back on card): off card this key is removed.
+  const AP_TICKS_KEY = "cp_autopay_ticks_v1";
+  const apTicksOrder = state ? `${state.carrierSlug}|${String(state.phone || "").replace(/\D/g, "").slice(-10)}|${Number(state.amount)}` : "";
+  const apTicksRestoredRef = useRef(false);
+  useEffect(() => {
+    if (apTicksRestoredRef.current || !apTicksOrder) return;
+    apTicksRestoredRef.current = true;
+    try {
+      const v = JSON.parse(sessionStorage.getItem(AP_TICKS_KEY) || "null");
+      if (!v || v.v !== 1 || v.order !== apTicksOrder || !(Date.now() - Number(v.ts) <= 30 * 60 * 1000)) { sessionStorage.removeItem(AP_TICKS_KEY); return; }
+      if (v.terms === true) setAgreedTerms(true);
+      if (v.autoPay === true) { setAutoPay(true); if (v.autoPayTerms === true) setAutoPayTerms(true); }
+    } catch { /* storage unavailable: nothing restored */ }
+  }, [apTicksOrder]);
+  useEffect(() => {
+    if (!apTicksRestoredRef.current || !apTicksOrder) return;
+    try {
+      if (paymentMethod === "card" && (autoPay || autoPayTerms || agreedTerms)) {
+        sessionStorage.setItem(AP_TICKS_KEY, JSON.stringify({ v: 1, ts: Date.now(), order: apTicksOrder, autoPay, autoPayTerms: autoPay && autoPayTerms, terms: agreedTerms }));
+      } else {
+        sessionStorage.removeItem(AP_TICKS_KEY);
+      }
+    } catch { /* storage unavailable */ }
+  }, [apTicksOrder, paymentMethod, autoPay, autoPayTerms, agreedTerms]);
   const [showSaveInfoTip, setShowSaveInfoTip] = useState(false);
   const [applePayAvailable, setApplePayAvailable] = useState(false);
   // CK-0b: back on checkout for the same order (back from Cash App / PayPal / Klarna, reload, resume) -> keep the method chosen
@@ -758,6 +784,7 @@ const Checkout = () => {
       setPurchasePending(hid);
       const params = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
       clearCheckoutCtx();
+      try { sessionStorage.removeItem(AP_TICKS_KEY); } catch { /* ignore */ } // ARB-1b: order placed, forget the ticks
       navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
     } else {
       const msg = (result.msg as string) || (result.message as string) || "Transaction failed";
@@ -1217,6 +1244,7 @@ const Checkout = () => {
           setPurchasePending(hid);
           const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
           clearCheckoutCtx();
+          try { sessionStorage.removeItem(AP_TICKS_KEY); } catch { /* ignore */ } // ARB-1b: order placed, forget the ticks
           navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${apParams.toString()}`);
         } else {
           console.error("[ApplePay] transaction failed", result);
@@ -1807,7 +1835,7 @@ const Checkout = () => {
                 className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
               <span className="text-sm text-foreground leading-relaxed">
                 {tr.agreeTerms}{" "}
-                <a href="/terms-and-conditions" className="underline font-semibold" style={{ color: brandColor }}>
+                <a href="/terms-and-conditions" target="_blank" rel="noopener" className="underline font-semibold" style={{ color: brandColor }}>
                   {tr.termsAndConditions}
                 </a>{" "}
                 {tr.agreeTermsSuffix}
@@ -1867,35 +1895,66 @@ const Checkout = () => {
                       <span data-testid="autopay-consent" className="text-sm font-bold text-foreground">{AP_CYCLE_CONFIRMED ? apCopy.consentConfirmed : apCopy.consent}</span>
                     </label>
 
-                    {apCopy.termsNote && <p className="text-xs text-muted-foreground">{apCopy.termsNote}</p>}
+                    {/* ARB-1b: the terms box below is in Spanish on /es, so the English-only note is gone. */}
                     <div className="max-h-48 overflow-y-auto rounded-md border border-border bg-background p-3 text-xs text-muted-foreground leading-relaxed space-y-2">
-
-                      <p className="font-semibold text-foreground">GENERAL AND PAYMENT-SPECIFIC TERMS &amp; CONDITIONS; RECURRING CHARGE AUTHORIZATION</p>
-                      <p>The following terms and conditions are specific to Auto Recharge payments and are supplemental to (and do not supersede) the CellPay Terms &amp; Conditions (available on our Terms &amp; Conditions page at /terms-and-conditions), which you accept when you use CellPay. Your continued access to or use of the Auto Recharge service after the receipt and review hereof constitutes your consent to the terms contained herein and your continued consent to the terms contained in the Service Agreement. You also continue to be bound by the terms of the CellPay Privacy Policy, available on our Privacy Policy page at /privacy-policy, which details the conditions and circumstances under which, in the ordinary course of business, CellPay may provide information concerning you or your account to third parties.</p>
-                      <p>The following ''General Terms &amp; Conditions'' apply to all Auto Recharge Payment Options.</p>
-                      <p className="font-semibold text-foreground">General Terms and Conditions (Applicable to ALL Auto Recharge Subscribers)</p>
-                      <p className="font-semibold text-foreground">General Payment Information</p>
-                      <p>A valid major credit card, debit card or electronic check (a ''Registered Payment Method'') must be registered and on file with CellPay at all times to take advantage of automatic payments. Only one (1) card or account may be registered for any prepaid wireless telephone number. If an electronic check is returned for any reason, you will be charged a fee of $50 per check. There may be additional return fees up to the maximum allowed by law. If you need to change or update your payment information, please email CellPay support at support@getcellpay.com.</p>
-                      {/* TODO(phone): add CellPay support phone here once supplied by Saurabh/Parvez. Do not invent. */}
-                      <p className="font-semibold text-foreground">Billing Notifications</p>
-                      <p>You will be automatically billed for the recurring payments corresponding to your Auto Recharge Payment Option as set forth under the applicable Payment-Specific Terms &amp; Conditions below until you affirmatively un-enroll from the Auto Recharge service in accordance with the section below entitled ''Cancelling Auto Recharge''. These recurring charges to your account are non-refundable. CellPay will send an email confirmation and text message to Monthly Unlimited Plan Users to email address and or the phone number listed on your account. The text message or email will indicate whether the attempt to charge your Registered Payment Method was successful and, if so, how much was charged and when the charge was made. We will also send a notification within 24 hours before charging your account notifying the impending charge. CellPay will not charge you for these notifications. By law, you also have the right to receive notice prior to any transfer that varies in amount from the previous transfer or from the amount set forth in the cover letter accompanying this document.</p>
-                      <p className="font-semibold text-foreground">Adding Funds Manually</p>
-                      <p>You can manually recharge your account at any time by placing a new order on CellPay.</p>
-                      <p className="font-semibold text-foreground">Cancelling Auto Recharge</p>
-                      <p>To cancel Auto Pay, email support@getcellpay.com. Cancellation takes effect when we process your request, and we confirm by email within 1 business day. Account balance is not refundable or exchangeable, and is forfeited at expiration date. You will not receive a refund or credit for any fees charged against your account prior to cancellation. You understand that by un-enrolling you will be terminating not only your selected Payment Option, but also your Auto Recharge service entirely. Switching to a new Payment Option will require you to re-enroll in the Auto Recharge service.</p>
-                      {/* TODO(phone/cancel): add CellPay support phone and any self-service cancel link once supplied by Saurabh/Parvez. Do not invent. Legal must confirm the cancel method. */}
-                      <p className="font-semibold text-foreground">Questions and Errors</p>
-                      <p>If you have questions about any electronic transfer, or if you believe there is an error regarding a transfer set forth in the email referred to in the section above entitled ''Billing; Notifications'', please email us as soon as possible at support@getcellpay.com. You are not liable for unauthorized electronic transfers, or for CellPay's failure to properly make or stop certain transfers as required; however, we must hear from you regarding the suspected problem or error no later than 5 days after we send the applicable email on which the problem or error appears. Your complaint or question should include the following information:</p>
-                      {/* TODO(phone): Questions and Errors section, add CellPay support phone once supplied by Saurabh/Parvez (likely legally needed for electronic-transfer error notices; Legal to confirm). Do not invent. */}
-                      <p>(1) Your name and account number;</p>
-                      <p>(2) A description of the error or the transfer you are unsure about, and a clear explanation of why you believe it is an error or why you need more information; and</p>
-                      <p>(3) The dollar amount of the suspected error.</p>
-                      <p>If you tell us of your complaint or question over the phone, we may require that you follow up by sending us the relevant information in writing within 5 business days.</p>
-                      <p>Within 7 business days after your call or our receipt of your written statement containing the information described above, we will attempt to determine whether an error has occurred and if it has, we will promptly correct the error. However, we may require up to 20 business days to investigate the matter (30 business days for new accounts or point-of-sale or foreign transactions). If we ask you to put your complaint or question in writing and we do not receive it within 10 business days, we may not credit your account. We will inform you of the results of our investigation within 3 business days after completion. If we determine there was an error, we will promptly credit the appropriate airtime or dollar amount to your account.</p>
-                      <p className="font-semibold text-foreground">Payment-Specific Terms and Conditions; Recurring Charge Authorization</p>
-                      <p>If you selected the Auto Recharge Payment Option when you enrolled in Auto Recharge, the following Payment-Specific Terms and Conditions and Recurring Charge Authorization apply to you.</p>
-                      <p className="font-semibold text-foreground">Billing Frequency and Amount; Payment Failure; Account Interruption and Cancellation</p>
-                      <p>You will be automatically billed for the fixed dollar amount set forth in the cover letter accompanying this document, until you affirmatively cancel from the Auto Recharge service or until service interruption, as described below. If you do not have sufficient funds in your account to make your monthly payment, your account will not be charged and your service will be interrupted. You will be required to manually add enough funds to your account to have your service restored, and upon restoration, your monthly payment anniversary date will then be based upon your date of restoration. If you don't make a full monthly payment within 30 days of any account interruption, you will lose all unused funds, your account will be canceled and you will lose your phone number.</p>
+                      {/* ARB-1b: the full Auto Pay terms in Spanish on /es (QA #6); QA #5's missing-letter amount wording is gone. Billing, Cancelling and Questions use the
+                          Lead-approved CK-1ap wording; cancelling names the real self-serve form (Unsubscribe From Autopay on /faq). Fees unchanged. */}
+                      {lang === "es" ? (
+                        <>
+                          <p className="font-semibold text-foreground">TÉRMINOS Y CONDICIONES GENERALES Y ESPECÍFICOS DE PAGO; AUTORIZACIÓN DE CARGOS RECURRENTES</p>
+                          <p>Los siguientes términos y condiciones son específicos de los pagos de Recarga Automática y complementan (sin reemplazar) los Términos y Condiciones de CellPay (disponibles en nuestra página de Términos y Condiciones en /terms-and-conditions (en inglés)), que usted acepta al usar CellPay. Su acceso o uso continuo del servicio de Recarga Automática después de recibir y revisar estos términos constituye su consentimiento a los términos aquí contenidos y su consentimiento continuo a los términos del Acuerdo de Servicio. Usted también sigue sujeto a los términos de la Política de Privacidad de CellPay, disponible en nuestra página de Política de Privacidad en /privacy-policy (en inglés), que detalla las condiciones y circunstancias en las que, en el curso normal de sus operaciones, CellPay puede proporcionar a terceros información sobre usted o su cuenta.</p>
+                          <p>Los siguientes «Términos y Condiciones Generales» se aplican a todas las opciones de pago de Recarga Automática.</p>
+                          <p className="font-semibold text-foreground">Términos y Condiciones Generales (aplicables a TODOS los suscriptores de Recarga Automática)</p>
+                          <p className="font-semibold text-foreground">Información general de pago</p>
+                          <p>Para usar los pagos automáticos, debe tener registrada en CellPay en todo momento una tarjeta de crédito válida de una de las principales marcas, una tarjeta de débito o un cheque electrónico (un «Método de Pago Registrado»). Solo se puede registrar una (1) tarjeta o cuenta por cada número de teléfono inalámbrico prepagado. Si un cheque electrónico es devuelto por cualquier motivo, se le cobrará un cargo de $50 por cheque. Puede haber cargos adicionales por devolución hasta el máximo permitido por la ley. Si necesita cambiar o actualizar su información de pago, escriba al soporte de CellPay a support@getcellpay.com.</p>
+                          <p className="font-semibold text-foreground">Facturación</p>
+                          <p>Se le cobrarán automáticamente los pagos recurrentes de su opción de pago de Recarga Automática, según los Términos y Condiciones específicos de pago aplicables que aparecen abajo, hasta que usted cancele expresamente su inscripción en el servicio de Recarga Automática conforme a la sección «Cancelar la Recarga Automática». Estos cargos recurrentes a su cuenta no son reembolsables. El pago automático cobra el mismo monto en la fecha de renovación al mismo método de pago. Por ley, también tiene derecho a recibir un aviso antes de cualquier transferencia cuyo monto varíe respecto de la transferencia anterior.</p>
+                          <p className="font-semibold text-foreground">Agregar fondos manualmente</p>
+                          <p>Puede recargar su cuenta manualmente en cualquier momento haciendo un nuevo pedido en CellPay.</p>
+                          <p className="font-semibold text-foreground">Cancelar la Recarga Automática</p>
+                          <p>Cancele en cualquier momento con el formulario «Unsubscribe From Autopay» (Cancelar el pago automático) en nuestra página de Preguntas Frecuentes en /faq (en inglés), sin necesidad de iniciar sesión, o comunicándose con soporte. Para comunicarse con soporte, escriba a support@getcellpay.com. Nuestro equipo de soporte procesará su solicitud. La cancelación entra en vigor cuando procesemos su solicitud. El saldo de la cuenta no es reembolsable ni canjeable, y se pierde en la fecha de vencimiento. No recibirá reembolso ni crédito por los cargos aplicados a su cuenta antes de la cancelación. Usted entiende que, al cancelar su inscripción, terminará no solo la opción de pago seleccionada, sino todo su servicio de Recarga Automática. Para cambiar a una nueva opción de pago, deberá volver a inscribirse en el servicio de Recarga Automática.</p>
+                          <p className="font-semibold text-foreground">Preguntas y errores</p>
+                          <p>Si tiene preguntas sobre cualquier transferencia electrónica, o si cree que hay un error en un cargo de pago automático, escríbanos lo antes posible a support@getcellpay.com. Usted no es responsable de las transferencias electrónicas no autorizadas, ni de que CellPay no realice o no detenga correctamente ciertas transferencias según lo requerido; sin embargo, debemos recibir noticias suyas sobre el presunto problema o error a más tardar 5 días después de la fecha del cargo en el que aparece el problema o error. Su queja o pregunta debería incluir la siguiente información:</p>
+                          <p>(1) Su nombre y número de cuenta;</p>
+                          <p>(2) Una descripción del error o de la transferencia sobre la que tiene dudas, y una explicación clara de por qué cree que es un error o por qué necesita más información; y</p>
+                          <p>(3) El monto en dólares del presunto error.</p>
+                          <p>Si nos comunica su queja o pregunta por teléfono, podemos exigirle que nos envíe la información correspondiente por escrito dentro de 5 días hábiles.</p>
+                          <p>Dentro de los 7 días hábiles posteriores a su llamada o a la recepción de su declaración escrita con la información descrita arriba, intentaremos determinar si ocurrió un error y, si es así, lo corregiremos sin demora. Sin embargo, podemos necesitar hasta 20 días hábiles para investigar el asunto (30 días hábiles para cuentas nuevas, transacciones en puntos de venta o transacciones en el extranjero). Si le pedimos que presente su queja o pregunta por escrito y no la recibimos dentro de 10 días hábiles, es posible que no acreditemos su cuenta. Le informaremos los resultados de nuestra investigación dentro de los 3 días hábiles posteriores a su conclusión. Si determinamos que hubo un error, acreditaremos sin demora a su cuenta el tiempo aire o el monto en dólares correspondiente.</p>
+                          <p className="font-semibold text-foreground">Términos y Condiciones específicos de pago; Autorización de cargos recurrentes</p>
+                          <p>Si seleccionó la opción de pago de Recarga Automática al inscribirse en la Recarga Automática, se le aplican los siguientes Términos y Condiciones específicos de pago y la Autorización de cargos recurrentes.</p>
+                          <p className="font-semibold text-foreground">Frecuencia y monto de facturación; pago fallido; interrupción y cancelación de la cuenta</p>
+                          <p>El pago automático se renueva cada mes en la fecha de su pago y cobra el mismo monto al mismo método de pago, hasta que usted cancele expresamente el servicio de Recarga Automática o hasta una interrupción del servicio, como se describe abajo. Si no tiene fondos suficientes en su cuenta para hacer su pago mensual, no se le hará el cargo y su servicio se interrumpirá. Deberá agregar manualmente fondos suficientes a su cuenta para restablecer su servicio y, una vez restablecido, la fecha de aniversario de su pago mensual se basará en la fecha de restablecimiento. Si no hace un pago mensual completo dentro de los 30 días posteriores a cualquier interrupción de la cuenta, perderá todos los fondos no utilizados, su cuenta se cancelará y perderá su número de teléfono.</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-semibold text-foreground">GENERAL AND PAYMENT-SPECIFIC TERMS &amp; CONDITIONS; RECURRING CHARGE AUTHORIZATION</p>
+                          <p>The following terms and conditions are specific to Auto Recharge payments and are supplemental to (and do not supersede) the CellPay Terms &amp; Conditions (available on our Terms &amp; Conditions page at /terms-and-conditions), which you accept when you use CellPay. Your continued access to or use of the Auto Recharge service after the receipt and review hereof constitutes your consent to the terms contained herein and your continued consent to the terms contained in the Service Agreement. You also continue to be bound by the terms of the CellPay Privacy Policy, available on our Privacy Policy page at /privacy-policy, which details the conditions and circumstances under which, in the ordinary course of business, CellPay may provide information concerning you or your account to third parties.</p>
+                          <p>The following ''General Terms &amp; Conditions'' apply to all Auto Recharge Payment Options.</p>
+                          <p className="font-semibold text-foreground">General Terms and Conditions (Applicable to ALL Auto Recharge Subscribers)</p>
+                          <p className="font-semibold text-foreground">General Payment Information</p>
+                          <p>A valid major credit card, debit card or electronic check (a ''Registered Payment Method'') must be registered and on file with CellPay at all times to take advantage of automatic payments. Only one (1) card or account may be registered for any prepaid wireless telephone number. If an electronic check is returned for any reason, you will be charged a fee of $50 per check. There may be additional return fees up to the maximum allowed by law. If you need to change or update your payment information, please email CellPay support at support@getcellpay.com.</p>
+                          {/* TODO(phone): add CellPay support phone here once supplied by Saurabh/Parvez. Do not invent. */}
+                          <p className="font-semibold text-foreground">Billing</p>
+                          <p>You will be automatically billed for the recurring payments corresponding to your Auto Recharge Payment Option as set forth under the applicable Payment-Specific Terms &amp; Conditions below until you affirmatively un-enroll from the Auto Recharge service in accordance with the section below entitled ''Cancelling Auto Recharge''. These recurring charges to your account are non-refundable. Auto Pay charges the same amount on the renewal date to the same payment method. By law, you also have the right to receive notice prior to any transfer that varies in amount from the previous transfer.</p>
+                          <p className="font-semibold text-foreground">Adding Funds Manually</p>
+                          <p>You can manually recharge your account at any time by placing a new order on CellPay.</p>
+                          <p className="font-semibold text-foreground">Cancelling Auto Recharge</p>
+                          <p>Cancel anytime with the Unsubscribe From Autopay form on our FAQ page at /faq (no login needed) or by contacting support. To contact support, email support@getcellpay.com. Our support team will process your request. Cancellation takes effect when we process your request. Account balance is not refundable or exchangeable, and is forfeited at expiration date. You will not receive a refund or credit for any fees charged against your account prior to cancellation. You understand that by un-enrolling you will be terminating not only your selected Payment Option, but also your Auto Recharge service entirely. Switching to a new Payment Option will require you to re-enroll in the Auto Recharge service.</p>
+                          {/* TODO(phone): add CellPay support phone once supplied by Saurabh/Parvez. Do not invent. Legal must confirm the cancel method. */}
+                          <p className="font-semibold text-foreground">Questions and Errors</p>
+                          <p>If you have questions about any electronic transfer, or if you believe there is an error regarding an Auto Pay charge, please email us as soon as possible at support@getcellpay.com. You are not liable for unauthorized electronic transfers, or for CellPay's failure to properly make or stop certain transfers as required; however, we must hear from you regarding the suspected problem or error no later than 5 days after the date of the charge on which the problem or error appears. Your complaint or question should include the following information:</p>
+                          {/* TODO(phone): Questions and Errors section, add CellPay support phone once supplied by Saurabh/Parvez (likely legally needed for electronic-transfer error notices; Legal to confirm). Do not invent. */}
+                          <p>(1) Your name and account number;</p>
+                          <p>(2) A description of the error or the transfer you are unsure about, and a clear explanation of why you believe it is an error or why you need more information; and</p>
+                          <p>(3) The dollar amount of the suspected error.</p>
+                          <p>If you tell us of your complaint or question over the phone, we may require that you follow up by sending us the relevant information in writing within 5 business days.</p>
+                          <p>Within 7 business days after your call or our receipt of your written statement containing the information described above, we will attempt to determine whether an error has occurred and if it has, we will promptly correct the error. However, we may require up to 20 business days to investigate the matter (30 business days for new accounts or point-of-sale or foreign transactions). If we ask you to put your complaint or question in writing and we do not receive it within 10 business days, we may not credit your account. We will inform you of the results of our investigation within 3 business days after completion. If we determine there was an error, we will promptly credit the appropriate airtime or dollar amount to your account.</p>
+                          <p className="font-semibold text-foreground">Payment-Specific Terms and Conditions; Recurring Charge Authorization</p>
+                          <p>If you selected the Auto Recharge Payment Option when you enrolled in Auto Recharge, the following Payment-Specific Terms and Conditions and Recurring Charge Authorization apply to you.</p>
+                          <p className="font-semibold text-foreground">Billing Frequency and Amount; Payment Failure; Account Interruption and Cancellation</p>
+                          <p>Auto Pay renews monthly on your payment date and charges the same amount to the same payment method, until you affirmatively cancel the Auto Recharge service or until service interruption, as described below. If you do not have sufficient funds in your account to make your monthly payment, your account will not be charged and your service will be interrupted. You will be required to manually add enough funds to your account to have your service restored, and upon restoration, your monthly payment anniversary date will then be based upon your date of restoration. If you don't make a full monthly payment within 30 days of any account interruption, you will lose all unused funds, your account will be canceled and you will lose your phone number.</p>
+                        </>
+                      )}
                     </div>
 
                   </div>
