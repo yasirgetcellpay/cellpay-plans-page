@@ -3,6 +3,8 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import fs from "fs";
 import { componentTagger } from "lovable-tagger";
+// AEO-PAGES-1007: how-to-pay page text (shared with src/pages/HowToPay.tsx) for static raw HTML + JSON-LD.
+import { HOW_TO_PAY_PAGES, howToPayJsonLd, howToPayStaticHtml } from "./src/content/howToPay";
 
 /**
  * Lovable's static host returns 404 for any URL ending in `.html` (it treats it
@@ -191,6 +193,11 @@ const HTML_ROUTES = [
   // DMCA page (real page, indexable): its only URL ends in .html, so it needs a static shell too.
   "digital-millennium-copyright-act-dmca-compliance.html",
   "es/digital-millennium-copyright-act-dmca-compliance.html",
+  // AEO-PAGES-1007: how-to-pay pages (indexable, www canonical, en/es hreflang via pairFor)
+  "how-to-pay/straight-talk/index.html",
+  "es/como-pagar/straight-talk/index.html",
+  "how-to-pay/att-prepaid/index.html",
+  "es/como-pagar/att-prepaid/index.html",
   // Admin SPA routes — emit as folder/index.html so self-hosted servers
   // (which don't do SPA fallback) serve the React app on direct refresh.
   "admin/index.html",
@@ -606,7 +613,11 @@ const htmlAliasPlugin = (): Plugin => ({
       "go/tmobile.html", "go/tmobile/index.html",
       "go/verizon.html", "go/verizon/index.html",
     ]);
+    // AEO-PAGES-1007: route -> how-to-pay page (title/description/lang from src/content/howToPay.ts)
+    const HTP_BY_ROUTE = new Map(HOW_TO_PAY_PAGES.map((p) => [p.path.slice(1) + "/index.html", p] as const));
     const buildMeta = (route: string): Meta => {
+      const htp = HTP_BY_ROUTE.get(route);
+      if (htp) return { title: htp.title, description: htp.description, lang: htp.lang };
       // Legacy per-amount redirect shells: noindex,follow
       if (/^\d+-.+-prepaid-refill\.html$/.test(route)) {
         return {
@@ -1062,8 +1073,9 @@ const htmlAliasPlugin = (): Plugin => ({
     const canonicalPathFor = (route: string, meta: Meta): string =>
       meta.canonical || VARIANT_CANON[route] || routeToPath(route);
     const pairFor = (canonPath: string): [string, string] | null => {
-      const en = canonPath === "/es" ? "/" : canonPath.replace(/^\/es(?=\/)/, "");
-      const es = en === "/" ? "/es" : "/es" + en;
+      // AEO-PAGES-1007: /how-to-pay/x <-> /es/como-pagar/x
+      const en = canonPath === "/es" ? "/" : canonPath.startsWith("/es/como-pagar/") ? canonPath.replace("/es/como-pagar/", "/how-to-pay/") : canonPath.replace(/^\/es(?=\/)/, "");
+      const es = en === "/" ? "/es" : en.startsWith("/how-to-pay/") ? en.replace("/how-to-pay/", "/es/como-pagar/") : "/es" + en;
       const has = (p: string) => p === "/" || ROUTE_SET.has(p.slice(1)) || ROUTE_SET.has(p.slice(1) + "/index.html");
       return has(en) && has(es) ? [en, es] : null;
     };
@@ -1180,6 +1192,17 @@ const htmlAliasPlugin = (): Plugin => ({
           : null;
       } catch {
         goScreen = null;
+      }
+      // AEO-PAGES-1007: how-to-pay pages: static article + JSON-LD (FAQPage/HowTo/Breadcrumb) in the raw HTML.
+      const htpPage = HTP_BY_ROUTE.get(route);
+      if (htpPage) {
+        try {
+          const ld = `<script type="application/ld+json" data-htp="1">${howToPayJsonLd(htpPage)}</script>`;
+          const body = howToPayStaticHtml(htpPage);
+          out = out.replace(/<\/head>/i, () => `  ${ld}\n  </head>`).replace(/<div id="root"><\/div>/i, () => body);
+        } catch {
+          /* keep plain shell */
+        }
       }
       if (goScreen) {
         const screen = goScreen;

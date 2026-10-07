@@ -97,6 +97,8 @@ const AboutUs = lazyPage(() => import("./pages/AboutUs.tsx"));
 const ContactUs = lazyPage(() => import("./pages/ContactUs.tsx"));
 const FAQ = lazyPage(() => import("./pages/FAQ.tsx"));
 const HowToUse = lazyPage(() => import("./pages/HowToUse.tsx"));
+// AEO-PAGES-1007
+const HowToPay = lazyPage(() => import("./pages/HowToPay.tsx"));
 const PrivacyPolicy = lazyPage(() => import("./pages/PrivacyPolicy.tsx"));
 const TermsAndConditions = lazyPage(() => import("./pages/TermsAndConditions.tsx"));
 const ReturnsPolicy = lazyPage(() => import("./pages/ReturnsPolicy.tsx"));
@@ -1334,6 +1336,11 @@ const App = () => (
         <Route path="/faq.html" element={<AliasRedirect to="/faq" />} />
         <Route path="/how-to-use" element={<HowToUse />} />
         <Route path="/how-to-use.html" element={<AliasRedirect to="/how-to-use" />} />
+        {/* AEO-PAGES-1007 how-to-pay pages */}
+        <Route path="/how-to-pay/straight-talk" element={<HowToPay />} />
+        <Route path="/how-to-pay/att-prepaid" element={<HowToPay />} />
+        <Route path="/es/como-pagar/straight-talk" element={<HowToPay />} />
+        <Route path="/es/como-pagar/att-prepaid" element={<HowToPay />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/privacy-policy.html" element={<AliasRedirect to="/privacy-policy" />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />

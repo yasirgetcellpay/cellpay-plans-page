@@ -325,6 +325,42 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/att-firstnet" />
   </url>
   <url>
+    <loc>https://www.cellpay.us/how-to-pay/straight-talk</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/straight-talk" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/straight-talk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/straight-talk" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/es/como-pagar/straight-talk</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/straight-talk" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/straight-talk" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/straight-talk" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/how-to-pay/att-prepaid</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/att-prepaid" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/att-prepaid" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/att-prepaid" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/es/como-pagar/att-prepaid</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/att-prepaid" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/att-prepaid" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/att-prepaid" />
+  </url>
+  <url>
     <loc>https://www.cellpay.us/guest-metro-pcs.html</loc>
     <lastmod>2026-10-03</lastmod>
     <changefreq>weekly</changefreq>
