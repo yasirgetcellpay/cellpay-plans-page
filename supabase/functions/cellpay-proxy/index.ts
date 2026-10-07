@@ -119,6 +119,15 @@ async function createTransactionLog(
           caller_host: text(callerHost),
           checkout_session_id: text(payload.kount_ssid ?? payload.riskified_sessionid ?? payload.cbsys_sessionid),
           ...arb, // [ARB-LOG] arbLogMeta() keys only
+          // [FP-IDLE-1007] booleans only (no visitorId stored): did the payment carry a FingerprintJS visitorId / time out
+          ...((): Record<string, boolean> => {
+            try {
+              const b = asRecord(JSON.parse(String(payload.browser_info ?? "{}")));
+              return { fp_visitor: !!text(b.visitorId), fp_timeout: b.fp_timeout === true };
+            } catch {
+              return { fp_visitor: false, fp_timeout: false };
+            }
+          })(),
         },
       },
     });
