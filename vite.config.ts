@@ -86,6 +86,11 @@ const HTML_ROUTES = [
   "go/tmobile/index.html",
   "go/verizon.html",
   "go/verizon/index.html",
+  // GO-LANDERS-1007 Batch A: ES T-Mobile + ES Verizon shells
+  "es/go/tmobile.html",
+  "es/go/tmobile/index.html",
+  "es/go/verizon.html",
+  "es/go/verizon/index.html",
   "tmobile-flexi.html",
   "topup-at.html",
   "boost.html",
@@ -460,6 +465,23 @@ const htmlAliasPlugin = (): Plugin => ({
         h1: "Pay Your Verizon Prepaid Bill Online",
         intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
+      // GO-LANDERS-1007 Batch A
+      "es/go/tmobile.html": {
+        h1: "Pague T-Mobile en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/tmobile/index.html": {
+        h1: "Pague T-Mobile en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/verizon.html": {
+        h1: "Pague Verizon Prepaid en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
+      "es/go/verizon/index.html": {
+        h1: "Pague Verizon Prepaid en línea",
+        intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
+      },
     };
 
 
@@ -560,6 +582,11 @@ const htmlAliasPlugin = (): Plugin => ({
       "go/tmobile/index.html": { title: "Pay Your T-Mobile Bill Online | CellPay", description: "Pay your T-Mobile bill online. No login. Pay for anyone. Enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
       "go/verizon.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
       "go/verizon/index.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
+      // GO-LANDERS-1007 Batch A
+      "es/go/tmobile.html": { title: "Pague T-Mobile en línea | CellPay", description: "Pague su T-Mobile en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/tmobile/index.html": { title: "Pague T-Mobile en línea | CellPay", description: "Pague su T-Mobile en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/verizon.html": { title: "Pague Verizon Prepaid en línea | CellPay", description: "Pague su Verizon Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/verizon/index.html": { title: "Pague Verizon Prepaid en línea | CellPay", description: "Pague su Verizon Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
     };
     const ES_TITLE_PREFIX: Record<string, string> = {};
     // Carriers removed from the site (Oct 2026). Their old URLs keep a noindex shell.
@@ -618,6 +645,17 @@ const htmlAliasPlugin = (): Plugin => ({
       "go/lyca.html", "go/lyca/index.html",
       "go/tmobile.html", "go/tmobile/index.html",
       "go/verizon.html", "go/verizon/index.html",
+      // GO-LANDERS-1007 Batch A
+      "es/go/tmobile.html", "es/go/tmobile/index.html",
+      "es/go/verizon.html", "es/go/verizon/index.html",
+    ]);
+    // GO-LANDERS-1007: /go shells that stay noindex,follow but still carry the www self-canonical + EN/ES hreflang pair in the raw HTML
+    // (same canonical seo.ts sets at runtime). Both sides of each pair must be listed.
+    const GO_LINKED = new Set<string>([
+      "go/tmobile.html", "go/tmobile/index.html",
+      "es/go/tmobile.html", "es/go/tmobile/index.html",
+      "go/verizon.html", "go/verizon/index.html",
+      "es/go/verizon.html", "es/go/verizon/index.html",
     ]);
     // SEO-ES-META-1007: one carrier-named Spanish description for Spanish carrier pages.
     // SEO-ES-META: keep in sync with src/pages/DynamicCarrier.tsx (lang === "es" applySeoHead).
@@ -1220,6 +1258,10 @@ const htmlAliasPlugin = (): Plugin => ({
         const canonPath = canonicalPathFor(route, meta);
         const headLinks = seoHeadLinks(canonPath, !meta.canonical && canonPath === routeToPath(route));
         out = out.replace(/<\/head>/i, () => `  ${headLinks}\n  </head>`);
+      } else if (GO_LINKED.has(route)) {
+        // GO-LANDERS-1007: noindex /go pair: self-canonical (www) + hreflang en/es/x-default.
+        const goLinks = seoHeadLinks(routeToPath(route), true);
+        out = out.replace(/<\/head>/i, () => `  ${goLinks}\n  </head>`);
       }
 
       // Inject H1 + intro into the static body for guest landing pages so

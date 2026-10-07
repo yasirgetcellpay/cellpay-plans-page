@@ -1284,6 +1284,73 @@ const App = () => (
           }
         />
 
+        {/* GO-LANDERS-1007: ES T-Mobile ad lander (/es/go/tmobile). */}
+        <Route
+          path="/es/go/tmobile"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="T-Mobile"
+              carrierSlug="tmobile"
+              carrierId={43}
+              brandColor="hsl(330,100%,45%)"
+              logo={tmobileLogo}
+              h1="Pague T-Mobile en línea"
+              title="Pague T-Mobile en línea | CellPay"
+              description="Pague su T-Mobile en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/tmobile.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="T-Mobile"
+              carrierSlug="tmobile"
+              carrierId={43}
+              brandColor="hsl(330,100%,45%)"
+              logo={tmobileLogo}
+              h1="Pague T-Mobile en línea"
+              title="Pague T-Mobile en línea | CellPay"
+              description="Pague su T-Mobile en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        {/* GO-LANDERS-1007: ES Verizon Prepaid ad lander (/es/go/verizon). */}
+        <Route
+          path="/es/go/verizon"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Verizon Wireless Prepaid"
+              carrierSlug="verizon"
+              carrierId={14}
+              brandColor="hsl(0,100%,45%)"
+              logo={verizonLogo}
+              h1="Pague Verizon Prepaid en línea"
+              title="Pague Verizon Prepaid en línea | CellPay"
+              description="Pague su Verizon Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+        <Route
+          path="/es/go/verizon.html"
+          element={
+            <GoLander
+              lang="es"
+              carrierName="Verizon Wireless Prepaid"
+              carrierSlug="verizon"
+              carrierId={14}
+              brandColor="hsl(0,100%,45%)"
+              logo={verizonLogo}
+              h1="Pague Verizon Prepaid en línea"
+              title="Pague Verizon Prepaid en línea | CellPay"
+              description="Pague su Verizon Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+            />
+          }
+        />
+
         {/* Removed carriers (Red Pocket, Xbox, Movistar) — noindex + redirect to the home page. */}
         {REMOVED_CARRIER_PATHS.flatMap((p) => [
           <Route key={`removed-${p}`} path={p} element={<RemovedCarrierRedirect to="/" />} />,
