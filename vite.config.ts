@@ -923,6 +923,10 @@ const htmlAliasPlugin = (): Plugin => ({
       // LCP-ADS-1007 batch 1
       "metropcs.html", "metro-pcs.html", "es/metropcs.html", "metropcs-espanol.html",
       "boost.html", "es/boost.html", "boost-espanol.html",
+      // LCP-ADS-1007 batch 2 (es only where the app's carrier name equals CARRIER_LOOK name)
+      "topup-crc.html", "es/topup-crc.html", "s1.html", "es/s1.html", "net10.html", "h2o.html", "es/h2o.html",
+      "lyca.html", "es/lyca.html", "pageplus.html", "es/pageplus.html", "tracfone.html",
+      "ultra-mobile.html", "es/ultra-mobile.html", "topup-at.html",
     ]);
     const NAV_ITEMS: Array<[string, string, string]> = [
       ["Domestic Payments", "/", ""],
