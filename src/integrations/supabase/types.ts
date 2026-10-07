@@ -1581,6 +1581,7 @@ export type Database = {
         }
         Returns: number
       }
+      pay_by_bank_available: { Args: never; Returns: boolean }
       plaid_v2_bind: {
         Args: { _bind_h: string; _ref_h: string; _ttl_s?: number }
         Returns: Json

@@ -9,6 +9,7 @@ import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, C
 import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass } from "@/lib/declineRecovery";
 import { AP_LAST_KEY } from "@/components/AutoPayReceiptCard";
 import { PLAID_ENABLED } from "@/config/paymentFlags";
+import { supabase } from "@/integrations/supabase/client";
 import {
   validateRecharge,
   submitTransaction,
@@ -204,6 +205,18 @@ const Checkout = () => {
   const [plaidAccount, setPlaidAccount] = useState<string | null>(null);
   // PL-0: a hidden Pay by Bank can never stay selected (falls back to the default, card).
   useEffect(() => { if ((!PLAID_ENABLED || plaidOff) && paymentMethod === "plaid") setPaymentMethod("card"); }, [paymentMethod, plaidOff]);
+  // GROWTH-1007-W: read the Pay by Bank kill switch (fraud_controls.plaid_exchange_mode) once per visit through the boolean-only
+  // RPC pay_by_bank_available(). false -> hide Pay by Bank now (same as a plaid_unavailable answer). The decline dialog offers
+  // Pay by Bank ONLY after this read said true (fail closed); if the read fails the tab keeps its old behaviour (server refuses anyway).
+  const [plaidOn, setPlaidOn] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!PLAID_ENABLED) return;
+    let cancelled = false;
+    Promise.resolve((supabase as unknown as { rpc: (fn: string) => PromiseLike<{ data: unknown; error: unknown }> }).rpc("pay_by_bank_available"))
+      .then(({ data, error }) => { if (cancelled || error || typeof data !== "boolean") return; setPlaidOn(data); if (!data) setPlaidOff(true); })
+      .catch(() => { /* unknown: the decline dialog hides Pay by Bank */ });
+    return () => { cancelled = true; };
+  }, []);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [saveCard, setSaveCard] = useState(false);
   const [autoPay, setAutoPay] = useState(false);
@@ -2147,18 +2160,24 @@ const Checkout = () => {
             )}
             {!showNotChargedNote && <div className="mb-4" />}
             {declineInfo ? (() => {
-              // GROWTH-1007-A: recovery options (order per Fraud & QA: Apple Pay, card retry, Google Pay). Each button only closes the dialog and/or switches the method tab.
-              // Nothing is submitted until the customer taps PLACE ORDER again.
+              // GROWTH-1007-A/W: recovery options, order per Fraud & QA (13:34 CT): Apple Pay (when available), Cash App, card retry,
+              // Google Pay, Pay by Bank. A method shows only when its tab is offered on this checkout (the same list the customer sees);
+              // Pay by Bank also needs the kill-switch read to say on. Each button only closes the dialog and/or switches the method tab.
+              // Nothing is submitted until the customer taps PLACE ORDER again. Non-card methods stay after the card cap and on blocked.
               const dc = DECLINE_COPY[lang === "es" ? "es" : "en"];
               const capped = declineInfo.n > MAX_CARD_RETRIES || declineInfo.cls === "blocked";
               const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); };
               const toMethod = (m: PaymentMethod) => { close(); setPaymentMethod(m); };
+              const offered = new Set<PaymentMethod>(paymentMethods.map((pm) => pm.key));
               const btn = "w-full px-4 py-2.5 rounded-lg font-bold text-sm";
               return (
                 <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls}>
                   <p className="text-sm text-foreground mb-2" data-testid="decline-hint">{capped && declineInfo.cls !== "blocked" ? dc.capReached : dc[declineInfo.cls]}</p>
-                  {applePayAvailable && (
+                  {applePayAvailable && offered.has("applepay") && (
                     <button type="button" data-testid="decline-applepay" onClick={() => toMethod("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
+                  )}
+                  {offered.has("cashapp") && (
+                    <button type="button" data-testid="decline-cashapp" onClick={() => toMethod("cashapp")} className={btn + " text-black"} style={{ backgroundColor: "#00D632" }}>{dc.useCashApp}</button>
                   )}
                   {!capped && (
                     <button type="button" data-testid="decline-retry-card"
@@ -2167,7 +2186,12 @@ const Checkout = () => {
                       {declineInfo.cls === "details" ? dc.checkDetails : dc.retryCard}
                     </button>
                   )}
-                  <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " border-2 border-foreground text-foreground bg-background"}>{dc.useGooglePay}</button>
+                  {offered.has("googlepay") && (
+                    <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " border-2 border-foreground text-foreground bg-background"}>{dc.useGooglePay}</button>
+                  )}
+                  {offered.has("plaid") && plaidOn === true && (
+                    <button type="button" data-testid="decline-paybybank" onClick={() => toMethod("plaid")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayByBank}</button>
+                  )}
                   <button type="button" data-testid="decline-other" onClick={close} className="w-full text-xs underline text-muted-foreground pt-1">{dc.otherMethod}</button>
                   {declineInfo.n >= 2 && <p className="text-xs text-muted-foreground text-center pt-1">{dc.help}</p>}
                 </div>
