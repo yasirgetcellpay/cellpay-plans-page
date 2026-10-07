@@ -9,6 +9,7 @@ import { useLang, t, langPath } from "@/lib/i18n";
 import { applySeoHead } from "@/lib/seo";
 import { PayAgainCard } from "@/components/PayAgainCard";
 import { ReminderOptIn } from "@/components/ReminderOptIn";
+import { AutoPayReceiptCard } from "@/components/AutoPayReceiptCard";
 
 interface TransactionData {
   id?: number;
@@ -309,6 +310,9 @@ const OrderConfirmation = () => {
                 </button>
               </div>
             </div>
+
+            {/* GROWTH-1007-B: Auto Pay prompt (display + link only; never enrolls, never charges) */}
+            <AutoPayReceiptCard lang={lang} hashid={hashid} brandColor={brandColor} />
 
             {/* RT-3: pay again next time (number saved on this device only; display + localStorage, no tracking change) */}
             <PayAgainCard

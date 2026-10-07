@@ -6,6 +6,8 @@ import { AccountDropdown } from "@/components/AccountDropdown";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
+import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass } from "@/lib/declineRecovery";
+import { AP_LAST_KEY } from "@/components/AutoPayReceiptCard";
 import { PLAID_ENABLED } from "@/config/paymentFlags";
 import {
   validateRecharge,
@@ -138,7 +140,7 @@ const AP_CYCLE_CONFIRMED = false;
 const AP_COPY = {
   en: {
     offerTitle: "Turn on Auto Pay (optional)",
-    offerBenefit: "Never miss a refill · cancel anytime",
+    offerBenefit: "Your number refills itself on your payment date, so service never lapses. Cancel anytime online, no login needed.",
     chargeInterim: "Auto Pay recharges this number with this card. Renews monthly on your payment date, cancel anytime.",
     chargeKnown: (amount: string, date: string) => `Auto Pay charges today's total, ${amount}, to this card every 30 days, starting ${date}, until you cancel.`,
     chargeUnknown: (date: string) => `Auto Pay charges the same amount as today's order to this card every 30 days, starting ${date}, until you cancel.`,
@@ -153,7 +155,7 @@ const AP_COPY = {
   },
   es: {
     offerTitle: "Activar pago automático (opcional)",
-    offerBenefit: "Nunca se quede sin recarga · cancele cuando quiera",
+    offerBenefit: "Su número se recarga solo en su fecha de pago, para que nunca se quede sin servicio. Cancele en línea cuando quiera, sin iniciar sesión.",
     chargeInterim: "El pago automático recarga este número con esta tarjeta. Se renueva cada mes en la fecha de su pago; cancele cuando quiera.",
     chargeKnown: (amount: string, date: string) => `El pago automático cobra el total de hoy, ${amount}, a esta tarjeta cada 30 días, a partir del ${date}, hasta que usted cancele.`,
     chargeUnknown: (date: string) => `El pago automático cobra el mismo monto del pedido de hoy a esta tarjeta cada 30 días, a partir del ${date}, hasta que usted cancele.`,
@@ -319,6 +321,9 @@ const Checkout = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   // CX-HOLD: show "card was NOT charged" on declines with no txn id (not on auto-refund).
   const [showNotChargedNote, setShowNotChargedNote] = useState(false);
+  // GROWTH-1007-A: card-decline recovery. Set ONLY for a card decline with no txn id and no auto-refund (= not charged).
+  const [declineInfo, setDeclineInfo] = useState<{ cls: DeclineClass; n: number } | null>(null);
+  const cardFormRef = useRef<HTMLDivElement>(null);
 
   // Klarna
   const klarnaContainerRef = useRef<HTMLDivElement>(null);
@@ -831,12 +836,16 @@ const Checkout = () => {
       const params = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
       clearCheckoutCtx();
       try { sessionStorage.removeItem(AP_TICKS_KEY); } catch { /* ignore */ } // ARB-1b: order placed, forget the ticks
+      // GROWTH-1007: receipt shows "Auto Pay is on" only when THIS order was card + both Auto Pay ticks. Reset decline count.
+      try { if (paymentMethod === "card" && autoPay && autoPayTerms && hid) sessionStorage.setItem(AP_LAST_KEY, hid); else sessionStorage.removeItem(AP_LAST_KEY); } catch { /* ignore */ }
+      clearCardDeclines();
       navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
     } else {
       const msg = (result.msg as string) || (result.message as string) || "Transaction failed";
       const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
       const autoRefund = /auto[\s-]?refund/i.test(msg);
       setShowNotChargedNote(!autoRefund && !txn);
+      setDeclineInfo(paymentMethod === "card" && !autoRefund && !txn ? { cls: classifyDecline(msg), n: bumpCardDeclines(apTicksOrder) } : null);
       setErrorMsg(msg);
     }
   };
@@ -1548,6 +1557,19 @@ const Checkout = () => {
   };
 
   // ─── Main handler ───
+  // GROWTH-1007-B: arriving from the receipt's "Turn on Auto Pay with my next refill" -> scroll to and outline the offer.
+  // It NEVER ticks Auto Pay or its authorization; the customer still has to tick both.
+  useEffect(() => {
+    let want = false;
+    try { want = sessionStorage.getItem("cp_ap_highlight_v1") === "1"; if (want) sessionStorage.removeItem("cp_ap_highlight_v1"); } catch { /* ignore */ }
+    if (!want || paymentMethod !== "card") return;
+    const t = setTimeout(() => {
+      const el = document.querySelector<HTMLElement>('[data-testid="autopay-offer"]');
+      if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); el.classList.add("ring-4", "ring-offset-2"); }
+    }, 600);
+    return () => clearTimeout(t);
+  }, [paymentMethod]);
+
   const handlePlaceOrder = async () => {
     const validationErr = validateBeforeSubmit();
     if (validationErr) { setErrorMsg(validationErr); return; }
@@ -1555,6 +1577,7 @@ const Checkout = () => {
     setSubmitting(true);
     setErrorMsg(null);
     setShowNotChargedNote(false);
+    setDeclineInfo(null);
 
     // "Processing..." stays ONLY while the Apple Pay sheet is open or the browser is leaving for Cash App's
     // hosted page. Every other outcome (failure, cancel, close, error) resets it here (QA #19).
@@ -1711,7 +1734,7 @@ const Checkout = () => {
 
           {/* Card form (only shown for credit card) */}
           {paymentMethod === "card" && (
-            <div className="bg-card rounded-xl border border-border p-5 space-y-4">
+            <div ref={cardFormRef} className="bg-card rounded-xl border border-border p-5 space-y-4">
               <h2 className="font-bold text-foreground mb-1 text-sm flex items-center gap-2">
                 <CreditCard className="h-4 w-4" /> {tr.cardDetails}
               </h2>
@@ -2074,7 +2097,7 @@ const Checkout = () => {
 
       {/* Error dialog */}
       {errorMsg && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => { setErrorMsg(null); setShowNotChargedNote(false); }}>
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); }}>
           <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="text-4xl mb-3">❌</div>
             <h3 className="text-xl font-bold text-foreground mb-2">{tr.paymentFailed}</h3>
@@ -2083,10 +2106,38 @@ const Checkout = () => {
               <p className="text-sm text-muted-foreground mb-4" data-testid="cx-hold-not-charged">{tr.notChargedNote}</p>
             )}
             {!showNotChargedNote && <div className="mb-4" />}
+            {declineInfo ? (() => {
+              // GROWTH-1007-A: recovery options (order per Fraud & QA: Apple Pay, card retry, Google Pay). Each button only closes the dialog and/or switches the method tab.
+              // Nothing is submitted until the customer taps PLACE ORDER again.
+              const dc = DECLINE_COPY[lang === "es" ? "es" : "en"];
+              const capped = declineInfo.n > MAX_CARD_RETRIES || declineInfo.cls === "blocked";
+              const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); };
+              const toMethod = (m: PaymentMethod) => { close(); setPaymentMethod(m); };
+              const btn = "w-full px-4 py-2.5 rounded-lg font-bold text-sm";
+              return (
+                <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls}>
+                  <p className="text-sm text-foreground mb-2" data-testid="decline-hint">{capped && declineInfo.cls !== "blocked" ? dc.capReached : dc[declineInfo.cls]}</p>
+                  {applePayAvailable && (
+                    <button type="button" data-testid="decline-applepay" onClick={() => toMethod("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
+                  )}
+                  {!capped && (
+                    <button type="button" data-testid="decline-retry-card"
+                      onClick={() => { close(); setTimeout(() => { const el = cardFormRef.current?.querySelector<HTMLInputElement>("input"); cardFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); el?.focus(); }, 50); }}
+                      className={btn + " text-primary-foreground"} style={{ backgroundColor: brandColor }}>
+                      {declineInfo.cls === "details" ? dc.checkDetails : dc.retryCard}
+                    </button>
+                  )}
+                  <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " border-2 border-foreground text-foreground bg-background"}>{dc.useGooglePay}</button>
+                  <button type="button" data-testid="decline-other" onClick={close} className="w-full text-xs underline text-muted-foreground pt-1">{dc.otherMethod}</button>
+                  {declineInfo.n >= 2 && <p className="text-xs text-muted-foreground text-center pt-1">{dc.help}</p>}
+                </div>
+              );
+            })() : (
             <button type="button" onClick={() => { setErrorMsg(null); setShowNotChargedNote(false); }}
               className="px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
               {tr.tryAgain}
             </button>
+            )}
           </div>
         </div>
       )}
