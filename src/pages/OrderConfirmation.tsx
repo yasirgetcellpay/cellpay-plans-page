@@ -217,9 +217,15 @@ const OrderConfirmation = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Success Banner (only for a confirmed order, CV-1) */}
+      {/* Success Banner (only for a confirmed order, CV-1). OC-CLS-1007: the banner slot is always rendered with a reserved
+          min-height (224px phones, 174px from sm) so the receipt no longer pushes the page down when it loads. Text and brand
+          color still appear ONLY for a confirmed order; before that the slot is empty, transparent and aria-hidden. */}
+      <div
+        className="w-full py-6 sm:py-8 px-4 text-primary-foreground min-h-[224px] sm:min-h-[174px]"
+        style={transaction && !error ? { backgroundColor: brandColor } : undefined}
+        aria-hidden={transaction && !error ? undefined : true}
+      >
       {transaction && !error && (
-      <div className="w-full py-6 sm:py-8 px-4 text-primary-foreground" style={{ backgroundColor: brandColor }}>
         <div className="max-w-3xl mx-auto flex items-start gap-4">
           <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 mt-0.5" />
           <div>
@@ -235,11 +241,11 @@ const OrderConfirmation = () => {
             </p>
           </div>
         </div>
-      </div>
       )}
+      </div>
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 sm:py-8">
+      {/* Main Content (OC-CLS-1007: at least one screen tall until the receipt is confirmed, so the footer stays below the fold while loading) */}
+      <main className={`flex-1 max-w-3xl mx-auto w-full px-4 py-6 sm:py-8${!loading && transaction && !error ? "" : " min-h-screen"}`}>
         {loading ? (
           <div className="flex justify-center py-16">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
