@@ -891,6 +891,50 @@ async function sec1HandleList(req: Request, body: Record<string, unknown>, cors:
   return sec1Json(cors, 200, { success: true, data: s.data });
 }
 
+// [VEL1-1007] Server velocity, LOG-ONLY. Card attempts only. Fire-and-forget AFTER the log row exists: never awaited, never
+// changes the response, never refuses. The RPC records hashed/lowercased keys and logs would-refuse hits to proxy_guard_events
+// (codes vel1_shadow:declines:<phone|email|visitor>, vel1_shadow:names:phone). visitorId is HMAC'd here; the raw id is not stored.
+function velocityShadow(logId: string | null, p: Record<string, unknown>, method: string | null): void {
+  try {
+    if (!logId || (method || "").toLowerCase() !== "cardpayment") return;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const hashKey = Deno.env.get("GUARD_HASH_KEY") || serviceKey;
+    if (!supabaseUrl || !serviceKey || !hashKey) return;
+    const pay = asRecord(p.payment);
+    const run = (async () => {
+      let visitor: string | null = null;
+      try { visitor = text(asRecord(JSON.parse(String(p.browser_info ?? "{}"))).visitorId); } catch { visitor = null; }
+      let visitorH: string | null = null;
+      if (visitor) {
+        const enc = new TextEncoder();
+        const k = await crypto.subtle.importKey("raw", enc.encode(hashKey), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+        const sig = new Uint8Array(await crypto.subtle.sign("HMAC", k, enc.encode(`vel1|visitor|${visitor}`)));
+        visitorH = Array.from(sig, (b) => b.toString(16).padStart(2, "0")).join("");
+      }
+      const res = await fetch(`${supabaseUrl}/rest/v1/rpc/velocity_shadow_record`, {
+        method: "POST",
+        headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          _log_id: logId,
+          _phone: text(p.phone_number ?? p.phoneNumber),
+          _email: text(pay.email ?? p.email),
+          _visitor_h: visitorH,
+          _first: text(pay.firstName ?? pay.first_name ?? p.first_name),
+          _last: text(pay.lastName ?? pay.last_name ?? p.last_name),
+        }),
+        signal: AbortSignal.timeout(2000),
+      });
+      if (!res.ok) console.warn(`[vel1] shadow record failed: ${res.status}`);
+    })().catch(() => {});
+    // deno-lint-ignore no-explicit-any
+    const runtime = (globalThis as any).EdgeRuntime;
+    if (runtime && typeof runtime.waitUntil === "function") runtime.waitUntil(run);
+  } catch {
+    // log-only: never affect checkout
+  }
+}
+
 async function blocklistCheck(p: Record<string, unknown>, cardH: string | null): Promise<{ key_type: string; reason: string } | null> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -1397,6 +1441,7 @@ serve(async (req) => {
     const txLogId = shouldLogTransaction
       ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), arbLogMeta(payloadRecord, bearerToken, body.lang))
       : null;
+    if (shouldLogTransaction) velocityShadow(txLogId, payloadRecord, paymentMethod); // [VEL1-1007] log-only, not awaited
 
     // [plaid v2] Plaid checkout: claim the bound plaid_ref (single use, same order values) and send CellPay's v2 body only.
     if (isPlaidCheckout) {
