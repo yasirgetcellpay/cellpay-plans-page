@@ -1136,6 +1136,77 @@ export type Database = {
         }
         Relationships: []
       }
+      transaction_card_facts: {
+        Row: {
+          avs_result: string | null
+          billing_country: string | null
+          billing_zip: string | null
+          card_bin: string | null
+          card_brand: string | null
+          card_last4: string | null
+          cellpay_hashid: string | null
+          cellpay_transaction_id: string | null
+          created_at: string
+          cvv_result: string | null
+          decline_message: string | null
+          facts_version: number
+          outcome: string | null
+          payment_method: string | null
+          processor_auth_code: string | null
+          processor_txn_id: string | null
+          three_ds_result: string | null
+          transaction_log_id: string
+        }
+        Insert: {
+          avs_result?: string | null
+          billing_country?: string | null
+          billing_zip?: string | null
+          card_bin?: string | null
+          card_brand?: string | null
+          card_last4?: string | null
+          cellpay_hashid?: string | null
+          cellpay_transaction_id?: string | null
+          created_at?: string
+          cvv_result?: string | null
+          decline_message?: string | null
+          facts_version?: number
+          outcome?: string | null
+          payment_method?: string | null
+          processor_auth_code?: string | null
+          processor_txn_id?: string | null
+          three_ds_result?: string | null
+          transaction_log_id: string
+        }
+        Update: {
+          avs_result?: string | null
+          billing_country?: string | null
+          billing_zip?: string | null
+          card_bin?: string | null
+          card_brand?: string | null
+          card_last4?: string | null
+          cellpay_hashid?: string | null
+          cellpay_transaction_id?: string | null
+          created_at?: string
+          cvv_result?: string | null
+          decline_message?: string | null
+          facts_version?: number
+          outcome?: string | null
+          payment_method?: string | null
+          processor_auth_code?: string | null
+          processor_txn_id?: string | null
+          three_ds_result?: string | null
+          transaction_log_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_card_facts_transaction_log_id_fkey"
+            columns: ["transaction_log_id"]
+            isOneToOne: true
+            referencedRelation: "transaction_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transaction_logs: {
         Row: {
           amount: number | null
@@ -1463,6 +1534,7 @@ export type Database = {
         Args: { _bucket: string; _max: number; _window_seconds: number }
         Returns: boolean
       }
+      log_card_facts: { Args: { _data: Json }; Returns: undefined }
       log_purchase_fire: {
         Args: {
           _hashid?: string
