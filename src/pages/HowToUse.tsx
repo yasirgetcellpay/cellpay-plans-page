@@ -7,7 +7,7 @@ const steps = [
   { num: "1", title: "Choose Your Carrier", desc: "Browse our home page and select your prepaid wireless carrier from the list of supported providers." },
   { num: "2", title: "Enter Your Phone Number", desc: "Type in the 10-digit phone number associated with your prepaid account. Make sure it's correct — refills cannot be reversed." },
   { num: "3", title: "Select a Plan or Amount", desc: "Choose from available plans or enter a custom top-up amount. Pricing, including a low service fee, is shown before you pay." },
-  { num: "4", title: "Complete Payment", desc: "Pay securely using your credit/debit card or Apple Pay. Your payment is processed through our encrypted payment gateway." },
+  { num: "4", title: "Complete Payment", desc: "Pay securely with a credit or debit card (Visa, Mastercard, American Express, Discover), Apple Pay on supported Apple devices, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Your payment is processed through our encrypted payment gateway." },
   { num: "5", title: "Refill Confirmation", desc: "Your refill is sent to your line after payment. It can take up to 30 min for a refill to reflect on your account. You'll receive a confirmation with your transaction details." },
 ];
 
@@ -45,6 +45,11 @@ const HowToUse = () => {
           <li>Double-check your phone number before paying — refills are non-reversible.</li>
           <li>Create an account to track your orders and speed up future refills.</li>
           <li>Contact us at support@getcellpay.com if you experience any issues.</li>
+          <li>
+            Carrier guides: <a href="/how-to-pay/straight-talk" className="underline">How to pay Straight Talk</a>
+            {" · "}
+            <a href="/how-to-pay/att-prepaid" className="underline">{"How to pay AT&T Prepaid"}</a>
+          </li>
         </ul>
       </div>
     </main>

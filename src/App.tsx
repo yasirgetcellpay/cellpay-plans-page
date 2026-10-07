@@ -1345,6 +1345,9 @@ const App = () => (
         <Route path="/privacy-policy.html" element={<AliasRedirect to="/privacy-policy" />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/terms-and-conditions.html" element={<AliasRedirect to="/terms-and-conditions" />} />
+        {/* AEO-PAGES-1007: short legal/about URLs (footer + external links) were the SPA 404 */}
+        <Route path="/terms" element={<AliasRedirect to="/terms-and-conditions" />} />
+        <Route path="/about" element={<AliasRedirect to="/about-us" />} />
         <Route path="/returns-policy" element={<ReturnsPolicy />} />
         <Route path="/returns-policy.html" element={<AliasRedirect to="/returns-policy" />} />
         <Route path="/returns-and-refunds-policy" element={<AliasRedirect to="/returns-policy" />} />

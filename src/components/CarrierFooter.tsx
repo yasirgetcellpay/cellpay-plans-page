@@ -59,9 +59,12 @@ export const CarrierFooter = ({ brandColor, carrierName, textOnBrand = "text-pri
           </div>
           <div className="border-t border-muted pt-6 text-center">
             <p className="text-xs">{tr.copyright}</p>
-            <p className="text-[10px] leading-relaxed max-w-4xl mx-auto opacity-80 mt-3">
-              {tr.trademarkDisclaimer(carrierName)}
-            </p>
+            {/* AEO-PAGES-1007: site pages pass carrierName="CellPay"; skip the carrier trademark line there ("not affiliated with ... CellPay" bug) */}
+            {carrierName && carrierName !== "CellPay" && (
+              <p className="text-[10px] leading-relaxed max-w-4xl mx-auto opacity-80 mt-3">
+                {tr.trademarkDisclaimer(carrierName)}
+              </p>
+            )}
           </div>
         </div>
       </footer>

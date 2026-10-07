@@ -1105,6 +1105,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/tmobile-flexi/index.html": "es/tmobile-flexi.html", "es/topup-at/index.html": "es/topup-at.html",
       "es/ultra-mobile/index.html": "es/ultra-mobile.html",
       "lp/metro/index.html": "metropcs.html", "lp/boost/index.html": "boost.html",
+      // AEO-PAGES-1007: /terms and /about short URLs (App.tsx sends them to the full page)
+      "terms/index.html": "terms-and-conditions/index.html", "about/index.html": "about-us/index.html",
     };
 
     const renderHtml = (route: string): string => {
