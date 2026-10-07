@@ -456,4 +456,22 @@
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
+  <url>
+    <loc>https://www.cellpay.us/es/go/tmobile</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/go/tmobile" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/go/tmobile" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/go/tmobile" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/es/go/verizon</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/go/verizon" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/go/verizon" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/go/verizon" />
+  </url>
 </urlset>
