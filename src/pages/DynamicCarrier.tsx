@@ -355,6 +355,16 @@ const DynamicCarrier = ({
           setSubheading("Pay your Metro by T-Mobile prepaid bill online. No login needed.");
         }
 
+        // EN-META-1007: Boost Mobile (EN) title/description pinned to the same text as the static HTML
+        // (vite.config.ts CARRIER_META "boost.html"; keep in sync). Replaces the API text, whose description
+        // says "instantly" (removed site-wide by the claims rules).
+        if (carrierSlug === "boost" && lang !== "es") {
+          applySeoHead({
+            title: "Boost Mobile Bill Payment Online | CellPay",
+            description: "Recharge Boost Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay.",
+          });
+        }
+
         // AT&T / Straight Talk / Verizon long-form SEO override (keyword-focused title,
         // description, keywords + FAQPage JSON-LD mirroring the on-page FAQ).
         const longForm = LONG_FORM_BY_SLUG[carrierSlug];

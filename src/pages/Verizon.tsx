@@ -95,7 +95,7 @@ const Verizon = () => {
   useEffect(() => {
     const isEs = typeof window !== "undefined" && window.location.pathname.startsWith("/es");
     applySeoHead(isEs
-      ? { title: 'Recarga Verizon Prepago en Línea | CellPay', description: 'Recarga tu teléfono Verizon Prepaid en línea con CellPay. Recarga segura enviada directamente a tu número Verizon. La recarga puede tardar hasta 30 min en reflejarse.' }
+      ? { title: 'Recarga Verizon Prepago en Línea | CellPay', description: 'Recarga tu teléfono Verizon Prepago en línea con CellPay. Recarga segura enviada directamente a tu número Verizon. Puede tardar hasta 30 min en reflejarse.' }
       : { title: 'Verizon Prepaid Refill Online | CellPay', description: 'Refill your Verizon Prepaid phone online with CellPay. Secure online top-up sent straight to your Verizon number.' });
   }, []);
   const navigate = useNavigate();
