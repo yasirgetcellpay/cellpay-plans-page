@@ -199,12 +199,18 @@ function cardFactPick(o: Record<string, unknown>, keys: string[]): string | null
   return null;
 }
 
+function cardFactJson(v: unknown): Record<string, unknown> {
+  if (typeof v !== "string") return asRecord(v);
+  try { return asRecord(JSON.parse(v)); } catch { return {}; }
+}
+
 async function logCardFacts(id: string | null, payload: Record<string, unknown>, wrapped: Record<string, unknown>, paymentMethod: string | null): Promise<void> {
   try {
     if (!id) return;
     const pay = asRecord(payload.payment);
     const billing = asRecord(payload.billing);
-    const pan = String(pay.cc_number ?? payload.cc_number ?? "").replace(/\D/g, "");
+    const method = String(paymentMethod || "").toLowerCase();
+    const pan = method.startsWith("card") ? String(pay.cc_number ?? payload.cc_number ?? "").replace(/\D/g, "") : "";
     const result = unwrapTransactionResult(wrapped);
     const st = String(result.status ?? "").toLowerCase();
     const ok = wrapped.success === true && (result.status === true || st === "true" || st === "success" || st === "completed");
@@ -212,24 +218,39 @@ async function logCardFacts(id: string | null, payload: Record<string, unknown>,
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!supabaseUrl || !serviceKey) return;
-    const zip = String(pay.zip ?? "").replace(/\D/g, "").slice(0, 10);
+    // [CARDLOG-1007 v3] Wallets: only Apple Pay's display fields (network / type / "Visa 1234") and the billing contact's
+    // country + ZIP are read. The encrypted paymentData, Google Pay token and Klarna token are never read or stored.
+    let walletBrand: string | null = null, walletLast4: string | null = null, walletFunding: string | null = null;
+    let country = text(billing.country_id ?? pay.country), zipRaw: unknown = pay.zip;
+    if (method === "applepay") {
+      const pm = asRecord(cardFactJson(payload.apple_pay_token).paymentMethod);
+      walletBrand = text(pm.network);
+      walletFunding = text(pm.type);
+      const m = /(\d{4})\s*$/.exec(String(pm.displayName ?? ""));
+      walletLast4 = m ? m[1] : null;
+      const bc = cardFactJson(payload.apple_pay_billing_contact);
+      country = text(bc.countryCode) ?? country; zipRaw = bc.postalCode;
+    } else if (method === "googlepay") {
+      const ba = cardFactJson(payload.gpay_billing_details);
+      country = text(ba.countryCode) ?? country; zipRaw = ba.postalCode;
+    }
+    const zip = String(zipRaw ?? "").replace(/[^0-9A-Za-z]/g, "").slice(0, 10);
     const facts = {
       transaction_log_id: id,
       payment_method: text(paymentMethod),
       outcome: ok ? "success" : "failed",
       card_bin: pan.length >= 12 ? pan.slice(0, 6) : null,
-      card_last4: pan.length >= 12 ? pan.slice(-4) : null,
-      card_brand: text(pay.cc_type ?? payload.ctype ?? payload.card_type),
+      card_bin8: pan.length >= 16 ? pan.slice(0, 8) : null, // [v3] 8-digit BIN only for 16+ digit PANs (PCI first-8/last-4)
+      card_last4: pan.length >= 12 ? pan.slice(-4) : walletLast4,
+      card_brand: method.startsWith("card") ? text(pay.cc_type ?? payload.ctype ?? payload.card_type) : walletBrand,
+      card_funding: walletFunding,
       processor_txn_id: cardFactPick(proc, ["CCTransactionId", "ccTransactionId", "cc_transaction_id", "processor_transaction_id"]),
-      processor_auth_code: cardFactPick(proc, ["AuthCode", "authCode", "auth_code", "authorization_code", "ApprovalCode"]),
-      avs_result: cardFactPick(proc, ["AVSResult", "avsResult", "avs_result", "avs_response", "AvsCode", "avs_code"]),
-      cvv_result: cardFactPick(proc, ["CVVResult", "cvvResult", "cvv_result", "cvv_response", "CvnCode", "cvn_code"]),
-      three_ds_result: cardFactPick(proc, ["ThreeDSResult", "threeDSResult", "three_ds_result", "eci", "ECI"]),
-      billing_country: text(billing.country_id ?? pay.country),
+      billing_country: country,
       billing_zip: zip || null,
       decline_message: ok ? null : text(result.msg ?? result.message ?? wrapped.error),
       cellpay_transaction_id: text(result.transactionId ?? result.transaction_id),
       cellpay_hashid: text(result.hashid),
+      facts_version: 3,
     };
     const res = await fetch(`${supabaseUrl}/rest/v1/rpc/log_card_facts`, {
       method: "POST",
@@ -1428,7 +1449,7 @@ serve(async (req) => {
 
     if (shouldLogTransaction) {
       await finishTransactionLog(txLogId, wrapped, paymentMethod);
-      if (!isPlaidCheckout && /^card/i.test(String(paymentMethod || ""))) await logCardFacts(txLogId, payloadRecord, wrapped, paymentMethod); // [CARDLOG-1007] never throws
+      if (!isPlaidCheckout && /^(card|applepay|googlepay|klarna)/i.test(String(paymentMethod || ""))) await logCardFacts(txLogId, payloadRecord, wrapped, paymentMethod); // [CARDLOG-1007 v3] never throws
       if (txLogId) wrapped.pending_log_id = txLogId;
     }
 
