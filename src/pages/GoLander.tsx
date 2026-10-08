@@ -130,6 +130,23 @@ const wholeDollarMessage = (lang: string, n: number): string =>
 const PAY_METHODS =
   "Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, Cash App";
 
+/**
+ * GO-COPY-1008: wallet marks under the fee line (Cash App, PayPal, Apple Pay, Google Pay, Klarna = live checkout tabs).
+ * Small inline SVGs, fixed 16px height. Keep byte-identical with GO_PAY_MARKS in vite.config.ts (goFirstScreen) so nothing moves.
+ */
+const GO_PAY_MARKS =
+  '<svg width="16" height="16" viewBox="0 0 20 20" role="img" aria-label="Cash App"><rect width="20" height="20" rx="4" fill="#00D632"/><text x="10" y="14.5" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="13" fill="#fff">$</text></svg>' +
+  '<svg width="46" height="16" viewBox="0 0 46 16" role="img" aria-label="PayPal"><text x="0" y="12.5" font-family="Arial,sans-serif" font-weight="900" font-size="13" font-style="italic" fill="#003087">Pay</text><text x="23" y="12.5" font-family="Arial,sans-serif" font-weight="900" font-size="13" font-style="italic" fill="#009cde">Pal</text></svg>' +
+  '<svg width="38" height="16" viewBox="0 0 48 20" role="img" aria-label="Apple Pay"><rect width="48" height="20" rx="4" fill="#000"/><path d="M11.4 7.1c-.4.5-1 .9-1.6.8-.1-.6.2-1.3.6-1.7.4-.5 1.1-.8 1.6-.9.1.7-.2 1.3-.6 1.8zm.6.9c-.9-.1-1.6.5-2 .5s-1-.5-1.7-.5c-.9 0-1.7.5-2.1 1.3-.9 1.6-.2 4 .7 5.3.4.6.9 1.3 1.6 1.3.6 0 .9-.4 1.7-.4s1 .4 1.7.4c.7 0 1.2-.6 1.6-1.3.5-.7.7-1.4.7-1.5-.1 0-1.4-.5-1.4-2.1 0-1.3 1.1-1.9 1.1-2-.6-.9-1.5-1-1.9-1z" fill="#fff"/><text x="18" y="14" font-family="Arial,sans-serif" font-weight="700" font-size="10" fill="#fff">Pay</text></svg>' +
+  '<svg width="32" height="16" viewBox="0 0 40 20" role="img" aria-label="Google Pay"><rect x=".5" y=".5" width="39" height="19" rx="4" fill="#fff" stroke="#dadce0"/><text x="5" y="14" font-family="Arial,sans-serif" font-weight="700" font-size="11" fill="#4285F4">G</text><text x="16" y="14" font-family="Arial,sans-serif" font-weight="700" font-size="10" fill="#5f6368">Pay</text></svg>' +
+  '<svg width="45" height="16" viewBox="0 0 56 20" role="img" aria-label="Klarna"><rect width="56" height="20" rx="4" fill="#FFA8CD"/><text x="28" y="14" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="10" fill="#0A0A0A">Klarna.</text></svg>';
+
+/** GO-COPY-1008: route descriptions say "Low service fee"; show "Service fee shown before you pay" (EN/ES). Same as goFeeCopy in vite.config.ts. */
+const goFeeCopy = (s: string): string =>
+  s
+    .replace("Low service fee shown before you pay", "Service fee shown before you pay")
+    .replace("Cargo por servicio bajo, mostrado antes de pagar", "Cargo por servicio mostrado antes de pagar");
+
 const GO_FAQS_EN = [
   {
     q: "Can I pay without signing in / as a guest?",
@@ -236,7 +253,7 @@ const GoLander = ({
 
   // noindex + ads SEO (static shells also ship noindex)
   useEffect(() => {
-    applySeoHead({ title, description, path: typeof window !== "undefined" ? window.location.pathname : "/" });
+    applySeoHead({ title, description: goFeeCopy(description), path: typeof window !== "undefined" ? window.location.pathname : "/" });
     let tag = document.querySelector('meta[name="robots"]');
     if (!tag) {
       tag = document.createElement("meta");
@@ -479,14 +496,23 @@ const GoLander = ({
 
   const bc = brandColor;
   const isEs = lang === "es";
-  const tagline = isEs ? "Sin cuenta. Pague por otra persona." : "No login. Pay for anyone.";
+  // GO-COPY-1008: trust line (no email-receipt claim: no project code sends a receipt). Boost: no phone call needed.
+  const tagline = isEs ? "Sin cuenta. Pague por usted o por otra persona." : "No login. Pay for yourself or someone else.";
+  const noCallLine =
+    carrierSlug === "boost"
+      ? isEs
+        ? "Sin llamar. Pague Boost en línea en 3 pasos."
+        : "No phone call needed. Pay Boost online in 3 steps."
+      : null;
+  // GO-COPY-1008: visible "En español" switch on English /go pages (every /go page has an /es/go twin).
+  const esHref = !isEs && typeof window !== "undefined" ? `/es${window.location.pathname}` : null;
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
   const autoPayLine = isEs
     ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano."
     : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.";
   const feeLine = isEs
-    ? "Cargo por servicio bajo, mostrado antes de pagar"
-    : "Low service fee shown before you pay";
+    ? "Cargo por servicio mostrado antes de pagar"
+    : "Service fee shown before you pay";
   const faqHeading = isEs ? "Preguntas frecuentes" : "Common questions";
   const faqs = isEs ? GO_FAQS_ES : GO_FAQS_EN;
   const privacyLabel = isEs ? "Política de Privacidad" : "Privacy Policy";
@@ -522,6 +548,14 @@ const GoLander = ({
         <div className="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">
           <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">{h1}</h1>
           <p className="text-xs sm:text-sm opacity-90 mt-1">{tagline}</p>
+          {noCallLine && <p className="text-xs sm:text-sm font-bold mt-1">{noCallLine}</p>}
+          {esHref && (
+            <p className="text-xs sm:text-sm mt-1">
+              <a href={esHref} lang="es" hrefLang="es" className="font-semibold underline underline-offset-2">
+                En español
+              </a>
+            </p>
+          )}
         </div>
       </section>
 
@@ -543,6 +577,10 @@ const GoLander = ({
           <p className="mt-2 text-[11px] sm:text-xs font-semibold text-foreground text-center">
             {feeLine}
           </p>
+          <div
+            className="mt-2 flex flex-wrap items-center justify-center gap-1.5"
+            dangerouslySetInnerHTML={{ __html: GO_PAY_MARKS }}
+          />
           <p className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug text-center">
             {PAY_METHODS}
           </p>
