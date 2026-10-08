@@ -7,6 +7,8 @@ interface ProxyRequest {
   method?: string;
   payload?: Record<string, unknown>;
   bearerToken?: string;
+  /** ADS-FOLLOWUPS-1008: top-level; cellpay-proxy reads it for the log row only. Never part of the payload sent to CellPay. */
+  click_ids?: Record<string, string>;
 }
 
 export async function callProxy(req: ProxyRequest): Promise<unknown> {
@@ -264,11 +266,28 @@ export async function validateRecharge(
   return result as ValidationResult;
 }
 
+// ADS-FOLLOWUPS-1008: Google Ads click IDs saved by the inline script in index.html (localStorage "cp_gclk": last click,
+// 90 days). Only well-formed gclid / gbraid / wbraid, nothing else; undefined when there are none (then nothing is sent).
+function adClickIds(): Record<string, string> | undefined {
+  try {
+    const s = JSON.parse(localStorage.getItem("cp_gclk") || "null") as Record<string, unknown> | null;
+    if (!s || typeof s !== "object" || !(Date.now() - Number(s.t) < 90 * 864e5)) return undefined;
+    const out: Record<string, string> = {};
+    for (const k of ["gclid", "gbraid", "wbraid"]) {
+      const v = s[k];
+      if (typeof v === "string" && /^[\w.~-]{1,512}$/.test(v)) out[k] = v;
+    }
+    return Object.keys(out).length ? out : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function submitTransaction(
   payload: Record<string, unknown>,
   bearerToken?: string
 ): Promise<unknown> {
-  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken });
+  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds() });
 }
 
 export async function fetchCheckoutConfig(): Promise<Record<string, unknown>> {
