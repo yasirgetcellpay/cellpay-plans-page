@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes, useLocation, Navigate } from "react-router-dom";
-import { Component, lazy, Suspense, useEffect, type ReactNode } from "react";
+import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { HELP_CHAT_ENABLED } from "@/components/help/helpChatFlag";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { captureTrackingIdsFromUrl } from "@/lib/tracking";
@@ -41,6 +41,41 @@ import ultraLogo from "@/assets/ultra-mobile-logo.png";
 const HelpChatOff = () => null;
 const HelpChat = lazy(() => import("@/components/help/HelpChat").catch(() => ({ default: HelpChatOff })));
 // Same for anything inside Help chat (its panel / Auto Pay chunks load when Help is opened): an error there hides Help only.
+/** SPEED-WWW-1008: the help launcher (and its dock-position layout reads) mounts once the page is idle after load
+ *  (requestIdleCallback, 3 s cap) or on the visitor's first tap / key press, so it adds no forced layout while the page first paints. */
+const WhenIdle = ({ children }: { children: ReactNode }) => {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (ready) return;
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    const events = ["pointerdown", "keydown", "touchstart"] as const;
+    let idleId: number | undefined;
+    let timer: number | undefined;
+    const cleanup = () => {
+      events.forEach((e) => window.removeEventListener(e, go));
+      window.removeEventListener("load", schedule);
+      if (idleId !== undefined) w.cancelIdleCallback?.(idleId);
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+    function go() {
+      cleanup();
+      setReady(true);
+    }
+    function schedule() {
+      if (w.requestIdleCallback) idleId = w.requestIdleCallback(go, { timeout: 3000 });
+      else timer = window.setTimeout(go, 1500);
+    }
+    events.forEach((e) => window.addEventListener(e, go, { passive: true }));
+    if (document.readyState === "complete") schedule();
+    else window.addEventListener("load", schedule);
+    return cleanup;
+  }, [ready]);
+  return ready ? <>{children}</> : null;
+};
+
 class HelpChatBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() {
@@ -1637,9 +1672,11 @@ const App = () => (
       <Toaster />
       {HELP_CHAT_ENABLED && (
         <HelpChatBoundary>
-          <Suspense fallback={null}>
-            <HelpChat />
-          </Suspense>
+          <WhenIdle>
+            <Suspense fallback={null}>
+              <HelpChat />
+            </Suspense>
+          </WhenIdle>
         </HelpChatBoundary>
       )}
     </BrowserRouter>

@@ -1157,7 +1157,19 @@ const htmlAliasPlugin = (): Plugin => ({
     // loading block) with the same classes/copy as DynamicCarrier.tsx, so LCP paints before the app code runs.
     // Uses data-go-prerender so main.tsx lets the browser paint it first. Keep in sync with DynamicCarrier.tsx.
     // Only routes in CARRIER_SHELLS get it; anything missing falls back to the old output (build never fails on it).
-    const CARRIER_LOOK: Record<string, { name: string; color: string; logo: string }> = {
+    // SPEED-WWW-1008: intrinsic logo sizes (width/height attributes, same numbers as LOGO_DIMS in DynamicCarrier.tsx), so the logo
+    // box is reserved before the image arrives. CSS still sets the height; the width follows the image.
+    const LOGO_DIMS: Record<string, [number, number]> = {
+      "simple-mobile-logo.png": [479, 105], "cricket-logo.webp": [234, 52], "metro-logo.svg": [94, 41], "tmobile-logo.svg": [52, 52],
+      "att-prepaid-logo.webp": [600, 600], "verizon-logo.png": [475, 106], "boost-logo.png": [225, 225], "h2o-logo.png": [241, 76],
+      "lyca-logo.webp": [314, 123], "net10-logo.png": [140, 64], "pageplus-logo.png": [265, 73], "tracfone-logo.svg": [180, 84],
+      "ultra-mobile-logo.png": [801, 501], "straight-talk-logo.svg": [117, 75],
+    };
+    const logoDims = (file?: string): string => {
+      const d = file ? LOGO_DIMS[file] : undefined;
+      return d ? ` width="${d[0]}" height="${d[1]}"` : "";
+    };
+    const CARRIER_LOOK: Record<string, { name: string; color: string; logo?: string }> = {
       s1: { name: "Simple Mobile", color: "hsl(101,67%,44%)", logo: "simple-mobile-logo.png" },
       "topup-crc": { name: "Cricket Wireless", color: "hsl(82,60%,42%)", logo: "cricket-logo.webp" },
       metropcs: { name: "Metro PCS", color: "hsl(270,60%,32%)", logo: "metro-logo.svg" },
@@ -1171,6 +1183,12 @@ const htmlAliasPlugin = (): Plugin => ({
       tracfone: { name: "TracFone", color: "hsl(230,70%,30%)", logo: "tracfone-logo.svg" },
       "ultra-mobile": { name: "Ultra Mobile", color: "hsl(270,50%,40%)", logo: "ultra-mobile-logo.png" },
     };
+    // SPEED-WWW-1008: first-screen-only looks for /verizon (DynamicCarrier) and /total-wireless (DynamicCarrier, no logo: name in its
+    // color). Kept out of CARRIER_LOOK on purpose, so the Spanish titles/meta built from CARRIER_LOOK stay exactly as they are today.
+    const SHELL_ONLY_LOOK: Record<string, { name: string; color: string; logo?: string }> = {
+      verizon: { name: "Verizon Wireless Prepaid", color: "hsl(0,100%,45%)", logo: "verizon-logo.png" },
+      "total-wireless": { name: "Total Wireless", color: "hsl(200,70%,40%)" },
+    };
     const CARRIER_SHELLS = new Set<string>([
       // LCP-ADS-1007 batch 1
       "metropcs.html", "metro-pcs.html", "es/metropcs.html", "metropcs-espanol.html",
@@ -1181,6 +1199,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "ultra-mobile.html", "es/ultra-mobile.html", "topup-at.html",
       // LCP-ADS-1007 batch 3 (es names via CARRIER_ES_NAME)
       "es/net10.html", "es/tracfone.html", "es/topup-at.html", "tmobile-flexi.html", "es/tmobile-flexi.html",
+      // SPEED-WWW-1008 (es/verizon not included: the app swaps in the API name "Verizon Wireless Flexi" after load)
+      "verizon/index.html", "total-wireless/index.html", "es/total-wireless/index.html", "total-wireless.html", "es/total-wireless.html",
     ]);
     // Spanish carrier name the app shows when it differs from CARRIER_LOOK name (keeps the es H1 identical).
     const CARRIER_ES_NAME: Record<string, string> = {
@@ -1196,12 +1216,43 @@ const htmlAliasPlugin = (): Plugin => ({
         `<div class="min-h-screen bg-background font-sans antialiased">` +
         `<nav class="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style="border-color:rgb(230,0,0)">` +
         `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="relative flex justify-center h-14 sm:h-20 items-center">` +
-        `<img src="${escAttr(logo)}" alt="Verizon Prepaid logo" class="h-[32px] sm:h-[44px] w-auto object-contain">` +
+        `<img src="${escAttr(logo)}" alt="Verizon Prepaid logo"${logoDims("verizon-logo.png")} class="h-[32px] sm:h-[44px] w-auto object-contain">` +
         `</div></div></nav>` +
         `<section class="text-primary-foreground" style="background-color:rgb(230,0,0)">` +
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">` +
         `<h1 class="text-xl md:text-2xl font-extrabold">Verizon Prepaid Bill Pay</h1>` +
         `</div></section>` +
+        `<div class="min-h-screen"></div>` +
+        `</div></div>`
+      );
+    };
+    // SPEED-WWW-1008: Straight Talk (StraightTalk.tsx; /es shows the same English page) first screen = nav + H1 bar + phone box,
+    // then a full-height blank until React renders (plans load into that space). Same classes/copy as StraightTalk.tsx; keep in sync.
+    const STRAIGHT_TALK_SHELLS = new Set<string>(["straight-talk.html", "es/straight-talk.html"]);
+    const straightTalkFirstScreen = (): string | null => {
+      const logo = goAssetUrl("straight-talk-logo.svg");
+      if (!logo) return null;
+      const bc = "hsl(72,74%,44%)";
+      return (
+        `<div id="root" data-go-prerender="1">` +
+        `<div class="min-h-screen bg-background font-sans antialiased">` +
+        `<nav class="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style="border-color:${bc}">` +
+        `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="relative flex justify-center h-14 sm:h-20 items-center">` +
+        `<img src="${escAttr(logo)}" alt="Straight Talk"${logoDims("straight-talk-logo.svg")} class="h-[32px] sm:h-[44px] w-auto object-contain">` +
+        `</div></div></nav>` +
+        `<section class="text-foreground" style="background-color:${bc}">` +
+        `<div class="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">` +
+        `<h1 class="text-xl md:text-2xl font-extrabold">Straight Talk Prepaid Refill</h1>` +
+        `</div></section>` +
+        `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">` +
+        `<div class="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">` +
+        `<label class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">Enter Your Straight Talk Phone Number</label>` +
+        `<div class="relative mb-1 sm:mb-2">` +
+        `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>` +
+        `<input type="tel" readonly tabindex="-1" placeholder="(XXX) XXX-XXXX" class="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(72,74%,44%)] focus:border-transparent text-center">` +
+        `</div>` +
+        `<p class="text-[10px] sm:text-xs text-muted-foreground">Enter the phone number you want to recharge</p>` +
+        `</div></div>` +
         `<div class="min-h-screen"></div>` +
         `</div></div>`
       );
@@ -1222,12 +1273,13 @@ const htmlAliasPlugin = (): Plugin => ({
       `</ul></div></div>`;
     const carrierFirstScreen = (route: string): string | null => {
       const isEs = route.startsWith("es/") || route.endsWith("-espanol.html");
-      let slug = route.replace(/^es\//, "").replace(/-espanol\.html$/, ".html").replace(/\.html$/, "");
+      let slug = route.replace(/^es\//, "").replace(/-espanol\.html$/, ".html").replace(/\.html$/, "").replace(/\/index$/, "");
       if (slug === "metro-pcs") slug = "metropcs";
-      const look = CARRIER_LOOK[slug];
+      const look = CARRIER_LOOK[slug] || SHELL_ONLY_LOOK[slug];
       if (!look) return null;
-      const logo = goAssetUrl(look.logo);
-      if (!logo) return null;
+      // SPEED-WWW-1008: no logo (Total Wireless) = the carrier name in its color, same as DynamicCarrier without a logo prop.
+      const logo = look.logo ? goAssetUrl(look.logo) : null;
+      if (look.logo && !logo) return null;
       const esName = CARRIER_ES_NAME[slug] || look.name;
       const h1 = isEs
         ? `Soluciones Rápidas y Seguras para Recargas Prepagadas de ${esName}`
@@ -1247,7 +1299,9 @@ const htmlAliasPlugin = (): Plugin => ({
         `<div class="min-h-screen bg-background font-sans antialiased">` +
         `<nav class="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style="border-color:${look.color}">` +
         `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="relative flex justify-center h-14 sm:h-20 items-center">` +
-        `<img src="${escAttr(logo)}" alt="${escAttr(look.name)} prepaid refill logo" class="h-[32px] sm:h-[44px] w-auto object-contain">` +
+        (logo
+          ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)} prepaid refill logo"${logoDims(look.logo)} class="h-[32px] sm:h-[44px] w-auto object-contain">`
+          : `<span class="text-xl sm:text-2xl font-extrabold" style="color:${look.color}">${escAttr(look.name)}</span>`) +
         `</div></div>` +
         navMenu +
         `</nav>` +
@@ -1453,6 +1507,8 @@ const htmlAliasPlugin = (): Plugin => ({
           ? carrierFirstScreen(route)
           : VERIZON_SHELLS.has(route)
           ? verizonFirstScreen()
+          : STRAIGHT_TALK_SHELLS.has(route)
+          ? straightTalkFirstScreen()
           : route === "es/index.html"
           ? homeFirstScreen("es")
           : null;
