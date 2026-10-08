@@ -91,11 +91,26 @@ function arbLogMeta(payload: Record<string, unknown>, bearerToken: unknown, lang
   }
 }
 
+// [ADS-FOLLOWUPS-1008] Google Ads click IDs from the site's top-level body.click_ids (never part of the payload sent to CellPay).
+// Only gclid / gbraid / wbraid, each kept only when it is 1-512 characters of A-Z a-z 0-9 _ . ~ - ; anything else is dropped.
+// IDs only (no other data). Saved by log_transaction_attempt into transaction_logs.gclid / gbraid / wbraid. Never throws.
+const CLICK_ID_RE = /^[A-Za-z0-9_.~-]{1,512}$/;
+function clickIdsFrom(v: unknown): Record<string, string> {
+  const r = asRecord(v);
+  const out: Record<string, string> = {};
+  for (const k of ["gclid", "gbraid", "wbraid"]) {
+    const x = r[k];
+    if (typeof x === "string" && CLICK_ID_RE.test(x)) out[k] = x;
+  }
+  return out;
+}
+
 async function createTransactionLog(
   payload: Record<string, unknown>,
   callerHost: string | undefined,
   userAgent: string | null,
   arb: Record<string, unknown> = {},
+  clicks: Record<string, string> = {},
 ): Promise<string | null> {
   const payment = asRecord(payload.payment);
   try {
@@ -115,6 +130,7 @@ async function createTransactionLog(
         card_type: text(payload.ctype ?? payload.card_type),
         source_ip: text(payload.source),
         user_agent: userAgent,
+        ...clicks, // [ADS-FOLLOWUPS-1008] gclid / gbraid / wbraid only when present and well-formed
         metadata: {
           caller_host: text(callerHost),
           checkout_session_id: text(payload.kount_ssid ?? payload.riskified_sessionid ?? payload.cbsys_sessionid),
@@ -1499,7 +1515,7 @@ serve(async (req) => {
       } catch { /* dedupe fails open */ }
     }
     const txLogId = shouldLogTransaction
-      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), arbLogMeta(payloadRecord, bearerToken, body.lang))
+      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), arbLogMeta(payloadRecord, bearerToken, body.lang), clickIdsFrom(body.click_ids))
       : null;
     if (shouldLogTransaction) velocityShadow(txLogId, payloadRecord, paymentMethod); // [VEL1-1007] log-only, not awaited
 
