@@ -8,7 +8,7 @@ import { methodsLong, payWith, payWallets } from "./paymentMethods";
 export type HtpLang = "en" | "es";
 export type HtpFaq = { q: string; a: string };
 export type HtpPage = {
-  key: "straight-talk" | "att-prepaid";
+  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid"; // AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid
   lang: HtpLang;
   path: string; // www path of this page
   enPath: string;
@@ -34,6 +34,7 @@ export type HtpPage = {
   faqs: HtpFaq[];
   disclaimer: string;
   updated: string;
+  updatedIso: string; // AEO-03-04-1008: JSON-LD dateModified per page
   related: Array<[string, string]>;
   labels: { payNow: string; steps: string; need: string; fees: string; item: string; amount: string; other: string; faq: string; related: string; breadcrumbHowTo: string; tool: string; supply: string };
 };
@@ -50,7 +51,8 @@ const LABELS_ES = { payNow: "", steps: "Pasos", need: "Lo que necesita", fees: "
 
 const en = (o: {
   key: HtpPage["key"]; name: string; slug: string; checkout: string; title: string; description: string; h1: string;
-  step3: string; faq2: HtpFaq; autoPayA: string; autoPayBody: string; related: Array<[string, string]>; an: string;
+  step3: string; faq2?: HtpFaq; autoPayA: string; autoPayBody: string; related: Array<[string, string]>; an: string;
+  updatedIso?: string; updatedText?: string; // AEO-03-04-1008: faq2 optional (SPEC-03/04 have 7 FAQs); per-page last-updated
 }): HtpPage => ({
   key: o.key, lang: "en", path: `/how-to-pay/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
@@ -78,7 +80,7 @@ const en = (o: {
   autoPay: o.autoPayBody,
   faqs: [
     { q: `Can I pay ${o.name} online without logging in?`, a: `Yes. On CellPay you enter the ${o.name} phone number, choose the amount or plan, and pay. You don't need ${o.an} ${o.name} login or a CellPay account. CellPay is an independent payment service, not ${o.name}.` },
-    o.faq2,
+    ...(o.faq2 ? [o.faq2] : []),
     { q: `How fast does ${o.key === "att-prepaid" ? "an" : "a"} ${o.name} payment through CellPay post?`, a: "Most payments post within a few minutes, but it can take up to 30 minutes for a refill to show on the account. If it hasn't posted after 30 minutes, email support@getcellpay.com with your phone number and transaction details. You see a confirmation with your transaction details once the payment goes through." },
     { q: `Is there a fee to pay ${o.name} on CellPay?`, a: "Yes, a service fee applies. The service fee is shown in the order summary before you pay, so you see the full total first. Taxes and fees can vary by location." },
     { q: "What payment methods can I use?", a: METHODS_EN },
@@ -87,14 +89,16 @@ const en = (o: {
     { q: `What do I need to pay my ${o.name} bill?`, a: `Only the 10-digit ${o.name} phone number, the amount or plan you want, and a payment method. You don't need a carrier login, a CellPay account or the account holder's password.` },
   ],
   disclaimer: `CellPay is an independent payment service and is not affiliated with ${o.name}.`,
-  updated: "Last updated: October 7, 2026",
+  updated: o.updatedText ?? "Last updated: October 7, 2026",
+  updatedIso: o.updatedIso ?? UPDATED_ISO,
   related: o.related,
   labels: { ...LABELS_EN, payNow: `Pay ${o.name} now`, other: `Other ways to pay ${o.name}` },
 });
 
 const es = (o: {
   key: HtpPage["key"]; name: string; slug: string; checkout: string; title: string; description: string; h1: string;
-  step3: string; faq2: HtpFaq; autoPayA: string; autoPayBody: string; related: Array<[string, string]>;
+  step3: string; faq2?: HtpFaq; autoPayA: string; autoPayBody: string; related: Array<[string, string]>;
+  updatedIso?: string; updatedText?: string;
 }): HtpPage => ({
   key: o.key, lang: "es", path: `/es/como-pagar/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
@@ -122,7 +126,7 @@ const es = (o: {
   autoPay: o.autoPayBody,
   faqs: [
     { q: `¿Puedo pagar ${o.name} en línea sin iniciar sesión?`, a: `Sí. En CellPay ingresa el número de teléfono de ${o.name}, elige el monto o el plan y paga. No necesita una cuenta de ${o.name} ni una cuenta de CellPay. CellPay es un servicio de pago independiente, no ${o.name}.` },
-    o.faq2,
+    ...(o.faq2 ? [o.faq2] : []),
     { q: `¿Cuánto tarda en acreditarse un pago de ${o.name} hecho en CellPay?`, a: "La mayoría de los pagos se acreditan en pocos minutos, pero la recarga puede tardar hasta 30 minutos en aparecer en la cuenta. Si no se ha acreditado después de 30 minutos, escriba a support@getcellpay.com con su número de teléfono y los datos de la transacción. Cuando el pago se completa, verá una confirmación con los datos de su transacción." },
     { q: `¿Hay un cargo por pagar ${o.name} en CellPay?`, a: "Sí, se aplica un cargo por servicio. El cargo por servicio se muestra en el resumen del pedido antes de pagar, así que ve el total completo primero. Los impuestos y cargos pueden variar según la ubicación." },
     { q: "¿Qué métodos de pago puedo usar?", a: METHODS_ES },
@@ -131,7 +135,8 @@ const es = (o: {
     { q: `¿Qué necesito para pagar mi factura de ${o.name}?`, a: `Solo el número de teléfono de ${o.name} de 10 dígitos, el monto o el plan que desea y un método de pago. No necesita una cuenta del operador, una cuenta de CellPay ni la contraseña del titular de la cuenta.` },
   ],
   disclaimer: `CellPay es un servicio de pago independiente y no está afiliado a ${o.name}.`,
-  updated: "Última actualización: 7 de octubre de 2026",
+  updated: o.updatedText ?? "Última actualización: 7 de octubre de 2026",
+  updatedIso: o.updatedIso ?? UPDATED_ISO,
   related: o.related,
   labels: { ...LABELS_ES, payNow: `Pagar ${o.name} ahora`, other: `Otras formas de pagar ${o.name}` },
 });
@@ -146,7 +151,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     faq2: { q: "Can I refill Straight Talk without the Straight Talk app?", a: "Straight Talk offers its own refill options on its official website and app. On CellPay you can refill from any device with only the phone number." },
     autoPayA: "If CellPay Auto Pay is offered at checkout, you can turn it on there; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
     autoPayBody: "If CellPay Auto Pay is offered at checkout, you can turn it on there; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
-    related: [["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"], ["/straight-talk.html", "Straight Talk refill"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
+    related: [["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"], ["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/straight-talk.html", "Straight Talk refill"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
   }),
   es({
     key: "straight-talk", name: "Straight Talk", slug: "straight-talk", checkout: "/es/straight-talk.html",
@@ -157,7 +162,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     faq2: { q: "¿Puedo recargar Straight Talk sin la aplicación de Straight Talk?", a: "Straight Talk ofrece sus propias opciones de recarga en su sitio web oficial y en su aplicación. En CellPay puede recargar desde cualquier dispositivo solo con el número de teléfono." },
     autoPayA: "Si CellPay ofrece Auto Pago al pagar, puede activarlo ahí; nunca está marcado de antemano. Puede cancelarlo en cualquier momento con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
     autoPayBody: "Si CellPay ofrece Auto Pago al pagar, puede activarlo ahí; nunca está marcado de antemano. Puede cancelarlo en cualquier momento con 'Unsubscribe From Autopay' en cellpay.us/faq.",
-    related: [["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/straight-talk.html", "Recarga Straight Talk"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
+    related: [["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/como-pagar/simple-mobile", "Cómo pagar Simple Mobile"], ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/straight-talk.html", "Recarga Straight Talk"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
   }),
   en({
     key: "att-prepaid", name: "AT&T Prepaid", slug: "topup-at", checkout: "/topup-at.html", an: "an",
@@ -168,7 +173,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     faq2: { q: "Does AT&T have its own way to pay prepaid without signing in?", a: "AT&T offers its own payment options on its official website and app. CellPay is another option if you want to pay without an AT&T login, with " + payWallets("en") + "." },
     autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
     autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
-    related: [["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/topup-at.html", "AT&T Prepaid refill"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
+    related: [["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/topup-at.html", "AT&T Prepaid refill"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
   }),
   es({
     key: "att-prepaid", name: "AT&T Prepaid", slug: "topup-at", checkout: "/es/topup-at.html",
@@ -179,7 +184,52 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     faq2: { q: "¿AT&T tiene su propia forma de pagar el servicio prepagado sin iniciar sesión?", a: "AT&T ofrece sus propias opciones de pago en su sitio web oficial y en su aplicación. CellPay es otra opción si quiere pagar sin una cuenta de AT&T, con " + payWallets("es") + "." },
     autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo en cualquier momento con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
     autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo en cualquier momento con 'Unsubscribe From Autopay' en cellpay.us/faq.",
-    related: [["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/topup-at.html", "Recarga AT&T Prepaid"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
+    related: [["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/simple-mobile", "Cómo pagar Simple Mobile"], ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/topup-at.html", "Recarga AT&T Prepaid"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
+  }),
+  // AEO-03-04-1008: SPEC-03 Simple Mobile + SPEC-04 T-Mobile Prepaid, EN + native ES (same template, no carrier-specific FAQ).
+  en({
+    key: "simple-mobile", name: "Simple Mobile", slug: "s1", checkout: "/s1.html", an: "a",
+    title: "How to Pay Your Simple Mobile Bill Online | CellPay",
+    description: `Simple Mobile pay bill online with no login: enter the number, pick a plan and pay by ${payWith("en", "card")}.`,
+    h1: "How to Pay Your Simple Mobile Bill Online",
+    step3: "Choose a plan from the list on the CellPay page.",
+    autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
+    autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
+    related: [["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"], ["/s1.html", "Simple Mobile refill"], ["/guest-simple-mobile.html", "Pay Simple Mobile as a guest"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
+    updatedIso: "2026-10-08", updatedText: "Last updated: October 8, 2026",
+  }),
+  es({
+    key: "simple-mobile", name: "Simple Mobile", slug: "s1", checkout: "/es/s1.html",
+    title: "Cómo Pagar su Factura de Simple Mobile en Línea | CellPay",
+    description: "Pague su factura de Simple Mobile en línea sin iniciar sesión: ingrese el número, elija un plan y pague con tarjeta, Apple Pay, Google Pay y más.",
+    h1: "Cómo Pagar su Factura de Simple Mobile en Línea",
+    step3: "Elija un plan de la lista en la página de CellPay.",
+    autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
+    autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
+    related: [["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/s1.html", "Recarga Simple Mobile"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
+    updatedIso: "2026-10-08", updatedText: "Última actualización: 8 de octubre de 2026",
+  }),
+  en({
+    key: "t-mobile-prepaid", name: "T-Mobile Prepaid", slug: "tmobile", checkout: "/tmobile-flexi.html", an: "a",
+    title: "How to Pay Your T-Mobile Prepaid Bill or Refill Online | CellPay",
+    description: `T-Mobile Prepaid pay bill online, no login: enter the number, pick an amount, pay by ${payWith("en", "card")}.`,
+    h1: "How to Pay Your T-Mobile Prepaid Bill or Refill Online",
+    step3: "Choose a plan from the list or enter a custom amount.",
+    autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
+    autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
+    related: [["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"], ["/tmobile-flexi.html", "T-Mobile Prepaid refill"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
+    updatedIso: "2026-10-08", updatedText: "Last updated: October 8, 2026",
+  }),
+  es({
+    key: "t-mobile-prepaid", name: "T-Mobile Prepaid", slug: "tmobile", checkout: "/es/tmobile-flexi.html",
+    title: "Cómo Pagar o Recargar T-Mobile Prepaid en Línea | CellPay",
+    description: "Pague o recargue T-Mobile Prepaid en línea sin iniciar sesión: ingrese el número, elija el monto y pague con tarjeta, Apple Pay, Google Pay y más.",
+    h1: "Cómo Pagar o Recargar T-Mobile Prepaid en Línea",
+    step3: "Elija un plan de la lista o ingrese un monto personalizado.",
+    autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
+    autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
+    related: [["/es/como-pagar/simple-mobile", "Cómo pagar Simple Mobile"], ["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/tmobile-flexi.html", "Recarga T-Mobile Prepaid"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
+    updatedIso: "2026-10-08", updatedText: "Última actualización: 8 de octubre de 2026",
   }),
 ];
 
@@ -212,7 +262,7 @@ export const howToPayJsonLd = (pg: HtpPage): string => {
         ],
       },
     ],
-    dateModified: UPDATED_ISO,
+    dateModified: pg.updatedIso,
   }).replace(/</g, "\\u003c");
 };
 

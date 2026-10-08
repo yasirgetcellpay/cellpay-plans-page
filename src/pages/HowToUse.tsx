@@ -51,6 +51,10 @@ const HowToUse = () => {
             Carrier guides: <a href="/how-to-pay/straight-talk" className="underline">How to pay Straight Talk</a>
             {" · "}
             <a href="/how-to-pay/att-prepaid" className="underline">{"How to pay AT&T Prepaid"}</a>
+            {" · "}
+            <a href="/how-to-pay/simple-mobile" className="underline">How to pay Simple Mobile</a>
+            {" · "}
+            <a href="/how-to-pay/t-mobile-prepaid" className="underline">How to pay T-Mobile Prepaid</a>
           </li>
         </ul>
       </div>
