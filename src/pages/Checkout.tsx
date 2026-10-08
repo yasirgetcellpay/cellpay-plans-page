@@ -740,12 +740,13 @@ const Checkout = () => {
         ppFunnel("order_created");
         return orderId;
       },
-      onApprove: async (data: { orderID: string }) => {
+      onApprove: async (data: { orderID: string; payerID?: string | null }) => {
         setSubmitting(true);
         ppFunnel("approve");
         try {
           // [PAYPAL-1008] pp_meta: log row id + order facts for the proxy log / duplicate guard; removed before CellPay.
-          const captureRaw = await capturePayPalOrder({ order_id: data.orderID, pp_meta: {
+          // [PAYPAL-CAPTURE-1008] CellPay capture-order requires orderID + payerID (PayPal onApprove data); order_id kept for compatibility.
+          const captureRaw = await capturePayPalOrder({ order_id: data.orderID, orderID: data.orderID, payerID: data.payerID || undefined, pp_meta: {
             pending_log_id: ppLogIdRef.current || undefined, phone_number: normalizePhone(state.phone),
             carrierId: validation?.carrier_id || validation?.carrierId, plan_id: state.planId ? String(state.planId) : undefined,
             amount: validation?.amount ?? Number(state.amount), total: validation?.total ?? Number(state.amount),
@@ -789,7 +790,8 @@ const Checkout = () => {
               setPpPaidNoId(data.orderID || "-");
             }
           } else {
-            if (ppPaid) ppFunnel("capture_ok"); else ppFunnel(captureRaw.blocked === true ? "blocked" : "capture_fail", captureRaw.blocked === true ? String(captureRaw.code || "") : (st ? `status:${st}` : "no_status"));
+            // [PAYPAL-CAPTURE-1008] capture_fail funnel detail carries CellPay's error code when there is no status (e.g. no_status:validation).
+            if (ppPaid) ppFunnel("capture_ok"); else ppFunnel(captureRaw.blocked === true ? "blocked" : "capture_fail", captureRaw.blocked === true ? String(captureRaw.code || "") : (st ? `status:${st}` : `no_status${captureResult.code || captureRaw.error ? ":" + String(captureResult.code || captureRaw.error).slice(0, 40) : ""}`));
             handleResult(captureRaw);
           }
         } catch {
