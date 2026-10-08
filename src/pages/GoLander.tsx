@@ -738,7 +738,7 @@ const GoLander = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm mb-6">
             <li>
-              <a href="/privacy-policy" className="hover:text-primary-foreground underline-offset-2 hover:underline">
+              <a href={isEs ? "/es/privacy-policy" : "/privacy-policy"} className="hover:text-primary-foreground underline-offset-2 hover:underline">
                 {privacyLabel}
               </a>
             </li>
