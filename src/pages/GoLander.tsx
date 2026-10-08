@@ -147,22 +147,31 @@ const goFeeCopy = (s: string): string =>
     .replace("Low service fee shown before you pay", "Service fee shown before you pay")
     .replace("Cargo por servicio bajo, mostrado antes de pagar", "Cargo por servicio mostrado antes de pagar");
 
-const GO_FAQS_EN = [
+/** GO-COPY-1008: carrier-specific FAQs (also sent as FAQPage JSON-LD). True claims only: no refunds, no email-receipt claim, no fee amounts. */
+const goFaqsEn = (c: string) => [
   {
-    q: "Can I pay without signing in / as a guest?",
-    a: "Yes. No account needed. Enter the phone number, pick the amount or plan, and pay. You can pay your own bill or someone else's.",
+    q: `Can I pay my ${c} bill without signing in?`,
+    a: `Yes. No account or login needed. Enter the ${c} phone number, pick the amount or plan, and pay as a guest.`,
   },
   {
-    q: "Can I pay for someone else?",
-    a: "Yes. Enter their phone number, choose the amount or plan, and pay. They get the refill on that line.",
+    q: `Can I pay for someone else's ${c} line?`,
+    a: `Yes. Enter their ${c} phone number, choose the amount or plan, and pay. The refill goes to that line.`,
   },
   {
-    q: "Do I just enter the phone number?",
-    a: "Yes. Enter the 10-digit phone number for the line you want to refill. Then pick the amount or plan and pay.",
+    q: `Do I just need the ${c} phone number?`,
+    a: `Yes. Enter the 10-digit phone number of the ${c} line you want to refill. Then pick the amount or plan and pay.`,
   },
   {
-    q: "How long does a refill take?",
-    a: "Most refills finish in a few minutes. Some can take up to 30 minutes. You get a receipt by email when it is done.",
+    q: `Do I need to call ${c} to pay?`,
+    a: "No. You pay online on this page with the phone number. No phone call needed.",
+  },
+  {
+    q: "How can I pay?",
+    a: "Card (Visa, Mastercard, American Express, Discover), Apple Pay, Google Pay, PayPal, Klarna or Cash App. Apple Pay shows on supported Apple devices. The service fee is shown before you pay.",
+  },
+  {
+    q: `How long does a ${c} refill take?`,
+    a: "Most refills finish in a few minutes. Some can take up to 30 minutes.",
   },
   {
     q: "What if the payment fails?",
@@ -175,22 +184,30 @@ const GO_FAQS_EN = [
 ];
 
 /** Very simple Spanish. Never "cualquier". No refunds / 24/7 / instant / authorized. */
-const GO_FAQS_ES = [
+const goFaqsEs = (c: string) => [
   {
-    q: "¿Puedo pagar sin cuenta / como invitado?",
-    a: "Sí. No necesita cuenta. Escriba el número de teléfono, elija el monto o plan y pague. Puede pagar su factura o la de otra persona.",
+    q: `¿Puedo pagar mi factura de ${c} sin cuenta?`,
+    a: `Sí. No necesita cuenta ni iniciar sesión. Escriba el número de teléfono de ${c}, elija el monto o plan y pague como invitado.`,
   },
   {
-    q: "¿Puedo pagar por otra persona?",
-    a: "Sí. Escriba el número de esa persona, elija el monto o plan y pague. La recarga llega a esa línea.",
+    q: `¿Puedo pagar la línea de ${c} de otra persona?`,
+    a: `Sí. Escriba el número de ${c} de esa persona, elija el monto o plan y pague. La recarga llega a esa línea.`,
   },
   {
-    q: "¿Solo escribo el número de teléfono?",
-    a: "Sí. Escriba el número de 10 dígitos de la línea que quiere recargar. Luego elija el monto o plan y pague.",
+    q: `¿Solo necesito el número de teléfono de ${c}?`,
+    a: `Sí. Escriba el número de 10 dígitos de la línea de ${c} que quiere recargar. Luego elija el monto o plan y pague.`,
   },
   {
-    q: "¿Cuánto tarda la recarga?",
-    a: "La mayoría termina en unos minutos. Algunas pueden tardar hasta 30 minutos. Recibe un recibo por correo cuando esté lista.",
+    q: `¿Tengo que llamar a ${c} para pagar?`,
+    a: "No. Pague en línea en esta página con el número de teléfono. No necesita llamar.",
+  },
+  {
+    q: "¿Cómo puedo pagar?",
+    a: "Con tarjeta (Visa, Mastercard, American Express, Discover), Apple Pay, Google Pay, PayPal, Klarna o Cash App. Apple Pay aparece en equipos Apple compatibles. El cargo por servicio se muestra antes de pagar.",
+  },
+  {
+    q: `¿Cuánto tarda la recarga de ${c}?`,
+    a: "La mayoría termina en unos minutos. Algunas pueden tardar hasta 30 minutos.",
   },
   {
     q: "¿Qué pasa si el pago falla?",
@@ -514,10 +531,28 @@ const GoLander = ({
     ? "Cargo por servicio mostrado antes de pagar"
     : "Service fee shown before you pay";
   const faqHeading = isEs ? "Preguntas frecuentes" : "Common questions";
-  const faqs = isEs ? GO_FAQS_ES : GO_FAQS_EN;
+  const faqs = isEs ? goFaqsEs(carrierName) : goFaqsEn(carrierName);
   const privacyLabel = isEs ? "Política de Privacidad" : "Privacy Policy";
   const termsLabel = isEs ? "Términos y Condiciones" : "Terms and Conditions";
   const returnsLabel = isEs ? "Política de Devoluciones" : "Returns Policy";
+
+  // GO-COPY-1008: FAQPage JSON-LD built from the same Q&As shown on the page (removed when the page unmounts).
+  const faqJsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    inLanguage: isEs ? "es" : "en",
+    mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  });
+  useEffect(() => {
+    const el = document.createElement("script");
+    el.type = "application/ld+json";
+    el.setAttribute("data-go-faq", "1");
+    el.text = faqJsonLd;
+    document.head.appendChild(el);
+    return () => {
+      el.remove();
+    };
+  }, [faqJsonLd]);
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
