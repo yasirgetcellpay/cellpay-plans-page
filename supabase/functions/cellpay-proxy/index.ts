@@ -1517,6 +1517,7 @@ async function plaidExchangeOn(): Promise<boolean> {
 // CellPay's reply as before, plus pending_log_id on create-order; a refused request gets the same calm 200 shape as a card refusal.
 const PP_CREATE = "payments/paypal/create-order";
 const PP_CAPTURE = "payments/paypal/capture-order";
+const PP_CREATE_ENABLED = false; // [PAYPAL-HIDE-1154] false = refuse new PayPal create-order (capture still allowed)
 const PP_META_KEYS = ["phone_number", "carrierId", "plan_id", "amount", "total", "email", "carrier_slug", "carrier_name", "browser_info", "kount_ssid", "source"];
 const PP_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PP_BLOCK_MSG = "We couldn't process this payment right now. Please try again in about 30 minutes or use a different payment method. You were not charged.";
@@ -1549,6 +1550,12 @@ async function paypalAction(
 ): Promise<Response> {
   const reply = (obj: unknown) => new Response(JSON.stringify(obj), { status: 200, headers: { ...cors, "Content-Type": "application/json" } });
   const isCreate = path === PP_CREATE;
+  // [PAYPAL-HIDE-1154] Oct 8 2026: new PayPal orders refused server-side (nothing sent to CellPay or PayPal). Capture-order is NOT
+  // affected, so orders already approved are still captured and logged. Re-enable: set PP_CREATE_ENABLED = true.
+  if (isCreate && !PP_CREATE_ENABLED) {
+    try { recordGuardEvent({ code: "paypal_disabled", method: "POST", endpoint_shape: PP_CREATE, origin_host: originHost(origin), has_origin: origin !== null }); } catch { /* ignore */ }
+    return reply({ success: false, blocked: true, code: "PAYPAL_UNAVAILABLE", message: "PayPal is not available right now. Please use another payment method. You were not charged." });
+  }
   const payload = asRecord(body.payload);
   const meta = asRecord(payload.pp_meta);
   const fwd: Record<string, unknown> = { ...payload };

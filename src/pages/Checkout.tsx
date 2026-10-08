@@ -8,7 +8,7 @@ import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, C
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
 import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass } from "@/lib/declineRecovery";
 import { AP_LAST_KEY } from "@/components/AutoPayReceiptCard";
-import { PLAID_ENABLED } from "@/config/paymentFlags";
+import { PLAID_ENABLED, PAYPAL_ENABLED } from "@/config/paymentFlags";
 import { supabase } from "@/integrations/supabase/client";
 import {
   validateRecharge,
@@ -207,6 +207,7 @@ const Checkout = () => {
   const [plaidAccount, setPlaidAccount] = useState<string | null>(null);
   // PL-0: a hidden Pay by Bank can never stay selected (falls back to the default, card).
   useEffect(() => { if ((!PLAID_ENABLED || plaidOff) && paymentMethod === "plaid") setPaymentMethod("card"); }, [paymentMethod, plaidOff]);
+  useEffect(() => { if (!PAYPAL_ENABLED && paymentMethod === "paypal") setPaymentMethod("card"); }, [paymentMethod]); // PAYPAL-HIDE-1154
   // GROWTH-1007-W: read the Pay by Bank kill switch (fraud_controls.plaid_exchange_mode) once per visit through the boolean-only
   // RPC pay_by_bank_available(). false -> hide Pay by Bank now (same as a plaid_unavailable answer). The decline dialog offers
   // Pay by Bank ONLY after this read said true (fail closed); if the read fails the tab keeps its old behaviour (server refuses anyway).
@@ -299,7 +300,7 @@ const Checkout = () => {
     const saved = readCheckoutMethod({ carrierSlug: state.carrierSlug, phone: state.phone, amount: state.amount });
     if (saved === "applepay" && !applePayAvailable) return; // Apple Pay is detected async: card until it is available
     methodRestoredRef.current = true;
-    const allowed: PaymentMethod[] = ["card", "googlepay", "paypal", "cashapp", "klarna"];
+    const allowed: PaymentMethod[] = PAYPAL_ENABLED ? ["card", "googlepay", "paypal", "cashapp", "klarna"] : ["card", "googlepay", "cashapp", "klarna"];
     if (applePayAvailable) allowed.push("applepay");
     if (PLAID_ENABLED) allowed.push("plaid");
     if (saved && allowed.includes(saved as PaymentMethod)) setPaymentMethod(saved as PaymentMethod);
@@ -645,6 +646,7 @@ const Checkout = () => {
   const ppLogIdRef = useRef<string | null>(null); // pending_log_id of the current PayPal order (proxy log row)
   const ppDupOkRef = useRef(false); // customer saw "You just paid $X" (DUP_CONFIRM) and taps PayPal again = confirmed
   const [ppPaidNoId, setPpPaidNoId] = useState<string | null>(null); // PayPal order id: paid, but CellPay sent no receipt id
+  const [ppReceivedId, setPpReceivedId] = useState<string | null>(null); // PAYPAL-HIDE-1154: PayPal took the money, CellPay failed after
 
   // Load PayPal SDK when config is available and paypal is selected
   useEffect(() => {
@@ -792,7 +794,14 @@ const Checkout = () => {
           } else {
             // [PAYPAL-CAPTURE-1008] capture_fail funnel detail carries CellPay's error code when there is no status (e.g. no_status:validation).
             if (ppPaid) ppFunnel("capture_ok"); else ppFunnel(captureRaw.blocked === true ? "blocked" : "capture_fail", captureRaw.blocked === true ? String(captureRaw.code || "") : (st ? `status:${st}` : `no_status${captureResult.code || captureRaw.error ? ":" + String(captureResult.code || captureRaw.error).slice(0, 40) : ""}`));
-            handleResult(captureRaw);
+            const ppErrText = String(captureRaw.error || captureRaw.message || captureResult.error || captureResult.message || "");
+            if (!ppPaid && captureRaw.blocked !== true && (/transaction processing failed/i.test(ppErrText) || /"(status|paypal_status|capture_status)"\s*:\s*"COMPLETED"/i.test(JSON.stringify(captureRaw)))) {
+              // PAYPAL-HIDE-1154: CellPay's "Transaction processing failed" comes AFTER PayPal captured the money (PayPal shows Completed). Never tell the customer it failed.
+              clearCheckoutCtx();
+              setPpReceivedId(data.orderID || "-");
+            } else {
+              handleResult(captureRaw);
+            }
           }
         } catch {
           ppFunnel("capture_error");
@@ -1819,7 +1828,7 @@ const Checkout = () => {
     { key: "card", label: tr.methodCard, Brand: CardBrandsStrip },
     ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: tr.methodApplePay, Brand: ApplePayMark }] : []),
     { key: "googlepay", label: tr.methodGooglePay, Brand: GooglePayMark },
-    { key: "paypal", label: tr.methodPayPal, Brand: PayPalMark },
+    ...(PAYPAL_ENABLED ? [{ key: "paypal" as PaymentMethod, label: tr.methodPayPal, Brand: PayPalMark }] : []), // PAYPAL-HIDE-1154
     // PL-0: Pay by Bank (Plaid) only shows while PLAID_ENABLED is true (src/config/paymentFlags.ts).
     ...(PLAID_ENABLED && !plaidOff ? [{ key: "plaid" as PaymentMethod, label: tr.methodPayByBank, Brand: BankMark }] : []),
     { key: "cashapp", label: tr.methodCashApp, Brand: CashAppMark },
@@ -2348,6 +2357,29 @@ const Checkout = () => {
               {lang === "es"
                 ? <>Si su recarga no llega en 15 minutos, escriba a support@getcellpay.com con la orden de PayPal <span className="font-mono">{ppPaidNoId}</span>.</>
                 : <>If your refill hasn't arrived in 15 minutes, email support@getcellpay.com with PayPal order <span className="font-mono">{ppPaidNoId}</span>.</>}
+            </p>
+            <button type="button" onClick={() => navigate(lang === "es" ? "/es" : "/")}
+              className="px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
+              {lang === "es" ? "Listo" : "Done"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {ppReceivedId && (
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" data-testid="paypal-received">
+          <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center shadow-xl">
+            <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-green-600" />
+            <h3 className="text-xl font-bold text-foreground mb-2">{lang === "es" ? "Pago recibido" : "Payment received"}</h3>
+            <p className="text-sm text-muted-foreground mb-2">
+              {lang === "es"
+                ? "Recibimos su pago de PayPal. Su recarga se está procesando — por favor no pague de nuevo."
+                : "We received your PayPal payment. Your refill is being processed — please don't pay again."}
+            </p>
+            <p className="text-xs text-muted-foreground mb-4">
+              {lang === "es"
+                ? <>Si no llega en 30 minutos, escriba a support@getcellpay.com con la orden de PayPal <span className="font-mono">{ppReceivedId}</span>.</>
+                : <>If it doesn't arrive within 30 minutes, email support@getcellpay.com with PayPal order <span className="font-mono">{ppReceivedId}</span>.</>}
             </p>
             <button type="button" onClick={() => navigate(lang === "es" ? "/es" : "/")}
               className="px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>

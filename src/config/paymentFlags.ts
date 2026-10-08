@@ -2,3 +2,5 @@
 // (invalid_access_token). Plaid v2, Oct 4 2026: shown again on CellPay's Pay by Bank flow. Server-side kill switch:
 // fraud_controls.plaid_exchange_mode = 'off' (cellpay-proxy then refuses it and the page hides it for the visit).
 export const PLAID_ENABLED = true;
+// PAYPAL-HIDE-1154, Oct 8 2026: PayPal hidden (PayPal captured but CellPay answered "Transaction processing failed", no refill). true = show again.
+export const PAYPAL_ENABLED = false;
