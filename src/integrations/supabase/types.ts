@@ -791,6 +791,36 @@ export type Database = {
         }
         Relationships: []
       }
+      paypal_funnel_events: {
+        Row: {
+          created_at: string
+          detail: string | null
+          event: string
+          host: string | null
+          id: number
+          lang: string | null
+          sess: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          event: string
+          host?: string | null
+          id?: number
+          lang?: string | null
+          sess: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          event?: string
+          host?: string | null
+          id?: number
+          lang?: string | null
+          sess?: string
+        }
+        Relationships: []
+      }
       plaid_v2_refs: {
         Row: {
           bind_h: string
@@ -1625,6 +1655,16 @@ export type Database = {
         Returns: boolean
       }
       log_card_facts: { Args: { _data: Json }; Returns: undefined }
+      log_paypal_funnel: {
+        Args: {
+          _detail?: string
+          _event: string
+          _host?: string
+          _lang?: string
+          _sess: string
+        }
+        Returns: undefined
+      }
       log_purchase_fire: {
         Args: {
           _hashid?: string
@@ -1648,6 +1688,19 @@ export type Database = {
         Returns: number
       }
       pay_by_bank_available: { Args: never; Returns: boolean }
+      paypal_finalize_log: {
+        Args: {
+          _error_message: string
+          _hashid: string
+          _id: string
+          _order_id: string
+          _raw_response: Json
+          _status: string
+          _transaction_id: string
+        }
+        Returns: Json
+      }
+      paypal_mark_abandoned: { Args: never; Returns: number }
       plaid_v2_bind: {
         Args: { _bind_h: string; _ref_h: string; _ttl_s?: number }
         Returns: Json
