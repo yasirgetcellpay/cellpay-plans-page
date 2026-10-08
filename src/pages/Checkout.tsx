@@ -153,6 +153,7 @@ const AP_COPY = {
     consentConfirmed: "I agree to the Auto Pay terms below and authorize CellPay to charge this card every 30 days until I cancel.",
     placeHint: "Tick the Auto Pay authorization above to continue.",
     termsNote: "",
+    gpayNote: "Google Pay: CellPay's payment processor securely saves this Google Pay card so Auto Pay can charge it on each renewal. Auto Pay is run by CellPay, not Google. Cancel anytime with the link above.", // GPAY-AUTOPAY-1008
     dateLocale: "en-US",
   },
   es: {
@@ -167,6 +168,7 @@ const AP_COPY = {
     consent: "Acepto los términos de pago automático a continuación y autorizo a CellPay a hacer cargos a esta tarjeta cada mes en mi fecha de pago hasta que yo cancele.",
     consentConfirmed: "Acepto los términos de pago automático a continuación y autorizo a CellPay a hacer cargos a esta tarjeta cada 30 días hasta que yo cancele.",
     placeHint: "Marque la autorización de pago automático arriba para continuar.",
+    gpayNote: "Google Pay: el procesador de pagos de CellPay guarda de forma segura esta tarjeta de Google Pay para que el pago automático pueda cobrarla en cada renovación. El pago automático lo gestiona CellPay, no Google. Cancele cuando quiera con el enlace de arriba.", // GPAY-AUTOPAY-1008
     dateLocale: "es-US",
   },
 } as const;
@@ -222,6 +224,8 @@ const Checkout = () => {
   const [autoPay, setAutoPay] = useState(false);
   const [autoPayTerms, setAutoPayTerms] = useState(false);
   const checkoutConfigRef = useRef<Record<string, unknown> | null>(null); // APAP-1007: mirror of checkoutConfig (state is declared below)
+  const [gpGate, setGpGate] = useState<{ ok: boolean; site: string } | null>(null); // GPAY-AUTOPAY-1008: gpay_autopay_check answer (offer stage)
+  const gpRecurringRef = useRef(false); // GPAY-AUTOPAY-1008: true only when THIS Google Pay order sent the Auto Pay flags
   const [, setApConfigTick] = useState(0);
   // ARB-0: Auto Pay is offered with card only. Leaving card clears Auto Pay and its terms tick, so hidden state can't keep
   // PLACE ORDER disabled or let another method pay as if Auto Pay were on. Back on card, the customer's own earlier choice
@@ -236,7 +240,14 @@ const Checkout = () => {
       return ap?.recurringSupported === true && !!aps && typeof aps.supportsVersion === "function" && aps.supportsVersion(14) === true;
     } catch { return false; }
   })();
-  const autoPayMethodOk = paymentMethod === "card" || (paymentMethod === "applepay" && applePayRecurringOk);
+  // GPAY-AUTOPAY-1008: Google Pay Auto Pay. Offered ONLY when (a) neither kill switch is off: CellPay's googlePay.recurringSupported
+  // is not false AND our site flag (gpay_autopay_controls.site, read through gpay_autopay_check) is not 'off'; (b) one of them turns
+  // it on: CellPay's flag === true OR our site flag === 'on'; (c) the Fraud & QA enrollment gates pass for this phone + email.
+  // No answer yet / failed / timed out = not offered (fail closed). The one-time Google Pay purchase is unchanged either way.
+  const googlePayRecurringCfg = (checkoutConfigRef.current?.googlePay as Record<string, unknown> | undefined)?.recurringSupported;
+  const googlePayRecurringOk = !!gpGate && gpGate.ok === true && gpGate.site !== "off" && googlePayRecurringCfg !== false
+    && (googlePayRecurringCfg === true || gpGate.site === "on");
+  const autoPayMethodOk = paymentMethod === "card" || (paymentMethod === "applepay" && applePayRecurringOk) || (paymentMethod === "googlepay" && googlePayRecurringOk);
   useEffect(() => {
     if (!autoPayMethodOk) {
       if (autoPay || autoPayTerms) {
@@ -338,6 +349,29 @@ const Checkout = () => {
 
   // Checkout config from API (typed)
   const [checkoutConfig, setCheckoutConfig] = useState<Record<string, unknown> | null>(null);
+  // GPAY-AUTOPAY-1008: Fraud & QA enrollment gates (blocklist, VEL1 24 h, <=1 failed attempt 24 h, 1 name per phone 30 d; A4 behind a
+  // DB flag) + our site kill switch, through the boolean-only RPC gpay_autopay_check (it never says which gate failed). Fail closed.
+  const gpayAutoPayCheck = useCallback(async (args: { phone: string; email: string; first?: string; last?: string; country?: string; stage: "offer" | "submit" }): Promise<{ ok: boolean; site: string }> => {
+    const call = Promise.resolve((supabase as unknown as { rpc: (fn: string, a: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }> }).rpc("gpay_autopay_check", {
+      _phone: args.phone, _email: args.email, _first: args.first ?? null, _last: args.last ?? null, _country: args.country ?? null, _stage: args.stage,
+    })).then(({ data, error }) => {
+      const d = (data && typeof data === "object" ? data : null) as { ok?: unknown; site?: unknown } | null;
+      const site = d && typeof d.site === "string" ? d.site : "off";
+      return { ok: !error && !!d && d.ok === true, site };
+    });
+    const timeout = new Promise<{ ok: boolean; site: string }>((resolve) => setTimeout(() => resolve({ ok: false, site: "off" }), 3000));
+    try { return await Promise.race([call, timeout]); } catch { return { ok: false, site: "off" }; }
+  }, []);
+  const gpPhone = state ? normalizePhone(String(state.phone || "")) : "";
+  const gpEmail = email.trim();
+  const gpEmailOk = gpEmail.length > 0 && gpEmail.includes("@") && gpEmail.includes(".");
+  useEffect(() => {
+    setGpGate(null);
+    if (paymentMethod !== "googlepay" || gpPhone.length !== 10 || !gpEmailOk) return;
+    let cancelled = false;
+    const t = setTimeout(() => { void gpayAutoPayCheck({ phone: gpPhone, email: gpEmail, stage: "offer" }).then((r) => { if (!cancelled) setGpGate(r); }); }, 600);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [paymentMethod, gpPhone, gpEmail, gpEmailOk, gpayAutoPayCheck]);
   const [paypalReady, setPaypalReady] = useState(false);
   const paypalContainerRef = useRef<HTMLDivElement>(null);
   const paypalButtonsRef = useRef<{ close: () => void } | null>(null);
@@ -864,7 +898,7 @@ const Checkout = () => {
       clearCheckoutCtx();
       try { sessionStorage.removeItem(AP_TICKS_KEY); } catch { /* ignore */ } // ARB-1b: order placed, forget the ticks
       // GROWTH-1007: receipt shows "Auto Pay is on" only when THIS order was card + both Auto Pay ticks. Reset decline count.
-      try { if (paymentMethod === "card" && autoPay && autoPayTerms && hid) sessionStorage.setItem(AP_LAST_KEY, hid); else sessionStorage.removeItem(AP_LAST_KEY); } catch { /* ignore */ }
+      try { if (((paymentMethod === "card" && autoPay && autoPayTerms) || (paymentMethod === "googlepay" && gpRecurringRef.current)) && hid) sessionStorage.setItem(AP_LAST_KEY, hid); else sessionStorage.removeItem(AP_LAST_KEY); } catch { /* ignore */ } // GPAY-AUTOPAY-1008: Google Pay Auto Pay orders too
       clearCardDeclines();
       navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
     } else {
@@ -1068,6 +1102,8 @@ const Checkout = () => {
 
   // ─── Google Pay ───
   const handleGooglePay = async () => {
+    gpRecurringRef.current = false; // GPAY-AUTOPAY-1008
+    const gpWantAutoPay = autoPay && autoPayTerms && googlePayRecurringOk;
     try {
       await loadScript("https://pay.google.com/gp/p/js/pay.js", "gpay-sdk");
     } catch {
@@ -1134,6 +1170,19 @@ const Checkout = () => {
     console.log("[GooglePay] paymentMethodData:", pmd);
     console.log("[GooglePay] billingAddress:", billingAddress);
 
+    // GPAY-AUTOPAY-1008: Auto Pay flags ONLY when both ticks are on AND the gates pass again now with the Google billing name and
+    // country (A2 one name per phone, A3 US billing) AND neither kill switch is off. Otherwise exactly today's one-time payload.
+    let gpRecurring = false;
+    if (gpWantAutoPay) {
+      const ba = (billingAddress || {}) as Record<string, unknown>;
+      const nameParts = String(ba.name || "").trim().split(/\s+/).filter(Boolean);
+      const r = await gpayAutoPayCheck({ phone: normalizePhone(state.phone), email: email.trim(), first: nameParts[0] || "", last: nameParts.slice(1).join(" "), country: String(ba.countryCode || ""), stage: "submit" });
+      const cfg = (checkoutConfigRef.current?.googlePay as Record<string, unknown> | undefined)?.recurringSupported;
+      gpRecurring = r.ok === true && r.site !== "off" && cfg !== false && (cfg === true || r.site === "on");
+    }
+    gpRecurringRef.current = gpRecurring;
+    console.log("[GooglePay] autopay", gpRecurring);
+
     await fpReady();
     const result = await submitTransaction({
       checkout_version: "5.0",
@@ -1150,6 +1199,7 @@ const Checkout = () => {
         firstName: firstName.trim() || "Customer",
         lastName: lastName.trim() || "User",
         email: email.trim() || "customer@cellpay.us",
+        ...(gpRecurring ? { autopay: true, autopay_agreement: true } : {}), // GPAY-AUTOPAY-1008: same field names as card/APAP; never a profileId
       },
       google_pay_token: googlePayTokenPayload,
       gpay_billing_details: JSON.stringify(billingAddress || {}),
@@ -2014,6 +2064,9 @@ const Checkout = () => {
                         <a href="/faq" target="_blank" rel="noopener noreferrer" className="underline font-semibold" style={{ color: brandColor }}>{apCopy.cancelLink}</a>
                         {apCopy.cancelTail}
                       </p>
+                      {paymentMethod === "googlepay" && (
+                        <p data-testid="autopay-gpay-note" className="text-sm text-foreground leading-relaxed">{apCopy.gpayNote}</p>
+                      )}
                     </div>
 
 
