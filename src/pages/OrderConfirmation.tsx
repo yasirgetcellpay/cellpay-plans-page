@@ -139,9 +139,17 @@ const OrderConfirmation = () => {
         // pending matching this hashid is cleared when present. Keep sentKey dedupe. Fail-closed already applied above.
         const sentKey = `cp_purchase_sent:${txnId}`;
         let fire = false;
+        // PAYPAL-1008 side fix: a receipt reopened later on another device (no pending flag there, empty localStorage) no longer
+        // re-fires the purchase. It fires when this device's pending flag matches this hashid, OR the receipt's created time is
+        // within 24 h (or in the future), OR created is missing / unreadable (fail open). Readable created older than 24 h and no
+        // pending flag on this device = already counted when it was placed: no purchase event, no beacon.
+        let pendingMatch = false;
+        const createdMs = Date.parse(String(txn.created ?? ""));
+        const fresh = !Number.isFinite(createdMs) || Date.now() - createdMs < 24 * 3600 * 1000;
         try {
           try {
             if (sessionStorage.getItem("cp_purchase_pending") === hashid) {
+              pendingMatch = true;
               sessionStorage.removeItem("cp_purchase_pending");
             }
           } catch { /* ignore */ }
@@ -149,10 +157,11 @@ const OrderConfirmation = () => {
             const m = document.cookie.match(/(?:^|;\s*)cp_purchase_pending=([^;]*)/);
             const cookieVal = m ? decodeURIComponent(m[1]) : "";
             if (cookieVal === hashid) {
+              pendingMatch = true;
               document.cookie = "cp_purchase_pending=; path=/; Max-Age=0; SameSite=Lax; Secure";
             }
           } catch { /* ignore */ }
-          if (localStorage.getItem(sentKey) === null) {
+          if ((pendingMatch || fresh) && localStorage.getItem(sentKey) === null) {
             localStorage.setItem(sentKey, String(Date.now()));
             fire = true;
           }
