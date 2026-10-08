@@ -516,6 +516,40 @@ async function ap1Rpc(name: string, args: Record<string, unknown>, timeoutMs: nu
   return await res.json();
 }
 
+// [AP1-RETRY-1007] Queue write for a matched cancel that CellPay refused or that failed. Runs in the background
+// (EdgeRuntime.waitUntil) so the customer's padded neutral reply and its timing are unchanged, with a 3 s budget and one
+// retry (the old inline 400 ms budget expired before the write reached the database: no row on Oct 7 18:22 CT).
+// ap1_retry_record does not count a second write for the same open row within 10 s as a new attempt, so a slow first
+// write that still commits plus the retry give one row. Last resort log line: transaction_log_id + masked phone
+// (***last4) only, never the full number. Never throws.
+const AP1_RETRY_WRITE_TIMEOUT_MS = 3000;
+async function ap1RetryWrite(
+  owner: string,
+  phone: string,
+  fail: { kind: string; status: number | null },
+  domain: string,
+  origin: string | null,
+): Promise<void> {
+  let reason = "";
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const rid = await ap1Rpc("ap1_retry_record", { _log_id: owner, _kind: fail.kind, _status: fail.status, _domain: domain }, AP1_RETRY_WRITE_TIMEOUT_MS);
+      if (rid !== null && rid !== undefined) {
+        ap1Event("ap1:retry_queued", origin);
+        return;
+      }
+      reason = "no_row";
+      break; // transaction_logs row not found: a retry can't help
+    } catch (e) {
+      reason = e instanceof Error ? (e.name === "TimeoutError" || e.name === "AbortError" ? "timeout" : e.message.slice(0, 60)) : "error";
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 300));
+    }
+  }
+  ap1Event("ap1:retry_write_error", origin);
+  const masked = "***" + String(phone).replace(/\D/g, "").slice(-4);
+  console.error(`[autopay AP-1] retry row NOT written: transaction_log_id=${owner} phone=${masked} kind=${fail.kind} status=${fail.status ?? "none"} reason=${reason}`);
+}
+
 /** Turnstile, SHADOW only: returns a verdict for the log. Never blocks and never logs the token or secret. */
 async function ap1TurnstileVerdict(token: unknown, ip: string | null): Promise<string> {
   if (typeof token !== "string" || token.length === 0 || token.length > 2048) return "missing";
@@ -661,16 +695,12 @@ async function ap1HandleUnsubscribe(
     ap1Event("ap1:sent_ok", origin);
   } else {
     ap1Event(`ap1:sent_fail:${fail.kind}`, origin);
-    // Queue it (reference + kind + status only). 400 ms budget keeps the reply inside AP1_MIN_MS.
-    try {
-      const rid = await ap1Rpc("ap1_retry_record", { _log_id: owner, _kind: fail.kind, _status: fail.status, _domain: cellpayDomain }, 400);
-      if (rid === null || rid === undefined) throw new Error("no row");
-      ap1Event("ap1:retry_queued", origin);
-    } catch {
-      ap1Event("ap1:retry_write_error", origin);
-      // Last resort so it still isn't lost: the edge log gets the transaction_logs id (a uuid, no PII).
-      console.error(`[autopay AP-1] retry row NOT written: transaction_log_id=${owner} kind=${fail.kind} status=${fail.status ?? "none"}`);
-    }
+    // [AP1-RETRY-1007] Queue it (reference + kind + status only) in the background: 3 s budget + one retry, reply unchanged.
+    const write = ap1RetryWrite(owner, phone, fail, cellpayDomain, origin).catch(() => {});
+    // deno-lint-ignore no-explicit-any
+    const runtime = (globalThis as any).EdgeRuntime;
+    if (runtime && typeof runtime.waitUntil === "function") runtime.waitUntil(write);
+    else await write;
   }
   return ap1Padded(started, cors, AP1_NEUTRAL);
 }
