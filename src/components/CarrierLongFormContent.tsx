@@ -5,6 +5,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Phone, DollarSign, CreditCard, CheckCircle2 } from "lucide-react";
+// PAYCOPY-1008: shared payment list (follows src/config/paymentFlags.ts)
+import { payWith, payBrands } from "@/content/paymentMethods";
 
 /**
  * Generic long-form content block used by carrier pages that need
@@ -168,7 +170,7 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every AT&T Prepaid payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
+      body: "Check out with " + payWith("en", "card") + ". Every AT&T Prepaid payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
     },
   ],
   plansH2: "Supported AT&T Prepaid Plans",
@@ -186,7 +188,7 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
   faqs: [
     {
       q: "How do I pay my AT&T Prepaid bill online without logging in?",
-      a: "Use this AT&T Prepaid refill page on CellPay. Enter the AT&T phone number, choose a $30, $40, $50, $65, or $75 plan or a custom top-up, and pay with a card, Apple Pay, Google Pay, PayPal, or Cash App. No AT&T login required.",
+      a: "Use this AT&T Prepaid refill page on CellPay. Enter the AT&T phone number, choose a $30, $40, $50, $65, or $75 plan or a custom top-up, and pay with " + payWith("en") + ". No AT&T login required.",
     },
     {
       q: "How fast does an AT&T Prepaid refill post?",
@@ -198,7 +200,7 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
     },
     {
       q: "What payment methods can I use for AT&T Prepaid?",
-      a: "Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, and Cash App.",
+      a: payBrands("en") + ".",
     },
     {
       q: "Are AT&T autopay discounts included?",
@@ -232,7 +234,7 @@ export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every Straight Talk payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
+      body: "Check out with " + payWith("en", "card") + ". Every Straight Talk payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
     },
   ],
   plansH2: "Supported Straight Talk Service Plans",
@@ -250,7 +252,7 @@ export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
   faqs: [
     {
       q: "How do I pay my Straight Talk bill online without logging in?",
-      a: "Use this Straight Talk refill page on CellPay. Enter the Straight Talk phone number, choose a $35, $45, $55, or $65 plan (or a multi-month plan), and pay with a card, Apple Pay, Google Pay, PayPal, or Cash App. No Straight Talk login required.",
+      a: "Use this Straight Talk refill page on CellPay. Enter the Straight Talk phone number, choose a $35, $45, $55, or $65 plan (or a multi-month plan), and pay with " + payWith("en") + ". No Straight Talk login required.",
     },
     {
       q: "How fast does a Straight Talk refill post?",
@@ -266,7 +268,7 @@ export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
     },
     {
       q: "What payment methods can I use for Straight Talk?",
-      a: "Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, and Cash App.",
+      a: payBrands("en") + ".",
     },
     {
       q: "Will a Straight Talk refill restore suspended service?",
@@ -296,7 +298,7 @@ export const VERIZON_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every Verizon Prepaid payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
+      body: "Check out with " + payWith("en", "card") + ". Every Verizon Prepaid payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
     },
   ],
   plansH2: "Supported Verizon Prepaid Plans",
@@ -314,7 +316,7 @@ export const VERIZON_CONFIG: CarrierLongFormConfig = {
   faqs: [
     {
       q: "How do I pay my Verizon Prepaid bill online without logging in?",
-      a: "Use this Verizon Prepaid refill page on CellPay. Enter the Verizon phone number, choose a $35, $45, $55, or $65 plan or a custom top-up, and pay with a card, Apple Pay, Google Pay, PayPal, or Cash App. No My Verizon login required.",
+      a: "Use this Verizon Prepaid refill page on CellPay. Enter the Verizon phone number, choose a $35, $45, $55, or $65 plan or a custom top-up, and pay with " + payWith("en") + ". No My Verizon login required.",
     },
     {
       q: "How fast does a Verizon Prepaid refill post?",
@@ -326,7 +328,7 @@ export const VERIZON_CONFIG: CarrierLongFormConfig = {
     },
     {
       q: "What payment methods can I use for Verizon Prepaid?",
-      a: "Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, and Cash App.",
+      a: payBrands("en") + ".",
     },
     {
       q: "Do Verizon Prepaid autopay discounts apply on CellPay?",

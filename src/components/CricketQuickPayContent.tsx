@@ -5,6 +5,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Phone, DollarSign, CreditCard } from "lucide-react";
+// PAYCOPY-1008: shared payment list (follows src/config/paymentFlags.ts)
+import { payWith, payBrands } from "@/content/paymentMethods";
 
 /**
  * Cricket-specific long-form content for /topup-crc.html.
@@ -31,7 +33,7 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
       icon: CreditCard,
       title: "Step 3 — Pay Securely With Any Card or Wallet",
       body:
-        "Check out with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. Every Cricket quick pay transaction is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
+        "Check out with " + payWith("en", "card") + ". Every Cricket quick pay transaction is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
     },
   ];
 
@@ -42,7 +44,7 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
     },
     {
       q: "How do I pay my Cricket bill online without logging in?",
-      a: "Use this Cricket Wireless quick pay page. Type the Cricket phone number you want to refill, choose a $30, $40, $55, or $60 plan (or a custom top-up amount), and complete payment with a card, Apple Pay, Google Pay, PayPal, or Cash App. No Cricket username or password needed.",
+      a: "Use this Cricket Wireless quick pay page. Type the Cricket phone number you want to refill, choose a $30, $40, $55, or $60 plan (or a custom top-up amount), and complete payment with " + payWith("en") + ". No Cricket username or password needed.",
     },
     {
       q: "How long does a Cricket quick pay refill take?",
@@ -50,7 +52,7 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
     },
     {
       q: "What payment methods can I use for Cricket Wireless?",
-      a: "CellPay accepts Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, and Cash App.",
+      a: "CellPay accepts " + payBrands("en") + ".",
     },
     {
       q: "Can I pay someone else's Cricket bill?",
@@ -165,7 +167,7 @@ export const CRICKET_QUICK_PAY_FAQ_SCHEMA = JSON.stringify({
       name: "How do I pay my Cricket bill online without logging in?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Use the Cricket Wireless quick pay page on CellPay. Enter the Cricket phone number, choose a $30, $40, $55, or $60 plan or a custom top-up, and pay with a card, Apple Pay, Google Pay, PayPal, or Cash App. No Cricket login required.",
+        text: "Use the Cricket Wireless quick pay page on CellPay. Enter the Cricket phone number, choose a $30, $40, $55, or $60 plan or a custom top-up, and pay with " + payWith("en") + ". No Cricket login required.",
       },
     },
     {
@@ -181,7 +183,7 @@ export const CRICKET_QUICK_PAY_FAQ_SCHEMA = JSON.stringify({
       name: "What payment methods can I use for Cricket Wireless?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "CellPay accepts Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, and Cash App.",
+        text: "CellPay accepts " + payBrands("en") + ".",
       },
     },
     {

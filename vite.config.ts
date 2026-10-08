@@ -5,6 +5,8 @@ import fs from "fs";
 import { componentTagger } from "lovable-tagger";
 // AEO-PAGES-1007: how-to-pay page text (shared with src/pages/HowToPay.tsx) for static raw HTML + JSON-LD.
 import { HOW_TO_PAY_PAGES, howToPayJsonLd, howToPayStaticHtml } from "./src/content/howToPay";
+// PAYCOPY-1008: payment methods named in raw HTML come from the shared list (follows src/config/paymentFlags.ts).
+import { weAcceptLine, payBrandsComma, PAYPAL_SHOWN } from "./src/content/paymentMethods";
 // PRIVACY-1007: privacy policy text (shared with src/pages/PrivacyPolicy.tsx) for the static raw HTML (EN + ES).
 import { PRIVACY_PAGES, privacyMainHtml, type PpPage } from "./src/content/privacyPolicy";
 
@@ -1029,7 +1031,7 @@ const htmlAliasPlugin = (): Plugin => ({
     // GO-COPY-1008: wallet marks (keep byte-identical with GO_PAY_MARKS in GoLander.tsx).
     const GO_PAY_MARKS =
       '<svg width="16" height="16" viewBox="0 0 20 20" role="img" aria-label="Cash App"><rect width="20" height="20" rx="4" fill="#00D632"/><text x="10" y="14.5" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="13" fill="#fff">$</text></svg>' +
-      '<svg width="46" height="16" viewBox="0 0 46 16" role="img" aria-label="PayPal"><text x="0" y="12.5" font-family="Arial,sans-serif" font-weight="900" font-size="13" font-style="italic" fill="#003087">Pay</text><text x="23" y="12.5" font-family="Arial,sans-serif" font-weight="900" font-size="13" font-style="italic" fill="#009cde">Pal</text></svg>' +
+      (PAYPAL_SHOWN ? '<svg width="46" height="16" viewBox="0 0 46 16" role="img" aria-label="PayPal"><text x="0" y="12.5" font-family="Arial,sans-serif" font-weight="900" font-size="13" font-style="italic" fill="#003087">Pay</text><text x="23" y="12.5" font-family="Arial,sans-serif" font-weight="900" font-size="13" font-style="italic" fill="#009cde">Pal</text></svg>' : "") + // PAYCOPY-1008: PayPal mark only while PayPal is offered
       '<svg width="38" height="16" viewBox="0 0 48 20" role="img" aria-label="Apple Pay"><rect width="48" height="20" rx="4" fill="#000"/><path d="M11.4 7.1c-.4.5-1 .9-1.6.8-.1-.6.2-1.3.6-1.7.4-.5 1.1-.8 1.6-.9.1.7-.2 1.3-.6 1.8zm.6.9c-.9-.1-1.6.5-2 .5s-1-.5-1.7-.5c-.9 0-1.7.5-2.1 1.3-.9 1.6-.2 4 .7 5.3.4.6.9 1.3 1.6 1.3.6 0 .9-.4 1.7-.4s1 .4 1.7.4c.7 0 1.2-.6 1.6-1.3.5-.7.7-1.4.7-1.5-.1 0-1.4-.5-1.4-2.1 0-1.3 1.1-1.9 1.1-2-.6-.9-1.5-1-1.9-1z" fill="#fff"/><text x="18" y="14" font-family="Arial,sans-serif" font-weight="700" font-size="10" fill="#fff">Pay</text></svg>' +
       '<svg width="32" height="16" viewBox="0 0 40 20" role="img" aria-label="Google Pay"><rect x=".5" y=".5" width="39" height="19" rx="4" fill="#fff" stroke="#dadce0"/><text x="5" y="14" font-family="Arial,sans-serif" font-weight="700" font-size="11" fill="#4285F4">G</text><text x="16" y="14" font-family="Arial,sans-serif" font-weight="700" font-size="10" fill="#5f6368">Pay</text></svg>' +
       '<svg width="45" height="16" viewBox="0 0 56 20" role="img" aria-label="Klarna"><rect width="56" height="20" rx="4" fill="#FFA8CD"/><text x="28" y="14" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="10" fill="#0A0A0A">Klarna.</text></svg>';
@@ -1110,8 +1112,8 @@ const htmlAliasPlugin = (): Plugin => ({
             : "No phone call needed. Pay Boost online in 3 steps."
           : null;
       const esHref = isEs ? null : "/es/" + route.replace(/\/index\.html$/, "");
-      const payMethods =
-        "Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, Cash App";
+      // PAYCOPY-1008: shared list (same as GoLander PAY_METHODS)
+      const payMethods = payBrandsComma();
       const carrier = logo
         ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)} logo" width="94" height="28" class="h-[28px] sm:h-[36px] w-auto object-contain">`
         : `<span class="text-lg font-extrabold" style="color:${look.color}">${escAttr(look.name)}</span>`;
@@ -1292,8 +1294,8 @@ const htmlAliasPlugin = (): Plugin => ({
         ? "Pay your Metro by T-Mobile prepaid bill online. No login needed."
         : "No login needed. Enter your phone number, choose your plan, and you're recharged.";
       const info = isEs
-        ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano. Cargo por servicio bajo, mostrado antes de pagar. Aceptamos Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna y Cash App."
-        : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked. Low service fee shown before you pay. We accept Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna and Cash App.";
+        ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PAYCOPY-1008: shared payment list
+        : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked. Low service fee shown before you pay. " + weAcceptLine("en");
       return (
         `<div id="root" data-go-prerender="1">` +
         `<div class="min-h-screen bg-background font-sans antialiased">` +

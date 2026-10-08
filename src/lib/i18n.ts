@@ -1,4 +1,6 @@
 import { useLocation } from "react-router-dom";
+// PAYCOPY-1008: shared payment list (follows src/config/paymentFlags.ts)
+import { payWith } from "../content/paymentMethods";
 
 export type Language = "en" | "es";
 
@@ -321,7 +323,7 @@ const en: Translations = {
   homeFaqTitle: "Frequently Asked Questions",
   homeFaq: [
     { q: "What is CellPay?", a: "CellPay is a fast, secure online payment service that lets you refill any major US prepaid wireless line online. No login needed." },
-    { q: "How does CellPay work?", a: "Pick your carrier, enter the prepaid phone number, choose a refill amount or plan, and pay with card, Apple Pay, Google Pay, PayPal, Klarna, or Cash App. It can take up to 30 min for a refill to reflect on your account." },
+    { q: "How does CellPay work?", a: "Pick your carrier, enter the prepaid phone number, choose a refill amount or plan, and pay with " + payWith("en", "card") + ". It can take up to 30 min for a refill to reflect on your account." },
     { q: "Is CellPay for real?", a: "Yes. CellPay processes prepaid refill payments for 15+ US carriers." },
     { q: "Is CellPay secure?", a: "All payment data is encrypted in transit with TLS (HTTPS)." },
   ],
@@ -480,7 +482,7 @@ const es: Translations = {
   homeFaqTitle: "Preguntas Frecuentes",
   homeFaq: [
     { q: "¿Qué es CellPay?", a: "CellPay es un servicio rápido y seguro para pagar en línea. Con CellPay puede recargar su teléfono prepagado de los principales operadores de EE. UU. Sin necesidad de iniciar sesión." },
-    { q: "¿Cómo funciona CellPay?", a: "Elija su operador, ingrese el número de teléfono prepagado, seleccione un monto o plan de recarga y pague con tarjeta, Apple Pay, Google Pay, PayPal, Klarna o Cash App. La recarga puede tardar hasta 30 min en reflejarse." },
+    { q: "¿Cómo funciona CellPay?", a: "Elija su operador, ingrese el número de teléfono prepagado, seleccione un monto o plan de recarga y pague con " + payWith("es") + ". La recarga puede tardar hasta 30 min en reflejarse." },
     { q: "¿Es CellPay real?", a: "Sí. CellPay procesa pagos de recargas prepagadas para más de 15 operadores de EE. UU." },
     { q: "¿Es CellPay seguro?", a: "Todos los datos de pago se cifran en tránsito con TLS (HTTPS)." },
   ],
