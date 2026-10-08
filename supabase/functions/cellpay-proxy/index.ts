@@ -1557,6 +1557,33 @@ async function paypalAction(
   // The site now sends order_id + orderID + payerID (from PayPal onApprove). A page loaded before that publish sends only order_id,
   // so orderID is filled from it here; payerID can only come from PayPal in the browser.
   if (!isCreate && (fwd.orderID === undefined || fwd.orderID === null || fwd.orderID === "") && typeof fwd.order_id === "string" && fwd.order_id) fwd.orderID = fwd.order_id;
+  // [PAYPAL-CTX-1008] CellPay capture-order also needs the create-order context (amount, phone_number, carrierId, slug; optional
+  // email). CellPay keeps it in a session that these server-to-server calls never share, so every capture failed with "PayPal order
+  // context not found in session" (probe 10:47 CT Oct 8). Filled from OUR create row for this PayPal order (the values CellPay
+  // created the order with; they replace anything the page sent), else from the page's pp_meta (missing fields only). 800 ms, fail-open.
+  if (!isCreate) {
+    const ppOid = text(fwd.orderID) ?? text(fwd.order_id);
+    let ctx: Record<string, unknown> = {};
+    if (ppOid) {
+      try {
+        const lid = text(meta.pending_log_id);
+        ctx = asRecord(await Promise.race([
+          callDatabaseRpc("paypal_capture_context", { _order_id: ppOid, _log_id: lid && PP_UUID_RE.test(lid) ? lid : null }),
+          new Promise((res) => setTimeout(() => res(null), 800)),
+        ]));
+      } catch { ctx = {}; }
+    }
+    const fromLog = ctx.found === true;
+    const num = (v: unknown) => { const n = Number(v); return v !== undefined && v !== null && v !== "" && Number.isFinite(n) ? n : undefined; };
+    const want: Record<string, unknown> = fromLog
+      ? { amount: num(ctx.amount), total: num(ctx.total), phone_number: text(ctx.phone_number), carrierId: num(ctx.carrier_id), plan_id: text(ctx.plan_id), slug: text(ctx.carrier_slug) ?? text(meta.carrier_slug), email: text(ctx.email) ?? text(meta.email) }
+      : { amount: num(meta.amount), total: num(meta.total), phone_number: text(meta.phone_number), carrierId: num(meta.carrierId), plan_id: text(meta.plan_id), slug: text(meta.carrier_slug), email: text(meta.email) };
+    for (const [k, v] of Object.entries(want)) {
+      if (v === undefined || v === null || v === "") continue;
+      if (fromLog || fwd[k] === undefined || fwd[k] === null || fwd[k] === "") fwd[k] = v;
+    }
+    console.log(`[paypal-ctx] capture context from ${fromLog ? "log" : "page"} (${["amount", "phone_number", "carrierId", "slug"].filter((k) => fwd[k] !== undefined && fwd[k] !== null && fwd[k] !== "").length}/4 required fields)`);
+  }
   // Log / guard view of this order: the site's pp_meta fields, then the payload CellPay gets (wins), payment_method 'paypal'.
   const lr: Record<string, unknown> = {};
   for (const k of PP_META_KEYS) if (meta[k] !== undefined && meta[k] !== null && meta[k] !== "") lr[k] = meta[k];
