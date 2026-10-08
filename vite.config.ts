@@ -746,6 +746,11 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/go/totalwireless.html", "es/go/totalwireless/index.html",
       "es/go/tracfone.html", "es/go/tracfone/index.html",
     ]);
+    // GO-COPY-1008: /go fee wording (same as goFeeCopy in GoLander.tsx). Route descriptions keep the old text in source.
+    const goFeeCopy = (s: string): string =>
+      s
+        .replace("Low service fee shown before you pay", "Service fee shown before you pay")
+        .replace("Cargo por servicio bajo, mostrado antes de pagar", "Cargo por servicio mostrado antes de pagar");
     // SEO-ES-META-1007: one carrier-named Spanish description for Spanish carrier pages.
     // SEO-ES-META: keep in sync with src/pages/DynamicCarrier.tsx (lang === "es" applySeoHead).
     const esCarrierDesc = (name: string) =>
@@ -797,10 +802,10 @@ const htmlAliasPlugin = (): Plugin => ({
       if (GO_SHELLS.has(route)) {
         const meta = CARRIER_META[route] || {
           title: "Pay Your Bill Online | CellPay",
-          description: "No login. Pay for anyone. Low service fee shown before you pay.",
+          description: "No login. Pay for yourself or someone else. Service fee shown before you pay.",
         };
         const isEs = route.startsWith("es/");
-        return { ...meta, noindex: true, lang: isEs ? "es" : "en" };
+        return { ...meta, description: goFeeCopy(meta.description), noindex: true, lang: isEs ? "es" : "en" };
       }
       // Removed carriers (Red Pocket, Movistar, Xbox, US Cellular): generic noindex,follow shell;
       // the React route sends visitors to the home page.
@@ -1021,6 +1026,13 @@ const htmlAliasPlugin = (): Plugin => ({
       const mime: Record<string, string> = { png: "image/png", webp: "image/webp", jpg: "image/jpeg", jpeg: "image/jpeg" };
       return mime[ext] ? `data:${mime[ext]};base64,${buf.toString("base64")}` : null;
     };
+    // GO-COPY-1008: wallet marks (keep byte-identical with GO_PAY_MARKS in GoLander.tsx).
+    const GO_PAY_MARKS =
+      '<svg width="16" height="16" viewBox="0 0 20 20" role="img" aria-label="Cash App"><rect width="20" height="20" rx="4" fill="#00D632"/><text x="10" y="14.5" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="13" fill="#fff">$</text></svg>' +
+      '<svg width="46" height="16" viewBox="0 0 46 16" role="img" aria-label="PayPal"><text x="0" y="12.5" font-family="Arial,sans-serif" font-weight="900" font-size="13" font-style="italic" fill="#003087">Pay</text><text x="23" y="12.5" font-family="Arial,sans-serif" font-weight="900" font-size="13" font-style="italic" fill="#009cde">Pal</text></svg>' +
+      '<svg width="38" height="16" viewBox="0 0 48 20" role="img" aria-label="Apple Pay"><rect width="48" height="20" rx="4" fill="#000"/><path d="M11.4 7.1c-.4.5-1 .9-1.6.8-.1-.6.2-1.3.6-1.7.4-.5 1.1-.8 1.6-.9.1.7-.2 1.3-.6 1.8zm.6.9c-.9-.1-1.6.5-2 .5s-1-.5-1.7-.5c-.9 0-1.7.5-2.1 1.3-.9 1.6-.2 4 .7 5.3.4.6.9 1.3 1.6 1.3.6 0 .9-.4 1.7-.4s1 .4 1.7.4c.7 0 1.2-.6 1.6-1.3.5-.7.7-1.4.7-1.5-.1 0-1.4-.5-1.4-2.1 0-1.3 1.1-1.9 1.1-2-.6-.9-1.5-1-1.9-1z" fill="#fff"/><text x="18" y="14" font-family="Arial,sans-serif" font-weight="700" font-size="10" fill="#fff">Pay</text></svg>' +
+      '<svg width="32" height="16" viewBox="0 0 40 20" role="img" aria-label="Google Pay"><rect x=".5" y=".5" width="39" height="19" rx="4" fill="#fff" stroke="#dadce0"/><text x="5" y="14" font-family="Arial,sans-serif" font-weight="700" font-size="11" fill="#4285F4">G</text><text x="16" y="14" font-family="Arial,sans-serif" font-weight="700" font-size="10" fill="#5f6368">Pay</text></svg>' +
+      '<svg width="45" height="16" viewBox="0 0 56 20" role="img" aria-label="Klarna"><rect width="56" height="20" rx="4" fill="#FFA8CD"/><text x="28" y="14" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="10" fill="#0A0A0A">Klarna.</text></svg>';
     const goFirstScreen = (route: string): string | null => {
       const content = GO_CONTENT[route];
       const slug = route.replace(/^es\//, "").replace(/^go\//, "").replace(/(\/index)?\.html$/, "");
@@ -1029,15 +1041,23 @@ const htmlAliasPlugin = (): Plugin => ({
       const cellpayLogo = goAssetUrl("cellpay-logo.svg");
       if (!cellpayLogo) return null;
       const logo = look.logo ? goAssetUrl(look.logo) : null;
-      const tagline = route.startsWith("es/") ? "Sin cuenta. Pague por otra persona." : "No login. Pay for anyone.";
+      const tagline = route.startsWith("es/") ? "Sin cuenta. Pague por usted o por otra persona." : "No login. Pay for yourself or someone else.";
       // SPEED-LANDER-LCP2: Autopay benefit in the static shell (same classes/copy as GoLander) so LCP can paint with H1.
       const isEs = route.startsWith("es/");
       const autoPayLine = isEs
         ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano."
         : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.";
       const feeLine = isEs
-        ? "Cargo por servicio bajo, mostrado antes de pagar"
-        : "Low service fee shown before you pay";
+        ? "Cargo por servicio mostrado antes de pagar"
+        : "Service fee shown before you pay";
+      // GO-COPY-1008: same as GoLander (Boost no-call line; "En español" link on English pages).
+      const noCallLine =
+        slug === "boost"
+          ? isEs
+            ? "Sin llamar. Pague Boost en línea en 3 pasos."
+            : "No phone call needed. Pay Boost online in 3 steps."
+          : null;
+      const esHref = isEs ? null : "/es/" + route.replace(/\/index\.html$/, "");
       const payMethods =
         "Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, Cash App";
       const carrier = logo
@@ -1057,6 +1077,10 @@ const htmlAliasPlugin = (): Plugin => ({
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">` +
         `<h1 class="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">${escAttr(content.h1)}</h1>` +
         `<p class="text-xs sm:text-sm opacity-90 mt-1">${tagline}</p>` +
+        (noCallLine ? `<p class="text-xs sm:text-sm font-bold mt-1">${noCallLine}</p>` : "") +
+        (esHref
+          ? `<p class="text-xs sm:text-sm mt-1"><a href="${escAttr(esHref)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>`
+          : "") +
         `</div></section>` +
         `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">` +
         `<div class="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">` +
@@ -1065,6 +1089,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<span class="text-[11px] sm:text-xs text-foreground leading-relaxed">${autoPayLine}</span>` +
         `</label>` +
         `<p class="mt-2 text-[11px] sm:text-xs font-semibold text-foreground text-center">${feeLine}</p>` +
+        `<div class="mt-2 flex flex-wrap items-center justify-center gap-1.5">${GO_PAY_MARKS}</div>` +
         `<p class="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug text-center">${payMethods}</p>` +
         `</div></div>` +
         `<div class="flex justify-center items-start py-16 flex-1 min-h-screen">` +
@@ -1410,7 +1435,7 @@ const htmlAliasPlugin = (): Plugin => ({
           `<div id="root">` +
           `<main role="main" style="font-family:'Open Sans',system-ui,Arial,sans-serif;max-width:760px;margin:48px auto;padding:0 20px;color:#0f172a;text-align:center">` +
           `<h1 style="font-size:28px;line-height:1.25;font-weight:800;margin:0 0 16px">${escAttr(guest.h1)}</h1>` +
-          `<p style="font-size:16px;line-height:1.55;margin:0;color:#334155">${escAttr(guest.intro)}</p>` +
+          `<p style="font-size:16px;line-height:1.55;margin:0;color:#334155">${escAttr(GO_SHELLS.has(route) ? goFeeCopy(guest.intro) : guest.intro)}</p>` +
           `</main>` +
           `</div>`;
         out = out.replace(/<div id="root"><\/div>/i, prerender);
