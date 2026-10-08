@@ -469,7 +469,7 @@ const Home = () => {
 
       <PaymentBar lang={lang} />
       <Footer />
-      <LegalBar />
+      <LegalBar lang={lang} />
     </div>
   );
 };
