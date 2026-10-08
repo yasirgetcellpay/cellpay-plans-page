@@ -844,6 +844,20 @@ const DynamicCarrier = ({
           {faqs.length > 0 && (
             <DynamicFAQ faqs={faqs} carrierName={carrierName} brandColor={bc} lang={lang} />
           )}
+
+          {/* AEO-03-04-1008: link to this carrier's how-to-pay guide (EN/ES), real <a href> for crawlers */}
+          {HTP_GUIDE_BY_SLUG[carrierSlug] && (
+            <p className="max-w-3xl mx-auto px-4 py-4 text-sm text-center">
+              <a
+                href={(lang === "es" ? "/es/como-pagar/" : "/how-to-pay/") + HTP_GUIDE_BY_SLUG[carrierSlug].key}
+                className="underline"
+              >
+                {lang === "es"
+                  ? `Cómo pagar su factura de ${HTP_GUIDE_BY_SLUG[carrierSlug].name} en línea`
+                  : `How to pay your ${HTP_GUIDE_BY_SLUG[carrierSlug].name} bill online`}
+              </a>
+            </p>
+          )}
         </>
       )}
 
@@ -851,6 +865,14 @@ const DynamicCarrier = ({
       <CarrierFooter brandColor={bc} carrierName={carrierName} lang={lang} />
     </div>
   );
+};
+
+/* AEO-03-04-1008: carrier slug -> how-to-pay guide (/how-to-pay/{key}, /es/como-pagar/{key}) */
+const HTP_GUIDE_BY_SLUG: Record<string, { key: string; name: string }> = {
+  s1: { key: "simple-mobile", name: "Simple Mobile" },
+  tmobile: { key: "t-mobile-prepaid", name: "T-Mobile Prepaid" },
+  "straight-talk": { key: "straight-talk", name: "Straight Talk" },
+  "topup-at": { key: "att-prepaid", name: "AT&T Prepaid" },
 };
 
 /* ── FAQ sub-component ── */
