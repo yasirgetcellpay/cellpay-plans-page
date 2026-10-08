@@ -1011,6 +1011,108 @@ function velocityShadow(logId: string | null, p: Record<string, unknown>, method
   }
 }
 
+// ---------------------------------------------------------------------------
+// [GPAY-AP-SERVER-1008] Google Pay Auto Pay server gate (Fraud & QA, Oct 8 2026). The site gates the Auto Pay offer in the browser
+// (gpay_autopay_check); this re-runs the gates here so a direct API caller cannot skip them. Only for Google Pay checkouts that ask
+// for Auto Pay (payment.autopay / payment.autopay_agreement, or the API's top-level autopay / autopay_agreement / subscriberARB).
+// gpay_autopay_check_server (service role only): site switch not off, blocklist phone/email, VEL1 24 h, <=1 failed attempt 24 h,
+// 1 name per phone 30 d (incl. the Google billing name), Google billing country US, A4 when its flag is on.
+// Pass = request unchanged. Refuse, DB error or timeout (GPAY_AP_TIMEOUT_MS) = every Auto Pay key is removed and the order goes on
+// as a normal one-time Google Pay payment. The payment itself is never refused or delayed beyond the timeout here.
+// Logs: the DB function writes gpay_ap:server:pass|refuse:<gate> to proxy_guard_events (guard_version 'gpayap1'); an error or
+// timeout is written from here as gpay_ap:server:refuse:error|timeout. No phone, email, name or token in any log row.
+// ---------------------------------------------------------------------------
+const GPAY_AP_TIMEOUT_MS = 1500;
+const GPAY_AP_PAYMENT_KEYS = ["autopay", "autopay_agreement"];
+const GPAY_AP_ROOT_KEYS = ["autopay", "autopay_agreement", "subscriberARB"];
+
+function gpApIsGooglePay(p: Record<string, unknown>, method: string | null): boolean {
+  const m = (method || "").toLowerCase().replace(/[^a-z]/g, "");
+  return m === "googlepay" || (p.google_pay_token !== undefined && p.google_pay_token !== null && p.google_pay_token !== "");
+}
+
+/** Any Auto Pay key present with a value other than false counts as asking (a string "false" is truthy to many backends). */
+function gpApWants(p: Record<string, unknown>): boolean {
+  const pay = asRecord(p.payment);
+  return GPAY_AP_PAYMENT_KEYS.some((k) => k in pay && pay[k] !== false) || GPAY_AP_ROOT_KEYS.some((k) => k in p && p[k] !== false);
+}
+
+function gpApStrip(p: Record<string, unknown>): void {
+  const pay = p.payment;
+  if (pay && typeof pay === "object" && !Array.isArray(pay)) for (const k of GPAY_AP_PAYMENT_KEYS) delete (pay as Record<string, unknown>)[k];
+  for (const k of GPAY_AP_ROOT_KEYS) delete p[k];
+}
+
+function gpApBilling(p: Record<string, unknown>): { first: string | null; last: string | null; country: string | null } {
+  let b: Record<string, unknown> = {};
+  try { b = typeof p.gpay_billing_details === "string" ? asRecord(JSON.parse(p.gpay_billing_details)) : asRecord(p.gpay_billing_details); } catch { b = {}; }
+  const pay = asRecord(p.payment);
+  const parts = String(b.name ?? "").trim().split(/\s+/).filter(Boolean);
+  const first = parts.length ? parts[0] : text(pay.firstName ?? pay.first_name);
+  const last = parts.length ? parts.slice(1).join(" ") : text(pay.lastName ?? pay.last_name);
+  const country = text(b.countryCode ?? b.country_code);
+  return { first: first ? first.slice(0, 100) : null, last: last ? last.slice(0, 100) : null, country: country ? country.slice(0, 8) : null };
+}
+
+async function gpApServerGate(p: Record<string, unknown>): Promise<{ ok: boolean; gate: string; logged: boolean }> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceKey) return { ok: false, gate: "error", logged: false };
+  const pay = asRecord(p.payment);
+  const b = gpApBilling(p);
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/gpay_autopay_check_server`, {
+      method: "POST",
+      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
+      body: JSON.stringify({ _phone: text(p.phone_number ?? p.phoneNumber), _email: text(pay.email ?? p.email), _first: b.first, _last: b.last, _country: b.country }),
+      signal: AbortSignal.timeout(GPAY_AP_TIMEOUT_MS),
+    });
+    if (!res.ok) { console.warn(`[gpay-ap] server gate failed: ${res.status}`); await res.body?.cancel(); return { ok: false, gate: "error", logged: false }; }
+    const r = asRecord(await res.json());
+    if (r.ok === true) return { ok: true, gate: "pass", logged: true };
+    const g = typeof r.gate === "string" ? r.gate.replace(/[^A-Za-z0-9_]/g, "").slice(0, 32) : "";
+    return { ok: false, gate: g || "unknown", logged: true };
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "";
+    return { ok: false, gate: name === "TimeoutError" || name === "AbortError" ? "timeout" : "error", logged: false };
+  }
+}
+
+// Own per-isolate cap (like ap1Event) so this can never crowd out other refusal rows. Fire-and-forget, never throws.
+const GPAY_AP_EVENT_CAP_PER_MINUTE = 60;
+let gpApEventMinute = 0;
+let gpApEventsThisMinute = 0;
+let gpApEventsDropped = 0;
+function gpApEvent(code: string, origin: string | null): void {
+  try {
+    const minute = Math.floor(Date.now() / 60000);
+    if (minute !== gpApEventMinute) { gpApEventMinute = minute; gpApEventsThisMinute = 0; }
+    if (gpApEventsThisMinute >= GPAY_AP_EVENT_CAP_PER_MINUTE) { gpApEventsDropped++; return; }
+    gpApEventsThisMinute++;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceKey) return;
+    const droppedBefore = gpApEventsDropped;
+    gpApEventsDropped = 0;
+    const write = fetch(`${supabaseUrl}/rest/v1/proxy_guard_events`, {
+      method: "POST",
+      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json", prefer: "return=minimal" },
+      body: JSON.stringify({
+        code, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(origin), has_origin: origin !== null,
+        guard_version: "gpayap1", dropped_before: droppedBefore,
+      }),
+      signal: AbortSignal.timeout(1500),
+    })
+      .then((res) => { if (!res.ok) console.warn(`[gpay-ap] event insert failed: ${res.status}`); })
+      .catch(() => {});
+    // deno-lint-ignore no-explicit-any
+    const runtime = (globalThis as any).EdgeRuntime;
+    if (runtime && typeof runtime.waitUntil === "function") runtime.waitUntil(write);
+  } catch {
+    // never let logging affect the payment
+  }
+}
+
 async function blocklistCheck(p: Record<string, unknown>, cardH: string | null): Promise<{ key_type: string; reason: string } | null> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -1685,6 +1787,18 @@ serve(async (req) => {
     // [plaid v2] A Plaid checkout carries no Plaid token or Link metadata past this point (guards, log row, CellPay).
     const isPlaidCheckout = shouldLogTransaction && (paymentMethod || "").toLowerCase() === "plaid";
     if (isPlaidCheckout) for (const k of PLAID_V2_DROP) delete payloadRecord[k];
+    // [GPAY-AP-SERVER-1008] Google Pay Auto Pay server gate (helpers above blocklistCheck). Runs before every other guard, so a
+    // refused request is still stripped and logged. Never refuses the payment: a failed, erroring or slow gate only removes the
+    // Auto Pay keys (the body sent to CellPay is rebuilt from the stripped payload), and the order goes on as one-time.
+    if (shouldLogTransaction && gpApIsGooglePay(payloadRecord, paymentMethod) && gpApWants(payloadRecord)) {
+      const gp = await gpApServerGate(payloadRecord);
+      if (!gp.ok) {
+        gpApStrip(payloadRecord);
+        if (fetchOptions.body !== undefined) fetchOptions.body = JSON.stringify(payload);
+        if (!gp.logged) gpApEvent(`gpay_ap:server:refuse:${gp.gate}`, guardOrigin);
+        console.warn(`[gpay-ap] Auto Pay keys removed (gate=${gp.gate})`);
+      }
+    }
     // [blocklist BL-2] Confirmed bad actors (checkout_blocklist). Fail-open. Same calm 200 as a velocity pause.
     if (shouldLogTransaction) {
       try {
