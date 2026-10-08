@@ -1,6 +1,8 @@
 import { t, type Language } from "@/lib/i18n";
+import { ApplePayMark, GooglePayMark, CashAppMark, KlarnaMark } from "@/components/PaymentBrands";
 
-export const PaymentBar = ({ lang = "en" }: { lang?: Language }) => {
+// GO-COPY-1008: optional wallets row (Apple Pay, Google Pay, Cash App, Klarna). Default off, so other pages are unchanged.
+export const PaymentBar = ({ lang = "en", wallets = false }: { lang?: Language; wallets?: boolean }) => {
   const tr = t(lang);
   return (
   <div className="bg-card py-8 border-t border-border">
@@ -32,6 +34,14 @@ export const PaymentBar = ({ lang = "en" }: { lang?: Language }) => {
           <text x="29" y="19" fill="hsl(var(--primary-foreground))" fontSize="9" fontWeight="bold" fontFamily="sans-serif">Pal</text>
         </svg>
       </div>
+      {wallets && (
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <ApplePayMark className="h-8 w-auto" />
+          <GooglePayMark className="h-8 w-auto" />
+          <CashAppMark className="h-8 w-auto" />
+          <KlarnaMark className="h-8 w-auto" />
+        </div>
+      )}
     </div>
   </div>
   );

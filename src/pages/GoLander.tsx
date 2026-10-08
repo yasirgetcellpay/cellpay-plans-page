@@ -769,7 +769,8 @@ const GoLander = ({
         </>
       )}
 
-      <PaymentBar lang={lang} />
+      {/* GO-COPY-1008: "We Accept" shows every live checkout method (cards + PayPal + wallets). */}
+      <PaymentBar lang={lang} wallets />
 
       {/* Legal links only — no company / account / other-carrier nav */}
       <footer className="bg-cellpay-dark text-gray-100 py-8 mt-auto">
