@@ -1,4 +1,33 @@
-/* Font loaded via <link> in index.html with display=swap; avoid duplicate blocking @import */
+/* SPEED-WWW-1008: Open Sans is self-hosted: public/fonts/open-sans-latin-var-v44.woff2 is the same latin variable file Google
+   Fonts served (v44, weights 300-800), preloaded in index.html. "Open Sans Fallback" is the phone's Arial / Roboto scaled to
+   Open Sans metrics (computed from the font files, fontaine method), so the swap to Open Sans moves nothing. */
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url("/fonts/open-sans-latin-var-v44.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Open Sans Fallback";
+  font-style: normal;
+  font-weight: 100 549;
+  src: local("Arial"), local("ArialMT"), local("Roboto"), local("Roboto-Regular");
+  size-adjust: 104.95%;
+  ascent-override: 101.85%;
+  descent-override: 27.92%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Open Sans Fallback";
+  font-style: normal;
+  font-weight: 550 900;
+  src: local("Arial Bold"), local("Arial-BoldMT"), local("Roboto Bold"), local("Roboto-Bold");
+  size-adjust: 108.13%;
+  ascent-override: 98.85%;
+  descent-override: 27.09%;
+  line-gap-override: 0%;
+}
 
 @tailwind base;
 @tailwind components;
@@ -100,7 +129,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Open Sans', 'Open Sans Fallback', sans-serif;
     padding-bottom: 0;
   }
   /* Prevent input/select fields from horizontal-scrolling on small mobile widths — feedback #37 */

@@ -46,11 +46,9 @@
     <meta name="google-site-verification" content="PGNrUKxXc3_KZ5E59KIh9wlsnEcdBl-Q9_EnCryWxLY" />
     <link rel="preconnect" href="https://yasircell.cellpay.us" crossorigin />
     <link rel="dns-prefetch" href="https://yasircell.cellpay.us" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=optional" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=optional" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=optional" /></noscript>
+    <!-- SPEED-WWW-1008: Open Sans is self-hosted (public/fonts: the same latin variable file Google Fonts served, v44, weights 300-800).
+         Preloaded so the static first screen and the app paint with the same font. @font-face rules are in src/index.css. -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/open-sans-latin-var-v44.woff2" crossorigin />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="CellPay" />
