@@ -552,6 +552,11 @@ const GoLander = ({
   const faqHeading = isEs ? "Preguntas frecuentes" : "Common questions";
   const faqName = GO_AD_NAMES[carrierSlug] ?? initialName; // ADS-FOLLOWUPS-1008: ad-style name in the FAQs only
   const faqs = isEs ? goFaqsEs(faqName) : goFaqsEn(faqName);
+  // SPEED-WWW-1008: while the carrier view loads, Cricket (amount range, no plan grid) shows its loaded layout (same form, pay bar
+  // and FAQ) with read-only fields and disabled pay buttons instead of a spinner. It matches the static first screen
+  // (goCricketScreen in vite.config.ts), so nothing moves when the app mounts or when the data arrives. Display only: the real
+  // range, validation and pay flow come from the API exactly as before (the loaded branch below is unchanged).
+  const skeletonRange: [number, number] | null = carrierSlug === "topup-crc" ? [5, 250] : null;
   const privacyLabel = isEs ? "Política de Privacidad" : "Privacy Policy";
   const termsLabel = isEs ? "Términos y Condiciones" : "Terms and Conditions";
   const returnsLabel = isEs ? "Política de Devoluciones" : "Returns Policy";
@@ -642,7 +647,78 @@ const GoLander = ({
         </div>
       </div>
 
-      {loading ? (
+      {loading && skeletonRange ? (
+        <>
+          <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-busy="true">
+            <div className="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">
+              <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">{stepsLine}</p>
+              <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
+                {tr.enterPhoneLabel(carrierName)}
+              </label>
+              <div className="relative mb-3">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                <input
+                  type="tel"
+                  readOnly
+                  tabIndex={-1}
+                  value={phone}
+                  placeholder={tr.phonePlaceholder}
+                  aria-label={tr.enterPhoneLabel(carrierName)}
+                  className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
+                />
+              </div>
+              <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">{tr.selectAmount}</label>
+              <div className="relative mb-1">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  readOnly
+                  tabIndex={-1}
+                  value=""
+                  placeholder={tr.amountPlaceholder(skeletonRange[0], skeletonRange[1])}
+                  aria-label={tr.selectAmount}
+                  className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
+                />
+              </div>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">{tr.enterAmount}</p>
+            </div>
+          </div>
+          <div className="max-w-[420px] mx-auto px-4 pb-24 sm:pb-8">
+            <div className="hidden sm:flex justify-center">
+              <button type="button" disabled className="h-[48px] px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2" style={{ backgroundColor: bc }}>
+                {tr.payNow}
+              </button>
+            </div>
+          </div>
+          <div
+            data-help-dock-slot=""
+            className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] pl-3 pr-[72px] py-2 flex items-center gap-2"
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)" }}
+          >
+            <div className="flex-1 text-left leading-tight">
+              <p className="text-[10px] text-muted-foreground">{tr.total}</p>
+              <p className="text-base font-extrabold text-foreground">$—</p>
+            </div>
+            <button type="button" disabled className="flex-[2] h-[46px] rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2" style={{ backgroundColor: bc }}>
+              {tr.payNow}
+            </button>
+          </div>
+          <section className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-foreground mb-4 text-left">{faqHeading}</h2>
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map((faq, i) => (
+                <AccordionItem key={i} value={`go-faq-${i}`}>
+                  <AccordionTrigger className="text-left font-bold text-foreground" style={{ color: bc }}>
+                    {faq.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground">{faq.a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </section>
+        </>
+      ) : loading ? (
         <div className="flex justify-center items-start py-16 flex-1 min-h-screen">
           <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
         </div>
