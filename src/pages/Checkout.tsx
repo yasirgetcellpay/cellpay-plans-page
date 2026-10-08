@@ -883,6 +883,23 @@ const Checkout = () => {
     };
   }, [loading, paymentMethod, !!state]);
 
+  // GROWTH-1007-B: arriving from the receipt's "Turn on Auto Pay with my next refill" -> scroll to and outline the offer.
+  // It NEVER ticks Auto Pay or its authorization; the customer still has to tick both.
+  // [CHECKOUT-310-1008] Moved here, above the "if (!state)" loader return: a hook below that return made pre-filled
+  // /checkout?carrier&amount&phone links crash (React #310) when state arrives after the first render. Same behavior: it
+  // still waits for state before reading the flag, exactly as when it sat below the return.
+  useEffect(() => {
+    if (!state) return;
+    let want = false;
+    try { want = sessionStorage.getItem("cp_ap_highlight_v1") === "1"; if (want) sessionStorage.removeItem("cp_ap_highlight_v1"); } catch { /* ignore */ }
+    if (!want || paymentMethod !== "card") return;
+    const t = setTimeout(() => {
+      const el = document.querySelector<HTMLElement>('[data-testid="autopay-offer"]');
+      if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); el.classList.add("ring-4", "ring-offset-2"); }
+    }, 600);
+    return () => clearTimeout(t);
+  }, [paymentMethod, !!state]);
+
   if (!state) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background" aria-busy="true">
@@ -1763,19 +1780,6 @@ const Checkout = () => {
   };
 
   // ─── Main handler ───
-  // GROWTH-1007-B: arriving from the receipt's "Turn on Auto Pay with my next refill" -> scroll to and outline the offer.
-  // It NEVER ticks Auto Pay or its authorization; the customer still has to tick both.
-  useEffect(() => {
-    let want = false;
-    try { want = sessionStorage.getItem("cp_ap_highlight_v1") === "1"; if (want) sessionStorage.removeItem("cp_ap_highlight_v1"); } catch { /* ignore */ }
-    if (!want || paymentMethod !== "card") return;
-    const t = setTimeout(() => {
-      const el = document.querySelector<HTMLElement>('[data-testid="autopay-offer"]');
-      if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); el.classList.add("ring-4", "ring-offset-2"); }
-    }, 600);
-    return () => clearTimeout(t);
-  }, [paymentMethod]);
-
   const handlePlaceOrder = async () => {
     const validationErr = validateBeforeSubmit();
     if (validationErr) { setErrorMsg(validationErr); return; }
