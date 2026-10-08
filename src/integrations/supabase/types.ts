@@ -1233,6 +1233,8 @@ export type Database = {
           email: string | null
           error_message: string | null
           first_name: string | null
+          gbraid: string | null
+          gclid: string | null
           hashid: string | null
           id: string
           last_name: string | null
@@ -1246,6 +1248,7 @@ export type Database = {
           total: number | null
           transaction_id: string | null
           user_agent: string | null
+          wbraid: string | null
         }
         Insert: {
           amount?: number | null
@@ -1257,6 +1260,8 @@ export type Database = {
           email?: string | null
           error_message?: string | null
           first_name?: string | null
+          gbraid?: string | null
+          gclid?: string | null
           hashid?: string | null
           id?: string
           last_name?: string | null
@@ -1270,6 +1275,7 @@ export type Database = {
           total?: number | null
           transaction_id?: string | null
           user_agent?: string | null
+          wbraid?: string | null
         }
         Update: {
           amount?: number | null
@@ -1281,6 +1287,8 @@ export type Database = {
           email?: string | null
           error_message?: string | null
           first_name?: string | null
+          gbraid?: string | null
+          gclid?: string | null
           hashid?: string | null
           id?: string
           last_name?: string | null
@@ -1294,6 +1302,7 @@ export type Database = {
           total?: number | null
           transaction_id?: string | null
           user_agent?: string | null
+          wbraid?: string | null
         }
         Relationships: []
       }

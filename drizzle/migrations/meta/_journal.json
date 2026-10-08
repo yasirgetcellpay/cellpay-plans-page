@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791458951910,
+      "tag": "0000_ads_followups_1008_gclid_columns",
+      "breakpoints": true
+    }
+  ]
+}
