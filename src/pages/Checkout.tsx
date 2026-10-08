@@ -2360,10 +2360,12 @@ const Checkout = () => {
       {/* Error dialog */}
       {errorMsg && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); }}>
-          <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <div className="text-4xl mb-3">❌</div>
+          {/* DECLINE-DIALOG-1008: scrolls inside itself on short phones (iPhone SE + Safari bars clipped the top); on a card decline
+              the raw processor message is hidden (the recovery hint below explains it); other errors still show errorMsg. */}
+          <div className="bg-card rounded-2xl p-5 max-w-sm w-full max-h-[90vh] overflow-y-auto overscroll-contain text-center shadow-xl" style={{ maxHeight: "calc(100dvh - 2rem)" }} onClick={(e) => e.stopPropagation()}>
+            <div className="text-3xl mb-2">❌</div>
             <h3 className="text-xl font-bold text-foreground mb-2">{tr.paymentFailed}</h3>
-            <p className="text-sm text-muted-foreground mb-2">{errorMsg}</p>
+            {!declineInfo && <p className="text-sm text-muted-foreground mb-2">{errorMsg}</p>}
             {showNotChargedNote && (
               <p className="text-sm text-muted-foreground mb-4" data-testid="cx-hold-not-charged">{tr.notChargedNote}</p>
             )}
@@ -2376,14 +2378,29 @@ const Checkout = () => {
               const dc = DECLINE_COPY[lang === "es" ? "es" : "en"];
               const capped = declineInfo.n > MAX_CARD_RETRIES || declineInfo.cls === "blocked";
               const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); };
-              const toMethod = (m: PaymentMethod) => { close(); setPaymentMethod(m); };
+              // DECLINE-DIALOG-1008: after the switch, bring PLACE ORDER NOW into view and outline it for 1.5 s so the customer sees
+              // where to tap next. Only scrolls; it never submits and never opens a wallet sheet by itself.
+              const toMethod = (m: PaymentMethod) => {
+                close(); setPaymentMethod(m);
+                window.setTimeout(() => {
+                  const el = inlinePayRef.current;
+                  if (!el) return;
+                  el.scrollIntoView({ behavior: "smooth", block: "center" });
+                  el.classList.add("ring-4", "ring-offset-2");
+                  window.setTimeout(() => el.classList.remove("ring-4", "ring-offset-2"), 1500);
+                }, 120);
+              };
               const offered = new Set<PaymentMethod>(paymentMethods.map((pm) => pm.key));
               const btn = "w-full px-4 py-2.5 rounded-lg font-bold text-sm";
               return (
                 <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls}>
                   <p className="text-sm text-foreground mb-2" data-testid="decline-hint">{capped && declineInfo.cls !== "blocked" ? dc.capReached : dc[declineInfo.cls]}</p>
+                  {/* DECLINE-DIALOG-1008: wallets first and filled (Apple Pay, Google Pay), then Cash App; card retry is an outline. */}
                   {applePayAvailable && offered.has("applepay") && (
                     <button type="button" data-testid="decline-applepay" onClick={() => toMethod("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
+                  )}
+                  {offered.has("googlepay") && (
+                    <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " bg-black text-white"}>{dc.useGooglePay}</button>
                   )}
                   {offered.has("cashapp") && (
                     <button type="button" data-testid="decline-cashapp" onClick={() => toMethod("cashapp")} className={btn + " text-black"} style={{ backgroundColor: "#00D632" }}>{dc.useCashApp}</button>
@@ -2391,12 +2408,9 @@ const Checkout = () => {
                   {!capped && (
                     <button type="button" data-testid="decline-retry-card"
                       onClick={() => { close(); setTimeout(() => { const el = cardFormRef.current?.querySelector<HTMLInputElement>("input"); cardFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); el?.focus(); }, 50); }}
-                      className={btn + " text-primary-foreground"} style={{ backgroundColor: brandColor }}>
+                      className={btn + " border-2 border-border text-foreground bg-background"}>
                       {declineInfo.cls === "details" ? dc.checkDetails : dc.retryCard}
                     </button>
-                  )}
-                  {offered.has("googlepay") && (
-                    <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " border-2 border-foreground text-foreground bg-background"}>{dc.useGooglePay}</button>
                   )}
                   {offered.has("plaid") && plaidOn === true && (
                     <button type="button" data-testid="decline-paybybank" onClick={() => toMethod("plaid")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayByBank}</button>
