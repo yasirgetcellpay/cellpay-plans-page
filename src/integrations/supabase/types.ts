@@ -146,6 +146,27 @@ export type Database = {
         }
         Relationships: []
       }
+      checkout_guard_controls: {
+        Row: {
+          key: string
+          note: string | null
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          note?: string | null
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          note?: string | null
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       checkout_guard_events: {
         Row: {
           amount: number | null
@@ -1460,6 +1481,10 @@ export type Database = {
       checkout_guard_outcome: {
         Args: { _id: string; _outcome: string }
         Returns: boolean
+      }
+      dupcharge_check: {
+        Args: { _amount: string; _phone: string; _session: string }
+        Returns: Json
       }
       finalize_pockyt_log: {
         Args: {

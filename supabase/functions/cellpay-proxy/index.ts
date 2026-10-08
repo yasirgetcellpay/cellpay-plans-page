@@ -1030,6 +1030,29 @@ async function blocklistCheck(p: Record<string, unknown>, cardH: string | null):
   return r.blocked === true ? { key_type: String(r.key_type), reason: String(r.reason) } : null;
 }
 
+// [DUPCHARGE-1008] Duplicate-charge guard, order level (Fraud & QA, Parvez OK'd Oct 8; Aug 26 T-Mobile ***7290 Apple Pay $39.99 x2
+// 6 min apart in one session). rpc dupcharge_check (service_role, read-only) answers for this phone + amount + checkout session:
+// session_paid = this checkout session already has a successful charge; recent = this phone paid this same amount in the last
+// 10 min. Kill switch checkout_guard_controls.dupcharge (on | shadow | off). Fail-open: 800 ms budget; any error = no check.
+const DUPCHARGE_TIMEOUT_MS = 800;
+async function dupchargeCheck(p: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceKey) return null;
+  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/dupcharge_check`, {
+    method: "POST",
+    headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
+    body: JSON.stringify({
+      _phone: text(p.phone_number ?? p.phoneNumber),
+      _amount: numberText(p.amount),
+      _session: text(p.kount_ssid ?? p.riskified_sessionid ?? p.cbsys_sessionid),
+    }),
+    signal: AbortSignal.timeout(DUPCHARGE_TIMEOUT_MS),
+  });
+  if (!res.ok) { console.warn(`[dupcharge] check failed: ${res.status}`); return null; }
+  return asRecord(await res.json());
+}
+
 // [dedupe BL-3] Duplicate-charge guard: phone|amount|method|card-or-token, HMAC'd in memory (PAN/token never stored or logged).
 // One atomic RPC (checkout_dedupe_claim, advisory lock): first claim in 10 s passes, repeats are refused. Fail-open, 1 s timeout.
 async function dedupeClaim(p: Record<string, unknown>, method: string | null): Promise<boolean> {
@@ -1504,6 +1527,35 @@ serve(async (req) => {
           return new Response(JSON.stringify({ success: false, blocked: true, code: "REFILL_COOLDOWN", retry_after: retryAfter, message: REFILL_COOLDOWN_MSG }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       } catch { /* refill cooldown fails open */ }
+    }
+    // [DUPCHARGE-1008] Every payment method through checkout/transaction (card, Apple Pay, Google Pay, Klarna, Cash App, Pay by Bank).
+    // session_paid -> SESSION_PAID: nothing is charged; the earlier paid order's hashid goes back so the site shows that order.
+    // recent (same phone + amount paid in the last 10 min) -> DUP_CONFIRM unless the site resent it with dup_confirm: true after the
+    // customer confirmed "You just paid $X for this number, charge again?". dup_confirm is a site-only flag: removed here, so it never
+    // reaches the log row or CellPay. Calm 200 before the log and CellPay; sits before the BL-3 claim. Fails open.
+    if (shouldLogTransaction) {
+      const dupConfirmed = payloadRecord.dup_confirm === true;
+      if ("dup_confirm" in payloadRecord) {
+        delete payloadRecord.dup_confirm;
+        if (typeof fetchOptions.body === "string") fetchOptions.body = JSON.stringify(payloadRecord);
+      }
+      try {
+        const dc = await dupchargeCheck(payloadRecord);
+        const dcMode = dc ? String(dc.mode ?? "off") : "off";
+        if (dc && dcMode !== "off" && (dc.session_paid === true || dc.recent === true)) {
+          const enforce = dcMode === "on";
+          const kind = dc.session_paid === true ? "session_paid" : dupConfirmed ? "confirmed" : "ask";
+          recordGuardEvent({ code: `dupcharge_${enforce ? "" : "shadow_"}${kind}`, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null });
+          const paidNum = Number(dc.paid_total);
+          const paid = Number.isFinite(paidNum) && paidNum > 0 ? paidNum.toFixed(2) : (numberText(payloadRecord.total) ?? numberText(payloadRecord.amount) ?? "");
+          if (enforce && kind === "session_paid") {
+            return new Response(JSON.stringify({ success: false, blocked: true, code: "SESSION_PAID", hashid: text(dc.ref), amount: paid, message: `This order is already paid ($${paid}), so we did not charge you again. Your receipt was sent by email.` }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          if (enforce && kind === "ask") {
+            return new Response(JSON.stringify({ success: false, blocked: true, code: "DUP_CONFIRM", amount: paid, message: `You just paid $${paid} for this number, charge again? You were not charged this time.` }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+        }
+      } catch { /* dupcharge fails open */ }
     }
     // [dedupe BL-3] Same payment already claimed in the last 10 s (checkout_dedupe). Fail-open. Calm 200, before the log and CellPay.
     if (shouldLogTransaction) {

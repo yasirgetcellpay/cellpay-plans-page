@@ -12,7 +12,7 @@ import { PLAID_ENABLED } from "@/config/paymentFlags";
 import { supabase } from "@/integrations/supabase/client";
 import {
   validateRecharge,
-  submitTransaction,
+  submitTransaction as submitTransactionRaw, // DUPCHARGE-1008: wrapped below (duplicate-charge guard)
   fetchCheckoutConfig,
   createPayPalOrder,
   capturePayPalOrder,
@@ -319,6 +319,24 @@ const Checkout = () => {
         ? crypto.randomUUID().replace(/-/g, "")
         : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}${Math.random().toString(36).slice(2, 12)}`;
   }
+
+  // DUPCHARGE-1008: duplicate-charge guard (cellpay-proxy decides, server-side). DUP_CONFIRM = this phone paid this amount in the
+  // last 10 min: ask "You just paid $X for this number, charge again?"; Yes resends the order once with dup_confirm (the proxy
+  // removes it; it never reaches CellPay). SESSION_PAID = this checkout session already has a successful charge (e.g. the Apple Pay
+  // sheet closed before the reply came back): nothing was charged now, and the earlier paid order is shown as the success it was.
+  const dupConfirmRef = useRef(false);
+  const [dupAsk, setDupAsk] = useState<{ amount: string } | null>(null);
+  const submitTransaction = async (p: Record<string, unknown>): Promise<unknown> => {
+    const confirmed = dupConfirmRef.current;
+    dupConfirmRef.current = false;
+    const raw = await submitTransactionRaw(confirmed ? { ...p, dup_confirm: true } : p);
+    const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+    if (r.code === "DUP_CONFIRM") setDupAsk({ amount: String(r.amount ?? "") });
+    if (r.code === "SESSION_PAID" && typeof r.hashid === "string" && r.hashid) {
+      return { success: true, data: { status: "success", hashid: r.hashid, message: r.message } };
+    }
+    return raw;
+  };
 
   // Visitor IP — fetched once on mount and sent as `source` on every transaction.
   const visitorIpRef = useRef<string>("");
@@ -906,7 +924,7 @@ const Checkout = () => {
       const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
       const autoRefund = /auto[\s-]?refund/i.test(msg);
       setShowNotChargedNote(!autoRefund && !txn);
-      setDeclineInfo(paymentMethod === "card" && !autoRefund && !txn ? { cls: classifyDecline(msg), n: bumpCardDeclines(apTicksOrder) } : null);
+      setDeclineInfo(paymentMethod === "card" && !autoRefund && !txn && raw.code !== "DUP_CONFIRM" && raw.code !== "SESSION_PAID" ? { cls: classifyDecline(msg), n: bumpCardDeclines(apTicksOrder) } : null); // DUPCHARGE-1008: not a decline
       setErrorMsg(msg);
     }
   };
@@ -1395,7 +1413,8 @@ const Checkout = () => {
         const isSuccess = result.status === true || result.status === "true" || String(result.status || "").toLowerCase() === "success" || String(result.status || "").toLowerCase() === "completed";
         if (isSuccess) {
           console.log("[ApplePay] transaction success");
-          session.completePayment({ status: session.STATUS_SUCCESS });
+          // DUPCHARGE-1008: if the sheet already closed (Apple's ~30 s limit), this throws; the order is paid, so still show it.
+          try { session.completePayment({ status: session.STATUS_SUCCESS }); } catch (e) { console.warn("[ApplePay] completePayment(success) after the sheet closed", e); }
           const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
           setPurchasePending(hid);
           const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
@@ -1405,7 +1424,7 @@ const Checkout = () => {
           navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${apParams.toString()}`);
         } else {
           console.error("[ApplePay] transaction failed", result);
-          session.completePayment({ status: session.STATUS_FAILURE });
+          try { session.completePayment({ status: session.STATUS_FAILURE }); } catch (e) { console.warn("[ApplePay] completePayment(failure) after the sheet closed", e); } // DUPCHARGE-1008
           const msg = (result.msg as string) || (result.message as string) || "Apple Pay transaction failed";
           const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
           const autoRefund = /auto[\s-]?refund/i.test(msg);
@@ -1414,7 +1433,7 @@ const Checkout = () => {
         }
       } catch (err) {
         console.error("[ApplePay] onpaymentauthorized error", err);
-        session.completePayment({ status: session.STATUS_FAILURE });
+        try { session.completePayment({ status: session.STATUS_FAILURE }); } catch (e) { console.warn("[ApplePay] completePayment(failure) after the sheet closed", e); } // DUPCHARGE-1008
         setErrorMsg("Apple Pay payment failed: " + (err instanceof Error ? err.message : String(err)));
       }
       setSubmitting(false);
@@ -2198,6 +2217,27 @@ const Checkout = () => {
             {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
             {submitting ? tr.processing : tr.placeOrder}
           </button>
+        </div>
+      )}
+
+      {/* DUPCHARGE-1008: same phone + same amount paid in the last 10 min -> confirm before charging again ("No" is the default) */}
+      {dupAsk && (
+        <div className="fixed inset-0 z-[110] bg-black/50 flex items-center justify-center p-4" data-testid="dup-confirm">
+          <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center shadow-xl" role="alertdialog" aria-modal="true">
+            <h3 className="text-xl font-bold text-foreground mb-2">{lang === "es" ? "¿Cobrar de nuevo?" : "Charge again?"}</h3>
+            <p className="text-sm text-foreground mb-2" data-testid="dup-confirm-text">{lang === "es" ? `Acaba de pagar $${dupAsk.amount} para este número. ¿Cobrar de nuevo?` : `You just paid $${dupAsk.amount} for this number, charge again?`}</p>
+            <p className="text-sm text-muted-foreground mb-4">{lang === "es" ? "No se le cobró esta vez." : "You were not charged this time."}</p>
+            <div className="flex flex-col gap-2">
+              <button type="button" data-testid="dup-confirm-no" onClick={() => { setDupAsk(null); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); }}
+                className="w-full px-4 py-2.5 rounded-lg font-bold text-sm text-primary-foreground" style={{ backgroundColor: brandColor }}>
+                {lang === "es" ? "No, no cobrar de nuevo" : "No, don't charge again"}
+              </button>
+              <button type="button" data-testid="dup-confirm-yes" onClick={() => { setDupAsk(null); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); dupConfirmRef.current = true; void handlePlaceOrder(); }}
+                className="w-full px-4 py-2.5 rounded-lg font-bold text-sm border-2 border-border text-foreground bg-background">
+                {lang === "es" ? "Sí, cobrar de nuevo" : "Yes, charge again"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
