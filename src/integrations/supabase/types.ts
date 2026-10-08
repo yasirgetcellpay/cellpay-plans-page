@@ -359,6 +359,141 @@ export type Database = {
         }
         Relationships: []
       }
+      failpay_email_controls: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
+      failpay_email_log: {
+        Row: {
+          amount: number | null
+          asof: string
+          attempt_at: string | null
+          attempt_log_id: string | null
+          carrier_slug: string | null
+          created_at: string
+          decision: string
+          decline_class: string | null
+          email_masked: string | null
+          email_sha256: string | null
+          error: string | null
+          host: string | null
+          id: string
+          lang: string | null
+          mode: string
+          payment_method: string | null
+          phone_h: string | null
+          phone_last4: string | null
+          provider: string | null
+          provider_ref: string | null
+          reason_code: string | null
+          reasons: string[]
+          refill_url: string | null
+          run_id: string
+          run_kind: string
+          sent_at: string | null
+          unsub_token: string
+        }
+        Insert: {
+          amount?: number | null
+          asof: string
+          attempt_at?: string | null
+          attempt_log_id?: string | null
+          carrier_slug?: string | null
+          created_at?: string
+          decision: string
+          decline_class?: string | null
+          email_masked?: string | null
+          email_sha256?: string | null
+          error?: string | null
+          host?: string | null
+          id?: string
+          lang?: string | null
+          mode: string
+          payment_method?: string | null
+          phone_h?: string | null
+          phone_last4?: string | null
+          provider?: string | null
+          provider_ref?: string | null
+          reason_code?: string | null
+          reasons?: string[]
+          refill_url?: string | null
+          run_id?: string
+          run_kind?: string
+          sent_at?: string | null
+          unsub_token?: string
+        }
+        Update: {
+          amount?: number | null
+          asof?: string
+          attempt_at?: string | null
+          attempt_log_id?: string | null
+          carrier_slug?: string | null
+          created_at?: string
+          decision?: string
+          decline_class?: string | null
+          email_masked?: string | null
+          email_sha256?: string | null
+          error?: string | null
+          host?: string | null
+          id?: string
+          lang?: string | null
+          mode?: string
+          payment_method?: string | null
+          phone_h?: string | null
+          phone_last4?: string | null
+          provider?: string | null
+          provider_ref?: string | null
+          reason_code?: string | null
+          reasons?: string[]
+          refill_url?: string | null
+          run_id?: string
+          run_kind?: string
+          sent_at?: string | null
+          unsub_token?: string
+        }
+        Relationships: []
+      }
+      failpay_ip_deny: {
+        Row: {
+          added_at: string
+          added_by: string | null
+          cidr: unknown
+          kind: string
+          note: string | null
+        }
+        Insert: {
+          added_at?: string
+          added_by?: string | null
+          cidr: unknown
+          kind: string
+          note?: string | null
+        }
+        Update: {
+          added_at?: string
+          added_by?: string | null
+          cidr?: unknown
+          kind?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
       fraud_controls: {
         Row: {
           key: string
@@ -1560,6 +1695,37 @@ export type Database = {
       dupcharge_check: {
         Args: { _amount: string; _phone: string; _session: string }
         Returns: Json
+      }
+      failpay_carrier_path: { Args: { _slug: string }; Returns: string }
+      failpay_decline_class: {
+        Args: { _method: string; _msg: string }
+        Returns: string
+      }
+      failpay_email_run: {
+        Args: {
+          _from?: string
+          _run_id?: string
+          _run_kind?: string
+          _to?: string
+        }
+        Returns: Json
+      }
+      failpay_inet: { Args: { _s: string }; Returns: unknown }
+      failpay_phone_h: { Args: { _p: string }; Returns: string }
+      failpay_screen: {
+        Args: {
+          _asof: string
+          _log_id: string
+          _mode?: string
+          _run_id?: string
+          _run_kind?: string
+        }
+        Returns: {
+          decline_class: string
+          email_sha256: string
+          phone_h: string
+          reasons: string[]
+        }[]
       }
       finalize_pockyt_log: {
         Args: {

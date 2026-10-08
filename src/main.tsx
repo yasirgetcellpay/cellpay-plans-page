@@ -21,8 +21,28 @@ if (rootEl.hasAttribute("data-go-prerender")) {
     started = true;
     mount();
   };
-  requestAnimationFrame(() => setTimeout(start, 0));
-  setTimeout(start, 200);
+  // SPEED-WWW-1008: start React only after the static first screen has actually painted (first-contentful-paint),
+  // then two more frames. The old 200 ms backup timer could mount React before the first frame was painted, which left
+  // the screen blank until the whole app had loaded. Browsers without paint timing start after two frames.
+  const afterPaint = () => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(start, 0)));
+  let watching = false;
+  try {
+    if (typeof PerformanceObserver !== "undefined" && PerformanceObserver.supportedEntryTypes?.includes("paint")) {
+      const po = new PerformanceObserver((list) => {
+        if (list.getEntriesByName("first-contentful-paint").length) {
+          po.disconnect();
+          afterPaint();
+        }
+      });
+      po.observe({ type: "paint", buffered: true });
+      watching = true;
+    }
+  } catch {
+    watching = false;
+  }
+  if (!watching) afterPaint();
+  // Background tabs never paint: mount right away there. Otherwise a 3 s safety net.
+  setTimeout(start, document.visibilityState === "hidden" ? 0 : 3000);
 } else {
   mount();
 }
