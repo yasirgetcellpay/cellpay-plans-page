@@ -4,6 +4,7 @@ import { HELP_CHAT_ENABLED } from "@/components/help/helpChatFlag";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { captureTrackingIdsFromUrl } from "@/lib/tracking";
 import { usePresence } from "@/hooks/usePresence";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import Home from "./pages/Home.tsx";
 import DynamicCarrier from "./pages/DynamicCarrier.tsx";
 import PaymentCallback from "./pages/PaymentCallback.tsx";
@@ -322,6 +323,7 @@ const App = () => (
   <AuthProvider>
     <BrowserRouter>
       <TrackingCapture />
+      <ScrollToTop />
       <CheckoutPrefetch />
       <Suspense fallback={<RouteFallback />}>
       <Routes>
