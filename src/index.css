@@ -139,3 +139,11 @@ body [aria-label*="Lovable"] {
 #lovable-badge {
   display: none !important;
 }
+
+/* INPUTS-1008 (item 1): phone number boxes (checkout + carrier pages) use 16px text on phone-size screens, so iPhone
+   Safari does not zoom the page in when the box is tapped. Font size only: height, padding, layout and validation unchanged. */
+@media (max-width: 639px) {
+  input[type="tel"] {
+    font-size: 16px;
+  }
+}
