@@ -116,6 +116,22 @@
       })();
     </script>
 
+    <!-- ADS-FOLLOWUPS-1008: Google Ads click IDs (gclid / gbraid / wbraid) from the landing URL, kept first-party in localStorage
+         "cp_gclk" for 90 days; last click wins (a URL with any of them replaces all three). IDs only. Read by submitTransaction. -->
+    <script>
+      (function () {
+        try {
+          var K = "cp_gclk", q = new URLSearchParams(location.search), o = {}, n = 0;
+          ["gclid", "gbraid", "wbraid"].forEach(function (k) {
+            var v = q.get(k);
+            if (v && /^[\w.~-]{1,512}$/.test(v)) { o[k] = v; n++; }
+          });
+          if (n) { o.t = Date.now(); localStorage.setItem(K, JSON.stringify(o)); }
+          else { var s = JSON.parse(localStorage.getItem(K) || "null"); if (s && !(Date.now() - s.t < 90 * 864e5)) localStorage.removeItem(K); }
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- Google Tag Manager -->
     <!-- TAGS-1007: defer GTM + direct gtag on every page EXCEPT payment/conversion pages, until first input,
          load+idle (1.5s), or 4s cap. Checkout, order confirmation, payment callback, Cash App return, */pay pages
