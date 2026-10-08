@@ -629,6 +629,51 @@ export type Database = {
         }
         Relationships: []
       }
+      gpay_autopay_rl: {
+        Row: {
+          email_h: string | null
+          id: number
+          ip_h: string | null
+          ip_src: string
+          phone_h: string | null
+          stage: string
+          ts: string
+        }
+        Insert: {
+          email_h?: string | null
+          id?: never
+          ip_h?: string | null
+          ip_src: string
+          phone_h?: string | null
+          stage: string
+          ts?: string
+        }
+        Update: {
+          email_h?: string | null
+          id?: never
+          ip_h?: string | null
+          ip_src?: string
+          phone_h?: string | null
+          stage?: string
+          ts?: string
+        }
+        Relationships: []
+      }
+      gpay_autopay_salt: {
+        Row: {
+          id: number
+          salt: string
+        }
+        Insert: {
+          id?: number
+          salt: string
+        }
+        Update: {
+          id?: number
+          salt?: string
+        }
+        Relationships: []
+      }
       help_events: {
         Row: {
           created_at: string
@@ -1642,6 +1687,28 @@ export type Database = {
           _stage?: string
         }
         Returns: Json
+      }
+      gpay_autopay_check_server: {
+        Args: {
+          _country?: string
+          _email: string
+          _first?: string
+          _last?: string
+          _phone: string
+        }
+        Returns: Json
+      }
+      gpay_autopay_eval: {
+        Args: {
+          _blocklist: boolean
+          _country: string
+          _email: string
+          _first: string
+          _last: string
+          _need_country: boolean
+          _phone: string
+        }
+        Returns: string
       }
       has_role: {
         Args: {
