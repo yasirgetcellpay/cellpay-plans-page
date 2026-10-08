@@ -8,6 +8,13 @@
       "when": 1791458951910,
       "tag": "0000_ads_followups_1008_gclid_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791461162021,
+      "tag": "0001_ads_followups_1008_fix_click_id_regex",
+      "breakpoints": true
     }
   ]
 }
