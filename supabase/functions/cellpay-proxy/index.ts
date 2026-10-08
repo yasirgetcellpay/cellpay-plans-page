@@ -1553,11 +1553,17 @@ async function paypalAction(
   const meta = asRecord(payload.pp_meta);
   const fwd: Record<string, unknown> = { ...payload };
   delete fwd.pp_meta;
+  // [PAYPAL-CAPTURE-1008] CellPay capture-order validates orderID + payerID ("orderID is required, payerID is required", 08:45 CT).
+  // The site now sends order_id + orderID + payerID (from PayPal onApprove). A page loaded before that publish sends only order_id,
+  // so orderID is filled from it here; payerID can only come from PayPal in the browser.
+  if (!isCreate && (fwd.orderID === undefined || fwd.orderID === null || fwd.orderID === "") && typeof fwd.order_id === "string" && fwd.order_id) fwd.orderID = fwd.order_id;
   // Log / guard view of this order: the site's pp_meta fields, then the payload CellPay gets (wins), payment_method 'paypal'.
   const lr: Record<string, unknown> = {};
   for (const k of PP_META_KEYS) if (meta[k] !== undefined && meta[k] !== null && meta[k] !== "") lr[k] = meta[k];
   Object.assign(lr, fwd, { payment_method: "paypal" });
   delete lr.order_id;
+  delete lr.orderID;
+  delete lr.payerID;
   let refillKey: string | null = null;
   try { refillKey = await refillCooldownKey(lr); } catch { refillKey = null; }
 
