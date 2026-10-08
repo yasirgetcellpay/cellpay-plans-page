@@ -180,7 +180,7 @@ const StraightTalk = () => {
           <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">Enter Your Straight Talk Phone Number</label>
           <div className="relative mb-1 sm:mb-2">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-            <input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={handlePhoneChange} placeholder="(XXX) XXX-XXXX"
+            <input type="tel" value={phone} onChange={handlePhoneChange} placeholder="(XXX) XXX-XXXX"
               className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(72,74%,44%)] focus:border-transparent text-center" />
           </div>
           <p className="text-[10px] sm:text-xs text-muted-foreground">Enter the phone number you want to recharge</p>
