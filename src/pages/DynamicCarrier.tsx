@@ -198,6 +198,14 @@ const wholeDollarMessage = (lang: string, n: number): string =>
     ? `Ingrese un monto en dólares enteros (por ejemplo $${Math.floor(n)} o $${Math.ceil(n)}).`
     : `Please enter a whole-dollar amount (for example $${Math.floor(n)} or $${Math.ceil(n)}).`;
 
+// SPEED-WWW-1008: intrinsic logo size per carrier slug (same numbers as LOGO_DIMS in vite.config.ts), so the logo box is reserved
+// before the image arrives. CSS still sets the height (32 / 44 px) and the width follows the image.
+const LOGO_DIMS: Record<string, [number, number]> = {
+  s1: [479, 105], "topup-crc": [234, 52], metropcs: [94, 41], tmobile: [52, 52], "topup-at": [600, 600], verizon: [475, 106],
+  boost: [225, 225], h2o: [241, 76], lyca: [314, 123], net10: [140, 64], pageplus: [265, 73], pageplusadd: [265, 73],
+  tracfone: [180, 84], "ultra-mobile": [801, 501],
+};
+
 const DynamicCarrier = ({
   carrierName: initialName,
   carrierSlug,
@@ -597,7 +605,7 @@ const DynamicCarrier = ({
           <div className="relative flex justify-center h-14 sm:h-20 items-center">
             <BackButton />
             {logo ? (
-              <img src={logo} alt={`${carrierName} prepaid refill logo`} className="h-[32px] sm:h-[44px] w-auto object-contain" />
+              <img src={logo} alt={`${carrierName} prepaid refill logo`} width={LOGO_DIMS[carrierSlug]?.[0]} height={LOGO_DIMS[carrierSlug]?.[1]} className="h-[32px] sm:h-[44px] w-auto object-contain" />
             ) : (
               <span className="text-xl sm:text-2xl font-extrabold" style={{ color: bc }}>{carrierName}</span>
             )}
