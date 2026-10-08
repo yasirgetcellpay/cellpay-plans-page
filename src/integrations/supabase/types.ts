@@ -587,6 +587,27 @@ export type Database = {
         }
         Relationships: []
       }
+      gpay_autopay_controls: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
       help_events: {
         Row: {
           created_at: string
@@ -1546,6 +1567,17 @@ export type Database = {
           not_block: string[]
           watch: Json
         }[]
+      }
+      gpay_autopay_check: {
+        Args: {
+          _country?: string
+          _email: string
+          _first?: string
+          _last?: string
+          _phone: string
+          _stage?: string
+        }
+        Returns: Json
       }
       has_role: {
         Args: {
