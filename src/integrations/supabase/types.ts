@@ -1727,6 +1727,7 @@ export type Database = {
           reasons: string[]
         }[]
       }
+      failpay_send_check: { Args: { _log_id: string }; Returns: string[] }
       finalize_pockyt_log: {
         Args: {
           _msg: string
