@@ -1922,6 +1922,10 @@ export type Database = {
         Returns: number
       }
       pay_by_bank_available: { Args: never; Returns: boolean }
+      paypal_capture_context: {
+        Args: { _log_id?: string; _order_id: string }
+        Returns: Json
+      }
       paypal_finalize_log: {
         Args: {
           _error_message: string
