@@ -622,7 +622,7 @@ const App = () => (
               carrierId={38}
               brandColor="hsl(270,60%,32%)"
               logo={metroLogo}
-              h1="Pay Your Metro Bill as a Guest"
+              h1="Pay Your Metro Bill as a Guest — Just the Phone Number"
               title="Pay Your Metro Bill as a Guest | CellPay"
               description="Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
             />
@@ -637,7 +637,7 @@ const App = () => (
               carrierId={38}
               brandColor="hsl(270,60%,32%)"
               logo={metroLogo}
-              h1="Pay Your Metro Bill as a Guest"
+              h1="Pay Your Metro Bill as a Guest — Just the Phone Number"
               title="Pay Your Metro Bill as a Guest | CellPay"
               description="Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
             />
@@ -775,7 +775,7 @@ const App = () => (
               carrierId={38}
               brandColor="hsl(270,60%,32%)"
               logo={metroLogo}
-              h1="Pague su factura de Metro como invitado"
+              h1="Pague su factura de Metro como invitado — solo con el número de teléfono"
               title="Pague su factura de Metro como invitado | CellPay"
               description="Pague su Metro by T-Mobile (Metro PCS) como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
             />
@@ -791,7 +791,7 @@ const App = () => (
               carrierId={38}
               brandColor="hsl(270,60%,32%)"
               logo={metroLogo}
-              h1="Pague su factura de Metro como invitado"
+              h1="Pague su factura de Metro como invitado — solo con el número de teléfono"
               title="Pague su factura de Metro como invitado | CellPay"
               description="Pague su Metro by T-Mobile (Metro PCS) como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
             />

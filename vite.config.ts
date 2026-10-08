@@ -307,7 +307,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
       "go/metro.html": {
-        h1: "Pay Your Metro Bill as a Guest",
+        h1: "Pay Your Metro Bill as a Guest — Just the Phone Number",
         intro: "Pay Metro by T-Mobile as a guest. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/simple-mobile.html": {
@@ -319,7 +319,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
       "go/metro/index.html": {
-        h1: "Pay Your Metro Bill as a Guest",
+        h1: "Pay Your Metro Bill as a Guest — Just the Phone Number",
         intro: "Pay Metro by T-Mobile as a guest. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/simple-mobile/index.html": {
@@ -327,7 +327,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "es/go/metro.html": {
-        h1: "Pague su factura de Metro como invitado",
+        h1: "Pague su factura de Metro como invitado — solo con el número de teléfono",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/boost.html": {
@@ -339,7 +339,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/metro/index.html": {
-        h1: "Pague su factura de Metro como invitado",
+        h1: "Pague su factura de Metro como invitado — solo con el número de teléfono",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/boost/index.html": {
