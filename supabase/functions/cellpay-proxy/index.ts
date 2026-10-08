@@ -1407,6 +1407,182 @@ async function plaidExchangeOn(): Promise<boolean> {
   return on;
 }
 
+// [PAYPAL-1008] PayPal create-order / capture-order (Parvez, Oct 8 2026). Same order log as cards (transaction_logs via
+// log_transaction_attempt, payment_method 'paypal', metadata.paypal_order_id + paypal_step) and the same server-side guards as cards:
+// BL-2 blocklist + Fix F refill cooldown before create-order, BL-3 duplicate claim before capture-order (the charge). Every guard and
+// every log write fails open: a database error or timeout never changes or blocks a PayPal answer. The site adds pp_meta (log and
+// guard fields only); it is removed here, so CellPay receives exactly the payload it received before. The reply to the browser is
+// CellPay's reply as before, plus pending_log_id on create-order; a refused request gets the same calm 200 shape as a card refusal.
+const PP_CREATE = "payments/paypal/create-order";
+const PP_CAPTURE = "payments/paypal/capture-order";
+const PP_META_KEYS = ["phone_number", "carrierId", "plan_id", "amount", "total", "email", "carrier_slug", "carrier_name", "browser_info", "kount_ssid", "source"];
+const PP_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const PP_BLOCK_MSG = "We couldn't process this payment right now. Please try again in about 30 minutes or use a different payment method. You were not charged.";
+const PP_DUP_MSG = "This payment is already being processed. Please wait a moment before trying again; you will not be charged twice.";
+
+/** First non-empty value of one of `keys` in CellPay's reply, up to 5 objects deep (arrays skipped). */
+function ppDeep(v: unknown, keys: string[], depth = 0): string | null {
+  if (!v || typeof v !== "object" || Array.isArray(v) || depth > 5) return null;
+  const r = v as Record<string, unknown>;
+  for (const k of keys) {
+    const x = r[k];
+    if ((typeof x === "string" && x.trim()) || (typeof x === "number" && Number.isFinite(x))) return String(x).trim().slice(0, 128);
+  }
+  for (const x of Object.values(r)) {
+    const f = ppDeep(x, keys, depth + 1);
+    if (f) return f;
+  }
+  return null;
+}
+
+async function paypalAction(
+  path: string,
+  body: Record<string, unknown>,
+  url: string,
+  headers: Record<string, string>,
+  cors: Record<string, string>,
+  callerHost: string | undefined,
+  userAgent: string | null,
+  origin: string | null,
+): Promise<Response> {
+  const reply = (obj: unknown) => new Response(JSON.stringify(obj), { status: 200, headers: { ...cors, "Content-Type": "application/json" } });
+  const isCreate = path === PP_CREATE;
+  const payload = asRecord(body.payload);
+  const meta = asRecord(payload.pp_meta);
+  const fwd: Record<string, unknown> = { ...payload };
+  delete fwd.pp_meta;
+  // Log / guard view of this order: the site's pp_meta fields, then the payload CellPay gets (wins), payment_method 'paypal'.
+  const lr: Record<string, unknown> = {};
+  for (const k of PP_META_KEYS) if (meta[k] !== undefined && meta[k] !== null && meta[k] !== "") lr[k] = meta[k];
+  Object.assign(lr, fwd, { payment_method: "paypal" });
+  delete lr.order_id;
+  let refillKey: string | null = null;
+  try { refillKey = await refillCooldownKey(lr); } catch { refillKey = null; }
+
+  if (isCreate) {
+    // [BL-2] blocklist (1.2 s, fail-open)
+    try {
+      const bl = await blocklistCheck(lr, null);
+      if (bl) {
+        recordGuardEvent({ code: `blocklist_hit:${bl.reason}:${bl.key_type}`, method: "POST", endpoint_shape: PP_CREATE, origin_host: originHost(origin), has_origin: origin !== null });
+        return reply({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: PP_BLOCK_MSG });
+      }
+    } catch { /* blocklist fails open */ }
+    // [Fix F] refill cooldown (1 s, fail-open)
+    try {
+      const cd = refillKey ? await refillCooldownRpc("refill_cooldown_check", refillKey) : null;
+      if (cd && cd.cooldown === true) {
+        const ra = Math.round(Number(cd.retry_after));
+        const retryAfter = Number.isFinite(ra) && ra >= 1 && ra <= REFILL_COOLDOWN_S ? ra : REFILL_COOLDOWN_S;
+        recordGuardEvent({ code: "refill_cooldown_hit", method: "POST", endpoint_shape: PP_CREATE, origin_host: originHost(origin), has_origin: origin !== null });
+        return reply({ success: false, blocked: true, code: "REFILL_COOLDOWN", retry_after: retryAfter, message: REFILL_COOLDOWN_MSG });
+      }
+    } catch { /* refill cooldown fails open */ }
+    // [DUPCHARGE-1008 reuse] Same duplicate-charge guard as checkout/transaction (dupchargeCheck, checkout_guard_controls.dupcharge
+    // on | shadow | off, fail-open): session already paid -> SESSION_PAID; same phone + amount paid in the last 10 min -> DUP_CONFIRM
+    // unless the customer tapped PayPal again after that warning (pp_meta.dup_confirm, site-only, never sent to CellPay).
+    try {
+      const dc = await dupchargeCheck(lr);
+      const dcMode = dc ? String(dc.mode ?? "off") : "off";
+      if (dc && dcMode !== "off" && (dc.session_paid === true || dc.recent === true)) {
+        const enforce = dcMode === "on";
+        const kind = dc.session_paid === true ? "session_paid" : meta.dup_confirm === true ? "confirmed" : "ask";
+        recordGuardEvent({ code: `dupcharge_${enforce ? "" : "shadow_"}${kind}`, method: "POST", endpoint_shape: PP_CREATE, origin_host: originHost(origin), has_origin: origin !== null });
+        const paidNum = Number(dc.paid_total);
+        const paid = Number.isFinite(paidNum) && paidNum > 0 ? paidNum.toFixed(2) : (numberText(lr.total) ?? numberText(lr.amount) ?? "");
+        if (enforce && kind === "session_paid") {
+          return reply({ success: false, blocked: true, code: "SESSION_PAID", hashid: text(dc.ref), amount: paid, message: `This order is already paid ($${paid}), so we did not charge you again. Your receipt was sent by email.` });
+        }
+        if (enforce && kind === "ask") {
+          return reply({ success: false, blocked: true, code: "DUP_CONFIRM", amount: paid, message: `You just paid $${paid} for this number, charge again? You were not charged this time.` });
+        }
+      }
+    } catch { /* dupcharge fails open */ }
+  } else {
+    // [BL-3] duplicate claim on the charge step: same phone + amount + 'paypal' captured in the last 10 s is refused (the second
+    // PayPal order stays approved but uncaptured, so it is never charged). Needs the site's phone + amount; skipped without them.
+    try {
+      const ph = String(lr.phone_number ?? "").replace(/\D/g, "");
+      if (ph.length >= 10 && numberText(lr.amount) && await dedupeClaim(lr, "paypal")) {
+        recordGuardEvent({ code: "dedupe_hit", method: "POST", endpoint_shape: PP_CAPTURE, origin_host: originHost(origin), has_origin: origin !== null });
+        return reply({ success: false, blocked: true, code: "DUPLICATE", message: PP_DUP_MSG });
+      }
+    } catch { /* dedupe fails open */ }
+  }
+
+  // CellPay call: same request as before (pp_meta removed).
+  const response = await fetch(url, { method: "POST", headers, body: JSON.stringify(fwd) });
+  const rawText = await response.text();
+  let data: unknown;
+  try { data = JSON.parse(rawText); } catch { data = { raw: rawText, parseError: true }; }
+  const wrapped: Record<string, unknown> = response.ok
+    ? { success: true, data }
+    : { success: false, error: (data as Record<string, unknown>)?.message || (data as Record<string, unknown>)?.error || "Request failed", data };
+  const r = unwrapTransactionResult(wrapped);
+  const arb = (): Record<string, unknown> => arbLogMeta(lr, body.bearerToken, body.lang);
+
+  if (isCreate) {
+    const orderId = text(r.order_id) ?? text(r.id) ?? text(r.orderId);
+    try {
+      // 3 s cap so a slow database never holds up the PayPal popup (a late row is closed by paypal_mark_abandoned).
+      const logId = await Promise.race([
+        createTransactionLog(lr, callerHost, userAgent, { ...arb(), paypal_order_id: orderId, paypal_step: "create" }),
+        new Promise<null>((res) => setTimeout(() => res(null), 3000)),
+      ]);
+      if (logId) {
+        // No PayPal order id = nothing for the customer to approve: close the row now (failed, or success for a direct success).
+        if (!orderId) await finishTransactionLog(logId, wrapped, "paypal");
+        wrapped.pending_log_id = logId;
+      }
+    } catch (error) {
+      console.error("[paypal-log] create log failed:", error instanceof Error ? error.message : error);
+    }
+    return reply(wrapped);
+  }
+
+  // capture-order: success exactly as the site reads it (status true / success / completed); hashid + transaction id searched up to 5 levels deep.
+  // The reply waits at most 4 s for the log writes; they keep running in the background after that (EdgeRuntime.waitUntil).
+  const work = (async () => {
+  try {
+    const orderId = text(fwd.order_id) ?? text(fwd.orderID);
+    const st = String(r.status ?? "").toLowerCase();
+    const paid = r.status === true || st === "true" || st === "success" || st === "completed";
+    const fin = {
+      _order_id: orderId,
+      _status: paid ? "success" : "failed",
+      _hashid: ppDeep(wrapped, ["hashid"]),
+      _transaction_id: ppDeep(wrapped, ["transactionId", "transaction_id"]),
+      _error_message: paid ? null : (text(r.msg ?? r.message ?? wrapped.error) ?? (st ? `status:${st}` : "paypal_capture_failed")),
+      _raw_response: r,
+    };
+    let res: Record<string, unknown> = {};
+    const pendingId = text(meta.pending_log_id);
+    if (orderId && pendingId && PP_UUID_RE.test(pendingId)) {
+      try { res = asRecord(await callDatabaseRpc("paypal_finalize_log", { _id: pendingId, ...fin })); } catch { res = {}; }
+    }
+    if (orderId && res.ok !== true) {
+      // No matching open create row (older site build, lost id, or already closed): one capture-only row so the outcome is logged.
+      const id = await createTransactionLog(lr, callerHost, userAgent, { ...arb(), paypal_order_id: orderId, paypal_step: "capture", paypal_capture_only: true });
+      if (id) res = asRecord(await callDatabaseRpc("paypal_finalize_log", { _id: id, ...fin }));
+    }
+    // [Fix F] CellPay's refill-error result starts the same 10-min cooldown as a card.
+    if (isRefillErrorResult(wrapped)) {
+      const key = refillKey ?? (res.ok === true ? await refillCooldownKey(res) : null);
+      if (key) await refillCooldownRpc("refill_cooldown_mark", key);
+    }
+  } catch (error) {
+    console.error("[paypal-log] capture log failed:", error instanceof Error ? error.message : error);
+  }
+  })();
+  try {
+    // deno-lint-ignore no-explicit-any
+    const runtime = (globalThis as any).EdgeRuntime;
+    if (runtime && typeof runtime.waitUntil === "function") runtime.waitUntil(work);
+  } catch { /* background only */ }
+  await Promise.race([work, new Promise((res) => setTimeout(res, 4000))]);
+  return reply(wrapped);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -1495,6 +1671,12 @@ serve(async (req) => {
 
     if (method !== "GET" && payload) {
       fetchOptions.body = JSON.stringify(payload);
+    }
+
+    // [PAYPAL-1008] PayPal create-order / capture-order: guards + order log (paypalAction above). Same CellPay URL and headers.
+    const ppPath = normalizeEndpoint(endpoint)?.segments.join("/") ?? "";
+    if (method.toUpperCase() === "POST" && (ppPath === PP_CREATE || ppPath === PP_CAPTURE) && endpoint === ppPath) {
+      return await paypalAction(ppPath, asRecord(body), url, headers, corsHeaders, callerHost, req.headers.get("user-agent"), guardOrigin);
     }
 
     const shouldLogTransaction = endpoint === "checkout/transaction" && method === "POST";
