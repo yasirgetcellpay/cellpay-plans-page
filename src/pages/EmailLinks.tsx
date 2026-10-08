@@ -58,14 +58,15 @@ export const EmailUnsubscribe = () => {
   const go = async () => { setSt("busy"); const r = await links({ a: "unsub", t }); setSt(r.ok ? "done" : "bad"); };
   return (
     <Frame>
-      <h1 className="text-xl font-extrabold text-foreground">{es ? "Recordatorios de recarga" : "Refill reminders"}</h1>
+      {/* DECLINE-DIALOG-1008: generic copy (this page serves every CellPay email: refill reminders and failed-payment notices). */}
+      <h1 className="text-xl font-extrabold text-foreground">{es ? "Correos de CellPay" : "CellPay emails"}</h1>
       {st === "done" ? (
-        <p className="mt-3 text-base">{es ? "Listo. Ya no le enviaremos recordatorios de recarga." : "Done. We won't send you refill reminders anymore."}</p>
+        <p className="mt-3 text-base">{es ? "Listo. Se dio de baja y ya no le enviaremos estos correos." : "Done. You're unsubscribed and we won't send you these emails anymore."}</p>
       ) : st === "bad" || !t ? (
         <p className="mt-3 text-sm text-muted-foreground">{es ? "Este enlace no es válido. Escriba a support@getcellpay.com y lo daremos de baja." : "This link isn't valid. Email support@getcellpay.com and we'll remove you."}</p>
       ) : (
         <>
-          <p className="mt-3 text-base">{es ? "¿Dejar de recibir correos de recordatorio de recarga?" : "Stop getting refill reminder emails?"}</p>
+          <p className="mt-3 text-base">{es ? "¿Dejar de recibir correos de CellPay sobre sus recargas?" : "Stop getting CellPay emails about your refills?"}</p>
           <Btn onClick={go} disabled={st === "busy"}>{es ? "Darse de baja" : "Unsubscribe"}</Btn>
         </>
       )}

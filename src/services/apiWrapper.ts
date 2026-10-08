@@ -9,6 +9,8 @@ interface ProxyRequest {
   bearerToken?: string;
   /** ADS-FOLLOWUPS-1008: top-level; cellpay-proxy reads it for the log row only. Never part of the payload sent to CellPay. */
   click_ids?: Record<string, string>;
+  /** DECLINE-DIALOG-1008: top-level page language ("en" | "es"); cellpay-proxy stores it as transaction_logs.metadata.lang only. Never sent to CellPay. */
+  lang?: "en" | "es";
 }
 
 export async function callProxy(req: ProxyRequest): Promise<unknown> {
@@ -283,11 +285,21 @@ function adClickIds(): Record<string, string> | undefined {
   }
 }
 
+// DECLINE-DIALOG-1008: same rule as useLang() (/es, /es/... or *-espanol pages are Spanish), read from the address bar.
+function pageLang(): "en" | "es" {
+  try {
+    const p = window.location.pathname;
+    return p === "/es" || p.startsWith("/es/") || /-espanol(\.html)?$/.test(p) ? "es" : "en";
+  } catch {
+    return "en";
+  }
+}
+
 export async function submitTransaction(
   payload: Record<string, unknown>,
   bearerToken?: string
 ): Promise<unknown> {
-  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds() });
+  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds(), lang: pageLang() });
 }
 
 export async function fetchCheckoutConfig(): Promise<Record<string, unknown>> {
