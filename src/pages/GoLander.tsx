@@ -147,6 +147,25 @@ const goFeeCopy = (s: string): string =>
     .replace("Low service fee shown before you pay", "Service fee shown before you pay")
     .replace("Cargo por servicio bajo, mostrado antes de pagar", "Cargo por servicio mostrado antes de pagar");
 
+/** ADS-FOLLOWUPS-1008: ad-style carrier names for the /go FAQs + FAQPage JSON-LD (same name as each lander's H1). Checkout keeps the catalog name. */
+const GO_AD_NAMES: Record<string, string> = {
+  boost: "Boost",
+  metropcs: "Metro",
+  s1: "Simple Mobile",
+  "topup-crc": "Cricket",
+  "topup-at": "AT&T Prepaid",
+  "ultra-mobile": "Ultra Mobile",
+  "straight-talk": "Straight Talk",
+  lyca: "Lyca Mobile",
+  h2o: "H2O Wireless",
+  net10: "Net10",
+  tmobile: "T-Mobile",
+  verizon: "Verizon Prepaid",
+  pageplus: "Page Plus",
+  "total-wireless": "Total Wireless",
+  tracfone: "Tracfone",
+};
+
 /** GO-COPY-1008: carrier-specific FAQs (also sent as FAQPage JSON-LD). True claims only: no refunds, no email-receipt claim, no fee amounts. */
 const goFaqsEn = (c: string) => [
   {
@@ -531,7 +550,8 @@ const GoLander = ({
     ? "Cargo por servicio mostrado antes de pagar"
     : "Service fee shown before you pay";
   const faqHeading = isEs ? "Preguntas frecuentes" : "Common questions";
-  const faqs = isEs ? goFaqsEs(carrierName) : goFaqsEn(carrierName);
+  const faqName = GO_AD_NAMES[carrierSlug] ?? initialName; // ADS-FOLLOWUPS-1008: ad-style name in the FAQs only
+  const faqs = isEs ? goFaqsEs(faqName) : goFaqsEn(faqName);
   const privacyLabel = isEs ? "Política de Privacidad" : "Privacy Policy";
   const termsLabel = isEs ? "Términos y Condiciones" : "Terms and Conditions";
   const returnsLabel = isEs ? "Política de Devoluciones" : "Returns Policy";
