@@ -1,6 +1,8 @@
 // AEO-PAGES-1007: "how to pay" pages (SPEC-01 Straight Talk, SPEC-02 AT&T Prepaid, + ES pairs).
 // Single source for the React page (src/pages/HowToPay.tsx) AND the static raw HTML + JSON-LD emitted by vite.config.ts,
-// so visible FAQ text and FAQPage JSON-LD stay word for word identical. No imports: vite.config.ts loads this file.
+// so visible FAQ text and FAQPage JSON-LD stay word for word identical. Relative imports only: vite.config.ts loads this file.
+// PAYCOPY-1008: payment methods come from ./paymentMethods (follows src/config/paymentFlags.ts; PayPal only while enabled).
+import { methodsLong, payWith, payWallets } from "./paymentMethods";
 // No prices or fee amounts here: plan prices render live from the carrier catalog; the fee is shown at checkout.
 
 export type HtpLang = "en" | "es";
@@ -38,13 +40,13 @@ export type HtpPage = {
 
 const WWW = "https://www.cellpay.us";
 const UPDATED_ISO = "2026-10-07";
-const METHODS_EN = "Credit and debit cards (Visa, Mastercard, American Express, Discover), Apple Pay on supported Apple devices, Google Pay, PayPal, Klarna, Cash App and Pay by Bank.";
-const METHODS_ES = "Tarjetas de crédito y débito (Visa, Mastercard, American Express, Discover), Apple Pay en dispositivos Apple compatibles, Google Pay, PayPal, Klarna, Cash App y Pay by Bank (pago desde su cuenta bancaria).";
-const PAY_EN = "a card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank";
-const PAY_ES = "tarjeta, Apple Pay, Google Pay, PayPal, Klarna, Cash App o Pay by Bank";
+const METHODS_EN = methodsLong("en");
+const METHODS_ES = methodsLong("es");
+const PAY_EN = payWith("en");
+const PAY_ES = payWith("es");
 
-const LABELS_EN = { payNow: "", steps: "Steps", need: "What you need", fees: "Fees and totals", item: "Item", amount: "Amount", other: "", faq: "Frequently asked questions", related: "Related", breadcrumbHowTo: "How to pay", tool: "Card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank", supply: "10-digit phone number" };
-const LABELS_ES = { payNow: "", steps: "Pasos", need: "Lo que necesita", fees: "Cargos y totales", item: "Concepto", amount: "Monto", other: "", faq: "Preguntas frecuentes", related: "Relacionado", breadcrumbHowTo: "Cómo pagar", tool: "Tarjeta, Apple Pay, Google Pay, PayPal, Klarna, Cash App o Pay by Bank", supply: "Número de teléfono de 10 dígitos" };
+const LABELS_EN = { payNow: "", steps: "Steps", need: "What you need", fees: "Fees and totals", item: "Item", amount: "Amount", other: "", faq: "Frequently asked questions", related: "Related", breadcrumbHowTo: "How to pay", tool: payWith("en", "Card"), supply: "10-digit phone number" };
+const LABELS_ES = { payNow: "", steps: "Pasos", need: "Lo que necesita", fees: "Cargos y totales", item: "Concepto", amount: "Monto", other: "", faq: "Preguntas frecuentes", related: "Relacionado", breadcrumbHowTo: "Cómo pagar", tool: payWith("es", "Tarjeta"), supply: "Número de teléfono de 10 dígitos" };
 
 const en = (o: {
   key: HtpPage["key"]; name: string; slug: string; checkout: string; title: string; description: string; h1: string;
@@ -138,7 +140,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
   en({
     key: "straight-talk", name: "Straight Talk", slug: "straight-talk", checkout: "/straight-talk.html", an: "a",
     title: "How to Pay Your Straight Talk Bill Online (No Login Needed) | CellPay",
-    description: "Straight Talk pay bill online with no login: enter the number, pick a plan and pay by card, Apple Pay, Google Pay, PayPal, Klarna or Cash App.",
+    description: `Straight Talk pay bill online with no login: enter the number, pick a plan and pay by ${payWith("en", "card")}.`,
     h1: "How to Pay Your Straight Talk Bill Online (No Login Needed)",
     step3: "Choose a plan from the list on the CellPay page.",
     faq2: { q: "Can I refill Straight Talk without the Straight Talk app?", a: "Straight Talk offers its own refill options on its official website and app. On CellPay you can refill from any device with only the phone number." },
@@ -149,7 +151,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
   es({
     key: "straight-talk", name: "Straight Talk", slug: "straight-talk", checkout: "/es/straight-talk.html",
     title: "Cómo Pagar su Factura de Straight Talk en Línea (Sin Iniciar Sesión) | CellPay",
-    description: "Pague Straight Talk en línea sin iniciar sesión: ingrese el número, elija un plan y pague con tarjeta, Apple Pay, Google Pay, PayPal, Klarna o Cash App.",
+    description: `Pague Straight Talk en línea sin iniciar sesión: ingrese el número, elija un plan y pague con ${payWith("es")}.`,
     h1: "Cómo Pagar su Factura de Straight Talk en Línea (Sin Iniciar Sesión)",
     step3: "Elija un plan de la lista en la página de CellPay.",
     faq2: { q: "¿Puedo recargar Straight Talk sin la aplicación de Straight Talk?", a: "Straight Talk ofrece sus propias opciones de recarga en su sitio web oficial y en su aplicación. En CellPay puede recargar desde cualquier dispositivo solo con el número de teléfono." },
@@ -160,10 +162,10 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
   en({
     key: "att-prepaid", name: "AT&T Prepaid", slug: "topup-at", checkout: "/topup-at.html", an: "an",
     title: "How to Pay Your AT&T Prepaid Bill Online Without Signing In | CellPay",
-    description: "AT&T Prepaid pay bill online without signing in: enter the number, pick an amount and pay by card, Apple Pay, Google Pay, PayPal, Klarna or Cash App.",
+    description: `AT&T Prepaid pay bill online without signing in: enter the number, pick an amount and pay by ${payWith("en", "card")}.`,
     h1: "How to Pay Your AT&T Prepaid Bill Online Without Signing In",
     step3: "Choose a plan from the list or enter a custom amount.",
-    faq2: { q: "Does AT&T have its own way to pay prepaid without signing in?", a: "AT&T offers its own payment options on its official website and app. CellPay is another option if you want to pay without an AT&T login, with Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank." },
+    faq2: { q: "Does AT&T have its own way to pay prepaid without signing in?", a: "AT&T offers its own payment options on its official website and app. CellPay is another option if you want to pay without an AT&T login, with " + payWallets("en") + "." },
     autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
     autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
     related: [["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/topup-at.html", "AT&T Prepaid refill"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
@@ -171,10 +173,10 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
   es({
     key: "att-prepaid", name: "AT&T Prepaid", slug: "topup-at", checkout: "/es/topup-at.html",
     title: "Cómo Pagar su Factura de AT&T Prepaid en Línea Sin Iniciar Sesión | CellPay",
-    description: "Pague AT&T Prepaid en línea sin iniciar sesión: ingrese el número, elija el monto y pague con tarjeta, Apple Pay, Google Pay, PayPal, Klarna o Cash App.",
+    description: `Pague AT&T Prepaid en línea sin iniciar sesión: ingrese el número, elija el monto y pague con ${payWith("es")}.`,
     h1: "Cómo Pagar su Factura de AT&T Prepaid en Línea Sin Iniciar Sesión",
     step3: "Elija un plan de la lista o ingrese un monto personalizado.",
-    faq2: { q: "¿AT&T tiene su propia forma de pagar el servicio prepagado sin iniciar sesión?", a: "AT&T ofrece sus propias opciones de pago en su sitio web oficial y en su aplicación. CellPay es otra opción si quiere pagar sin una cuenta de AT&T, con Apple Pay, Google Pay, PayPal, Klarna, Cash App o Pay by Bank." },
+    faq2: { q: "¿AT&T tiene su propia forma de pagar el servicio prepagado sin iniciar sesión?", a: "AT&T ofrece sus propias opciones de pago en su sitio web oficial y en su aplicación. CellPay es otra opción si quiere pagar sin una cuenta de AT&T, con " + payWallets("es") + "." },
     autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo en cualquier momento con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
     autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo en cualquier momento con 'Unsubscribe From Autopay' en cellpay.us/faq.",
     related: [["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/topup-at.html", "Recarga AT&T Prepaid"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],

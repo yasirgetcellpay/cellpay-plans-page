@@ -4,6 +4,8 @@ import { Navbar } from "@/components/Navbar";
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { HelpQuickActions } from "@/components/HelpQuickActions";
 import { applySeoHead } from "@/lib/seo";
+// PAYCOPY-1008: shared payment list (follows src/config/paymentFlags.ts)
+import { weAcceptLine } from "@/content/paymentMethods";
 import {
   Accordion,
   AccordionContent,
@@ -17,7 +19,7 @@ const faqs = [
   { q: "Which carriers does CellPay support?", a: "We support 15+ major prepaid carriers including AT&T, T-Mobile, Verizon, Cricket Wireless, Metro by T-Mobile, Boost Mobile, Straight Talk, TracFone, H2O Wireless, Lyca Mobile, Net10, Page Plus, and Ultra Mobile." },
   { q: "Is CellPay safe and secure?", a: "Yes. Payment data is encrypted in transit with TLS (HTTPS) and processed by our payment processors." },
   { q: "How long does a refill take?", a: "It can take up to 30 min for a refill to reflect on your account." },
-  { q: "What payment methods do you accept?", a: "We accept Visa, Mastercard, American Express, Discover, Apple Pay, Google Pay, PayPal, Klarna, and Cash App." },
+  { q: "What payment methods do you accept?", a: weAcceptLine("en") },
   { q: "Do I need to create an account?", a: "No, you can recharge as a guest. However, creating an account lets you track your order history and speeds up future transactions." },
   { q: "Can I get a refund or cancel a payment?", a: "Completed payments can't be refunded or cancelled, so please double-check your phone number and plan before you pay. Auto Pay can be cancelled at cellpay.us/faq with 'Unsubscribe From Autopay'." },
   { q: "I didn't receive my refill. What should I do?", a: "First, wait 30 minutes and check your account balance. If the credit hasn't been applied, contact us at support@getcellpay.com with your transaction details." },

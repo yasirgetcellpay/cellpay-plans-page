@@ -1,5 +1,7 @@
 import { t, type Language } from "@/lib/i18n";
 import { ApplePayMark, GooglePayMark, CashAppMark, KlarnaMark } from "@/components/PaymentBrands";
+// PAYCOPY-1008: PayPal logo only while PayPal is offered (src/config/paymentFlags.ts)
+import { PAYPAL_SHOWN } from "@/content/paymentMethods";
 
 // GO-COPY-1008: optional wallets row (Apple Pay, Google Pay, Cash App, Klarna). Default off, so other pages are unchanged.
 export const PaymentBar = ({ lang = "en", wallets = false }: { lang?: Language; wallets?: boolean }) => {
@@ -28,11 +30,13 @@ export const PaymentBar = ({ lang = "en", wallets = false }: { lang?: Language; 
           <text x="20" y="38" fontFamily="Arial" fontSize="15" fill="#231F20" fontWeight="800">DISCOVER</text>
           <circle cx="170" cy="30" r="20" fill="#F76F20"/>
         </svg>
-        <svg className="h-8 w-14" viewBox="0 0 56 30" aria-label="PayPal">
-          <rect width="56" height="30" rx="4" fill="hsl(var(--payment-paypal-dark))" />
-          <text x="12" y="19" fill="hsl(var(--payment-paypal-light))" fontSize="9" fontWeight="bold" fontFamily="sans-serif">Pay</text>
-          <text x="29" y="19" fill="hsl(var(--primary-foreground))" fontSize="9" fontWeight="bold" fontFamily="sans-serif">Pal</text>
-        </svg>
+        {PAYPAL_SHOWN && (
+          <svg className="h-8 w-14" viewBox="0 0 56 30" aria-label="PayPal">
+            <rect width="56" height="30" rx="4" fill="hsl(var(--payment-paypal-dark))" />
+            <text x="12" y="19" fill="hsl(var(--payment-paypal-light))" fontSize="9" fontWeight="bold" fontFamily="sans-serif">Pay</text>
+            <text x="29" y="19" fill="hsl(var(--primary-foreground))" fontSize="9" fontWeight="bold" fontFamily="sans-serif">Pal</text>
+          </svg>
+        )}
       </div>
       {wallets && (
         <div className="flex flex-wrap items-center justify-center gap-3">
