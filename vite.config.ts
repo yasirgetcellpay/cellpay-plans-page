@@ -1033,6 +1033,58 @@ const htmlAliasPlugin = (): Plugin => ({
       '<svg width="38" height="16" viewBox="0 0 48 20" role="img" aria-label="Apple Pay"><rect width="48" height="20" rx="4" fill="#000"/><path d="M11.4 7.1c-.4.5-1 .9-1.6.8-.1-.6.2-1.3.6-1.7.4-.5 1.1-.8 1.6-.9.1.7-.2 1.3-.6 1.8zm.6.9c-.9-.1-1.6.5-2 .5s-1-.5-1.7-.5c-.9 0-1.7.5-2.1 1.3-.9 1.6-.2 4 .7 5.3.4.6.9 1.3 1.6 1.3.6 0 .9-.4 1.7-.4s1 .4 1.7.4c.7 0 1.2-.6 1.6-1.3.5-.7.7-1.4.7-1.5-.1 0-1.4-.5-1.4-2.1 0-1.3 1.1-1.9 1.1-2-.6-.9-1.5-1-1.9-1z" fill="#fff"/><text x="18" y="14" font-family="Arial,sans-serif" font-weight="700" font-size="10" fill="#fff">Pay</text></svg>' +
       '<svg width="32" height="16" viewBox="0 0 40 20" role="img" aria-label="Google Pay"><rect x=".5" y=".5" width="39" height="19" rx="4" fill="#fff" stroke="#dadce0"/><text x="5" y="14" font-family="Arial,sans-serif" font-weight="700" font-size="11" fill="#4285F4">G</text><text x="16" y="14" font-family="Arial,sans-serif" font-weight="700" font-size="10" fill="#5f6368">Pay</text></svg>' +
       '<svg width="45" height="16" viewBox="0 0 56 20" role="img" aria-label="Klarna"><rect width="56" height="20" rx="4" fill="#FFA8CD"/><text x="28" y="14" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="10" fill="#0A0A0A">Klarna.</text></svg>';
+    // SPEED-WWW-1008: Cricket /go landers (amount range, no plan grid) ship the loaded first screen too: steps line, phone + amount
+    // fields (read-only until the app takes over), pay bar (disabled) and the FAQ questions (closed). Same classes/copy as the
+    // loading state in GoLander.tsx (skeletonRange), so nothing moves when the app mounts and the FAQ is not a late LCP. Keep in sync.
+    const GO_CRICKET_FAQ_Q: Record<"en" | "es", string[]> = {
+      en: [
+        "Can I pay my Cricket bill without signing in?", "Can I pay for someone else's Cricket line?",
+        "Do I just need the Cricket phone number?", "Do I need to call Cricket to pay?", "How can I pay?",
+        "How long does a Cricket refill take?", "What if the payment fails?", "How do I get help?",
+      ],
+      es: [
+        "¿Puedo pagar mi factura de Cricket sin cuenta?", "¿Puedo pagar la línea de Cricket de otra persona?",
+        "¿Solo necesito el número de teléfono de Cricket?", "¿Tengo que llamar a Cricket para pagar?", "¿Cómo puedo pagar?",
+        "¿Cuánto tarda la recarga de Cricket?", "¿Qué pasa si el pago falla?", "¿Cómo pido ayuda?",
+      ],
+    };
+    const goCricketScreen = (isEs: boolean, color: string): string => {
+      const s = isEs
+        ? { steps: "3 pasos: número → monto → pagar", phone: "Ingrese su número de teléfono de Cricket Wireless", amount: "Seleccione el monto",
+            ph: "Ingrese un monto entre 5 - 250", help: "Ingrese el monto que desea recargar", pay: "PAGAR AHORA", faq: "Preguntas frecuentes" }
+        : { steps: "3 steps: number → amount → pay", phone: "Enter Your Cricket Wireless Phone Number", amount: "Select Amount",
+            ph: "Enter an amount between 5 - 250", help: "Enter the amount you want to recharge", pay: "PAY NOW", faq: "Common questions" };
+      const inputCls = "w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center";
+      const faqItems = GO_CRICKET_FAQ_Q[isEs ? "es" : "en"]
+        .map(
+          (q) =>
+            `<div data-state="closed" data-orientation="vertical" class="border-b"><h3 data-orientation="vertical" data-state="closed" class="flex">` +
+            `<button type="button" aria-expanded="false" data-state="closed" data-orientation="vertical" class="flex flex-1 items-center justify-between py-4 transition-all hover:underline [&[data-state=open]>svg]:rotate-180 text-left font-bold text-foreground" style="color:${color}">` +
+            `${escAttr(q)}<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down h-4 w-4 shrink-0 transition-transform duration-200"><path d="m6 9 6 6 6-6"></path></svg></button></h3></div>`
+        )
+        .join("");
+      return (
+        `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-busy="true">` +
+        `<div class="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">` +
+        `<p class="text-[11px] sm:text-xs text-muted-foreground mb-3">${s.steps}</p>` +
+        `<label class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">${s.phone}</label>` +
+        `<div class="relative mb-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>` +
+        `<input type="tel" readonly tabindex="-1" placeholder="(XXX) XXX-XXXX" aria-label="${s.phone}" class="${inputCls}" value=""></div>` +
+        `<label class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">${s.amount}</label>` +
+        `<div class="relative mb-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>` +
+        `<input type="text" inputmode="numeric" readonly tabindex="-1" placeholder="${s.ph}" aria-label="${s.amount}" class="${inputCls}" value=""></div>` +
+        `<p class="text-[10px] sm:text-xs text-muted-foreground mt-2">${s.help}</p>` +
+        `</div></div>` +
+        `<div class="max-w-[420px] mx-auto px-4 pb-24 sm:pb-8"><div class="hidden sm:flex justify-center">` +
+        `<button type="button" disabled class="h-[48px] px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2" style="background-color:${color}">${s.pay}</button></div></div>` +
+        `<div data-help-dock-slot="" class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] pl-3 pr-[72px] py-2 flex items-center gap-2" style="padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 0.5rem)">` +
+        `<div class="flex-1 text-left leading-tight"><p class="text-[10px] text-muted-foreground">Total</p><p class="text-base font-extrabold text-foreground">$—</p></div>` +
+        `<button type="button" disabled class="flex-[2] h-[46px] rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2" style="background-color:${color}">${s.pay}</button></div>` +
+        `<section class="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">` +
+        `<h2 class="text-xl sm:text-2xl font-extrabold text-foreground mb-4 text-left">${s.faq}</h2>` +
+        `<div class="w-full" data-orientation="vertical">${faqItems}</div></section>`
+      );
+    };
     const goFirstScreen = (route: string): string | null => {
       const content = GO_CONTENT[route];
       const slug = route.replace(/^es\//, "").replace(/^go\//, "").replace(/(\/index)?\.html$/, "");
@@ -1092,9 +1144,12 @@ const htmlAliasPlugin = (): Plugin => ({
         `<div class="mt-2 flex flex-wrap items-center justify-center gap-1.5">${GO_PAY_MARKS}</div>` +
         `<p class="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug text-center">${payMethods}</p>` +
         `</div></div>` +
-        `<div class="flex justify-center items-start py-16 flex-1 min-h-screen">` +
-        `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle h-10 w-10 animate-spin text-muted-foreground"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>` +
-        `</div></div></div>`
+        (slug === "cricket"
+          ? goCricketScreen(isEs, look.color)
+          : `<div class="flex justify-center items-start py-16 flex-1 min-h-screen">` +
+            `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle h-10 w-10 animate-spin text-muted-foreground"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>` +
+            `</div>`) +
+        `</div></div>`
       );
     };
 
