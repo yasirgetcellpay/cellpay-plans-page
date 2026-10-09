@@ -1574,11 +1574,11 @@ async function plaidExchangeOn(): Promise<boolean> {
 // CellPay's reply as before, plus pending_log_id on create-order; a refused request gets the same calm 200 shape as a card refusal.
 const PP_CREATE = "payments/paypal/create-order";
 const PP_CAPTURE = "payments/paypal/capture-order";
-const PP_CREATE_ENABLED = false; // [PAYPAL-HIDE-1154] false = refuse new PayPal create-order (capture still allowed)
+const PP_CREATE_ENABLED = true; // [PAYPAL-REBUILD-1009] deploy 3: on for everyone; kill switch fraud_controls.paypal_mode = 'off' (instant)
 // [PAYPAL-REBUILD-1009] CellPay's PayPal flow (Yasir, Oct 9 2026 08:27 CT): the PayPal button only gets the buyer's approval. The site
 // then sends POST checkout/transaction with payment_method "paypal", paypal_authorization (the whole onApprove object as ONE JSON
 // string, incl. orderID + payerID) and payment {firstName, lastName, email}; CellPay takes the money. We never capture.
-const PP_TX_ENABLED = false; // false = PayPal checkout/transaction refused (nothing sent to CellPay) unless the QA allowlist below matches
+const PP_TX_ENABLED = true; // [PAYPAL-REBUILD-1009] deploy 3: on for everyone; kill switch fraud_controls.paypal_mode = 'off' (instant)
 const PP_CAPTURE_RETIRED = true; // capture-order is never forwarded any more (capturing ourselves was the wrong flow)
 const PP_AUTH_MAX = 4096;
 const PP_ORDER_RE = /^[A-Z0-9]{8,32}$/;
