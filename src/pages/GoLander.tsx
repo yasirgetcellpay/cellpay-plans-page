@@ -5,6 +5,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { PaymentBar } from "@/components/PaymentBar";
 // PAYCOPY-1008: shared payment list (follows src/config/paymentFlags.ts)
 import { payBrandsComma, payWith, CARD_BRANDS, PAYPAL_SHOWN } from "@/content/paymentMethods";
+// TOP4-T1-1009: customer-facing carrier names in labels (display only)
+import { displayCarrierName, trademarkCarrierName } from "@/content/carrierHero";
 import { PlanGrid } from "@/components/PlanGrid";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
@@ -279,6 +281,8 @@ const GoLander = ({
   const [autoPayInterest, setAutoPayInterest] = useState(false);
 
   const [carrierName, setCarrierName] = useState(initialName);
+  // TOP4-T1-1009: "T-Mobile Prepaid" / "Verizon Prepaid" in labels; carrierName (API name) still goes to checkout unchanged.
+  const shownName = displayCarrierName(carrierName, lang === "es" ? "es" : "en");
   const [carrierId, setCarrierId] = useState(initialCarrierId);
   const [showRange, setShowRange] = useState(false);
   const [showFixedPlans, setShowFixedPlans] = useState(false);
@@ -654,7 +658,7 @@ const GoLander = ({
             <div className="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">
               <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">{stepsLine}</p>
               <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
-                {tr.enterPhoneLabel(carrierName)}
+                {tr.enterPhoneLabel(shownName)}
               </label>
               <div className="relative mb-3">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
@@ -664,7 +668,7 @@ const GoLander = ({
                   tabIndex={-1}
                   value={phone}
                   placeholder={tr.phonePlaceholder}
-                  aria-label={tr.enterPhoneLabel(carrierName)}
+                  aria-label={tr.enterPhoneLabel(shownName)}
                   className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
                 />
               </div>
@@ -734,7 +738,7 @@ const GoLander = ({
                 htmlFor="go-phone-input"
                 className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2"
               >
-                {tr.enterPhoneLabel(carrierName)}
+                {tr.enterPhoneLabel(shownName)}
               </label>
               <div className="relative mb-3">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
@@ -745,7 +749,7 @@ const GoLander = ({
                   value={phone}
                   onChange={handlePhoneChange}
                   placeholder={tr.phonePlaceholder}
-                  aria-label={tr.enterPhoneLabel(carrierName)}
+                  aria-label={tr.enterPhoneLabel(shownName)}
                   className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
                   style={{ "--tw-ring-color": bc } as React.CSSProperties}
                 />
@@ -926,7 +930,7 @@ const GoLander = ({
           </ul>
           <p className="text-xs opacity-80">{tr.copyright}</p>
           <p className="text-[10px] leading-relaxed max-w-3xl mx-auto opacity-70 mt-3">
-            {tr.trademarkDisclaimer(carrierName)}
+            {tr.trademarkDisclaimer(trademarkCarrierName(carrierName))}
           </p>
         </div>
       </footer>

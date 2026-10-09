@@ -8,6 +8,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { PaymentBar } from "@/components/PaymentBar";
 // PAYCOPY-1008: shared payment list (same text as the vite.config.ts carrier first screen)
 import { weAcceptLine } from "@/content/paymentMethods";
+// TOP4-T1-1009: first screen in the searcher's words + customer-facing carrier names (display only)
+import { top4Hero, displayCarrierName, trademarkCarrierName } from "@/content/carrierHero";
 import { PlanGrid } from "@/components/PlanGrid";
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
@@ -599,6 +601,9 @@ const DynamicCarrier = ({
   };
 
   const bc = brandColor;
+  // TOP4-T1-1009: display only. carrierName (API/DB name) still goes to checkout unchanged.
+  const shownName = displayCarrierName(carrierName, lang === "es" ? "es" : "en");
+  const top4 = seoH1Override ? null : top4Hero(carrierSlug, lang === "es" ? "es" : "en");
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -642,10 +647,10 @@ const DynamicCarrier = ({
       <section style={{ backgroundColor: bc }} className="text-primary-foreground">
         <div className="max-w-7xl mx-auto px-5 py-4 sm:py-5 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl md:text-2xl font-extrabold">
-            {(lang === "es" || !heading) ? tr.heroH1(carrierName) : heading}
+            {top4 ? top4.h1 : (lang === "es" || !heading) ? tr.heroH1(carrierName) : heading}
           </h1>
           <p className="text-sm opacity-90 mt-1">
-            {(lang === "es" || !subheading) ? tr.heroH2(carrierName) : subheading}
+            {top4 ? top4.sub : (lang === "es" || !subheading) ? tr.heroH2(carrierName) : subheading}
           </p>
         </div>
       </section>
@@ -670,7 +675,7 @@ const DynamicCarrier = ({
           <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">
             <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">
               <label htmlFor="carrier-phone-input" className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
-                {tr.enterPhoneLabel(carrierName)}
+                {tr.enterPhoneLabel(shownName)}
               </label>
               <div className="relative mb-3">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
@@ -681,7 +686,7 @@ const DynamicCarrier = ({
                   value={phone}
                   onChange={handlePhoneChange}
                   placeholder={tr.phonePlaceholder}
-                  aria-label={tr.enterPhoneLabel(carrierName)}
+                  aria-label={tr.enterPhoneLabel(shownName)}
                   className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
                   style={{ "--tw-ring-color": bc } as React.CSSProperties}
                 />
@@ -842,7 +847,7 @@ const DynamicCarrier = ({
 
           {/* FAQs from API */}
           {faqs.length > 0 && (
-            <DynamicFAQ faqs={faqs} carrierName={carrierName} brandColor={bc} lang={lang} />
+            <DynamicFAQ faqs={faqs} carrierName={shownName} brandColor={bc} lang={lang} />
           )}
 
           {/* AEO-03-04-1008: link to this carrier's how-to-pay guide (EN/ES), real <a href> for crawlers */}
@@ -862,7 +867,7 @@ const DynamicCarrier = ({
       )}
 
       <PaymentBar lang={lang} />
-      <CarrierFooter brandColor={bc} carrierName={carrierName} lang={lang} />
+      <CarrierFooter brandColor={bc} carrierName={trademarkCarrierName(carrierName)} lang={lang} />
     </div>
   );
 };

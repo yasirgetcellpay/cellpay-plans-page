@@ -7,6 +7,8 @@ import { componentTagger } from "lovable-tagger";
 import { HOW_TO_PAY_PAGES, howToPayJsonLd, howToPayStaticHtml } from "./src/content/howToPay";
 // PAYCOPY-1008: payment methods named in raw HTML come from the shared list (follows src/config/paymentFlags.ts).
 import { weAcceptLine, payBrandsComma, PAYPAL_SHOWN } from "./src/content/paymentMethods";
+// TOP4-T1-1009: carrier first-screen copy (H1/subline, Verizon trust row) shared with DynamicCarrier.tsx / Verizon.tsx.
+import { top4Hero, verizonTrustLine } from "./src/content/carrierHero";
 // PRIVACY-1007: privacy policy text (shared with src/pages/PrivacyPolicy.tsx) for the static raw HTML (EN + ES).
 import { PRIVACY_PAGES, privacyMainHtml, type PpPage } from "./src/content/privacyPolicy";
 
@@ -1208,6 +1210,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/net10.html", "es/tracfone.html", "es/topup-at.html", "tmobile-flexi.html", "es/tmobile-flexi.html",
       // SPEED-WWW-1008 (es/verizon not included: the app swaps in the API name "Verizon Wireless Flexi" after load)
       "verizon/index.html", "total-wireless/index.html", "es/total-wireless/index.html", "total-wireless.html", "es/total-wireless.html",
+      // TOP4-T1-1009: es/verizon now has a fixed H1 (carrierHero.ts), no longer the API name
+      "es/verizon/index.html",
     ]);
     // Spanish carrier name the app shows when it differs from CARRIER_LOOK name (keeps the es H1 identical).
     const CARRIER_ES_NAME: Record<string, string> = {
@@ -1215,9 +1219,12 @@ const htmlAliasPlugin = (): Plugin => ({
     };
     // LCP-ADS-1007 batch 3: Verizon (Verizon.tsx) first screen = nav + red H1 bar; card area blank until React.
     const VERIZON_SHELLS = new Set<string>(["verizon-wireless-flexi.html", "es/verizon-wireless-flexi.html"]);
-    const verizonFirstScreen = (): string | null => {
+    // TOP4-T1-1009: H1 + subline + trust row from carrierHero.ts (same as Verizon.tsx), EN or ES.
+    const verizonFirstScreen = (isEs = false): string | null => {
       const logo = goAssetUrl("verizon-logo.png");
       if (!logo) return null;
+      const vzHero = top4Hero("verizon", isEs ? "es" : "en");
+      if (!vzHero) return null;
       return (
         `<div id="root" data-go-prerender="1">` +
         `<div class="min-h-screen bg-background font-sans antialiased">` +
@@ -1227,8 +1234,12 @@ const htmlAliasPlugin = (): Plugin => ({
         `</div></div></nav>` +
         `<section class="text-primary-foreground" style="background-color:rgb(230,0,0)">` +
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">` +
-        `<h1 class="text-xl md:text-2xl font-extrabold">Verizon Prepaid Bill Pay</h1>` +
+        `<h1 class="text-xl md:text-2xl font-extrabold">${escAttr(vzHero.h1)}</h1>` +
+        `<p class="text-sm opacity-90 mt-1">${escAttr(vzHero.sub)}</p>` +
         `</div></section>` +
+        `<div class="max-w-[420px] mx-auto px-4 pt-3">` +
+        `<p class="bg-card rounded-xl border border-border px-3 py-2.5 text-xs text-foreground leading-relaxed text-center">${verizonTrustLine(isEs ? "es" : "en")}</p>` +
+        `</div>` +
         `<div class="min-h-screen"></div>` +
         `</div></div>`
       );
@@ -1288,12 +1299,18 @@ const htmlAliasPlugin = (): Plugin => ({
       const logo = look.logo ? goAssetUrl(look.logo) : null;
       if (look.logo && !logo) return null;
       const esName = CARRIER_ES_NAME[slug] || look.name;
-      const h1 = isEs
+      // TOP4-T1-1009: T-Mobile / AT&T / Simple Mobile / Verizon use the shared searcher-words copy (same as DynamicCarrier.tsx).
+      const top4 = top4Hero(slug, isEs ? "es" : "en");
+      const h1 = top4
+        ? top4.h1
+        : isEs
         ? `Soluciones Rápidas y Seguras para Recargas Prepagadas de ${esName}`
         : slug === "metropcs"
         ? "Metro PCS Pay Bill Online"
         : "Top Up Your Mobile Number—Online & Securely";
-      const h2 = isEs
+      const h2 = top4
+        ? top4.sub
+        : isEs
         ? `Transacciones Sencillas y Seguras para Usuarios Prepagados de ${esName}`
         : slug === "metropcs"
         ? "Pay your Metro by T-Mobile prepaid bill online. No login needed."
@@ -1513,7 +1530,7 @@ const htmlAliasPlugin = (): Plugin => ({
           : CARRIER_SHELLS.has(route)
           ? carrierFirstScreen(route)
           : VERIZON_SHELLS.has(route)
-          ? verizonFirstScreen()
+          ? verizonFirstScreen(route.startsWith("es/"))
           : STRAIGHT_TALK_SHELLS.has(route)
           ? straightTalkFirstScreen()
           : route === "es/index.html"
