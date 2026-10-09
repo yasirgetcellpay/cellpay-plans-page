@@ -349,12 +349,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://refill.cellpay.us/guest-simple-mobile.html</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://refill.cellpay.us/guest-net10.html</loc>
     <lastmod>2026-10-03</lastmod>
     <changefreq>weekly</changefreq>

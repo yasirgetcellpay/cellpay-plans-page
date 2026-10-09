@@ -1402,6 +1402,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/metro-pcs.html": "/es/metropcs.html",
       "total-wireless.html": "/total-wireless",
       "es/total-wireless.html": "/es/total-wireless",
+      // SIMPLE-SPEC-3-1009: one Simple Mobile page: the guest page stays live (index,follow) but points its canonical at /s1.html.
+      "guest-simple-mobile.html": "/s1.html",
     };
     const routeToPath = (route: string): string => {
       const p = "/" + route.replace(/(^|\/)index\.html$/, "");
