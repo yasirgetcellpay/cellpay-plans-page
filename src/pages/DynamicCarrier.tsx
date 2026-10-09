@@ -9,7 +9,7 @@ import { PaymentBar } from "@/components/PaymentBar";
 // PAYCOPY-1008: shared payment list (same text as the vite.config.ts carrier first screen)
 import { weAcceptLine } from "@/content/paymentMethods";
 // TOP4-T1-1009: first screen in the searcher's words + customer-facing carrier names (display only)
-import { top4Hero, displayCarrierName, trademarkCarrierName } from "@/content/carrierHero";
+import { top4Hero, displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq } from "@/content/carrierHero";
 import { PlanGrid } from "@/components/PlanGrid";
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
@@ -604,6 +604,10 @@ const DynamicCarrier = ({
   // TOP4-T1-1009: display only. carrierName (API/DB name) still goes to checkout unchanged.
   const shownName = displayCarrierName(carrierName, lang === "es" ? "es" : "en");
   const top4 = seoH1Override ? null : top4Hero(carrierSlug, lang === "es" ? "es" : "en");
+  // TOP4-T2A-1009: "active line" note under the number field + "Why was my payment refunded?" FAQ (4 carriers only).
+  const lineNote = top4 ? activeLineNote(carrierSlug, lang === "es" ? "es" : "en") : null;
+  const extraFaq = top4 ? refundFaq(carrierSlug, lang === "es" ? "es" : "en") : null;
+  const shownFaqs = extraFaq ? [...faqs, { question: extraFaq.q, answer: extraFaq.a }] : faqs;
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -691,6 +695,9 @@ const DynamicCarrier = ({
                   style={{ "--tw-ring-color": bc } as React.CSSProperties}
                 />
               </div>
+              {lineNote && (
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 -mt-2">{lineNote}</p>
+              )}
               {phoneDigits.length === 10 && (
                 <p className="text-[10px] sm:text-xs text-cellpay-green font-semibold mb-2 -mt-1">
                   ✓ {tr.refilling}: {phone}
@@ -846,8 +853,8 @@ const DynamicCarrier = ({
 
 
           {/* FAQs from API */}
-          {faqs.length > 0 && (
-            <DynamicFAQ faqs={faqs} carrierName={shownName} brandColor={bc} lang={lang} />
+          {shownFaqs.length > 0 && (
+            <DynamicFAQ faqs={shownFaqs} carrierName={shownName} brandColor={bc} lang={lang} />
           )}
 
           {/* AEO-03-04-1008: link to this carrier's how-to-pay guide (EN/ES), real <a href> for crawlers */}

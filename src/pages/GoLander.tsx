@@ -6,7 +6,7 @@ import { PaymentBar } from "@/components/PaymentBar";
 // PAYCOPY-1008: shared payment list (follows src/config/paymentFlags.ts)
 import { payBrandsComma, payWith, CARD_BRANDS, PAYPAL_SHOWN } from "@/content/paymentMethods";
 // TOP4-T1-1009: customer-facing carrier names in labels (display only)
-import { displayCarrierName, trademarkCarrierName } from "@/content/carrierHero";
+import { displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq } from "@/content/carrierHero";
 import { PlanGrid } from "@/components/PlanGrid";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
@@ -556,7 +556,11 @@ const GoLander = ({
     : "Service fee shown before you pay";
   const faqHeading = isEs ? "Preguntas frecuentes" : "Common questions";
   const faqName = GO_AD_NAMES[carrierSlug] ?? initialName; // ADS-FOLLOWUPS-1008: ad-style name in the FAQs only
-  const faqs = isEs ? goFaqsEs(faqName) : goFaqsEn(faqName);
+  // TOP4-T2A-1009: + "Why was my payment refunded?" (T-Mobile, AT&T, Simple Mobile, Verizon only); also in the FAQPage JSON-LD below.
+  const goRefundFaq = refundFaq(carrierSlug, isEs ? "es" : "en");
+  const faqs = [...(isEs ? goFaqsEs(faqName) : goFaqsEn(faqName)), ...(goRefundFaq ? [goRefundFaq] : [])];
+  // TOP4-T2A-1009: "active line" note under the number field (same in the loading and loaded layouts, so nothing moves).
+  const lineNote = activeLineNote(carrierSlug, isEs ? "es" : "en");
   // SPEED-WWW-1008: while the carrier view loads, Cricket (amount range, no plan grid) shows its loaded layout (same form, pay bar
   // and FAQ) with read-only fields and disabled pay buttons instead of a spinner. It matches the static first screen
   // (goCricketScreen in vite.config.ts), so nothing moves when the app mounts or when the data arrives. Display only: the real
@@ -672,6 +676,7 @@ const GoLander = ({
                   className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
                 />
               </div>
+              {lineNote && <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 -mt-2">{lineNote}</p>}
               <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">{tr.selectAmount}</label>
               <div className="relative mb-1">
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
@@ -754,6 +759,7 @@ const GoLander = ({
                   style={{ "--tw-ring-color": bc } as React.CSSProperties}
                 />
               </div>
+              {lineNote && <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 -mt-2">{lineNote}</p>}
               {phoneDigits.length === 10 && (
                 <p className="text-[10px] sm:text-xs text-cellpay-green font-semibold mb-2 -mt-1">
                   ✓ {tr.refilling}: {phone}
