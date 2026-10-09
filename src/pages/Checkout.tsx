@@ -673,6 +673,13 @@ const Checkout = () => {
   const ppLastRef = useRef(""); ppLastRef.current = lastName.trim();
   const ppTermsRef = useRef(false); ppTermsRef.current = agreedTerms;
   const ppConfirmedRef = useRef(false); // customer already confirmed "charge again?" at create-order for this PayPal order
+  // [PAYPAL-UX-1009] inline "details first" panel: ppTried flips on the first rejected PayPal tap (field-level errors show from then on).
+  // Display + focus only: no change to what is validated, created or sent.
+  const [ppTried, setPpTried] = useState(false);
+  const ppFirstElRef = useRef<HTMLInputElement>(null);
+  const ppLastElRef = useRef<HTMLInputElement>(null);
+  const ppEmailElRef = useRef<HTMLInputElement>(null);
+  const ppTermsElRef = useRef<HTMLInputElement>(null);
 
   // Load PayPal SDK when config is available and paypal is selected
   useEffect(() => {
@@ -775,14 +782,25 @@ const Checkout = () => {
       },
       // [PAYPAL-REBUILD-1009] No PayPal window until name, email and terms are filled in (CellPay requires them with the order).
       onClick: (_d: unknown, actions: { resolve: () => unknown; reject: () => unknown }) => {
-        if (ppFirstRef.current && ppLastRef.current && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ppEmailRef.current) && ppTermsRef.current) {
+        const ppMiss: string[] = [];
+        if (!ppFirstRef.current) ppMiss.push("first");
+        if (!ppLastRef.current) ppMiss.push("last");
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ppEmailRef.current)) ppMiss.push("email");
+        if (!ppTermsRef.current) ppMiss.push("terms");
+        if (ppMiss.length === 0) {
           setErrorMsg(null);
           return actions.resolve();
         }
-        ppFunnel("error", "details_missing");
-        setErrorMsg(lang === "es"
-          ? "Para pagar con PayPal, escriba su nombre, apellido y correo electrónico, y acepte los términos."
-          : "To pay with PayPal, enter your first name, last name and email, and accept the terms.");
+        // [PAYPAL-UX-1009] same check as before, but shown inline (field errors + focus) instead of the "Payment failed" dialog.
+        ppFunnel("error", `details_missing:${ppMiss.join("-")}`);
+        setPpTried(true);
+        try {
+          const first = ({ first: ppFirstElRef, last: ppLastElRef, email: ppEmailElRef, terms: ppTermsElRef } as Record<string, { current: HTMLInputElement | null }>)[ppMiss[0]]?.current;
+          if (first) {
+            first.scrollIntoView({ block: "center", behavior: "smooth" });
+            window.setTimeout(() => { try { first.focus({ preventScroll: true }); } catch { /* ignore */ } }, 250);
+          }
+        } catch { /* focus is best-effort */ }
         return actions.reject();
       },
       createOrder: async () => {
@@ -2143,19 +2161,66 @@ const Checkout = () => {
             <div className="bg-card rounded-xl border border-border p-5 space-y-3">
               <h2 className="font-bold text-foreground mb-1 text-sm">{tr.paypalCheckout}</h2>
               {/* [PAYPAL-REBUILD-1009] CellPay needs the buyer's name and email with a PayPal order (same fields as the card form). */}
-              <div className="grid grid-cols-2 gap-3" data-testid="paypal-name">
-                <input type="text" required autoComplete="given-name" placeholder={`${tr.firstName} *`} aria-label={tr.firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
-                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                <input type="text" required autoComplete="family-name" placeholder={`${tr.lastName} *`} aria-label={tr.lastName} value={lastName} onChange={(e) => setLastName(e.target.value)}
-                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
-                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {lang === "es"
-                  ? "Su nombre, su correo electrónico (arriba) y la aceptación de los términos son obligatorios para pagar con PayPal. Le enviaremos el recibo por correo."
-                  : "Your name, your email (above) and accepting the terms are required to pay with PayPal. We'll email your receipt."}
-              </p>
+              {/* [PAYPAL-UX-1009] Details first, inline and marked: names, email and terms are all here, above the PayPal button. Same state
+                  (firstName / lastName / email / agreedTerms) as the rest of checkout; nothing new is sent or validated. */}
+              {(() => {
+                const es = lang === "es";
+                const ppEmailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+                const bad = { first: !firstName.trim(), last: !lastName.trim(), email: !ppEmailOk, terms: !agreedTerms };
+                const anyBad = bad.first || bad.last || bad.email || bad.terms;
+                const cls = (b: boolean) => `h-11 px-4 rounded-lg border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent ${b && ppTried ? "border-destructive" : "border-input"}`;
+                const fe = (b: boolean, text: string) => (b && ppTried ? <p role="alert" className="text-xs text-destructive mt-1">{text}</p> : null);
+                return (
+                  <>
+                    <p className="text-xs text-muted-foreground" data-testid="paypal-details-intro">
+                      {es
+                        ? "Complete sus datos y luego toque el botón de PayPal. Le enviaremos el recibo por correo."
+                        : "Fill in your details, then tap the PayPal button. We'll email your receipt."}
+                    </p>
+                    <div className="grid grid-cols-2 gap-3" data-testid="paypal-name">
+                      <div>
+                        <input ref={ppFirstElRef} type="text" required autoComplete="given-name" placeholder={`${tr.firstName} *`} aria-label={tr.firstName} aria-invalid={bad.first && ppTried} value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                          className={`w-full ${cls(bad.first)}`} style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                        {fe(bad.first, es ? "Escriba su nombre" : "Enter your first name")}
+                      </div>
+                      <div>
+                        <input ref={ppLastElRef} type="text" required autoComplete="family-name" placeholder={`${tr.lastName} *`} aria-label={tr.lastName} aria-invalid={bad.last && ppTried} value={lastName} onChange={(e) => setLastName(e.target.value)}
+                          className={`w-full ${cls(bad.last)}`} style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                        {fe(bad.last, es ? "Escriba su apellido" : "Enter your last name")}
+                      </div>
+                    </div>
+                    <div data-testid="paypal-email">
+                      <input ref={ppEmailElRef} type="email" inputMode="email" autoComplete="email" placeholder={es ? "Correo electrónico para su recibo *" : "Email for your receipt *"} aria-label={es ? "Correo electrónico para su recibo" : "Email for your receipt"} aria-invalid={bad.email && ppTried} value={email} onChange={(e) => setEmail(e.target.value)}
+                        className={`w-full ${cls(bad.email)}`} style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                      {fe(bad.email, es ? "Escriba un correo electrónico válido" : "Enter a valid email address")}
+                    </div>
+                    <label className="flex items-start gap-3 cursor-pointer" data-testid="paypal-terms">
+                      <input ref={ppTermsElRef} type="checkbox" checked={agreedTerms} aria-invalid={bad.terms && ppTried} onChange={(e) => setAgreedTerms(e.target.checked)}
+                        className={`mt-0.5 h-5 w-5 shrink-0 rounded ${bad.terms && ppTried ? "border-destructive" : "border-input"}`} style={{ accentColor: brandColor }} />
+                      <span className="text-sm text-foreground leading-relaxed">
+                        {tr.agreeTerms}{" "}
+                        <a href="/terms-and-conditions" target="_blank" rel="noopener" className="underline font-semibold" style={{ color: brandColor }}>
+                          {tr.termsAndConditions}
+                        </a>{" "}
+                        {tr.agreeTermsSuffix}
+                      </span>
+                    </label>
+                    {fe(bad.terms, es ? "Acepte los términos para continuar" : "Please accept the terms to continue")}
+                    {ppTried && anyBad && (
+                      <p role="alert" className="text-sm font-semibold text-destructive" data-testid="paypal-details-alert">
+                        {es
+                          ? "Casi listo: complete los campos marcados y toque PayPal de nuevo. No se cobró nada."
+                          : "Almost there: complete the highlighted fields, then tap PayPal again. Nothing was charged."}
+                      </p>
+                    )}
+                    {!anyBad && (
+                      <p role="status" className="text-sm font-semibold" style={{ color: brandColor }} data-testid="paypal-details-ready">
+                        {es ? "Todo listo. Toque PayPal para pagar." : "All set. Tap PayPal to pay."}
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
               {!paypalReady ? (
                 <div className="flex items-center justify-center py-6">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -2233,7 +2298,7 @@ const Checkout = () => {
 
           {/* Terms + Place Order */}
           <div className="bg-card rounded-xl border border-border p-5 space-y-4">
-            <label className="flex items-start gap-3 cursor-pointer">
+            <label className={paymentMethod === "paypal" ? "hidden" : "flex items-start gap-3 cursor-pointer"}>{/* PAYPAL-UX-1009: PayPal shows this checkbox inside its own panel */}
               <input type="checkbox" checked={agreedTerms} onChange={(e) => setAgreedTerms(e.target.checked)}
                 className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
               <span className="text-sm text-foreground leading-relaxed">
