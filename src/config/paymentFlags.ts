@@ -3,4 +3,4 @@
 // fraud_controls.plaid_exchange_mode = 'off' (cellpay-proxy then refuses it and the page hides it for the visit).
 export const PLAID_ENABLED = true;
 // PAYPAL-HIDE-1154, Oct 8 2026: PayPal hidden (PayPal captured but CellPay answered "Transaction processing failed", no refill). true = show again.
-export const PAYPAL_ENABLED = false;
+export const PAYPAL_ENABLED = true; // PAYPAL-REBUILD-1009 deploy 3 (Oct 9 2026): PayPal on CellPay's checkout/transaction flow (approve-only, no capture by us)
