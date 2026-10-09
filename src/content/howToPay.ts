@@ -304,20 +304,30 @@ export const howToPayJsonLd = (pg: HtpPage): string => {
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-// Static first render for raw HTML (crawlers / no JS). React replaces #root on mount with the same content.
-export const howToPayStaticHtml = (pg: HtpPage): string =>
-  `<div id="root"><main role="main" data-htp-static="1" style="font-family:'Open Sans',system-ui,Arial,sans-serif;max-width:760px;margin:32px auto;padding:0 20px;color:#0f172a;line-height:1.55">` +
-  `<h1 style="font-size:28px;line-height:1.25;font-weight:800;margin:0 0 16px">${esc(pg.h1)}</h1>` +
-  `<p>${esc(pg.intro)}</p>` +
-  `<p><a href="${pg.checkoutPath}">${esc(pg.labels.payNow)}</a></p>` +
-  `<h2>${esc(pg.labels.steps)}</h2><ol>` + pg.steps.map((s, i) => `<li id="step-${i + 1}"><strong>${esc(s.name)}.</strong> ${esc(s.text)}</li>`).join("") + `</ol>` +
-  `<h2>${esc(pg.labels.need)}</h2><ul>` + pg.need.map((n) => `<li>${esc(n)}</li>`).join("") + `</ul>` +
-  `<h2>${esc(pg.labels.fees)}</h2><table><thead><tr><th>${esc(pg.labels.item)}</th><th>${esc(pg.labels.amount)}</th></tr></thead><tbody>` +
-  pg.feeRows.map(([a, b]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join("") + `</tbody></table><p><small>${esc(pg.feeNote)}</small></p>` +
-  `<h2>${esc(pg.labels.other)}</h2><p>${esc(pg.otherWays)}</p>` +
-  `<h2>${esc(pg.someoneElseTitle)}</h2><p>${esc(pg.someoneElse)}</p>` +
-  `<h2>${esc(pg.autoPayTitle)}</h2><p>${esc(pg.autoPay)} <a href="${pg.checkoutPath}">${esc(pg.labels.payNow)}</a></p>` +
-  `<h2>${esc(pg.labels.faq)}</h2>` + pg.faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("") +
-  `<p><small>${esc(pg.disclaimer)}</small></p><p><small>${esc(pg.updated)}</small></p>` +
-  `<h2>${esc(pg.labels.related)}</h2><ul>` + pg.related.map(([h, t]) => `<li><a href="${h}">${esc(t)}</a></li>`).join("") + `</ul>` +
-  `</main></div>`;
+// TOP4-T4-1009 (guide LCP): static first render for the raw HTML = the SAME DOM, classes and text as the first React render of
+// src/pages/HowToPay.tsx (plans still loading). data-go-prerender lets the browser paint it before React starts (main.tsx),
+// and main.tsx waits for the guide chunk, so React swaps in identical markup and nothing new paints. Keep in sync with HowToPay.tsx.
+export const howToPayStaticHtml = (pg: HtpPage): string => {
+  const L = pg.labels;
+  const h2 = (t: string) => `<h2 class="text-xl font-extrabold mt-8 mb-3">${esc(t)}</h2>`;
+  return (
+    `<div id="root" data-go-prerender="1"><div class="min-h-screen bg-background font-sans antialiased text-foreground" lang="${pg.lang}">` +
+    `<nav class="border-b border-border bg-card"><div class="max-w-3xl mx-auto px-5 h-14 flex items-center"><a class="font-extrabold text-lg" href="${pg.lang === "es" ? "/es" : "/"}">CellPay</a></div></nav>` +
+    `<main class="max-w-3xl mx-auto px-5 py-8 leading-relaxed">` +
+    `<h1 class="text-2xl md:text-3xl font-extrabold leading-tight mb-4">${esc(pg.h1)}</h1>` +
+    `<div class="rounded-xl border border-border bg-muted/40 p-4 mb-6"><p>${esc(pg.intro)}</p><a href="${pg.checkoutPath}" class="inline-block mt-3 rounded-lg bg-primary text-primary-foreground font-bold px-5 py-2.5">${esc(L.payNow)}</a></div>` +
+    h2(L.steps) + `<ol class="list-decimal pl-6 space-y-2">` + pg.steps.map((s, i) => `<li id="step-${i + 1}"><strong>${esc(s.name)}.</strong> ${esc(s.text)}</li>`).join("") + `</ol>` +
+    h2(L.need) + `<ul class="list-disc pl-6 space-y-1">` + pg.need.map((n) => `<li>${esc(n)}</li>`).join("") + `</ul>` +
+    h2(L.fees) + `<table class="w-full text-sm border border-border"><thead><tr class="bg-muted/40"><th class="text-left p-2">${esc(L.item)}</th><th class="text-left p-2">${esc(L.amount)}</th></tr></thead><tbody>` +
+    pg.feeRows.map(([a, b]) => `<tr class="border-t border-border"><td class="p-2">${esc(a)}</td><td class="p-2">${esc(b)}</td></tr>`).join("") + `</tbody></table>` +
+    `<p class="text-xs text-muted-foreground mt-1">${esc(pg.feeNote)}</p>` +
+    `<h3 class="font-bold mt-5 mb-2">${esc(pg.plansLabel)}</h3><p class="text-sm text-muted-foreground">${esc(pg.plansLoading)}</p>` +
+    h2(L.other) + `<p>${esc(pg.otherWays)}</p>` +
+    h2(pg.someoneElseTitle) + `<p>${esc(pg.someoneElse)}</p>` +
+    h2(pg.autoPayTitle) + `<p>${esc(pg.autoPay)} <a href="${pg.checkoutPath}" class="underline">${esc(L.payNow)}</a></p>` +
+    h2(L.faq) + pg.faqs.map((f) => `<div class="mb-4"><h3 class="font-bold">${esc(f.q)}</h3><p>${esc(f.a)}</p></div>`).join("") +
+    `<p class="text-xs text-muted-foreground mt-8">${esc(pg.disclaimer)}</p><p class="text-xs text-muted-foreground">${esc(pg.updated)}</p>` +
+    h2(L.related) + `<ul class="list-disc pl-6 space-y-1">` + pg.related.map(([h, t]) => `<li><a href="${h}" class="underline">${esc(t)}</a></li>`).join("") + `</ul>` +
+    `</main></div></div>`
+  );
+};

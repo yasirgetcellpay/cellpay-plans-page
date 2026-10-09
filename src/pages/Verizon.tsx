@@ -318,6 +318,13 @@ const Verizon = () => {
         </section>
       )}
 
+      {/* TOP4-T4-1009: link to the Verizon Prepaid pay-bill guide (EN/ES), same small link as the other carrier pages */}
+      <p className="max-w-3xl mx-auto px-4 py-4 text-sm text-center">
+        <a href={es ? "/es/como-pagar/verizon-prepaid" : "/how-to-pay/verizon-prepaid"} className="underline">
+          {es ? "Cómo pagar su factura de Verizon Prepago en línea" : "How to pay your Verizon Prepaid bill online"}
+        </a>
+      </p>
+
       <PaymentBar lang={lang} />
       <CarrierFooter brandColor={BRAND} carrierName="Verizon" lang={lang} />
     </div>

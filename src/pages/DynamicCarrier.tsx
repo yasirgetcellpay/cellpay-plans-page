@@ -894,6 +894,7 @@ const HTP_GUIDE_BY_SLUG: Record<string, { key: string; name: string }> = {
   tmobile: { key: "t-mobile-prepaid", name: "T-Mobile Prepaid" },
   "straight-talk": { key: "straight-talk", name: "Straight Talk" },
   "topup-at": { key: "att-prepaid", name: "AT&T Prepaid" },
+  verizon: { key: "verizon-prepaid", name: "Verizon Prepaid" }, // TOP4-T4-1009: /verizon, /es/verizon
 };
 
 /* ── FAQ sub-component ── */

@@ -134,7 +134,19 @@ const ContactUs = lazyPage(() => import("./pages/ContactUs.tsx"));
 const FAQ = lazyPage(() => import("./pages/FAQ.tsx"));
 const HowToUse = lazyPage(() => import("./pages/HowToUse.tsx"));
 // AEO-PAGES-1007
-const HowToPay = lazyPage(() => import("./pages/HowToPay.tsx"));
+// TOP4-T4-1009 (guide LCP): main.tsx preloads the guide chunk before React starts on /how-to-pay/* and /es/como-pagar/*.
+// Once it has loaded, the guide resolves synchronously (no empty Suspense fallback), so React's first render is the guide
+// itself, with the same markup as the static copy in the raw HTML. Everywhere else it still loads on demand, as before.
+type HowToPayModule = typeof import("./pages/HowToPay.tsx");
+let howToPayModule: HowToPayModule | null = null;
+const loadHowToPay = () => import("./pages/HowToPay.tsx").then((m) => (howToPayModule = m));
+export const preloadHowToPay = (): Promise<unknown> => loadHowToPay();
+export const isHowToPayPath = (p: string): boolean => /^\/(how-to-pay|es\/como-pagar)\/[^/]+\/?$/.test(p);
+const HowToPayLazy = lazyPage(loadHowToPay);
+const HowToPayReady = lazy(
+  () => ({ then: (ok: (m: HowToPayModule) => void) => ok(howToPayModule as HowToPayModule) }) as unknown as Promise<HowToPayModule>,
+);
+const HowToPay = () => (howToPayModule ? <HowToPayReady /> : <HowToPayLazy />);
 const PrivacyPolicy = lazyPage(() => import("./pages/PrivacyPolicy.tsx"));
 const TermsAndConditions = lazyPage(() => import("./pages/TermsAndConditions.tsx"));
 const ReturnsPolicy = lazyPage(() => import("./pages/ReturnsPolicy.tsx"));

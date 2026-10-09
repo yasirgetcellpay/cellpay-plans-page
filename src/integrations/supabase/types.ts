@@ -1635,6 +1635,7 @@ export type Database = {
         Args: { _bucket: string; _limit: number; _window_seconds: number }
         Returns: boolean
       }
+      ap1_reason_not_enrolled: { Args: { _reason: string }; Returns: boolean }
       ap1_retry_record: {
         Args: {
           _domain: string
