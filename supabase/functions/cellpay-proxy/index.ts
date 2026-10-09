@@ -1230,7 +1230,7 @@ async function dedupeClaim(p: Record<string, unknown>, method: string | null): P
   const pan = digits(pay.cc_number ?? p.cc_number);
   const fp = pan
     ? `pan:${pan}:${digits(pay.cc_exp_month ?? p.cc_exp_month)}/${digits(pay.cc_exp_year ?? p.cc_exp_year)}`
-    : tok(p.google_pay_token) || tok(p.apple_pay_token) || tok(p.plaid_token) || tok(p.klarna_auth_token) || tok(p.payment_token);
+    : tok(p.google_pay_token) || tok(p.apple_pay_token) || tok(p.plaid_token) || tok(p.klarna_auth_token) || tok(p.payment_token) || tok(ppAuthOrderId(p.paypal_authorization)); // [PAYPAL-REBUILD-1009] same approval twice = duplicate
   const enc = new TextEncoder();
   const k = await crypto.subtle.importKey("raw", enc.encode(hashKey), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const sig = new Uint8Array(await crypto.subtle.sign("HMAC", k, enc.encode(`${phone}|${amount}|${pm}|${fp}`)));
@@ -1575,6 +1575,69 @@ async function plaidExchangeOn(): Promise<boolean> {
 const PP_CREATE = "payments/paypal/create-order";
 const PP_CAPTURE = "payments/paypal/capture-order";
 const PP_CREATE_ENABLED = false; // [PAYPAL-HIDE-1154] false = refuse new PayPal create-order (capture still allowed)
+// [PAYPAL-REBUILD-1009] CellPay's PayPal flow (Yasir, Oct 9 2026 08:27 CT): the PayPal button only gets the buyer's approval. The site
+// then sends POST checkout/transaction with payment_method "paypal", paypal_authorization (the whole onApprove object as ONE JSON
+// string, incl. orderID + payerID) and payment {firstName, lastName, email}; CellPay takes the money. We never capture.
+const PP_TX_ENABLED = false; // false = PayPal checkout/transaction refused (nothing sent to CellPay) unless the QA allowlist below matches
+const PP_CAPTURE_RETIRED = true; // capture-order is never forwarded any more (capturing ourselves was the wrong flow)
+const PP_AUTH_MAX = 4096;
+const PP_ORDER_RE = /^[A-Z0-9]{8,32}$/;
+const PP_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PP_UNAVAILABLE_MSG = "PayPal is not available right now. Please use another payment method. You were not charged.";
+// Switches: code constant true = live for everyone unless fraud_controls.paypal_mode = 'off' (kill switch; a failed read keeps it on).
+// Code constant false = only fraud_controls.paypal_mode = 'qa' AND the phone listed in fraud_controls.paypal_qa_phones (comma list of
+// 10-digit numbers); missing rows or a failed read = refused. Cached 30 s.
+let ppModeCache: { at: number; mode: string | null; qa: string[] } | null = null;
+async function ppControls(): Promise<{ mode: string | null; qa: string[] } | null> {
+  if (ppModeCache && Date.now() - ppModeCache.at < 30000) return ppModeCache;
+  try {
+    const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const get = async (k: string): Promise<string | null> => {
+      const r = await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/rpc/fraud_control_get`, { method: "POST",
+        headers: { apikey: key, authorization: `Bearer ${key}`, "content-type": "application/json" },
+        body: JSON.stringify({ _key: k }), signal: AbortSignal.timeout(800) });
+      if (!r.ok) { await r.body?.cancel(); throw new Error(`http_${r.status}`); }
+      const t = await r.text();
+      const v = t ? JSON.parse(t) : null;
+      return typeof v === "string" ? v : null;
+    };
+    const [mode, qa] = await Promise.all([get("paypal_mode"), get("paypal_qa_phones")]);
+    ppModeCache = { at: Date.now(), mode: mode ? mode.trim().toLowerCase() : null,
+      qa: (qa ?? "").split(",").map((x) => x.replace(/\D/g, "").slice(-10)).filter((x) => x.length === 10) };
+    return ppModeCache;
+  } catch {
+    return null;
+  }
+}
+async function ppAllowed(liveFlag: boolean, phone: unknown): Promise<boolean> {
+  const c = await ppControls();
+  if (liveFlag) return !c || c.mode !== "off";
+  if (!c || c.mode !== "qa") return false;
+  const ph = String(phone ?? "").replace(/\D/g, "").slice(-10);
+  return ph.length === 10 && c.qa.includes(ph);
+}
+/** paypal_authorization must be ONE JSON string (<= 4 KB) of PayPal's approval object with orderID + payerID. Returns orderID or null. */
+function ppAuthOrderId(v: unknown): string | null {
+  if (typeof v !== "string" || v.length < 10 || v.length > PP_AUTH_MAX) return null;
+  try {
+    const o = asRecord(JSON.parse(v));
+    const oid = typeof o.orderID === "string" ? o.orderID.trim() : "";
+    const payer = typeof o.payerID === "string" ? o.payerID.trim() : "";
+    return PP_ORDER_RE.test(oid) && /^[A-Z0-9]{6,32}$/.test(payer) ? oid : null;
+  } catch {
+    return null;
+  }
+}
+/** Removes PayPal approval secrets (facilitatorAccessToken, a paypal_authorization echo) from a reply before it is logged or returned. */
+function ppScrub(value: unknown, depth = 0): void {
+  if (depth > 8 || !value || typeof value !== "object") return;
+  if (Array.isArray(value)) { for (const x of value) ppScrub(x, depth + 1); return; }
+  const r = value as Record<string, unknown>;
+  for (const k of Object.keys(r)) {
+    if (/^(facilitatorAccessToken|facilitator_access_token|paypal_authorization|access_token)$/i.test(k)) delete r[k];
+    else ppScrub(r[k], depth + 1);
+  }
+}
 const PP_META_KEYS = ["phone_number", "carrierId", "plan_id", "amount", "total", "email", "carrier_slug", "carrier_name", "browser_info", "kount_ssid", "source"];
 const PP_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PP_BLOCK_MSG = "We couldn't process this payment right now. Please try again in about 30 minutes or use a different payment method. You were not charged.";
@@ -1609,9 +1672,16 @@ async function paypalAction(
   const isCreate = path === PP_CREATE;
   // [PAYPAL-HIDE-1154] Oct 8 2026: new PayPal orders refused server-side (nothing sent to CellPay or PayPal). Capture-order is NOT
   // affected, so orders already approved are still captured and logged. Re-enable: set PP_CREATE_ENABLED = true.
-  if (isCreate && !PP_CREATE_ENABLED) {
+  // [PAYPAL-REBUILD-1009] PP_CREATE_ENABLED stays the master switch; while it is false only the QA allowlist (fraud_controls) passes.
+  if (isCreate && !(await ppAllowed(PP_CREATE_ENABLED, asRecord(body.payload).phone_number))) {
     try { recordGuardEvent({ code: "paypal_disabled", method: "POST", endpoint_shape: PP_CREATE, origin_host: originHost(origin), has_origin: origin !== null }); } catch { /* ignore */ }
     return reply({ success: false, blocked: true, code: "PAYPAL_UNAVAILABLE", message: "PayPal is not available right now. Please use another payment method. You were not charged." });
+  }
+  // [PAYPAL-REBUILD-1009] capture-order retired: CellPay takes the money inside checkout/transaction. Nothing is sent to CellPay or
+  // PayPal; an approved-but-uncaptured PayPal order moves no money.
+  if (!isCreate && PP_CAPTURE_RETIRED) {
+    try { recordGuardEvent({ code: "paypal_capture_retired", method: "POST", endpoint_shape: PP_CAPTURE, origin_host: originHost(origin), has_origin: origin !== null }); } catch { /* ignore */ }
+    return reply({ success: false, blocked: true, code: "PAYPAL_CAPTURE_RETIRED", message: "Please refresh the page and tap PayPal again. You were not charged." });
   }
   const payload = asRecord(body.payload);
   const meta = asRecord(payload.pp_meta);
@@ -1720,6 +1790,15 @@ async function paypalAction(
   const r = unwrapTransactionResult(wrapped);
   const arb = (): Record<string, unknown> => arbLogMeta(lr, body.bearerToken, body.lang);
 
+  if (isCreate && PP_CAPTURE_RETIRED) {
+    // [PAYPAL-REBUILD-1009] No transaction_logs row at create-order any more: the one order row is written by checkout/transaction
+    // (payment_method paypal, metadata.paypal_order_id, paypal_step "transaction"). PII-free create outcome only (funnel has the rest).
+    const ppOid = text(r.order_id) ?? text(r.id) ?? text(r.orderId);
+    if (!ppOid) {
+      try { recordGuardEvent({ code: `paypal_create_fail:http_${response.status}`, method: "POST", endpoint_shape: PP_CREATE, origin_host: originHost(origin), has_origin: origin !== null }); } catch { /* ignore */ }
+    }
+    return reply(wrapped);
+  }
   if (isCreate) {
     const orderId = text(r.order_id) ?? text(r.id) ?? text(r.orderId);
     try {
@@ -1884,6 +1963,40 @@ serve(async (req) => {
     // [plaid v2] A Plaid checkout carries no Plaid token or Link metadata past this point (guards, log row, CellPay).
     const isPlaidCheckout = shouldLogTransaction && (paymentMethod || "").toLowerCase() === "plaid";
     if (isPlaidCheckout) for (const k of PLAID_V2_DROP) delete payloadRecord[k];
+    // [PAYPAL-REBUILD-1009] PayPal through checkout/transaction (CellPay takes the money). Before every other guard: switch / QA allowlist,
+    // then the shape CellPay requires (paypal_authorization with orderID + payerID; payment firstName / lastName / email). A refusal is
+    // a calm 200: nothing goes to CellPay, nothing is captured (the PayPal approval just expires). Then the normal card guards and the
+    // normal order row (blocklist, refill cooldown, DUPCHARGE incl. IN_FLIGHT, BL-3 dedupe keyed on the PayPal order id, velocity).
+    const isPayPalTx = shouldLogTransaction && (paymentMethod || "").toLowerCase() === "paypal";
+    let ppTxOrderId: string | null = null;
+    if (isPayPalTx) {
+      const ppRefuse = (code: string, message: string) => {
+        try { recordGuardEvent({ code: `paypal_tx:${code.toLowerCase()}`, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null }); } catch { /* ignore */ }
+        return new Response(JSON.stringify({ success: false, blocked: true, code, message }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      };
+      if (!(await ppAllowed(PP_TX_ENABLED, payloadRecord.phone_number))) return ppRefuse("PAYPAL_UNAVAILABLE", PP_UNAVAILABLE_MSG);
+      ppTxOrderId = ppAuthOrderId(payloadRecord.paypal_authorization);
+      if (!ppTxOrderId) return ppRefuse("PAYPAL_AUTH_INVALID", "We couldn't read the PayPal approval. Please tap PayPal again. You were not charged.");
+      const ppPay = asRecord(payloadRecord.payment);
+      if (!text(ppPay.firstName) || !text(ppPay.lastName) || !PP_EMAIL_RE.test(String(ppPay.email ?? "").trim())) {
+        return ppRefuse("PAYPAL_DETAILS_MISSING", "Please enter your first name, last name and email, then tap PayPal again. You were not charged.");
+      }
+      // Yasir (Oct 9): a PayPal authorization is never resubmitted; after any failure the buyer approves a NEW order. Same PayPal order
+      // id already on an order row = refused here (800 ms, fail-open; the BL-3 dedupe below also catches a double tap within 10 s).
+      try {
+        const sk = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+        const ur = await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/transaction_logs?select=id&payment_method=eq.paypal&metadata->>paypal_order_id=eq.${encodeURIComponent(ppTxOrderId)}&limit=1`,
+          { headers: { apikey: sk, authorization: `Bearer ${sk}` }, signal: AbortSignal.timeout(800) });
+        if (ur.ok) {
+          const rows = await ur.json();
+          if (Array.isArray(rows) && rows.length > 0) return ppRefuse("PAYPAL_ORDER_USED", "This PayPal approval was already sent, so we did not send it again. Please don't pay again while we check your payment.");
+        } else { await ur.body?.cancel(); }
+      } catch { /* fail-open */ }
+      // No Auto Pay on PayPal (not offered) and never a capture id (Yasir: "do not send a capture id").
+      for (const k of ["autopay", "autopay_agreement", "save_cc"]) delete ppPay[k];
+      for (const k of ["autopay", "autopay_agreement", "subscriberARB", "paypal_capture_id", "capture_id", "order_id"]) delete payloadRecord[k];
+      if (fetchOptions.body !== undefined) fetchOptions.body = JSON.stringify(payloadRecord);
+    }
     // [GPAY-AP-SERVER-1008] Google Pay Auto Pay server gate (helpers above blocklistCheck). Runs before every other guard, so a
     // refused request is still stripped and logged. Never refuses the payment: a failed, erroring or slow gate only removes the
     // Auto Pay keys (the body sent to CellPay is rebuilt from the stripped payload), and the order goes on as one-time.
@@ -1965,7 +2078,7 @@ serve(async (req) => {
       } catch { /* dedupe fails open */ }
     }
     const txLogId = shouldLogTransaction
-      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), arbLogMeta(payloadRecord, bearerToken, body.lang), clickIdsFrom(body.click_ids))
+      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}) }, clickIdsFrom(body.click_ids))
       : null;
     if (shouldLogTransaction) velocityShadow(txLogId, payloadRecord, paymentMethod); // [VEL1-1007] log-only, not awaited
 
@@ -2032,6 +2145,7 @@ serve(async (req) => {
         `checkout/transaction#log=${txLogId ?? "none"}`, guardOrigin);
     }
 
+    if (isPayPalTx) ppScrub(wrapped); // [PAYPAL-REBUILD-1009] never log or return PayPal approval secrets
     if (shouldLogTransaction) {
       await finishTransactionLog(txLogId, wrapped, paymentMethod);
       if (!isPlaidCheckout && /^(card|applepay|googlepay|klarna)/i.test(String(paymentMethod || ""))) await logCardFacts(txLogId, payloadRecord, wrapped, paymentMethod); // [CARDLOG-1007 v3] never throws
