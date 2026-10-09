@@ -1137,22 +1137,43 @@ async function blocklistCheck(p: Record<string, unknown>, cardH: string | null):
 // session_paid = this checkout session already has a successful charge; recent = this phone paid this same amount in the last
 // 10 min. Kill switch checkout_guard_controls.dupcharge (on | shadow | off). Fail-open: 800 ms budget; any error = no check.
 const DUPCHARGE_TIMEOUT_MS = 800;
-async function dupchargeCheck(p: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+// [DUPCHARGE-FOLLOWUPS-1008 b] Still fail-open (null = no check), but every fail-open is now counted when the caller passes ctx:
+// proxy_guard_events code "dupcharge_failopen", endpoint_shape "<shape>#timeout" | "#http_<status>" | "#error". Mode off is a
+// normal answer (no event). in_flight (DB, Oct 8): same phone with a non-Cash-App, non-PayPal 'pending' row < 2 min old for the same
+// checkout session or the same amount = the first charge is still at CellPay.
+async function dupchargeCheck(p: Record<string, unknown>, ctx?: { shape: string; origin: string | null }): Promise<Record<string, unknown> | null> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) return null;
-  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/dupcharge_check`, {
-    method: "POST",
-    headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
-    body: JSON.stringify({
-      _phone: text(p.phone_number ?? p.phoneNumber),
-      _amount: numberText(p.amount),
-      _session: text(p.kount_ssid ?? p.riskified_sessionid ?? p.cbsys_sessionid),
-    }),
-    signal: AbortSignal.timeout(DUPCHARGE_TIMEOUT_MS),
-  });
-  if (!res.ok) { console.warn(`[dupcharge] check failed: ${res.status}`); return null; }
-  return asRecord(await res.json());
+  const failOpen = (why: string): null => {
+    if (ctx) {
+      try { recordGuardEvent({ code: "dupcharge_failopen", method: "POST", endpoint_shape: `${ctx.shape}#${why}`, origin_host: originHost(ctx.origin), has_origin: ctx.origin !== null }); } catch { /* ignore */ }
+    }
+    return null;
+  };
+  const errWhy = (e: unknown) => (e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError") ? "timeout" : "error");
+  let res: Response;
+  try {
+    res = await fetch(`${supabaseUrl}/rest/v1/rpc/dupcharge_check`, {
+      method: "POST",
+      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        _phone: text(p.phone_number ?? p.phoneNumber),
+        _amount: numberText(p.amount),
+        _session: text(p.kount_ssid ?? p.riskified_sessionid ?? p.cbsys_sessionid),
+      }),
+      signal: AbortSignal.timeout(DUPCHARGE_TIMEOUT_MS),
+    });
+  } catch (e) {
+    console.warn(`[dupcharge] check failed: ${errWhy(e)}`);
+    return failOpen(errWhy(e));
+  }
+  if (!res.ok) { console.warn(`[dupcharge] check failed: ${res.status}`); return failOpen(`http_${res.status}`); }
+  try {
+    return asRecord(await res.json());
+  } catch (e) {
+    return failOpen(errWhy(e));
+  }
 }
 
 // [dedupe BL-3] Duplicate-charge guard: phone|amount|method|card-or-token, HMAC'd in memory (PAN/token never stored or logged).
@@ -1876,16 +1897,21 @@ serve(async (req) => {
         if (typeof fetchOptions.body === "string") fetchOptions.body = JSON.stringify(payloadRecord);
       }
       try {
-        const dc = await dupchargeCheck(payloadRecord);
+        // [DUPCHARGE-FOLLOWUPS-1008] order: session_paid > in_flight > recent. in_flight -> IN_FLIGHT (calm 200, nothing charged or
+        // logged); dup_confirm never bypasses it. Fail-open events via ctx.
+        const dc = await dupchargeCheck(payloadRecord, { shape: "checkout/transaction", origin: guardOrigin });
         const dcMode = dc ? String(dc.mode ?? "off") : "off";
-        if (dc && dcMode !== "off" && (dc.session_paid === true || dc.recent === true)) {
+        if (dc && dcMode !== "off" && (dc.session_paid === true || dc.in_flight === true || dc.recent === true)) {
           const enforce = dcMode === "on";
-          const kind = dc.session_paid === true ? "session_paid" : dupConfirmed ? "confirmed" : "ask";
+          const kind = dc.session_paid === true ? "session_paid" : dc.in_flight === true ? "in_flight" : dupConfirmed ? "confirmed" : "ask";
           recordGuardEvent({ code: `dupcharge_${enforce ? "" : "shadow_"}${kind}`, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null });
           const paidNum = Number(dc.paid_total);
           const paid = Number.isFinite(paidNum) && paidNum > 0 ? paidNum.toFixed(2) : (numberText(payloadRecord.total) ?? numberText(payloadRecord.amount) ?? "");
           if (enforce && kind === "session_paid") {
             return new Response(JSON.stringify({ success: false, blocked: true, code: "SESSION_PAID", hashid: text(dc.ref), amount: paid, message: `This order is already paid ($${paid}), so we did not charge you again. Your receipt was sent by email.` }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          if (enforce && kind === "in_flight") {
+            return new Response(JSON.stringify({ success: false, blocked: true, code: "IN_FLIGHT", message: "Your payment is still processing. Please wait a moment; you were not charged again." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
           if (enforce && kind === "ask") {
             return new Response(JSON.stringify({ success: false, blocked: true, code: "DUP_CONFIRM", amount: paid, message: `You just paid $${paid} for this number, charge again? You were not charged this time.` }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
