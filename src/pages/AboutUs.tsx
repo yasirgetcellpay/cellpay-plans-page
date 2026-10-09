@@ -19,7 +19,7 @@ const AboutUs = () => {
       <h1 className="text-3xl font-extrabold text-foreground mb-6">About CellPay</h1>
       <div className="space-y-5 text-muted-foreground leading-relaxed">
         <p>
-          CellPay is a fast, reliable online platform for prepaid wireless top-ups and refills. We make it easy to recharge your phone from the comfort of your home — no store visits, no hassle.
+          CellPay is an independent payment service for US prepaid phone plans. CellPay is a fast, reliable online platform for prepaid wireless top-ups and refills. We make it easy to recharge your phone from the comfort of your home — no store visits, no hassle.
         </p>
         <p>
           We support all major U.S. prepaid carriers including AT&T, T-Mobile, Verizon, Cricket, Metro, Boost Mobile, Straight Talk, TracFone, and many more. Whether you need a monthly plan refill or a quick data add-on, CellPay has you covered.
