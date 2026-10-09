@@ -1,36 +1,57 @@
 # CellPay
 
-> Online prepaid mobile recharge for 15+ US wireless carriers. Secure checkout. Low service fee shown before you pay.
+> Pay or refill a US prepaid phone plan online with just the phone number, no carrier login. 15+ carriers, in English and Spanish. Service fee shown before you pay.
 
-CellPay is a US-based prepaid wireless top-up service. Customers select a carrier, enter their phone number, choose a plan or amount, and pay securely. Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, Boost Mobile, Straight Talk, TracFone, H2O, Lyca, Net10, Page Plus, Simple Mobile, and Ultra Mobile. Each carrier page is available in English and Spanish.
+CellPay is an independent payment service. Pay with the 10-digit number, no carrier login, for yourself or someone else. Service fee shown before you pay. Payment methods: card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank.
+
+Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, Boost Mobile, Straight Talk, TracFone, Total Wireless, H2O, Lyca, Net10, Page Plus, Simple Mobile, and Ultra Mobile. Each carrier page is available in English and Spanish (add /es before the path).
 
 ## Pages
 
-- [Home](/): Browse all supported prepaid carriers and start a refill.
-- [About Us](/about-us): What CellPay is and the carriers it serves.
-- [How to Use](/how-to-use): Step-by-step guide to recharging a prepaid line.
-- [FAQ](/faq): Common questions about refills, payments, and delivery times.
-- [Contact Us](/contact-us): Email support and business hours.
+- [Home](https://www.cellpay.us/): Browse all supported prepaid carriers and start a refill.
+- [About Us](https://www.cellpay.us/about-us): What CellPay is and the carriers it serves.
+- [How to Use](https://www.cellpay.us/how-to-use): Step-by-step guide to recharging a prepaid line.
+- [FAQ](https://www.cellpay.us/faq): Common questions about refills, payments, and delivery times.
+- [Contact Us](https://www.cellpay.us/contact-us): Email support and business hours.
+
+## Simple Mobile
+
+- [Simple Mobile bill pay & refill (no login)](https://www.cellpay.us/s1.html)
+- [How to pay a Simple Mobile bill online](https://www.cellpay.us/how-to-pay/simple-mobile)
+- [Pagar Simple Mobile (español)](https://www.cellpay.us/es/s1.html)
+- [Cómo pagar Simple Mobile](https://www.cellpay.us/es/como-pagar/simple-mobile)
+- CellPay is an independent payment service. Pay with the 10-digit number, no Simple Mobile login, for yourself or someone else. Service fee shown before you pay.
 
 ## Carriers
 
-- [AT&T PrePaid](/topup-at.html): Refill AT&T PrePaid plans and add-ons.
-- [T-Mobile Prepaid](/tmobile-flexi.html): T-Mobile prepaid refills and plans.
-- [Verizon Prepaid](/verizon-wireless-flexi.html): Verizon prepaid plan refills.
-- [Metro by T-Mobile](/metropcs.html): Metro PCS monthly plan refills.
-- [Cricket Wireless](/topup-crc.html): Cricket prepaid plan refills.
-- [Boost Mobile](/boost.html): Boost Mobile prepaid refills.
-- [Straight Talk](/straight-talk.html): Straight Talk service plan refills.
-- [TracFone](/tracfone.html): TracFone airtime and plan refills.
-- [Simple Mobile](/s1.html): Simple Mobile prepaid plan refills.
-- [H2O Wireless](/h2o.html): H2O prepaid plan refills.
-- [Lyca Mobile](/lyca.html): Lyca Mobile prepaid plan refills.
-- [Net10](/net10.html): Net10 Wireless prepaid refills.
-- [Page Plus](/pageplus.html): Page Plus Cellular prepaid refills.
-- [Ultra Mobile](/ultra-mobile.html): Ultra Mobile prepaid plan refills.
+- [AT&T PrePaid](https://www.cellpay.us/topup-at.html): Refill AT&T PrePaid plans and add-ons.
+- [AT&T FirstNet](https://www.cellpay.us/att-firstnet): Pay AT&T FirstNet prepaid plans.
+- [T-Mobile Prepaid](https://www.cellpay.us/tmobile-flexi.html): T-Mobile prepaid refills and plans.
+- [Verizon Prepaid bill pay](https://www.cellpay.us/verizon): Pay a Verizon Prepaid bill with the phone number, no login.
+- [Verizon Prepaid refill](https://www.cellpay.us/verizon-wireless-flexi.html): Verizon prepaid plan refills.
+- [Metro by T-Mobile](https://www.cellpay.us/metropcs.html): Metro by T-Mobile monthly plan payments.
+- [Cricket Wireless](https://www.cellpay.us/topup-crc.html): Cricket prepaid plan refills.
+- [Boost Mobile](https://www.cellpay.us/boost.html): Boost Mobile prepaid refills.
+- [Straight Talk](https://www.cellpay.us/straight-talk.html): Straight Talk service plan refills.
+- [TracFone](https://www.cellpay.us/tracfone.html): TracFone airtime and plan refills.
+- [Total Wireless](https://www.cellpay.us/total-wireless): Total Wireless plan payments.
+- [Simple Mobile](https://www.cellpay.us/s1.html): Simple Mobile bill pay and plan refills.
+- [H2O Wireless](https://www.cellpay.us/h2o.html): H2O prepaid plan refills.
+- [Lyca Mobile](https://www.cellpay.us/lyca.html): Lyca Mobile prepaid plan refills.
+- [Net10](https://www.cellpay.us/net10.html): Net10 Wireless prepaid refills.
+- [Page Plus](https://www.cellpay.us/pageplus.html): Page Plus Cellular prepaid refills.
+- [Ultra Mobile](https://www.cellpay.us/ultra-mobile.html): Ultra Mobile prepaid plan refills.
+
+## How to pay guides
+
+- [How to pay Straight Talk](https://www.cellpay.us/how-to-pay/straight-talk) · [Cómo pagar Straight Talk](https://www.cellpay.us/es/como-pagar/straight-talk)
+- [How to pay AT&T Prepaid](https://www.cellpay.us/how-to-pay/att-prepaid) · [Cómo pagar AT&T Prepaid](https://www.cellpay.us/es/como-pagar/att-prepaid)
+- [How to pay Simple Mobile](https://www.cellpay.us/how-to-pay/simple-mobile) · [Cómo pagar Simple Mobile](https://www.cellpay.us/es/como-pagar/simple-mobile)
+- [How to pay T-Mobile Prepaid](https://www.cellpay.us/how-to-pay/t-mobile-prepaid) · [Cómo pagar T-Mobile Prepaid](https://www.cellpay.us/es/como-pagar/t-mobile-prepaid)
+- [How to pay Verizon Prepaid](https://www.cellpay.us/how-to-pay/verizon-prepaid) · [Cómo pagar Verizon Prepaid](https://www.cellpay.us/es/como-pagar/verizon-prepaid)
 
 ## Optional
 
-- [Privacy Policy](/privacy-policy): How customer data is collected and used.
-- [Terms & Conditions](/terms-and-conditions): Service terms and payment rules.
-- [Returns & Refunds](/returns-policy): Completed payments are final and can't be refunded; how to contact support about a payment problem.
+- [Privacy Policy](https://www.cellpay.us/privacy-policy): How customer data is collected and used.
+- [Terms & Conditions](https://www.cellpay.us/terms-and-conditions): Service terms and payment rules.
+- [Returns & Refunds](https://www.cellpay.us/returns-policy): Completed payments are final and can't be refunded; how to contact support about a payment problem.
