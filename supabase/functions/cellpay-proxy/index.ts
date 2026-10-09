@@ -1149,6 +1149,43 @@ function gpApEvent(code: string, origin: string | null): void {
   }
 }
 
+// [VEL1-ENFORCE-1009] Server velocity, ENFORCED for CARD payments only (Parvez approved Oct 9 13:40 CT). One RPC, vel1_enforce_check
+// (service_role): refuse a card try when the phone has 5+ real bank declines in 30 min with no success, or 4+ cardholder names in 60 min
+// (3+ with a stolen/lost, bad-CVV or invalid-account decline); not_block phones exempt. Kill switch (SQL, no deploy):
+// checkout_guard_controls key 'vel1' = on | shadow (log only) | off; a missing row = off. Fail-open: 800 ms budget, any error = no check
+// (counted as proxy_guard_events vel1e_failopen). The DB answers refuse=true only in mode on. Never called for any other method.
+const VEL1_TIMEOUT_MS = 800;
+async function vel1Refuse(p: Record<string, unknown>, method: string | null, origin: string | null): Promise<boolean> {
+  if ((method || "").toLowerCase() !== "cardpayment") return false;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceKey) return false;
+  const failOpen = (why: string): boolean => {
+    try { recordGuardEvent({ code: "vel1e_failopen", method: "POST", endpoint_shape: `checkout/transaction#${why}`, origin_host: originHost(origin), has_origin: origin !== null }); } catch { /* ignore */ }
+    return false;
+  };
+  try {
+    const pay = asRecord(p.payment);
+    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/vel1_enforce_check`, {
+      method: "POST",
+      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        _phone: text(p.phone_number ?? p.phoneNumber),
+        _email: text(pay.email ?? p.email),
+        _first: text(pay.firstName ?? pay.first_name ?? p.first_name),
+        _last: text(pay.lastName ?? pay.last_name ?? p.last_name),
+        _method: method,
+      }),
+      signal: AbortSignal.timeout(VEL1_TIMEOUT_MS),
+    });
+    if (!res.ok) { await res.body?.cancel(); return failOpen(`http_${res.status}`); }
+    const r = asRecord(await res.json());
+    return r.refuse === true;
+  } catch (e) {
+    return failOpen(e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError") ? "timeout" : "error");
+  }
+}
+
 async function blocklistCheck(p: Record<string, unknown>, cardH: string | null): Promise<{ key_type: string; reason: string } | null> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -2018,6 +2055,21 @@ serve(async (req) => {
           return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: "We couldn't process this card right now. Please try again in about 30 minutes or use a different payment method. You were not charged." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       } catch { /* blocklist fails open */ }
+    }
+    // [VEL1-ENFORCE-1009] Card only. Calm 200 before the log and CellPay, nothing is charged. The page shows its "use another method"
+    // panel (the message holds "velocity", which its decline classifier files under "blocked": wallets / Cash App / bank, no card retry).
+    if (shouldLogTransaction && (paymentMethod || "").toLowerCase() === "cardpayment") {
+      try {
+        if (await vel1Refuse(payloadRecord, paymentMethod, guardOrigin)) {
+          const es = body.lang === "es";
+          return new Response(JSON.stringify({
+            success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, vel1: true,
+            message: es
+              ? "Los pagos con tarjeta para este número están en pausa unos minutos como medida de seguridad (velocity). No se le cobró. Use Apple Pay, Google Pay, Cash App o pague con su banco."
+              : "Card payments for this phone number are paused for a few minutes as a security (velocity) check. You were not charged. Please use Apple Pay, Google Pay, Cash App or pay by bank instead.",
+          }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      } catch { /* vel1 fails open */ }
     }
     // [refill-cooldown Fix F] Same phone + plan got CellPay's refill error in the last 10 min (refill_cooldown). Fail-open.
     // Calm 200 before the log and CellPay. Sits before the BL-3 dedupe claim, so a refused retry never takes a claim.
