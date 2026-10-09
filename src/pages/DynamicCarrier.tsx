@@ -634,7 +634,7 @@ const DynamicCarrier = ({
         </div>
         <div className="bg-[hsl(174,45%,12%)] text-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <ul className="flex items-center justify-center gap-1 sm:gap-2 overflow-x-auto whitespace-nowrap py-2 sm:py-3 text-sm sm:text-base font-medium scrollbar-none">
+            <ul className="flex items-center justify-start sm:justify-center gap-1 sm:gap-2 overflow-x-auto whitespace-nowrap py-2 sm:py-3 text-sm sm:text-base font-medium scrollbar-none">
               {[
                 { label: "Domestic Payments", href: "/", external: false },
                 { label: "Bill Payments", href: "https://billpay.cellpay.us/billpayment", external: true },
@@ -685,7 +685,7 @@ const DynamicCarrier = ({
       ) : (
         <>
           {/* Phone + Amount */}
-          <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">
+          <div className="max-w-[340px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">
             <div className="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">
               <label htmlFor="carrier-phone-input" className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
                 {tr.enterPhoneLabel(shownName)}
@@ -739,7 +739,7 @@ const DynamicCarrier = ({
                       aria-label={tr.selectAmount}
                       aria-invalid={showAmountMessage}
                       aria-describedby={showAmountMessage ? "carrier-amount-error" : undefined}
-                      className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
+                      className="w-full h-10 sm:h-12 pl-9 sm:pl-11 pr-2 sm:pr-4 rounded-lg border border-input bg-background text-base text-foreground placeholder:text-muted-foreground placeholder:text-[13px] sm:placeholder:text-base focus:outline-none focus:ring-2 focus:border-transparent text-center"
                       style={{ "--tw-ring-color": bc } as React.CSSProperties}
                     />
                   </div>
