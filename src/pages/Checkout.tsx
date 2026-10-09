@@ -27,6 +27,8 @@ import { applySeoHead } from "@/lib/seo";
 import { getGclid } from "@/lib/tracking";
 import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib/subdivisions";
 import { useLang, t } from "@/lib/i18n";
+// TOP4-T2B-1009: carrier name for the "Your payment was refunded" card (display only)
+import { top4Name, displayCarrierName } from "@/content/carrierHero";
 import { readCheckoutCtx, writeCheckoutCtx, clearCheckoutCtx, resolveCheckoutFromUrl, carrierPageTarget, cashAppReturnTarget, stripResumeParams, readCheckoutMethod, writeCheckoutMethod } from "@/lib/checkoutResume";
 
 interface LocationState {
@@ -405,6 +407,8 @@ const Checkout = () => {
   const [showNotChargedNote, setShowNotChargedNote] = useState(false);
   // GROWTH-1007-A: card-decline recovery. Set ONLY for a card decline with no txn id and no auto-refund (= not charged).
   const [declineInfo, setDeclineInfo] = useState<{ cls: DeclineClass; n: number } | null>(null);
+  // TOP4-T2B-1009: the provider auto-refunded this payment -> show the refund card instead of the raw provider sentence.
+  const [refundCard, setRefundCard] = useState(false);
   const cardFormRef = useRef<HTMLDivElement>(null);
 
   // Klarna
@@ -1044,6 +1048,7 @@ const Checkout = () => {
       const autoRefund = /auto[\s-]?refund/i.test(msg);
       setShowNotChargedNote(!autoRefund && !txn);
       setDeclineInfo(paymentMethod === "card" && !autoRefund && !txn && raw.code !== "DUP_CONFIRM" && raw.code !== "SESSION_PAID" ? { cls: classifyDecline(msg), n: bumpCardDeclines(apTicksOrder) } : null); // DUPCHARGE-1008: not a decline
+      setRefundCard(autoRefund); // TOP4-T2B-1009
       setErrorMsg(msg);
     }
   };
@@ -1551,6 +1556,7 @@ const Checkout = () => {
             const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
             const autoRefund = /auto[\s-]?refund/i.test(msg);
             setShowNotChargedNote(!autoRefund && !txn);
+            setRefundCard(autoRefund); // TOP4-T2B-1009
             setErrorMsg(msg);
           }
         }
@@ -2413,7 +2419,7 @@ const Checkout = () => {
       )}
 
       {/* Error dialog */}
-      {errorMsg && (
+      {errorMsg && !refundCard && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); }}>
           {/* DECLINE-DIALOG-1008: scrolls inside itself on short phones (iPhone SE + Safari bars clipped the top); on a card decline
               the raw processor message is hidden (the recovery hint below explains it); other errors still show errorMsg. */}
@@ -2483,6 +2489,40 @@ const Checkout = () => {
           </div>
         </div>
       )}
+      {/* TOP4-T2B-1009: refund card after a provider auto-refund (replaces the raw provider sentence). Message and navigation only:
+          no "not charged" note, no decline dialog, no automatic retry; nothing is charged until the customer taps Pay again. */}
+      {errorMsg && refundCard && (() => {
+        const es = lang === "es";
+        const carrier = top4Name(state.carrierSlug, es ? "es" : "en") || displayCarrierName(state.carrierName, es ? "es" : "en");
+        const last4 = String(state.phone || "").replace(/\D/g, "").slice(-4);
+        const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); };
+        const toCarrier = (ph: string) => { close(); navigate(carrierPageTarget(lang, state.carrierSlug, ph, undefined, location.search, location.hash)); };
+        const openHelp = () => {
+          close();
+          window.setTimeout(() => {
+            const b = document.querySelector<HTMLElement>('[data-testid="help-launcher"]');
+            if (b) b.click(); else window.location.href = "mailto:support@getcellpay.com";
+          }, 50);
+        };
+        const btn = "w-full px-4 py-2.5 rounded-lg font-bold text-sm";
+        return (
+          <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={close}>
+            <div className="bg-card rounded-2xl p-5 max-w-sm w-full overflow-y-auto overscroll-contain text-center shadow-xl" style={{ maxHeight: "calc(100dvh - 2rem)" }} onClick={(e) => e.stopPropagation()} data-testid="refund-card">
+              <h3 className="text-xl font-bold text-foreground mb-2">{es ? "Le devolvimos su pago" : "Your payment was refunded"}</h3>
+              <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">
+                {es
+                  ? `No pudimos agregar esta recarga al número •••${last4} de ${carrier}, por eso su pago se devolvió automáticamente. Revise que sea una línea activa de ${carrier} y que eligió la compañía correcta.`
+                  : `We couldn't add this refill to ${carrier} number •••${last4}, so your payment was refunded automatically. Please check that this is an active ${carrier} line and that you picked the right carrier.`}
+              </p>
+              <div className="space-y-2">
+                <button type="button" data-testid="refund-try-again" onClick={() => toCarrier(state.phone)} className={btn + " text-primary-foreground"} style={{ backgroundColor: brandColor }}>{es ? "Intentar de nuevo" : "Try again"}</button>
+                <button type="button" data-testid="refund-change-number" onClick={() => toCarrier("")} className={btn + " border-2 border-border text-foreground bg-background"}>{es ? "Cambiar número" : "Change number"}</button>
+                <button type="button" data-testid="refund-help" onClick={openHelp} className="w-full text-sm underline text-muted-foreground pt-1">{es ? "Ayuda" : "Help"}</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       {showSaveInfoTip && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => setShowSaveInfoTip(false)}>
           <div className="bg-foreground text-background rounded-2xl p-6 max-w-sm w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
