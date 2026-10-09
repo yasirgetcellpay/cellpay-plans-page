@@ -9,6 +9,19 @@ import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, C
 import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass } from "@/lib/declineRecovery";
 import { AP_LAST_KEY } from "@/components/AutoPayReceiptCard";
 import { PLAID_ENABLED, PAYPAL_ENABLED } from "@/config/paymentFlags";
+// [PAYPAL-REBUILD-1009] QA only: ?pp_qa=1 shows the PayPal tile in this tab while PAYPAL_ENABLED is false (?pp_qa=0 clears it).
+// cellpay-proxy still refuses PayPal unless fraud_controls.paypal_mode = 'qa' and the phone is on paypal_qa_phones.
+const ppShow = (): boolean => {
+  if (PAYPAL_ENABLED) return true;
+  try {
+    const q = new URLSearchParams(window.location.search).get("pp_qa");
+    if (q === "1") sessionStorage.setItem("cp_pp_qa", "1");
+    if (q === "0") sessionStorage.removeItem("cp_pp_qa");
+    return sessionStorage.getItem("cp_pp_qa") === "1";
+  } catch {
+    return false;
+  }
+};
 import { supabase } from "@/integrations/supabase/client";
 import {
   validateRecharge,
@@ -209,7 +222,7 @@ const Checkout = () => {
   const [plaidAccount, setPlaidAccount] = useState<string | null>(null);
   // PL-0: a hidden Pay by Bank can never stay selected (falls back to the default, card).
   useEffect(() => { if ((!PLAID_ENABLED || plaidOff) && paymentMethod === "plaid") setPaymentMethod("card"); }, [paymentMethod, plaidOff]);
-  useEffect(() => { if (!PAYPAL_ENABLED && paymentMethod === "paypal") setPaymentMethod("card"); }, [paymentMethod]); // PAYPAL-HIDE-1154
+  useEffect(() => { if (!ppShow() && paymentMethod === "paypal") setPaymentMethod("card"); }, [paymentMethod]); // PAYPAL-HIDE-1154 (+ REBUILD-1009 QA)
   // GROWTH-1007-W: read the Pay by Bank kill switch (fraud_controls.plaid_exchange_mode) once per visit through the boolean-only
   // RPC pay_by_bank_available(). false -> hide Pay by Bank now (same as a plaid_unavailable answer). The decline dialog offers
   // Pay by Bank ONLY after this read said true (fail closed); if the read fails the tab keeps its old behaviour (server refuses anyway).
@@ -302,7 +315,7 @@ const Checkout = () => {
     const saved = readCheckoutMethod({ carrierSlug: state.carrierSlug, phone: state.phone, amount: state.amount });
     if (saved === "applepay" && !applePayAvailable) return; // Apple Pay is detected async: card until it is available
     methodRestoredRef.current = true;
-    const allowed: PaymentMethod[] = PAYPAL_ENABLED ? ["card", "googlepay", "paypal", "cashapp", "klarna"] : ["card", "googlepay", "cashapp", "klarna"];
+    const allowed: PaymentMethod[] = ppShow() ? ["card", "googlepay", "paypal", "cashapp", "klarna"] : ["card", "googlepay", "cashapp", "klarna"];
     if (applePayAvailable) allowed.push("applepay");
     if (PLAID_ENABLED) allowed.push("plaid");
     if (saved && allowed.includes(saved as PaymentMethod)) setPaymentMethod(saved as PaymentMethod);
@@ -654,6 +667,11 @@ const Checkout = () => {
   const ppDupOkRef = useRef(false); // customer saw "You just paid $X" (DUP_CONFIRM) and taps PayPal again = confirmed
   const [ppPaidNoId, setPpPaidNoId] = useState<string | null>(null); // PayPal order id: paid, but CellPay sent no receipt id
   const [ppReceivedId, setPpReceivedId] = useState<string | null>(null); // PAYPAL-HIDE-1154: PayPal took the money, CellPay failed after
+  // [PAYPAL-REBUILD-1009] CellPay needs first name, last name and email with a PayPal order; the buttons are built once, so refs.
+  const ppFirstRef = useRef(""); ppFirstRef.current = firstName.trim();
+  const ppLastRef = useRef(""); ppLastRef.current = lastName.trim();
+  const ppTermsRef = useRef(false); ppTermsRef.current = agreedTerms;
+  const ppConfirmedRef = useRef(false); // customer already confirmed "charge again?" at create-order for this PayPal order
 
   // Load PayPal SDK when config is available and paypal is selected
   useEffect(() => {
@@ -682,6 +700,70 @@ const Checkout = () => {
     }
     paypalContainerRef.current.innerHTML = "";
 
+    // [PAYPAL-REBUILD-1009] Send an approved PayPal order ONCE to checkout/transaction and show the outcome. Same wrapper as every other
+    // method (DUP_CONFIRM / IN_FLIGHT dialogs, SESSION_PAID), same success path (handleResult -> receipt -> purchase beacon).
+    // Yasir: CellPay failures are generic (no stage/code) and CellPay may already have taken the money, so EVERY CellPay failure shows
+    // "we're checking your payment, don't pay again". "Not charged" only when OUR guards refused it (nothing reached CellPay). An
+    // approval is never resent: any retry needs a new PayPal approval (new create-order).
+    const asObj = (v: unknown): Record<string, unknown> => (v && typeof v === "object" && !Array.isArray(v) ? v as Record<string, unknown> : {});
+    const ppSubmit = async (body: Record<string, unknown>): Promise<void> => {
+      const es = lang === "es";
+      let oid = "-";
+      try { oid = String(asObj(JSON.parse(String(body.paypal_authorization))).orderID || "-"); } catch { /* keep "-" */ }
+      setSubmitting(true); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false);
+      try {
+        const raw = (await submitTransaction(body) || {}) as Record<string, unknown>;
+        let r = raw;
+        if (r.data && typeof r.data === "object" && !Array.isArray(r.data)) {
+          const inner = r.data as Record<string, unknown>;
+          r = inner.data && typeof inner.data === "object" && !Array.isArray(inner.data) ? inner.data as Record<string, unknown> : inner;
+        }
+        const st = String(r.status ?? "").toLowerCase();
+        const ok = raw.success !== false && (r.status === true || st === "true" || st === "success" || st === "completed");
+        const deepId = (v: unknown, d = 0): string => {
+          if (!v || typeof v !== "object" || Array.isArray(v) || d > 5) return "";
+          const o = v as Record<string, unknown>;
+          for (const k of ["hashid", "transactionId", "transaction_id"]) { const x = o[k]; if ((typeof x === "string" && x.trim()) || typeof x === "number") return String(x).trim(); }
+          for (const x of Object.values(o)) { const f = deepId(x, d + 1); if (f) return f; }
+          return "";
+        };
+        if (ok) {
+          const id = deepId(r);
+          if (id) { ppFunnel("capture_ok", "tx"); handleResult({ status: "success", hashid: id }); }
+          else { ppFunnel("capture_ok_noid", "tx"); clearCheckoutCtx(); setPpPaidNoId(oid); }
+          return;
+        }
+        const code = String(raw.code || "");
+        if (raw.blocked === true && code !== "PAYPAL_ORDER_USED") {
+          // OUR guard refused it: nothing reached CellPay, so nothing was charged. A retry = tap PayPal and approve a new payment.
+          ppFunnel("blocked", `tx:${code.toLowerCase()}`);
+          if (code === "DUP_CONFIRM" || code === "IN_FLIGHT") return; // "Charge again?" / "still processing" dialog is open (wrapper)
+          const again = es ? " Para intentarlo de nuevo, toque PayPal y apruebe un pago nuevo." : " To try again, tap PayPal and approve a new payment.";
+          setErrorMsg((code === "REFILL_COOLDOWN"
+            ? (es ? "Este plan no se pudo recargar en este momento. Intente de nuevo en unos 10 minutos o elija otro plan. No se le cobró." : "This plan couldn't be refilled just now. Please try again in about 10 minutes or choose a different plan. You were not charged.")
+            : code === "PAYPAL_UNAVAILABLE"
+            ? (es ? "PayPal no está disponible en este momento. Use otro método de pago. No se le cobró." : "PayPal is not available right now. Please use another payment method. You were not charged.")
+            : code === "PAYPAL_DETAILS_MISSING"
+            ? (es ? "Escriba su nombre, apellido y correo electrónico. No se le cobró." : "Please enter your first name, last name and email. You were not charged.")
+            : code === "PAYPAL_AUTH_INVALID" || code === "DUPLICATE"
+            ? (es ? "No pudimos leer la aprobación de PayPal. No se le cobró." : "We couldn't read the PayPal approval. You were not charged.")
+            : (es ? "No pudimos procesar este pago en este momento. Intente de nuevo en unos 30 minutos o use otro método de pago. No se le cobró." : "We couldn't process this payment right now. Please try again in about 30 minutes or use a different payment method. You were not charged.")) + (code === "PAYPAL_UNAVAILABLE" ? "" : again));
+          return;
+        }
+        // CellPay answered with a failure (or the approval was already sent once): money may be taken -> checking panel.
+        const msg = String(r.msg || r.message || raw.error || "").trim();
+        ppFunnel("capture_fail", code === "PAYPAL_ORDER_USED" ? "tx:order_used" : `tx:${msg.toLowerCase().replace(/[^a-z0-9]+/g, "_").slice(0, 40) || "no_msg"}`);
+        clearCheckoutCtx();
+        setPpReceivedId(oid);
+      } catch {
+        ppFunnel("capture_error", "tx");
+        clearCheckoutCtx();
+        setPpReceivedId(oid); // no answer: we can't know whether CellPay took the money
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
     const buttons = window.paypal.Buttons({
       style: {
         layout: "vertical",
@@ -689,6 +771,18 @@ const Checkout = () => {
         shape: "rect",
         label: "paypal",
         height: 48,
+      },
+      // [PAYPAL-REBUILD-1009] No PayPal window until name, email and terms are filled in (CellPay requires them with the order).
+      onClick: (_d: unknown, actions: { resolve: () => unknown; reject: () => unknown }) => {
+        if (ppFirstRef.current && ppLastRef.current && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ppEmailRef.current) && ppTermsRef.current) {
+          setErrorMsg(null);
+          return actions.resolve();
+        }
+        ppFunnel("error", "details_missing");
+        setErrorMsg(lang === "es"
+          ? "Para pagar con PayPal, escriba su nombre, apellido y correo electrónico, y acepte los términos."
+          : "To pay with PayPal, enter your first name, last name and email, and accept the terms.");
+        return actions.reject();
       },
       createOrder: async () => {
         ppFunnel("button_click");
@@ -707,6 +801,7 @@ const Checkout = () => {
           browser_info: browserInfoRef.current, kount_ssid: sessionIdRef.current, source: visitorIpRef.current,
           dup_confirm: ppDupOkRef.current || undefined,
         } }) as Record<string, unknown>;
+        ppConfirmedRef.current = ppDupOkRef.current; // [PAYPAL-REBUILD-1009] carried to checkout/transaction as dup_confirm
         ppDupOkRef.current = false;
         if (orderRaw.blocked === true) {
           // Proxy guard (blocklist / refill cooldown): calm message, no PayPal order was created, nothing was charged.
@@ -720,6 +815,8 @@ const Checkout = () => {
             ? (es ? `Este pedido ya está pagado ($${amt}), así que no le cobramos de nuevo. Su recibo se envió por correo electrónico.` : `This order is already paid ($${amt}), so we did not charge you again. Your receipt was sent by email.`)
             : code === "DUP_CONFIRM"
             ? (es ? `Acaba de pagar $${amt} para este número. No se le cobró esta vez. Si quiere pagar de nuevo, toque el botón de PayPal otra vez.` : `You just paid $${amt} for this number. You were not charged this time. If you want to pay again, tap the PayPal button again.`)
+            : code === "PAYPAL_UNAVAILABLE"
+            ? (es ? "PayPal no está disponible en este momento. Use otro método de pago. No se le cobró." : "PayPal is not available right now. Please use another payment method. You were not charged.")
             : (es ? "No pudimos procesar este pago en este momento. Intente de nuevo en unos 30 minutos o use otro método de pago. No se le cobró." : "We couldn't process this payment right now. Please try again in about 30 minutes or use a different payment method. You were not charged."));
           if (code === "DUP_CONFIRM") ppDupOkRef.current = true; // the next PayPal tap is the customer's confirmation
           throw new Error("__PP_BLOCKED__");
@@ -749,75 +846,50 @@ const Checkout = () => {
         ppFunnel("order_created");
         return orderId;
       },
-      onApprove: async (data: { orderID: string; payerID?: string | null }) => {
-        setSubmitting(true);
+      onApprove: async (data: Record<string, unknown> & { orderID?: string; payerID?: string | null }, actions?: { order?: { get?: () => Promise<unknown> } }) => {
+        // [PAYPAL-REBUILD-1009] CellPay's flow (Yasir, Oct 9): NO capture here. The whole approval object goes to CellPay as ONE JSON
+        // string (paypal_authorization, incl. orderID + payerID) in checkout/transaction, and CellPay takes the money. Memory only:
+        // never stored or logged (it carries PayPal's short-lived facilitatorAccessToken).
         ppFunnel("approve");
-        try {
-          // [PAYPAL-1008] pp_meta: log row id + order facts for the proxy log / duplicate guard; removed before CellPay.
-          // [PAYPAL-CAPTURE-1008] CellPay capture-order requires orderID + payerID (PayPal onApprove data); order_id kept for compatibility.
-          const captureRaw = await capturePayPalOrder({ order_id: data.orderID, orderID: data.orderID, payerID: data.payerID || undefined, pp_meta: {
-            pending_log_id: ppLogIdRef.current || undefined, phone_number: normalizePhone(state.phone),
-            carrierId: validation?.carrier_id || validation?.carrierId, plan_id: state.planId ? String(state.planId) : undefined,
-            amount: validation?.amount ?? Number(state.amount), total: validation?.total ?? Number(state.amount),
-            email: ppEmailRef.current || undefined, carrier_slug: state.carrierSlug, carrier_name: state.carrierName,
-            browser_info: browserInfoRef.current, kount_ssid: sessionIdRef.current, source: visitorIpRef.current,
-          } }) as Record<string, unknown>;
-          // Unwrap
-          let captureResult = captureRaw;
-          if (captureResult.data && typeof captureResult.data === "object" && !Array.isArray(captureResult.data)) {
-            const inner = captureResult.data as Record<string, unknown>;
-            if (inner.data && typeof inner.data === "object" && !Array.isArray(inner.data)) {
-              captureResult = inner.data as Record<string, unknown>;
-            } else {
-              captureResult = inner;
-            }
-          }
-
-          const status = captureResult.status;
-          // [PAYPAL-1008] Paid = the same test handleResult uses. A paid capture must never land on the empty receipt
-          // ("We couldn't confirm this order"): receipt id searched up to 5 levels deep; none at all = "Payment received" panel.
-          const st = String(status ?? "").toLowerCase();
-          const ppPaid = status === true || st === "true" || st === "success" || st === "completed";
-          const ppId = (v: unknown, d = 0): string => {
-            if (!v || typeof v !== "object" || Array.isArray(v) || d > 5) return "";
-            const o = v as Record<string, unknown>;
-            for (const k of ["hashid", "transactionId", "transaction_id"]) { const x = o[k]; if ((typeof x === "string" && x.trim()) || typeof x === "number") return String(x).trim(); }
-            for (const x of Object.values(o)) { const f = ppId(x, d + 1); if (f) return f; }
-            return "";
-          };
-          if (status === "VOIDED" || status === "CANCELLED" || status === "CREATED") {
-            ppFunnel("capture_fail", `status:${st}`);
-            setErrorMsg(`PayPal payment ${String(status).toLowerCase()}`);
-          } else if (ppPaid && !String(captureResult.hashid || captureResult.transactionId || captureResult.transaction_id || "").trim()) {
-            const hid = ppId(captureRaw);
-            if (hid) {
-              ppFunnel("capture_ok", "deep_id");
-              handleResult({ status: "success", hashid: hid });
-            } else {
-              ppFunnel("capture_ok_noid");
-              clearCheckoutCtx();
-              setPpPaidNoId(data.orderID || "-");
-            }
-          } else {
-            // [PAYPAL-CAPTURE-1008] capture_fail funnel detail carries CellPay's error code when there is no status (e.g. no_status:validation).
-            if (ppPaid) ppFunnel("capture_ok"); else ppFunnel(captureRaw.blocked === true ? "blocked" : "capture_fail", captureRaw.blocked === true ? String(captureRaw.code || "") : (st ? `status:${st}` : `no_status${captureResult.code || captureRaw.error ? ":" + String(captureResult.code || captureRaw.error).slice(0, 40) : ""}`));
-            const ppErrText = String(captureRaw.error || captureRaw.message || captureResult.error || captureResult.message || "");
-            if (!ppPaid && captureRaw.blocked !== true && (/transaction processing failed/i.test(ppErrText) || /"(status|paypal_status|capture_status)"\s*:\s*"COMPLETED"/i.test(JSON.stringify(captureRaw)))) {
-              // PAYPAL-HIDE-1154: CellPay's "Transaction processing failed" comes AFTER PayPal captured the money (PayPal shows Completed). Never tell the customer it failed.
-              clearCheckoutCtx();
-              setPpReceivedId(data.orderID || "-");
-            } else {
-              handleResult(captureRaw);
-            }
-          }
-        } catch {
-          ppFunnel("capture_error");
-          setErrorMsg(lang === "es"
-            ? `No pudimos confirmar su pago de PayPal. No pague de nuevo: revise su cuenta de PayPal o escriba a support@getcellpay.com con la orden de PayPal ${data.orderID}.`
-            : `We couldn't confirm your PayPal payment. Please don't pay again: check your PayPal account or email support@getcellpay.com with PayPal order ${data.orderID}.`);
-        } finally {
-          setSubmitting(false);
+        if (!data || !data.orderID || !data.payerID) {
+          ppFunnel("capture_fail", "tx:no_payer");
+          setErrorMsg(lang === "es" ? "PayPal no confirmó la aprobación. Toque PayPal otra vez. No se le cobró." : "PayPal didn't confirm the approval. Please tap PayPal again. You were not charged.");
+          return;
         }
+        // Yasir: name/email must match PayPal's payer when PayPal provides them (order details, read-only GET; never a capture).
+        let pFirst = ppFirstRef.current, pLast = ppLastRef.current, pEmail = ppEmailRef.current;
+        try {
+          const od = asObj(await Promise.race([actions?.order?.get?.() ?? Promise.resolve(null), new Promise((res) => setTimeout(() => res(null), 4000))]));
+          const payer = asObj(od.payer); const nm = asObj(payer.name);
+          const gn = String(nm.given_name || "").trim(), sn = String(nm.surname || "").trim(), em = String(payer.email_address || "").trim();
+          if (gn) pFirst = gn;
+          if (sn) pLast = sn;
+          if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) pEmail = em;
+        } catch { /* keep the typed name/email */ }
+        await fpReady();
+        const body: Record<string, unknown> = {
+          checkout_version: "5.0",
+          payment_method: "paypal",
+          amount: validation?.amount ?? Number(state.amount),
+          total: validation?.total ?? Number(state.amount),
+          phone_number: normalizePhone(state.phone),
+          carrierId: validation?.carrier_id || validation?.carrierId,
+          carrier_slug: state.carrierSlug,
+          carrier_name: state.carrierName,
+          plan_id: state.planId ? String(state.planId) : undefined,
+          agree_desktop: true,
+          paypal_authorization: JSON.stringify(data),
+          payment: { firstName: pFirst, lastName: pLast, email: pEmail },
+          browser_info: browserInfoRef.current,
+          gclid: getGclid(),
+          kount_ssid: sessionIdRef.current,
+          riskified_sessionid: sessionIdRef.current,
+          cbsys_sessionid: sessionIdRef.current,
+          source: visitorIpRef.current,
+          ...(ppConfirmedRef.current ? { dup_confirm: true } : {}),
+        };
+        ppConfirmedRef.current = false;
+        await ppSubmit(body); // body (incl. the authorization) lives only in this call: never stored, never resent
       },
       onCancel: () => {
         ppFunnel("cancel");
@@ -1819,7 +1891,14 @@ const Checkout = () => {
     try {
       switch (paymentMethod) {
         case "card": await handleCard(); break;
-        case "paypal": break; // PayPal is handled by SDK Buttons in the UI
+        case "paypal": // PayPal is handled by SDK Buttons. [PAYPAL-REBUILD-1009] "Charge again?" Yes: an approval is never resent, so the
+          // confirmation is kept for the NEXT PayPal approval (sent as dup_confirm) and the customer taps PayPal again.
+          if (dupConfirmRef.current) {
+            dupConfirmRef.current = false;
+            ppDupOkRef.current = true;
+            setErrorMsg(lang === "es" ? "Para pagar de nuevo, toque PayPal y apruebe un pago nuevo." : "To pay again, tap PayPal and approve a new payment.");
+          }
+          break;
         case "plaid": await handlePlaid(); break; // resolves after Plaid success/exit
         case "googlepay": await handleGooglePay(); break;
         case "applepay": keepProcessing = (await handleApplePay()) === "pending"; break;
@@ -1843,7 +1922,7 @@ const Checkout = () => {
     { key: "card", label: tr.methodCard, Brand: CardBrandsStrip },
     ...(applePayAvailable ? [{ key: "applepay" as PaymentMethod, label: tr.methodApplePay, Brand: ApplePayMark }] : []),
     { key: "googlepay", label: tr.methodGooglePay, Brand: GooglePayMark },
-    ...(PAYPAL_ENABLED ? [{ key: "paypal" as PaymentMethod, label: tr.methodPayPal, Brand: PayPalMark }] : []), // PAYPAL-HIDE-1154
+    ...(ppShow() ? [{ key: "paypal" as PaymentMethod, label: tr.methodPayPal, Brand: PayPalMark }] : []), // PAYPAL-HIDE-1154 (+ REBUILD-1009 QA)
     // PL-0: Pay by Bank (Plaid) only shows while PLAID_ENABLED is true (src/config/paymentFlags.ts).
     ...(PLAID_ENABLED && !plaidOff ? [{ key: "plaid" as PaymentMethod, label: tr.methodPayByBank, Brand: BankMark }] : []),
     { key: "cashapp", label: tr.methodCashApp, Brand: CashAppMark },
@@ -2062,6 +2141,20 @@ const Checkout = () => {
           {paymentMethod === "paypal" && (
             <div className="bg-card rounded-xl border border-border p-5 space-y-3">
               <h2 className="font-bold text-foreground mb-1 text-sm">{tr.paypalCheckout}</h2>
+              {/* [PAYPAL-REBUILD-1009] CellPay needs the buyer's name and email with a PayPal order (same fields as the card form). */}
+              <div className="grid grid-cols-2 gap-3" data-testid="paypal-name">
+                <input type="text" required autoComplete="given-name" placeholder={`${tr.firstName} *`} aria-label={tr.firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+                <input type="text" required autoComplete="family-name" placeholder={`${tr.lastName} *`} aria-label={tr.lastName} value={lastName} onChange={(e) => setLastName(e.target.value)}
+                  className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {lang === "es"
+                  ? "Su nombre, su correo electrónico (arriba) y la aceptación de los términos son obligatorios para pagar con PayPal. Le enviaremos el recibo por correo."
+                  : "Your name, your email (above) and accepting the terms are required to pay with PayPal. We'll email your receipt."}
+              </p>
               {!paypalReady ? (
                 <div className="flex items-center justify-center py-6">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -2398,17 +2491,21 @@ const Checkout = () => {
       {ppReceivedId && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" data-testid="paypal-received">
           <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center shadow-xl">
-            <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-green-600" />
-            <h3 className="text-xl font-bold text-foreground mb-2">{lang === "es" ? "Pago recibido" : "Payment received"}</h3>
+            <h3 className="text-xl font-bold text-foreground mb-2">{lang === "es" ? "Estamos revisando su pago" : "We're checking your payment"}</h3>
             <p className="text-sm text-muted-foreground mb-2">
               {lang === "es"
-                ? "Recibimos su pago de PayPal. Su recarga se está procesando — por favor no pague de nuevo."
-                : "We received your PayPal payment. Your refill is being processed — please don't pay again."}
+                ? "Es posible que su pago de PayPal se haya realizado, pero no pudimos confirmar su recarga. Por favor no pague de nuevo."
+                : "Your PayPal payment may have gone through, but we couldn't confirm your refill. Please don't pay again."}
             </p>
             <p className="text-xs text-muted-foreground mb-4">
               {lang === "es"
-                ? <>Si no llega en 30 minutos, escriba a support@getcellpay.com con la orden de PayPal <span className="font-mono">{ppReceivedId}</span>.</>
-                : <>If it doesn't arrive within 30 minutes, email support@getcellpay.com with PayPal order <span className="font-mono">{ppReceivedId}</span>.</>}
+                ? <>Lo revisaremos y completaremos su recarga o le devolveremos el dinero. Si no sabe de nosotros en 30 minutos, escriba a support@getcellpay.com con la orden de PayPal <span className="font-mono">{ppReceivedId}</span>.</>
+                : <>We'll check it and either complete your refill or refund you. If you don't hear from us within 30 minutes, email support@getcellpay.com with PayPal order <span className="font-mono">{ppReceivedId}</span>.</>}
+            </p>
+            <p className="text-xs text-muted-foreground mb-4">
+              {lang === "es"
+                ? "Si después quiere intentarlo de nuevo, tendrá que aprobar un pago nuevo en PayPal."
+                : "If you want to try again later, you'll need to approve a new PayPal payment."}
             </p>
             <button type="button" onClick={() => navigate(lang === "es" ? "/es" : "/")}
               className="px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
