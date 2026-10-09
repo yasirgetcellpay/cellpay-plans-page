@@ -43,6 +43,7 @@ export type Database = {
           resolved_at: string | null
           status: string
           transaction_log_id: string
+          upstream_reason: string | null
           upstream_status: number | null
         }
         Insert: {
@@ -55,6 +56,7 @@ export type Database = {
           resolved_at?: string | null
           status?: string
           transaction_log_id: string
+          upstream_reason?: string | null
           upstream_status?: number | null
         }
         Update: {
@@ -67,6 +69,7 @@ export type Database = {
           resolved_at?: string | null
           status?: string
           transaction_log_id?: string
+          upstream_reason?: string | null
           upstream_status?: number | null
         }
         Relationships: []
@@ -1637,6 +1640,16 @@ export type Database = {
           _domain: string
           _kind: string
           _log_id: string
+          _status: number
+        }
+        Returns: number
+      }
+      ap1_retry_record_v2: {
+        Args: {
+          _domain: string
+          _kind: string
+          _log_id: string
+          _reason?: string
           _status: number
         }
         Returns: number
