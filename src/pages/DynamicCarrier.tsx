@@ -9,7 +9,7 @@ import { PaymentBar } from "@/components/PaymentBar";
 // PAYCOPY-1008: shared payment list (same text as the vite.config.ts carrier first screen)
 import { weAcceptLine } from "@/content/paymentMethods";
 // TOP4-T1-1009: first screen in the searcher's words + customer-facing carrier names (display only)
-import { top4Hero, displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq, top4Name, esCarrierFaqs } from "@/content/carrierHero";
+import { top4Hero, displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq, top4Name, esCarrierFaqs, searchFaqs } from "@/content/carrierHero";
 import { PlanGrid } from "@/components/PlanGrid";
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
@@ -610,7 +610,11 @@ const DynamicCarrier = ({
   // TOP4-T3-1009: on the Spanish pages of the 4 carriers, show the Spanish FAQ set (same as /es/go) instead of the
   // English FAQ items from the carrier content API. EN pages keep the API FAQs. (These pages emit no FAQPage JSON-LD in ES.)
   const esTop4 = !!top4 && lang === "es";
-  const baseFaqs = esTop4 ? esCarrierFaqs(carrierSlug).map((f) => ({ question: f.q, answer: f.a })) : faqs;
+  // TOP4-T4-1009: + 4 FAQs in searchers' words (guest, don't know the amount, paid but not working, wrong number). On ES the
+  // guest FAQ replaces the "sin cuenta" item (same question). EN keeps the API FAQs first.
+  const sf = top4 ? searchFaqs(carrierSlug, lang === "es" ? "es" : "en") : [];
+  const qa = (l: Array<{ q: string; a: string }>) => l.map((f) => ({ question: f.q, answer: f.a }));
+  const baseFaqs = esTop4 ? [...qa(sf.slice(0, 1)), ...qa(esCarrierFaqs(carrierSlug).slice(1)), ...qa(sf.slice(1))] : [...faqs, ...qa(sf)];
   const shownFaqs = extraFaq ? [...baseFaqs, { question: extraFaq.q, answer: extraFaq.a }] : baseFaqs;
   const faqName = esTop4 ? top4Name(carrierSlug, "es") || shownName : shownName;
 

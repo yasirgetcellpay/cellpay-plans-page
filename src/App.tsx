@@ -1641,6 +1641,9 @@ const App = () => (
         <Route path="/how-to-pay/t-mobile-prepaid" element={<HowToPay />} />
         <Route path="/es/como-pagar/simple-mobile" element={<HowToPay />} />
         <Route path="/es/como-pagar/t-mobile-prepaid" element={<HowToPay />} />
+        {/* TOP4-T4-1009 */}
+        <Route path="/how-to-pay/verizon-prepaid" element={<HowToPay />} />
+        <Route path="/es/como-pagar/verizon-prepaid" element={<HowToPay />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/privacy-policy.html" element={<AliasRedirect to="/privacy-policy" />} />
         {/* PRIVACY-1007: Spanish privacy policy (same page; text in src/content/privacyPolicy.ts) */}

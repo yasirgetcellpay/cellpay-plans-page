@@ -233,6 +233,9 @@ const HTML_ROUTES = [
   "es/como-pagar/simple-mobile/index.html",
   "how-to-pay/t-mobile-prepaid/index.html",
   "es/como-pagar/t-mobile-prepaid/index.html",
+  // TOP4-T4-1009: Verizon Prepaid how-to-pay pages
+  "how-to-pay/verizon-prepaid/index.html",
+  "es/como-pagar/verizon-prepaid/index.html",
   // Admin SPA routes — emit as folder/index.html so self-hosted servers
   // (which don't do SPA fallback) serve the React app on direct refresh.
   "admin/index.html",
