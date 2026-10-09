@@ -539,19 +539,36 @@ async function ap1Rpc(name: string, args: Record<string, unknown>, timeoutMs: nu
 // write that still commits plus the retry give one row. Last resort log line: transaction_log_id + masked phone
 // (***last4) only, never the full number. Never throws.
 const AP1_RETRY_WRITE_TIMEOUT_MS = 3000;
+// [AP1-NOTENROLLED-1009] CellPay's own refusal reason, kept for the alarm: control chars -> space, emails -> [email],
+// every digit -> #, spaces collapsed, max 120 chars (ap1_retry_record_v2 applies the same rule again in the database).
+function ap1MaskReason(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  const s = v.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/[^\s@<>"]+@[^\s@<>"]+/g, "[email]").replace(/[0-9]/g, "#")
+    .replace(/\s+/g, " ").trim().slice(0, 120).trim();
+  return s.length > 0 ? s : null;
+}
+// "This number has no Auto Pay" answers. Safe default: not_enrolled ONLY when HTTP 200 AND data.status === false (boolean)
+// AND the masked reason matches one of these AND it has no transient wording; everything else stays error_body (alarms).
+const AP1_NOT_ENROLLED_RE =
+  /\b(?:not|isn'?t|is not|no longer)\s+(?:enrolled|subscribed|registered|signed up)\b|\bno\s+(?:active\s+)?(?:auto\s*-?\s*pay|autopay|subscription|recurring)\b|\b(?:auto\s*-?\s*pay|autopay|subscription)\s+(?:not\s+found|does\s*n[o']?t\s+exist|not\s+(?:active|enabled|set\s*up))\b|\bnot\s+an?\s+(?:auto\s*-?\s*pay|autopay)\s+(?:customer|user|number)\b|\balready\s+(?:unsubscribed|cancell?ed)\b/i;
+const AP1_TRANSIENT_RE = /\b(?:try\s+again|temporar\w*|time[sd]?\s*out|unavailable|server|internal|exception|database|network|later)\b/i;
+function ap1IsNotEnrolled(httpStatus: number, st: unknown, reason: string | null): boolean {
+  return httpStatus === 200 && st === false && reason !== null && AP1_NOT_ENROLLED_RE.test(reason) && !AP1_TRANSIENT_RE.test(reason);
+}
 async function ap1RetryWrite(
   owner: string,
   phone: string,
-  fail: { kind: string; status: number | null },
+  fail: { kind: string; status: number | null; reason?: string | null },
   domain: string,
   origin: string | null,
 ): Promise<void> {
   let reason = "";
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      const rid = await ap1Rpc("ap1_retry_record", { _log_id: owner, _kind: fail.kind, _status: fail.status, _domain: domain }, AP1_RETRY_WRITE_TIMEOUT_MS);
+      // [AP1-NOTENROLLED-1009] v2 also saves the masked reason and closes a not_enrolled row as done (no alarm).
+      const rid = await ap1Rpc("ap1_retry_record_v2", { _log_id: owner, _kind: fail.kind, _status: fail.status, _domain: domain, _reason: fail.reason ?? null }, AP1_RETRY_WRITE_TIMEOUT_MS);
       if (rid !== null && rid !== undefined) {
-        ap1Event("ap1:retry_queued", origin);
+        ap1Event(fail.kind === "not_enrolled" ? "ap1:retry_closed_not_enrolled" : "ap1:retry_queued", origin);
         return;
       }
       reason = "no_row";
@@ -559,6 +576,19 @@ async function ap1RetryWrite(
     } catch (e) {
       reason = e instanceof Error ? (e.name === "TimeoutError" || e.name === "AbortError" ? "timeout" : e.message.slice(0, 60)) : "error";
       if (attempt < 2) await new Promise((r) => setTimeout(r, 300));
+    }
+  }
+  if (reason !== "no_row") {
+    // [AP1-NOTENROLLED-1009] fallback = the pre-1009 call (no reason; a not_enrolled answer is queued as error_body, so it alarms).
+    try {
+      const rid = await ap1Rpc("ap1_retry_record", { _log_id: owner, _kind: fail.kind === "not_enrolled" ? "error_body" : fail.kind, _status: fail.status, _domain: domain }, AP1_RETRY_WRITE_TIMEOUT_MS);
+      if (rid !== null && rid !== undefined) {
+        ap1Event("ap1:retry_queued", origin);
+        return;
+      }
+      reason = "no_row";
+    } catch (e) {
+      reason = e instanceof Error ? (e.name === "TimeoutError" || e.name === "AbortError" ? "timeout" : e.message.slice(0, 60)) : "error";
     }
   }
   ap1Event("ap1:retry_write_error", origin);
@@ -678,7 +708,7 @@ async function ap1HandleUnsubscribe(
     "Accept": "*/*",
   };
   if (typeof body.bearerToken === "string" && body.bearerToken) headers["Authorization"] = `Bearer ${body.bearerToken}`;
-  let fail: { kind: string; status: number | null } | null = null;
+  let fail: { kind: string; status: number | null; reason?: string | null } | null = null;
   try {
     const res = await fetch(`${API_BASE}/${AP1_ENDPOINT}`, {
       method: "POST",
@@ -702,7 +732,12 @@ async function ap1HandleUnsubscribe(
       const inner = top.data && typeof top.data === "object" ? asRecord(top.data) : top;
       const st = inner.status;
       const ok = res.ok && (st === true || st === "true" || String(st || "").toLowerCase() === "success");
-      if (!ok) fail = { kind: "error_body", status: res.status };
+      if (!ok) {
+        // [AP1-NOTENROLLED-1009] keep CellPay's reason (masked) for the alarm; a known "no Auto Pay on this number" answer
+        // (HTTP 200 + status false + known wording) is labelled not_enrolled: row closed as done, no alarm. Reply unchanged.
+        const why = ap1MaskReason(inner.msg ?? inner.message ?? top.msg ?? top.message ?? top.error);
+        fail = { kind: ap1IsNotEnrolled(res.status, st, why) ? "not_enrolled" : "error_body", status: res.status, reason: why };
+      }
     }
   } catch (e) {
     fail = { kind: e instanceof Error && e.name === "TimeoutError" ? "timeout" : "network", status: null };
@@ -710,7 +745,8 @@ async function ap1HandleUnsubscribe(
   if (!fail) {
     ap1Event("ap1:sent_ok", origin);
   } else {
-    ap1Event(`ap1:sent_fail:${fail.kind}`, origin);
+    // [AP1-NOTENROLLED-1009] not_enrolled is not a failure: its own event code, outside the sweep's ap1:sent_fail:* check.
+    ap1Event(fail.kind === "not_enrolled" ? "ap1:sent_not_enrolled" : `ap1:sent_fail:${fail.kind}`, origin);
     // [AP1-RETRY-1007] Queue it (reference + kind + status only) in the background: 3 s budget + one retry, reply unchanged.
     const write = ap1RetryWrite(owner, phone, fail, cellpayDomain, origin).catch(() => {});
     // deno-lint-ignore no-explicit-any
