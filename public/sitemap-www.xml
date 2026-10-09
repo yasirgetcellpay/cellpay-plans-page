@@ -458,9 +458,21 @@
   </url>
   <url>
     <loc>https://www.cellpay.us/how-to-use</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-use" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/how-to-use" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-use" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/es/how-to-use</loc>
+    <lastmod>2026-10-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-use" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/how-to-use" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-use" />
   </url>
   <url>
     <loc>https://www.cellpay.us/privacy-policy</loc>

@@ -1629,6 +1629,8 @@ const App = () => (
         <Route path="/faq.html" element={<AliasRedirect to="/faq" />} />
         <Route path="/how-to-use" element={<HowToUse />} />
         <Route path="/how-to-use.html" element={<AliasRedirect to="/how-to-use" />} />
+        {/* TOP4-T3-1009: Spanish How to Use (same page; text in src/content/howToUse.ts) */}
+        <Route path="/es/how-to-use" element={<HowToUse />} />
         {/* AEO-PAGES-1007 how-to-pay pages */}
         <Route path="/how-to-pay/straight-talk" element={<HowToPay />} />
         <Route path="/how-to-pay/att-prepaid" element={<HowToPay />} />

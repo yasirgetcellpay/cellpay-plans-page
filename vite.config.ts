@@ -11,6 +11,8 @@ import { weAcceptLine, payBrandsComma, PAYPAL_SHOWN } from "./src/content/paymen
 import { top4Hero, verizonTrustLine } from "./src/content/carrierHero";
 // PRIVACY-1007: privacy policy text (shared with src/pages/PrivacyPolicy.tsx) for the static raw HTML (EN + ES).
 import { PRIVACY_PAGES, privacyMainHtml, type PpPage } from "./src/content/privacyPolicy";
+// TOP4-T3-1009: Spanish How to Use page head (same title/description HowToUse.tsx sets at runtime)
+import { HOW_TO_USE } from "./src/content/howToUse";
 
 /**
  * Lovable's static host returns 404 for any URL ending in `.html` (it treats it
@@ -211,6 +213,8 @@ const HTML_ROUTES = [
   "contact-us/index.html",
   "faq/index.html",
   "how-to-use/index.html",
+  // TOP4-T3-1009: Spanish How to Use (indexable; www canonical + en/es hreflang via pairFor)
+  "es/how-to-use/index.html",
   "privacy-policy/index.html",
   // PRIVACY-1007: Spanish privacy policy (indexable; www canonical + en/es hreflang via pairFor)
   "es/privacy-policy/index.html",
@@ -875,6 +879,11 @@ const htmlAliasPlugin = (): Plugin => ({
         "how-to-use/index.html": {
           title: "How to Refill a Prepaid Phone Online — CellPay Guide",
           description: "Step-by-step guide to recharging a US prepaid phone with CellPay: pick a carrier, enter the number, choose a plan, pay securely, and get your top-up.",
+        },
+        // TOP4-T3-1009
+        "es/how-to-use/index.html": {
+          title: HOW_TO_USE.es.title,
+          description: HOW_TO_USE.es.description,
         },
         "privacy-policy/index.html": {
           title: "Privacy Policy — CellPay",

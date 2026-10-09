@@ -1,3 +1,6 @@
+// TOP4-T3-1009: "MOST POPULAR" / "Tap to continue" follow the page language (i18n strings already exist).
+import { t, useLang } from "@/lib/i18n";
+
 interface Plan { price: string; highlight: string; popular?: boolean; }
 
 interface PlanGridProps {
@@ -15,6 +18,7 @@ export const PlanGrid = ({
   onSelect,
   popularIndex,
 }: PlanGridProps) => {
+  const tr = t(useLang());
   const Card = ({ plan, idx, fullRow }: { plan: Plan; idx: number; fullRow?: boolean }) => {
     const isPopular = plan.popular || idx === popularIndex;
     const handleClick = () => onSelect?.(plan);
@@ -39,7 +43,7 @@ export const PlanGrid = ({
             className="absolute top-0 right-0 z-10 px-2 py-0.5 text-[9px] sm:text-[10px] font-extrabold text-primary-foreground rounded-bl-md"
             style={{ backgroundColor: brandColor }}
           >
-            MOST POPULAR
+            {tr.mostPopular}
           </div>
         )}
         <div className="h-[14px] sm:h-[24px]" />
@@ -54,7 +58,7 @@ export const PlanGrid = ({
           </div>
           {/* "Tap to continue" only on touch (mobile) — feedback Page 7 #2 */}
           <p className="sm:hidden text-[10px] text-muted-foreground text-center mt-auto font-medium">
-            {onSelect ? "Tap to continue" : ""}
+            {onSelect ? tr.tapToContinue : ""}
           </p>
         </div>
       </div>

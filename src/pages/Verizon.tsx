@@ -10,7 +10,7 @@ import { loadResolvedPlans, pickPlanForAmount, type ResolvedPlans } from "@/lib/
 import { applySeoHead } from "@/lib/seo";
 import { t, useLang } from "@/lib/i18n";
 // TOP4-T1-1009: H1 + subline + trust row shared with the prerendered first screen (vite.config.ts)
-import { top4Hero, verizonTrustLine, activeLineNote, refundFaq } from "@/content/carrierHero";
+import { top4Hero, verizonTrustLine, activeLineNote, refundFaq, esCarrierFaqs } from "@/content/carrierHero";
 
 const plans = [
   { price: "$80", highlight: "Prepaid Refill" },
@@ -112,7 +112,8 @@ const Verizon = () => {
   const hero = top4Hero("verizon", es ? "es" : "en");
   // TOP4-T2A-1009: "active line" note under the number field + FAQ (visible text only; this page has no FAQ JSON-LD).
   const lineNote = activeLineNote("verizon", es ? "es" : "en");
-  const vzFaqs = [refundFaq("verizon", es ? "es" : "en")].filter((f): f is { q: string; a: string } => !!f);
+  // TOP4-T3-1009: the Spanish page also shows the Spanish Verizon Prepago FAQ set (same as /es/go/verizon). EN unchanged.
+  const vzFaqs = [...(es ? esCarrierFaqs("verizon") : []), refundFaq("verizon", es ? "es" : "en")].filter((f): f is { q: string; a: string } => !!f);
   const [confirmed, setConfirmed] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [resolved, setResolved] = useState<ResolvedPlans>({ fixedPlans: [] });

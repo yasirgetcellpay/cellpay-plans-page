@@ -9,7 +9,7 @@ import { PaymentBar } from "@/components/PaymentBar";
 // PAYCOPY-1008: shared payment list (same text as the vite.config.ts carrier first screen)
 import { weAcceptLine } from "@/content/paymentMethods";
 // TOP4-T1-1009: first screen in the searcher's words + customer-facing carrier names (display only)
-import { top4Hero, displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq } from "@/content/carrierHero";
+import { top4Hero, displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq, top4Name, esCarrierFaqs } from "@/content/carrierHero";
 import { PlanGrid } from "@/components/PlanGrid";
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
@@ -607,7 +607,12 @@ const DynamicCarrier = ({
   // TOP4-T2A-1009: "active line" note under the number field + "Why was my payment refunded?" FAQ (4 carriers only).
   const lineNote = top4 ? activeLineNote(carrierSlug, lang === "es" ? "es" : "en") : null;
   const extraFaq = top4 ? refundFaq(carrierSlug, lang === "es" ? "es" : "en") : null;
-  const shownFaqs = extraFaq ? [...faqs, { question: extraFaq.q, answer: extraFaq.a }] : faqs;
+  // TOP4-T3-1009: on the Spanish pages of the 4 carriers, show the Spanish FAQ set (same as /es/go) instead of the
+  // English FAQ items from the carrier content API. EN pages keep the API FAQs. (These pages emit no FAQPage JSON-LD in ES.)
+  const esTop4 = !!top4 && lang === "es";
+  const baseFaqs = esTop4 ? esCarrierFaqs(carrierSlug).map((f) => ({ question: f.q, answer: f.a })) : faqs;
+  const shownFaqs = extraFaq ? [...baseFaqs, { question: extraFaq.q, answer: extraFaq.a }] : baseFaqs;
+  const faqName = esTop4 ? top4Name(carrierSlug, "es") || shownName : shownName;
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -854,7 +859,7 @@ const DynamicCarrier = ({
 
           {/* FAQs from API */}
           {shownFaqs.length > 0 && (
-            <DynamicFAQ faqs={shownFaqs} carrierName={shownName} brandColor={bc} lang={lang} />
+            <DynamicFAQ faqs={shownFaqs} carrierName={faqName} brandColor={bc} lang={lang} />
           )}
 
           {/* AEO-03-04-1008: link to this carrier's how-to-pay guide (EN/ES), real <a href> for crawlers */}
