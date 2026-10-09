@@ -117,6 +117,7 @@ declare global {
       Buttons: (config: {
         createOrder: () => Promise<string>;
         onApprove: (data: { orderID: string }) => Promise<void>;
+        onClick?: (data: unknown, actions: { resolve: () => unknown; reject: () => unknown }) => unknown;
         onCancel?: () => void;
         onError?: (err: unknown) => void;
         style?: Record<string, unknown>;
