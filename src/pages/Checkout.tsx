@@ -327,12 +327,15 @@ const Checkout = () => {
   // sheet closed before the reply came back): nothing was charged now, and the earlier paid order is shown as the success it was.
   const dupConfirmRef = useRef(false);
   const [dupAsk, setDupAsk] = useState<{ amount: string } | null>(null);
+  // DUPCHARGE-FOLLOWUPS-1008: IN_FLIGHT = the first charge for this order is still at CellPay (< 2 min): calm notice, not an error.
+  const [inFlightNote, setInFlightNote] = useState(false);
   const submitTransaction = async (p: Record<string, unknown>): Promise<unknown> => {
     const confirmed = dupConfirmRef.current;
     dupConfirmRef.current = false;
     const raw = await submitTransactionRaw(confirmed ? { ...p, dup_confirm: true } : p);
     const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
     if (r.code === "DUP_CONFIRM") setDupAsk({ amount: String(r.amount ?? "") });
+    if (r.code === "IN_FLIGHT") setInFlightNote(true); // DUPCHARGE-FOLLOWUPS-1008
     if (r.code === "SESSION_PAID" && typeof r.hashid === "string" && r.hashid) {
       return { success: true, data: { status: "success", hashid: r.hashid, message: r.message } };
     }
@@ -1034,6 +1037,8 @@ const Checkout = () => {
       clearCardDeclines();
       navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
     } else {
+      // DUPCHARGE-FOLLOWUPS-1008: DUP_CONFIRM / IN_FLIGHT already opened our own dialog (submitTransaction wrapper): no error box, not a decline.
+      if (raw.code === "DUP_CONFIRM" || raw.code === "IN_FLIGHT") { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); return; }
       const msg = (result.msg as string) || (result.message as string) || "Transaction failed";
       const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
       const autoRefund = /auto[\s-]?refund/i.test(msg);
@@ -1163,6 +1168,7 @@ const Checkout = () => {
     if (code === "plaid_ref") return plaidError(raw, tr.plaidRelink);
     if (plaidUnavailable(raw)) return null;
     const body = raw.data && typeof raw.data === "object" ? raw.data as Record<string, unknown> : {};
+    if (raw.code === "DUP_CONFIRM" || raw.code === "IN_FLIGHT") return null; // DUPCHARGE-FOLLOWUPS-1008: our own dialog shows, no error box
     if (raw.success === false || body.success === false) {
       setErrorMsg(plaidError(raw.success === false ? raw : body, tr.plaidPaymentFailed));
       return null;
@@ -1539,11 +1545,14 @@ const Checkout = () => {
         } else {
           console.error("[ApplePay] transaction failed", result);
           try { session.completePayment({ status: session.STATUS_FAILURE }); } catch (e) { console.warn("[ApplePay] completePayment(failure) after the sheet closed", e); } // DUPCHARGE-1008
-          const msg = (result.msg as string) || (result.message as string) || "Apple Pay transaction failed";
-          const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
-          const autoRefund = /auto[\s-]?refund/i.test(msg);
-          setShowNotChargedNote(!autoRefund && !txn);
-          setErrorMsg(msg);
+          // DUPCHARGE-FOLLOWUPS-1008: DUP_CONFIRM / IN_FLIGHT already opened our own dialog (submitTransaction wrapper): no error box.
+          if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") {
+            const msg = (result.msg as string) || (result.message as string) || "Apple Pay transaction failed";
+            const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
+            const autoRefund = /auto[\s-]?refund/i.test(msg);
+            setShowNotChargedNote(!autoRefund && !txn);
+            setErrorMsg(msg);
+          }
         }
       } catch (err) {
         console.error("[ApplePay] onpaymentauthorized error", err);
@@ -1753,7 +1762,7 @@ const Checkout = () => {
       (result.msg as string) ||
       (raw.message as string) ||
       "Cash App Pay is currently unavailable. Please try another payment method.";
-    setErrorMsg(errMsg);
+    if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") setErrorMsg(errMsg); // DUPCHARGE-FOLLOWUPS-1008: our own dialog shows instead
     try { sessionStorage.removeItem("cashapp_return_ctx"); } catch { /* ignore */ }
   };
 
@@ -2338,6 +2347,20 @@ const Checkout = () => {
                 {lang === "es" ? "Sí, cobrar de nuevo" : "Yes, charge again"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* DUPCHARGE-FOLLOWUPS-1008: the first charge for this order is still being processed (< 2 min) -> calm notice, not an error */}
+      {inFlightNote && (
+        <div className="fixed inset-0 z-[110] bg-black/50 flex items-center justify-center p-4" data-testid="in-flight-note">
+          <div className="bg-card rounded-2xl p-6 max-w-sm w-full text-center shadow-xl" role="alertdialog" aria-modal="true">
+            <h3 className="text-xl font-bold text-foreground mb-2">{lang === "es" ? "Pago en proceso" : "Payment processing"}</h3>
+            <p className="text-sm text-foreground mb-4" data-testid="in-flight-text">{lang === "es" ? "Su pago todavía se está procesando. Espere un momento; no se le cobró de nuevo." : "Your payment is still processing. Please wait a moment — you were not charged again."}</p>
+            <button type="button" data-testid="in-flight-ok" onClick={() => { setInFlightNote(false); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); }}
+              className="w-full px-4 py-2.5 rounded-lg font-bold text-sm text-primary-foreground" style={{ backgroundColor: brandColor }}>
+              {lang === "es" ? "Entendido" : "OK"}
+            </button>
           </div>
         </div>
       )}
