@@ -11,6 +11,8 @@ import { weAcceptLine } from "@/content/paymentMethods";
 // TOP4-T1-1009: first screen in the searcher's words + customer-facing carrier names (display only)
 import { top4Hero, displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq, top4Name, esCarrierFaqs, searchFaqs } from "@/content/carrierHero";
 import { PlanGrid } from "@/components/PlanGrid";
+// SIMPLE-SPEC-1-1009: Simple Mobile answer page text (same source as the raw HTML in vite.config.ts)
+import { SIMPLE_META, SIMPLE_ANSWER, SIMPLE_FAQ_TITLE, SIMPLE_LINKS, simpleFaqs, simpleGridPlans } from "@/content/simplePage";
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
@@ -398,6 +400,13 @@ const DynamicCarrier = ({
           });
         }
 
+        // SIMPLE-SPEC-1-1009: /s1.html + /es/s1.html keep the raw-HTML title/description (no runtime swap) and drop the API
+        // schema: the raw HTML carries the FAQPage + BreadcrumbList JSON-LD with this page's FAQ text.
+        if (carrierSlug === "s1") {
+          const sm = SIMPLE_META[lang === "es" ? "es" : "en"];
+          applySeoHead({ title: sm.title, description: sm.description, schema: "" });
+        }
+
         // Per-route overrides (e.g. /guest-metro-pcs.html) — applied LAST so they win.
         if (seoTitleOverride || seoDescriptionOverride) {
           applySeoHead({
@@ -617,6 +626,11 @@ const DynamicCarrier = ({
   const baseFaqs = esTop4 ? [...qa(sf.slice(0, 1)), ...qa(esCarrierFaqs(carrierSlug).slice(1)), ...qa(sf.slice(1))] : [...faqs, ...qa(sf)];
   const shownFaqs = extraFaq ? [...baseFaqs, { question: extraFaq.q, answer: extraFaq.a }] : baseFaqs;
   const faqName = esTop4 ? top4Name(carrierSlug, "es") || shownName : shownName;
+  // SIMPLE-SPEC-1-1009 (display only): Simple Mobile plan names/order, answer, FAQ and links from src/content/simplePage.ts.
+  const isSimple = carrierSlug === "s1";
+  const sl = lang === "es" ? "es" : "en";
+  const gridPlans = plans.map((p) => ({ price: p.price, highlight: p.highlight }));
+  const shownGrid = isSimple ? simpleGridPlans(gridPlans, sl) : { plans: gridPlans, popular: Math.min(plans.length - 1, Math.floor(plans.length / 2)) };
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -781,11 +795,15 @@ const DynamicCarrier = ({
           {/* Plan grid (fixed_plans) */}
           {showFixedPlans && plans.length > 0 && (
             <PlanGrid
-              plans={plans.map((p) => ({ price: p.price, highlight: p.highlight }))}
+              plans={shownGrid.plans}
               brandColor={bc}
               onSelect={handlePlanPayNow}
-              popularIndex={Math.min(plans.length - 1, Math.floor(plans.length / 2))}
+              popularIndex={shownGrid.popular}
             />
+          )}
+          {/* SIMPLE-SPEC-1-1009: 2-sentence answer right under the plan buttons (same text as the raw HTML) */}
+          {isSimple && (
+            <p className="max-w-[420px] mx-auto px-4 pt-1 pb-4 text-sm text-foreground leading-relaxed text-center">{SIMPLE_ANSWER[sl]}</p>
           )}
 
           {/* Terms + Pay (custom amount path) */}
@@ -861,8 +879,18 @@ const DynamicCarrier = ({
 
 
 
-          {/* FAQs from API */}
-          {shownFaqs.length > 0 && (
+          {/* FAQs from API. SIMPLE-SPEC-1-1009: Simple Mobile shows its 8-question FAQ open (text = the raw-HTML FAQPage JSON-LD). */}
+          {isSimple ? (
+            <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10" data-testid="simple-faq">
+              <h2 className="text-2xl font-extrabold text-foreground mb-4 text-left">{SIMPLE_FAQ_TITLE[sl]}</h2>
+              {simpleFaqs(sl).map((f) => (
+                <div key={f.q} className="mb-4 text-left">
+                  <h3 className="font-bold" style={{ color: bc }}>{f.q}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{f.a}</p>
+                </div>
+              ))}
+            </section>
+          ) : shownFaqs.length > 0 && (
             <DynamicFAQ faqs={shownFaqs} carrierName={faqName} brandColor={bc} lang={lang} />
           )}
 
@@ -873,10 +901,18 @@ const DynamicCarrier = ({
                 href={(lang === "es" ? "/es/como-pagar/" : "/how-to-pay/") + HTP_GUIDE_BY_SLUG[carrierSlug].key}
                 className="underline"
               >
-                {lang === "es"
+                {isSimple
+                  ? SIMPLE_LINKS[sl].guide[1]
+                  : lang === "es"
                   ? `Cómo pagar su factura de ${HTP_GUIDE_BY_SLUG[carrierSlug].name} en línea`
                   : `How to pay your ${HTP_GUIDE_BY_SLUG[carrierSlug].name} bill online`}
               </a>
+            </p>
+          )}
+          {/* SIMPLE-SPEC-1-1009: language switch /s1.html <-> /es/s1.html */}
+          {isSimple && (
+            <p className="max-w-3xl mx-auto px-4 pb-4 text-sm text-center">
+              <a href={SIMPLE_LINKS[sl].other[0]} hrefLang={sl === "es" ? "en" : "es"} className="underline">{SIMPLE_LINKS[sl].other[1]}</a>
             </p>
           )}
         </>

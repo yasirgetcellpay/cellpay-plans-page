@@ -5,6 +5,8 @@ import fs from "fs";
 import { componentTagger } from "lovable-tagger";
 // AEO-PAGES-1007: how-to-pay page text (shared with src/pages/HowToPay.tsx) for static raw HTML + JSON-LD.
 import { HOW_TO_PAY_PAGES, howToPayJsonLd, howToPayStaticHtml } from "./src/content/howToPay";
+// SIMPLE-SPEC-1-1009: Simple Mobile answer page text (shared with DynamicCarrier.tsx) for /s1.html + /es/s1.html raw HTML.
+import { SIMPLE_META, simpleStaticBlock, simpleJsonLd } from "./src/content/simplePage";
 // PAYCOPY-1008: payment methods named in raw HTML come from the shared list (follows src/config/paymentFlags.ts).
 import { weAcceptLine, payBrandsComma, PAYPAL_SHOWN } from "./src/content/paymentMethods";
 // TOP4-T1-1009: carrier first-screen copy (H1/subline, Verizon trust row) shared with DynamicCarrier.tsx / Verizon.tsx.
@@ -598,7 +600,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "guest-lyca.html":           { title: "Lycamobile Guest Refill — Online Top-Up | CellPay",    description: "Make a Lycamobile guest payment online. No login needed — pick a 30-day plan, pay securely, and your refill is sent to your line after payment." },
       "net10.html":                { title: "Net10 Wireless Refill — Online Top-Up | CellPay",      description: "Recharge Net10 Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "pageplus.html":             { title: "Page Plus Cellular Refill — Online Top-Up | CellPay",  description: "Recharge Page Plus Cellular online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
-      "s1.html":                   { title: "Simple Mobile Refill — Online Top-Up | CellPay",       description: "Recharge Simple Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "s1.html":                   SIMPLE_META.en, // SIMPLE-SPEC-1-1009: same title/description as DynamicCarrier sets at runtime
       "tmobile-flexi.html":        { title: "T-Mobile Prepaid Refill — Online Top-Up | CellPay",    description: "Recharge T-Mobile Prepaid online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "tracfone.html":             { title: "TracFone Refill — Online Top-Up | CellPay",            description: "Recharge TracFone online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "ultra-mobile.html":         { title: "Ultra Mobile Refill — Online Top-Up | CellPay",        description: "Recharge Ultra Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
@@ -773,6 +775,7 @@ const htmlAliasPlugin = (): Plugin => ({
       `Pague su factura de ${name} en línea. Sin cuenta y sin iniciar sesión. Puede pagar por otra persona. Verá el cargo por servicio antes de pagar.`;
     // SEO-ES-META-1007: raw title/description = the text these pages set at runtime (StraightTalk.tsx / Verizon.tsx, lang es).
     const ES_RUNTIME_META: Record<string, { title: string; description: string }> = {
+      "es/s1.html": SIMPLE_META.es, // SIMPLE-SPEC-1-1009
       "es/straight-talk.html": {
         title: "Recarga Straight Talk en Línea | CellPay",
         description: "Recarga tu plan Straight Talk Wireless en línea con CellPay. Recarga segura enviada directamente a tu número.",
@@ -1351,7 +1354,10 @@ const htmlAliasPlugin = (): Plugin => ({
         `</div>` +
         `<div class="flex justify-center py-16 min-h-screen">` +
         `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle h-10 w-10 animate-spin text-muted-foreground"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>` +
-        `</div></div></div>`
+        `</div>` +
+        // SIMPLE-SPEC-1-1009: Simple Mobile: answer, plan list, FAQ and links in the raw HTML, below the first screen.
+        (slug === "s1" ? simpleStaticBlock(isEs ? "es" : "en") : "") +
+        `</div></div>`
       );
     };
     // LCP-ADS-1007: home page (/) first screen = Home.tsx nav + green headline bar; the rest is a full-height blank
@@ -1558,6 +1564,16 @@ const htmlAliasPlugin = (): Plugin => ({
           const ld = `<script type="application/ld+json" data-htp="1">${howToPayJsonLd(htpPage)}</script>`;
           const body = howToPayStaticHtml(htpPage);
           out = out.replace(/<\/head>/i, () => `  ${ld}\n  </head>`).replace(/<div id="root"><\/div>/i, () => body);
+        } catch {
+          /* keep plain shell */
+        }
+      }
+      // SIMPLE-SPEC-1-1009: /s1.html + /es/s1.html: FAQPage + BreadcrumbList JSON-LD (same FAQ text as the page).
+      const simpleLang = route === "s1.html" ? "en" : route === "es/s1.html" ? "es" : null;
+      if (simpleLang) {
+        try {
+          const ld = `<script type="application/ld+json" data-simple="1">${simpleJsonLd(simpleLang)}</script>`;
+          out = out.replace(/<\/head>/i, () => `  ${ld}\n  </head>`);
         } catch {
           /* keep plain shell */
         }
