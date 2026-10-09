@@ -113,6 +113,51 @@ export const esCarrierFaqs = (slug: string): Array<{ q: string; a: string }> => 
   ];
 };
 
+// TOP4-T4-1009: 4 FAQs in the words people search / ask in help chat (EN + ES), 4 carriers only. Visible text = JSON-LD
+// wherever the page emits FAQPage. Help label = the live Help button ("Help" / "Ayuda"). No fee amount, no refund promise.
+/** [guest, don't know amount, paid but not working, wrong number] for the 4 carriers, else []. */
+export const searchFaqs = (slug: string, lang: HeroLang): Array<{ q: string; a: string }> => {
+  const c = top4Name(slug, lang);
+  if (!c) return [];
+  return lang === "es"
+    ? [
+        {
+          q: `¿Puedo pagar la factura de ${c} como invitado, solo con el número de teléfono?`,
+          a: `Sí. Ingrese el número de teléfono de 10 dígitos de ${c}, elija el monto o el plan y pague. No necesita cuenta ni iniciar sesión, y puede pagar la línea de otra persona.`,
+        },
+        {
+          q: "¿Qué hago si no sé cuánto debo?",
+          a: `CellPay no muestra el saldo de ${c}. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de ${c}, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar.`,
+        },
+        {
+          q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?",
+          a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido.",
+        },
+        {
+          q: "Pagué a un número equivocado. ¿Me pueden devolver el dinero?",
+          a: "Todos los pagos en CellPay son finales, incluso una recarga enviada a un número equivocado. Revise bien el número antes de pagar.",
+        },
+      ]
+    : [
+        {
+          q: `Can I pay my ${c} bill as a guest, with just the phone number?`,
+          a: `Yes. Enter the 10-digit ${c} phone number, pick your amount or plan, and pay. No login or account is needed, and you can pay for someone else's line.`,
+        },
+        {
+          q: "What if I don't know how much I owe?",
+          a: `CellPay doesn't show your ${c} balance. Check the amount due in your ${c} app, account or text messages, then choose that plan or amount here. The total with the service fee is shown before you pay.`,
+        },
+        {
+          q: "I paid but my phone still isn't working. What should I do?",
+          a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID.",
+        },
+        {
+          q: "I paid the wrong number. Can I get a refund?",
+          a: "All payments through CellPay are final, including a refill sent to a wrong number. Please check the number carefully before you pay.",
+        },
+      ];
+};
+
 /** Trust row on the Verizon pay page (Verizon.tsx and its prerendered first screen). Methods from the shared list. */
 export const verizonTrustLine = (lang: HeroLang): string =>
   lang === "es"
