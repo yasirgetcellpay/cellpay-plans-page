@@ -2062,6 +2062,29 @@ export type Database = {
           status: string
         }[]
       }
+      vel1_enforce_check: {
+        Args: {
+          _email: string
+          _first: string
+          _last: string
+          _method: string
+          _phone: string
+        }
+        Returns: Json
+      }
+      vel1_eval: {
+        Args: {
+          _at: string
+          _email: string
+          _exclude: string
+          _first: string
+          _last: string
+          _phone: string
+        }
+        Returns: Json
+      }
+      vel1_is_bank_decline: { Args: { _m: string }; Returns: boolean }
+      vel1_is_severe_decline: { Args: { _m: string }; Returns: boolean }
       velocity_shadow_record: {
         Args: {
           _email: string
