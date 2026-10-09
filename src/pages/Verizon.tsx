@@ -10,7 +10,7 @@ import { loadResolvedPlans, pickPlanForAmount, type ResolvedPlans } from "@/lib/
 import { applySeoHead } from "@/lib/seo";
 import { t, useLang } from "@/lib/i18n";
 // TOP4-T1-1009: H1 + subline + trust row shared with the prerendered first screen (vite.config.ts)
-import { top4Hero, verizonTrustLine } from "@/content/carrierHero";
+import { top4Hero, verizonTrustLine, activeLineNote, refundFaq } from "@/content/carrierHero";
 
 const plans = [
   { price: "$80", highlight: "Prepaid Refill" },
@@ -110,6 +110,9 @@ const Verizon = () => {
   const es = lang === "es";
   const tr = t(lang);
   const hero = top4Hero("verizon", es ? "es" : "en");
+  // TOP4-T2A-1009: "active line" note under the number field + FAQ (visible text only; this page has no FAQ JSON-LD).
+  const lineNote = activeLineNote("verizon", es ? "es" : "en");
+  const vzFaqs = [refundFaq("verizon", es ? "es" : "en")].filter((f): f is { q: string; a: string } => !!f);
   const [confirmed, setConfirmed] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [resolved, setResolved] = useState<ResolvedPlans>({ fixedPlans: [] });
@@ -251,6 +254,7 @@ const Verizon = () => {
             <input type="tel" value={phone} onChange={handlePhoneChange} placeholder="(XXX) XXX-XXXX"
               className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" style={{ "--tw-ring-color": BRAND } as React.CSSProperties} />
           </div>
+          {lineNote && <p className="text-[10px] sm:text-xs text-muted-foreground -mt-2 mb-2">{lineNote}</p>}
           <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">{tr.selectAmount}</label>
           <div className="relative mb-1">
             <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
@@ -297,6 +301,19 @@ const Verizon = () => {
         )}
         <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-3">{es ? "Pago seguro. Su recarga se envía directamente a su teléfono. La recarga puede tardar hasta 30 min en reflejarse en su cuenta." : "Secure payment. Your refill is sent directly to your phone. It can take up to 30 min for a refill to reflect on your account."}</p>
       </div>
+
+      {/* TOP4-T2A-1009: FAQ (Verizon Prepaid). */}
+      {vzFaqs.length > 0 && (
+        <section className="max-w-3xl mx-auto px-4 sm:px-6 py-8" data-testid="vz-faq">
+          <h2 className="text-2xl font-extrabold text-foreground mb-4 text-left">{tr.faqsTitle(es ? "Verizon Prepago" : "Verizon Prepaid")}</h2>
+          {vzFaqs.map((f) => (
+            <div key={f.q} className="mb-4 text-left">
+              <h3 className="font-bold" style={{ color: BRAND }}>{f.q}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{f.a}</p>
+            </div>
+          ))}
+        </section>
+      )}
 
       <PaymentBar lang={lang} />
       <CarrierFooter brandColor={BRAND} carrierName="Verizon" lang={lang} />

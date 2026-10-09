@@ -3,6 +3,8 @@
 // so visible FAQ text and FAQPage JSON-LD stay word for word identical. Relative imports only: vite.config.ts loads this file.
 // PAYCOPY-1008: payment methods come from ./paymentMethods (follows src/config/paymentFlags.ts; PayPal only while enabled).
 import { methodsLong, payWith, payWallets } from "./paymentMethods";
+// TOP4-T2A-1009: "Why was my payment refunded?" FAQ for AT&T Prepaid / Simple Mobile / T-Mobile Prepaid (null for others).
+import { refundFaq } from "./carrierHero";
 // No prices or fee amounts here: plan prices render live from the carrier catalog; the fee is shown at checkout.
 
 export type HtpLang = "en" | "es";
@@ -87,6 +89,7 @@ const en = (o: {
     { q: `Can I pay someone else's ${o.name} phone?`, a: `Yes. You only need their ${o.name} phone number. The charge goes on your payment method, not their account. Double-check the number, because all CellPay payments are final: a payment sent to a wrong number can't be refunded or cancelled.` },
     { q: `Can I set up automatic ${o.name} payments?`, a: o.autoPayA },
     { q: `What do I need to pay my ${o.name} bill?`, a: `Only the 10-digit ${o.name} phone number, the amount or plan you want, and a payment method. You don't need a carrier login, a CellPay account or the account holder's password.` },
+    ...[refundFaq(o.slug, "en")].filter((f): f is HtpFaq => !!f), // TOP4-T2A-1009
   ],
   disclaimer: `CellPay is an independent payment service and is not affiliated with ${o.name}.`,
   updated: o.updatedText ?? "Last updated: October 7, 2026",
@@ -133,6 +136,7 @@ const es = (o: {
     { q: `¿Puedo pagar el teléfono ${o.name} de otra persona?`, a: `Sí. Solo necesita su número de teléfono de ${o.name}. El cargo se hace a su método de pago, no a la cuenta de esa persona. Verifique bien el número, porque todos los pagos en CellPay son definitivos: un pago enviado a un número equivocado no se puede reembolsar ni cancelar.` },
     { q: `¿Puedo programar pagos automáticos de ${o.name}?`, a: o.autoPayA },
     { q: `¿Qué necesito para pagar mi factura de ${o.name}?`, a: `Solo el número de teléfono de ${o.name} de 10 dígitos, el monto o el plan que desea y un método de pago. No necesita una cuenta del operador, una cuenta de CellPay ni la contraseña del titular de la cuenta.` },
+    ...[refundFaq(o.slug, "es")].filter((f): f is HtpFaq => !!f), // TOP4-T2A-1009
   ],
   disclaimer: `CellPay es un servicio de pago independiente y no está afiliado a ${o.name}.`,
   updated: o.updatedText ?? "Última actualización: 7 de octubre de 2026",
