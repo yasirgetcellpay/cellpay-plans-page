@@ -163,9 +163,9 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     description: `Pague Straight Talk en línea sin iniciar sesión: ingrese el número, elija un plan y pague con ${payWith("es")}.`,
     h1: "Cómo Pagar su Factura de Straight Talk en Línea (Sin Iniciar Sesión)",
     step3: "Elija un plan de la lista en la página de CellPay.",
-    faq2: { q: "¿Puedo recargar Straight Talk sin la aplicación de Straight Talk?", a: "Straight Talk ofrece sus propias opciones de recarga en su sitio web oficial y en su aplicación. En CellPay puede recargar desde cualquier dispositivo solo con el número de teléfono." },
-    autoPayA: "Si CellPay ofrece Auto Pago al pagar, puede activarlo ahí; nunca está marcado de antemano. Puede cancelarlo en cualquier momento con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
-    autoPayBody: "Si CellPay ofrece Auto Pago al pagar, puede activarlo ahí; nunca está marcado de antemano. Puede cancelarlo en cualquier momento con 'Unsubscribe From Autopay' en cellpay.us/faq.",
+    faq2: { q: "¿Puedo recargar Straight Talk sin la aplicación de Straight Talk?", a: "Straight Talk ofrece sus propias opciones de recarga en su sitio web oficial y en su aplicación. En CellPay puede recargar desde su teléfono, tableta o computadora solo con el número de teléfono." },
+    autoPayA: "Si CellPay ofrece Auto Pago al pagar, puede activarlo ahí; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
+    autoPayBody: "Si CellPay ofrece Auto Pago al pagar, puede activarlo ahí; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
     related: [["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/como-pagar/simple-mobile", "Cómo pagar Simple Mobile"], ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/straight-talk.html", "Recarga Straight Talk"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
   }),
   en({
@@ -186,8 +186,8 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     h1: "Cómo Pagar su Factura de AT&T Prepaid en Línea Sin Iniciar Sesión",
     step3: "Elija un plan de la lista o ingrese un monto personalizado.",
     faq2: { q: "¿AT&T tiene su propia forma de pagar el servicio prepagado sin iniciar sesión?", a: "AT&T ofrece sus propias opciones de pago en su sitio web oficial y en su aplicación. CellPay es otra opción si quiere pagar sin una cuenta de AT&T, con " + payWallets("es") + "." },
-    autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo en cualquier momento con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
-    autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo en cualquier momento con 'Unsubscribe From Autopay' en cellpay.us/faq.",
+    autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
+    autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
     related: [["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/simple-mobile", "Cómo pagar Simple Mobile"], ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/topup-at.html", "Recarga AT&T Prepaid"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
   }),
   // AEO-03-04-1008: SPEC-03 Simple Mobile + SPEC-04 T-Mobile Prepaid, EN + native ES (same template, no carrier-specific FAQ).

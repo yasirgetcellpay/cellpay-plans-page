@@ -3,7 +3,7 @@
 // HTML), so the raw H1 / subline always equal the rendered ones. Copy only: never changes carrier_name, slugs, carrier or
 // plan IDs, the DB, receipts or the checkout payload.
 // Relative imports only (vite.config.ts loads this file; the "@/" alias is not available there).
-import { weAcceptLine } from "./paymentMethods";
+import { weAcceptLine, payWith, CARD_BRANDS } from "./paymentMethods";
 
 export type HeroLang = "en" | "es";
 
@@ -77,6 +77,40 @@ export const refundFaq = (slug: string, lang: HeroLang): { q: string; a: string 
         q: "Why was my payment refunded?",
         a: `Sometimes ${c} can't add the refill to the number, for example if the number is not an active ${c} line or the wrong carrier was picked. When that happens the payment is refunded automatically to the card or account you paid with. Check the number and the carrier, then try again.`,
       };
+};
+
+// TOP4-T3-1009: Spanish FAQ set for the 4 carriers' Spanish pages (same 6 questions and answers as /es/go/{carrier}),
+// with the Spanish display names (T-Mobile Prepago, AT&T Prepago, Simple Mobile, Verizon Prepago). Never "cualquier".
+/** 6 Spanish FAQ items for the 4 carriers, else []. */
+export const esCarrierFaqs = (slug: string): Array<{ q: string; a: string }> => {
+  const c = top4Name(slug, "es");
+  if (!c) return [];
+  return [
+    {
+      q: `¿Puedo pagar mi factura de ${c} sin cuenta?`,
+      a: `Sí. No necesita cuenta ni iniciar sesión. Escriba el número de teléfono de ${c}, elija el monto o plan y pague como invitado.`,
+    },
+    {
+      q: `¿Puedo pagar la línea de ${c} de otra persona?`,
+      a: `Sí. Escriba el número de ${c} de esa persona, elija el monto o plan y pague. La recarga llega a esa línea.`,
+    },
+    {
+      q: `¿Solo necesito el número de teléfono de ${c}?`,
+      a: `Sí. Escriba el número de 10 dígitos de la línea de ${c} que quiere recargar. Luego elija el monto o plan y pague.`,
+    },
+    {
+      q: `¿Tengo que llamar a ${c} para pagar?`,
+      a: "No. Pague en línea en esta página con el número de teléfono. No necesita llamar.",
+    },
+    {
+      q: "¿Cómo puedo pagar?",
+      a: payWith("es", `Con tarjeta (${CARD_BRANDS})`) + ". Apple Pay aparece en equipos Apple compatibles. El cargo por servicio se muestra antes de pagar.",
+    },
+    {
+      q: `¿Cuánto tarda la recarga de ${c}?`,
+      a: "La mayoría termina en unos minutos. Algunas pueden tardar hasta 30 minutos.",
+    },
+  ];
 };
 
 /** Trust row on the Verizon pay page (Verizon.tsx and its prerendered first screen). Methods from the shared list. */
