@@ -414,6 +414,8 @@ const DynamicCarrier = ({
             description: seoDescriptionOverride || "",
           });
         }
+        // SIMPLE-SPEC-3-1009: /guest-simple-mobile.html canonical = /s1.html (same as its raw HTML).
+        if (window.location.pathname.replace(/\/+$/, "") === "/guest-simple-mobile.html") applySeoHead({ path: "/s1.html" });
         if (seoH1Override) setHeading(seoH1Override);
         if (seoIntroOverride) setSubheading(seoIntroOverride);
 

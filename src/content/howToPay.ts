@@ -206,7 +206,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     step3: "Choose a plan from the list on the CellPay page.",
     autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
     autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
-    related: [["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/s1.html", "Simple Mobile refill"], ["/guest-simple-mobile.html", "Pay Simple Mobile as a guest"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
+    related: [["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/s1.html", "Simple Mobile bill pay & refill"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
     updatedIso: "2026-10-08", updatedText: "Last updated: October 8, 2026",
   }),
   es({
@@ -217,7 +217,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     step3: "Elija un plan de la lista en la página de CellPay.",
     autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
     autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
-    related: [["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], ["/es/s1.html", "Recarga Simple Mobile"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
+    related: [["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], ["/es/s1.html", "Pago de factura y recarga de Simple Mobile"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
     updatedIso: "2026-10-08", updatedText: "Última actualización: 8 de octubre de 2026",
   }),
   en({
