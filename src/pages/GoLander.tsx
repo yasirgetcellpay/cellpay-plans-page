@@ -4,7 +4,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PaymentBar } from "@/components/PaymentBar";
 // PAYCOPY-1008: shared payment list (follows src/config/paymentFlags.ts)
-import { payBrandsComma, payWith, CARD_BRANDS, PAYPAL_SHOWN } from "@/content/paymentMethods";
+import { payBrandsComma, PAYPAL_SHOWN } from "@/content/paymentMethods";
+// LPX-1010 (SPEC-LPX-3): FAQ text moved to src/content/goPage.ts (shared with the static shell), carrier sentence, plan names.
+import { GO_AD_NAMES, goFaqsEn, goFaqsEs, goCarrierSentence, goTileName } from "@/content/goPage";
 // TOP4-T1-1009: customer-facing carrier names in labels (display only)
 import { displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq } from "@/content/carrierHero";
 // LPX-1010: guest/phone wording for the H1, title and subline (same table the static shell uses).
@@ -152,96 +154,7 @@ const goFeeCopy = (s: string): string =>
     .replace("Low service fee shown before you pay", "Service fee shown before you pay")
     .replace("Cargo por servicio bajo, mostrado antes de pagar", "Cargo por servicio mostrado antes de pagar");
 
-/** ADS-FOLLOWUPS-1008: ad-style carrier names for the /go FAQs + FAQPage JSON-LD (same name as each lander's H1). Checkout keeps the catalog name. */
-const GO_AD_NAMES: Record<string, string> = {
-  boost: "Boost",
-  metropcs: "Metro",
-  s1: "Simple Mobile",
-  "topup-crc": "Cricket",
-  "topup-at": "AT&T Prepaid",
-  "ultra-mobile": "Ultra Mobile",
-  "straight-talk": "Straight Talk",
-  lyca: "Lyca Mobile",
-  h2o: "H2O Wireless",
-  net10: "Net10",
-  tmobile: "T-Mobile",
-  verizon: "Verizon Prepaid",
-  pageplus: "Page Plus",
-  "total-wireless": "Total Wireless",
-  tracfone: "Tracfone",
-};
-
-/** GO-COPY-1008: carrier-specific FAQs (also sent as FAQPage JSON-LD). True claims only: no refunds, no email-receipt claim, no fee amounts. */
-const goFaqsEn = (c: string) => [
-  {
-    q: `Can I pay my ${c} bill without signing in?`,
-    a: `Yes. No account or login needed. Enter the ${c} phone number, pick the amount or plan, and pay as a guest.`,
-  },
-  {
-    q: `Can I pay for someone else's ${c} line?`,
-    a: `Yes. Enter their ${c} phone number, choose the amount or plan, and pay. The refill goes to that line.`,
-  },
-  {
-    q: `Do I just need the ${c} phone number?`,
-    a: `Yes. Enter the 10-digit phone number of the ${c} line you want to refill. Then pick the amount or plan and pay.`,
-  },
-  {
-    q: `Do I need to call ${c} to pay?`,
-    a: "No. You pay online on this page with the phone number. No phone call needed.",
-  },
-  {
-    q: "How can I pay?",
-    a: payWith("en", `Card (${CARD_BRANDS})`) + ". Apple Pay shows on supported Apple devices. The service fee is shown before you pay.",
-  },
-  {
-    q: `How long does a ${c} refill take?`,
-    a: "Most refills finish in a few minutes. Some can take up to 30 minutes.",
-  },
-  {
-    q: "What if the payment fails?",
-    a: "If it fails, your card was NOT charged. If you see a pending amount, your bank removes it in 1–2 days. You can try another card or payment method.",
-  },
-  {
-    q: "How do I get help?",
-    a: "Support: Monday–Friday 9:00 AM–6:00 PM (EST) · Saturday–Sunday 10:00 AM–4:00 PM (EST) · support@getcellpay.com",
-  },
-];
-
-/** Very simple Spanish. Never "cualquier". No refunds / 24/7 / instant / authorized. */
-const goFaqsEs = (c: string) => [
-  {
-    q: `¿Puedo pagar mi factura de ${c} sin cuenta?`,
-    a: `Sí. No necesita cuenta ni iniciar sesión. Escriba el número de teléfono de ${c}, elija el monto o plan y pague como invitado.`,
-  },
-  {
-    q: `¿Puedo pagar la línea de ${c} de otra persona?`,
-    a: `Sí. Escriba el número de ${c} de esa persona, elija el monto o plan y pague. La recarga llega a esa línea.`,
-  },
-  {
-    q: `¿Solo necesito el número de teléfono de ${c}?`,
-    a: `Sí. Escriba el número de 10 dígitos de la línea de ${c} que quiere recargar. Luego elija el monto o plan y pague.`,
-  },
-  {
-    q: `¿Tengo que llamar a ${c} para pagar?`,
-    a: "No. Pague en línea en esta página con el número de teléfono. No necesita llamar.",
-  },
-  {
-    q: "¿Cómo puedo pagar?",
-    a: payWith("es", `Con tarjeta (${CARD_BRANDS})`) + ". Apple Pay aparece en equipos Apple compatibles. El cargo por servicio se muestra antes de pagar.",
-  },
-  {
-    q: `¿Cuánto tarda la recarga de ${c}?`,
-    a: "La mayoría termina en unos minutos. Algunas pueden tardar hasta 30 minutos.",
-  },
-  {
-    q: "¿Qué pasa si el pago falla?",
-    a: "Si falla, su tarjeta NO fue cobrada. Si ve un cargo pendiente, su banco lo quita en 1–2 días. Puede probar otra tarjeta u otra forma de pago.",
-  },
-  {
-    q: "¿Cómo pido ayuda?",
-    a: "Soporte: lunes–viernes 9:00 AM–6:00 PM (EST) · sábado–domingo 10:00 AM–4:00 PM (EST) · support@getcellpay.com",
-  },
-];
+// LPX-1010 (SPEC-LPX-3): GO_AD_NAMES, goFaqsEn and goFaqsEs now live in src/content/goPage.ts (unchanged text).
 
 export interface GoLanderProps {
   carrierName: string;
@@ -620,6 +533,7 @@ const GoLander = ({
         <div className="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">
           <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">{lpx?.h1 ?? h1}</h1>
           <p className="text-xs sm:text-sm opacity-90 mt-1">{tagline}</p>
+          <p className="text-xs sm:text-sm opacity-90 mt-1">{goCarrierSentence(carrierSlug, isEs ? "es" : "en", faqName)}</p>
           {noCallLine && <p className="text-xs sm:text-sm font-bold mt-1">{noCallLine}</p>}
           {esHref && (
             <p className="text-xs sm:text-sm mt-1">
@@ -842,7 +756,7 @@ const GoLander = ({
           {showFixedPlans && plans.length > 0 && (
             <div className="pt-1 sm:pt-2">
               <PlanGrid
-                plans={plans.map((p) => ({ price: p.price, highlight: p.highlight }))}
+                plans={plans.map((p) => ({ price: p.price, highlight: goTileName(carrierSlug, isEs ? "es" : "en", p.highlight) }))}
                 brandColor={bc}
                 onSelect={handlePlanPayNow}
                 popularIndex={Math.min(plans.length - 1, Math.floor(plans.length / 2))}

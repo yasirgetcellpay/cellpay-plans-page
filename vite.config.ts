@@ -11,6 +11,8 @@ import { SIMPLE_META, simpleStaticBlock, simpleJsonLd } from "./src/content/simp
 import { weAcceptLine, payBrandsComma, PAYPAL_SHOWN } from "./src/content/paymentMethods";
 // LPX-1010: ad-lander H1 / title / subline per carrier (shared with GoLander.tsx).
 import { goLpxForRoute } from "./src/content/goCopy";
+// LPX-1010 (SPEC-LPX-3): carrier sentence + FAQ in the raw HTML of every /go page (shared with GoLander.tsx).
+import { goStaticSentence, goStaticFaqHtml } from "./src/content/goPage";
 // TOP4-T1-1009: carrier first-screen copy (H1/subline, Verizon trust row) shared with DynamicCarrier.tsx / Verizon.tsx.
 import { top4Hero, verizonTrustLine } from "./src/content/carrierHero";
 // PRIVACY-1007: privacy policy text (shared with src/pages/PrivacyPolicy.tsx) for the static raw HTML (EN + ES).
@@ -1161,6 +1163,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">` +
         `<h1 class="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">${escAttr(content.h1)}</h1>` +
         `<p class="text-xs sm:text-sm opacity-90 mt-1">${tagline}</p>` +
+        (goStaticSentence(route) ? `<p class="text-xs sm:text-sm opacity-90 mt-1">${goStaticSentence(route)}</p>` : "") +
         (noCallLine ? `<p class="text-xs sm:text-sm font-bold mt-1">${noCallLine}</p>` : "") +
         (esHref
           ? `<p class="text-xs sm:text-sm mt-1"><a href="${escAttr(esHref)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>`
@@ -1180,7 +1183,7 @@ const htmlAliasPlugin = (): Plugin => ({
           ? goCricketScreen(isEs, look.color)
           : `<div class="flex justify-center items-start py-16 flex-1 min-h-screen">` +
             `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle h-10 w-10 animate-spin text-muted-foreground"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>` +
-            `</div>`) +
+            `</div>` + goStaticFaqHtml(route, look.color)) +
         `</div></div>`
       );
     };
