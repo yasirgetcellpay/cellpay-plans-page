@@ -1,0 +1,116 @@
+# CellPay (full version)
+
+> Pay or refill a US prepaid phone plan online with just the phone number, no carrier login. 15+ carriers, in English and Spanish. Service fee shown before you pay.
+
+CellPay is an independent payment service, not affiliated with any carrier. Short index: https://www.cellpay.us/llms.txt
+
+## How it works (all carriers)
+
+1. Open the carrier page (English, or Spanish by adding /es before the path).
+2. Enter the 10-digit phone number of the line to refill or pay.
+3. Pick an amount or plan. Plans and prices load live from the carrier catalog and are shown before you pay.
+4. Review the order summary: number, amount, service fee and total. The service fee is shown before you pay.
+5. Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Keep your confirmation.
+
+## Common questions
+
+- Do I need a carrier login or CellPay account? No. Guest checkout with just the phone number.
+- Can I pay someone else's phone? Yes, with their 10-digit number. The charge goes on your payment method, not their account. Payments are final, so check the number.
+- How fast does it post? Most payments post within minutes; it can take up to 30 minutes.
+- Is there a fee? Yes, a service fee applies and is shown in the order summary before you pay. Taxes and fees can vary by location.
+- Can I get a refund? Completed payments are final. If the carrier cannot add the refill, the payment is automatically refunded. Contact support@getcellpay.com with the phone number and details if a payment has not posted after 30 minutes.
+- Auto Pay: optional, only if offered at checkout, never pre-checked; cancel anytime with "Unsubscribe From Autopay" on https://www.cellpay.us/faq.
+- Support hours: Monday-Friday 9:00 AM-6:00 PM (EST), Saturday-Sunday 10:00 AM-4:00 PM (EST).
+
+## Carriers
+
+### AT&T Prepaid
+- Pages: https://www.cellpay.us/topup-at.html · español https://www.cellpay.us/es/topup-at.html
+- Steps: open the AT&T Prepaid page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No AT&T Prepaid login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+- Guide: https://www.cellpay.us/how-to-pay/att-prepaid · https://www.cellpay.us/es/como-pagar/att-prepaid
+
+### AT&T FirstNet
+- Pages: https://www.cellpay.us/att-firstnet · español https://www.cellpay.us/es/att-firstnet
+- Steps: open the AT&T FirstNet page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No AT&T FirstNet login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+
+### T-Mobile Prepaid
+- Pages: https://www.cellpay.us/tmobile-flexi.html · español https://www.cellpay.us/es/tmobile-flexi.html
+- Steps: open the T-Mobile Prepaid page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No T-Mobile Prepaid login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+- Guide: https://www.cellpay.us/how-to-pay/t-mobile-prepaid · https://www.cellpay.us/es/como-pagar/t-mobile-prepaid
+
+### Verizon Prepaid
+- Pages: https://www.cellpay.us/verizon-wireless-flexi.html · español https://www.cellpay.us/es/verizon-wireless-flexi.html
+- Steps: open the Verizon Prepaid page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No Verizon Prepaid login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+- Guide: https://www.cellpay.us/how-to-pay/verizon-prepaid · https://www.cellpay.us/es/como-pagar/verizon-prepaid
+
+### Metro by T-Mobile
+- Pages: https://www.cellpay.us/metropcs.html · español https://www.cellpay.us/es/metropcs.html
+- Steps: open the Metro by T-Mobile page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No Metro by T-Mobile login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+
+### Cricket Wireless
+- Pages: https://www.cellpay.us/topup-crc.html · español https://www.cellpay.us/es/topup-crc.html
+- Steps: open the Cricket Wireless page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No Cricket Wireless login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+
+### Boost Mobile
+- Pages: https://www.cellpay.us/boost.html · español https://www.cellpay.us/es/boost.html
+- Steps: open the Boost Mobile page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No Boost Mobile login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+
+### Straight Talk
+- Pages: https://www.cellpay.us/straight-talk.html · español https://www.cellpay.us/es/straight-talk.html
+- Steps: open the Straight Talk page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No Straight Talk login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+- Guide: https://www.cellpay.us/how-to-pay/straight-talk · https://www.cellpay.us/es/como-pagar/straight-talk
+
+### TracFone
+- Pages: https://www.cellpay.us/tracfone.html · español https://www.cellpay.us/es/tracfone.html
+- Steps: open the TracFone page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No TracFone login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+
+### Total Wireless
+- Pages: https://www.cellpay.us/total-wireless · español https://www.cellpay.us/es/total-wireless
+- Steps: open the Total Wireless page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No Total Wireless login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+
+### Simple Mobile
+- Pages: https://www.cellpay.us/s1.html · español https://www.cellpay.us/es/s1.html
+- Steps: open the Simple Mobile page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No Simple Mobile login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+- Guide: https://www.cellpay.us/how-to-pay/simple-mobile · https://www.cellpay.us/es/como-pagar/simple-mobile
+
+### H2O Wireless
+- Pages: https://www.cellpay.us/h2o.html · español https://www.cellpay.us/es/h2o.html
+- Steps: open the H2O Wireless page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No H2O Wireless login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+
+### Lyca Mobile
+- Pages: https://www.cellpay.us/lyca.html · español https://www.cellpay.us/es/lyca.html
+- Steps: open the Lyca Mobile page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No Lyca Mobile login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+
+### Net10
+- Pages: https://www.cellpay.us/net10.html · español https://www.cellpay.us/es/net10.html
+- Steps: open the Net10 page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No Net10 login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+
+### Page Plus
+- Pages: https://www.cellpay.us/pageplus.html · español https://www.cellpay.us/es/pageplus.html
+- Steps: open the Page Plus page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No Page Plus login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+
+### Ultra Mobile
+- Pages: https://www.cellpay.us/ultra-mobile.html · español https://www.cellpay.us/es/ultra-mobile.html
+- Steps: open the Ultra Mobile page, enter the 10-digit phone number, choose an amount or plan, review the total, pay. No Ultra Mobile login or CellPay account.
+- Pay with card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. Service fee shown before you pay; plans and prices shown live before you pay.
+
+## Policies
+
+- [Privacy Policy](https://www.cellpay.us/privacy-policy)
+- [Terms & Conditions](https://www.cellpay.us/terms-and-conditions)
+- [Returns & Refunds](https://www.cellpay.us/returns-policy): Completed payments are final and can't be refunded; how to contact support about a payment problem.
