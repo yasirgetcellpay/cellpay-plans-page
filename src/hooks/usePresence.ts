@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { recordVisitSource } from "@/lib/visitSource"; // AI-REFERRALS-1010
 
 const SESSION_KEY = "cellpay_presence_sid";
 
@@ -41,6 +42,7 @@ export function usePresence() {
     };
 
     ping();
+    recordVisitSource(); // AI-REFERRALS-1010: analytics only, once per tab session, errors swallowed
     const interval = window.setInterval(ping, 20_000);
     const onVisible = () => { if (document.visibilityState === "visible") ping(); };
     document.addEventListener("visibilitychange", onVisible);

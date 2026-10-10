@@ -1591,6 +1591,42 @@ export type Database = {
         }
         Relationships: []
       }
+      visit_sources: {
+        Row: {
+          created_at: string
+          day: string
+          host: string | null
+          id: number
+          landing_path: string
+          referrer_host: string | null
+          session_id: string
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          created_at?: string
+          day?: string
+          host?: string | null
+          id?: never
+          landing_path?: string
+          referrer_host?: string | null
+          session_id: string
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          host?: string | null
+          id?: never
+          landing_path?: string
+          referrer_host?: string | null
+          session_id?: string
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       ap1_cancel_outcomes: {
@@ -2005,6 +2041,17 @@ export type Database = {
       purchase_tag_cliff_sweep: { Args: never; Returns: number }
       record_presence: {
         Args: { _path: string; _session_id: string; _user_agent: string }
+        Returns: undefined
+      }
+      record_visit_source: {
+        Args: {
+          _host: string
+          _landing_path: string
+          _referrer_host: string
+          _session_id: string
+          _utm_medium: string
+          _utm_source: string
+        }
         Returns: undefined
       }
       refill_cooldown_check: { Args: { _key: string }; Returns: Json }
