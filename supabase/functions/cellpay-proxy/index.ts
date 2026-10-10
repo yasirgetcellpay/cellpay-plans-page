@@ -105,6 +105,25 @@ function clickIdsFrom(v: unknown): Record<string, string> {
   return out;
 }
 
+// [AI-REFERRALS-1010b] Where the visit came from, from the site's top-level body.visit_source (never part of the payload sent to CellPay).
+// Only ref_host (referrer hostname), utm_source and landing_path (no query string), each kept only when well-formed; anything else is
+// dropped. Stored in transaction_logs.metadata only (no schema change). No click IDs, no personal data. Never throws; absent = nothing stored.
+const VS_HOST_RE = /^[a-z0-9.-]{1,100}$/;
+const VS_SRC_RE = /^[a-z0-9._: -]{1,60}$/;
+const VS_PATH_RE = /^\/[A-Za-z0-9._~\/%-]{0,199}$/;
+function visitSourceMeta(v: unknown): Record<string, string> {
+  try {
+    const r = asRecord(v);
+    const out: Record<string, string> = {};
+    if (typeof r.ref_host === "string" && VS_HOST_RE.test(r.ref_host)) out.ref_host = r.ref_host;
+    if (typeof r.utm_source === "string" && VS_SRC_RE.test(r.utm_source)) out.utm_source = r.utm_source;
+    if (typeof r.landing_path === "string" && VS_PATH_RE.test(r.landing_path)) out.landing_path = r.landing_path;
+    return out;
+  } catch {
+    return {};
+  }
+}
+
 async function createTransactionLog(
   payload: Record<string, unknown>,
   callerHost: string | undefined,
@@ -2130,7 +2149,7 @@ serve(async (req) => {
       } catch { /* dedupe fails open */ }
     }
     const txLogId = shouldLogTransaction
-      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}) }, clickIdsFrom(body.click_ids))
+      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}) }, clickIdsFrom(body.click_ids))
       : null;
     if (shouldLogTransaction) velocityShadow(txLogId, payloadRecord, paymentMethod); // [VEL1-1007] log-only, not awaited
 

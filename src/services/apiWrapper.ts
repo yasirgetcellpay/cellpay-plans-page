@@ -11,6 +11,8 @@ interface ProxyRequest {
   click_ids?: Record<string, string>;
   /** DECLINE-DIALOG-1008: top-level page language ("en" | "es"); cellpay-proxy stores it as transaction_logs.metadata.lang only. Never sent to CellPay. */
   lang?: "en" | "es";
+  /** AI-REFERRALS-1010b: top-level; cellpay-proxy stores it in transaction_logs.metadata only (ref_host, utm_source, landing_path). Never sent to CellPay. */
+  visit_source?: { ref_host?: string; utm_source?: string; landing_path?: string };
 }
 
 export async function callProxy(req: ProxyRequest): Promise<unknown> {
@@ -295,11 +297,29 @@ function pageLang(): "en" | "es" {
   }
 }
 
+// AI-REFERRALS-1010b: where this visit came from, saved at landing by src/lib/visitSource.ts (sessionStorage "cp_vs"): referrer host,
+// utm_source and landing path only (no query string, no click IDs, no PII). A synchronous storage read, no network call; undefined when
+// nothing was saved (then nothing is sent). Never throws, never blocks the payment.
+function storedVisitSource(): { ref_host?: string; utm_source?: string; landing_path?: string } | undefined {
+  try {
+    const s = JSON.parse(sessionStorage.getItem("cp_vs") || "null") as Record<string, unknown> | null;
+    if (!s || typeof s !== "object") return undefined;
+    const out: { ref_host?: string; utm_source?: string; landing_path?: string } = {};
+    for (const k of ["ref_host", "utm_source", "landing_path"] as const) {
+      const v = s[k];
+      if (typeof v === "string" && v.length > 0 && v.length <= 200) out[k] = v;
+    }
+    return Object.keys(out).length ? out : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function submitTransaction(
   payload: Record<string, unknown>,
   bearerToken?: string
 ): Promise<unknown> {
-  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds(), lang: pageLang() });
+  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds(), lang: pageLang(), visit_source: storedVisitSource() });
 }
 
 export async function fetchCheckoutConfig(): Promise<Record<string, unknown>> {
