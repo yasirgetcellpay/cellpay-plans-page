@@ -303,6 +303,7 @@ export const howToPayJsonLd = (pg: HtpPage): string => {
 };
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 // AI-ANSWER-1010: plan NAMES (no prices) in the raw HTML and in the first React render, so assistants and crawlers see what the carrier
 // offers instead of "Loading current plans". Prices and the live list still come from the CellPay catalog after load (HowToPay.tsx).
 // Names are a general guide (snapshot Oct 10 2026); the note below the list says so.
