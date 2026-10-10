@@ -36,6 +36,8 @@ export function recordVisitSource(): void {
       _landing_path: window.location.pathname.slice(0, 200),
       _host: window.location.hostname.slice(0, 60),
     };
+    // AI-REFERRALS-1010b: keep the same three values for this tab so the order row can carry them (read by apiWrapper.submitTransaction).
+    try { sessionStorage.setItem("cp_vs", JSON.stringify({ ref_host: refHost, utm_source: args._utm_source, landing_path: args._landing_path })); } catch { /* ignore */ }
     const send = () => {
       try {
         const c = supabase as unknown as { rpc: (fn: string, a: Record<string, unknown>) => Promise<unknown> };
