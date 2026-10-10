@@ -7,6 +7,8 @@ import { PaymentBar } from "@/components/PaymentBar";
 import { payBrandsComma, payWith, CARD_BRANDS, PAYPAL_SHOWN } from "@/content/paymentMethods";
 // TOP4-T1-1009: customer-facing carrier names in labels (display only)
 import { displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq } from "@/content/carrierHero";
+// LPX-1010: guest/phone wording for the H1, title and subline (same table the static shell uses).
+import { goLpxForCarrier } from "@/content/goCopy";
 import { PlanGrid } from "@/components/PlanGrid";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
@@ -268,6 +270,7 @@ const GoLander = ({
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tr = t(lang);
+  const lpx = goLpxForCarrier(carrierSlug, lang === "es" ? "es" : "en"); // LPX-1010
   const { toast } = useToast();
 
   const [phone, setPhone] = useState(() => formatPhone(takeCheckoutPrefill(carrierSlug)));
@@ -294,7 +297,7 @@ const GoLander = ({
 
   // noindex + ads SEO (static shells also ship noindex)
   useEffect(() => {
-    applySeoHead({ title, description: goFeeCopy(description), path: typeof window !== "undefined" ? window.location.pathname : "/" });
+    applySeoHead({ title: lpx?.title ?? title, description: goFeeCopy(description), path: typeof window !== "undefined" ? window.location.pathname : "/" });
     let tag = document.querySelector('meta[name="robots"]');
     if (!tag) {
       tag = document.createElement("meta");
@@ -538,7 +541,7 @@ const GoLander = ({
   const bc = brandColor;
   const isEs = lang === "es";
   // GO-COPY-1008: trust line (no email-receipt claim: no project code sends a receipt). Boost: no phone call needed.
-  const tagline = isEs ? "Sin cuenta. Pague por usted o por otra persona." : "No login. Pay for yourself or someone else.";
+  const tagline = lpx?.subline ?? (isEs ? "Sin cuenta. Pague por usted o por otra persona." : "No login. Pay for yourself or someone else.");
   const noCallLine =
     carrierSlug === "boost"
       ? isEs
@@ -615,7 +618,7 @@ const GoLander = ({
 
       <section style={{ backgroundColor: bc }} className="text-primary-foreground">
         <div className="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">
-          <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">{h1}</h1>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">{lpx?.h1 ?? h1}</h1>
           <p className="text-xs sm:text-sm opacity-90 mt-1">{tagline}</p>
           {noCallLine && <p className="text-xs sm:text-sm font-bold mt-1">{noCallLine}</p>}
           {esHref && (

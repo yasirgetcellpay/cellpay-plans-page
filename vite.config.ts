@@ -9,6 +9,8 @@ import { HOW_TO_PAY_PAGES, howToPayJsonLd, howToPayStaticHtml } from "./src/cont
 import { SIMPLE_META, simpleStaticBlock, simpleJsonLd } from "./src/content/simplePage";
 // PAYCOPY-1008: payment methods named in raw HTML come from the shared list (follows src/config/paymentFlags.ts).
 import { weAcceptLine, payBrandsComma, PAYPAL_SHOWN } from "./src/content/paymentMethods";
+// LPX-1010: ad-lander H1 / title / subline per carrier (shared with GoLander.tsx).
+import { goLpxForRoute } from "./src/content/goCopy";
 // TOP4-T1-1009: carrier first-screen copy (H1/subline, Verizon trust row) shared with DynamicCarrier.tsx / Verizon.tsx.
 import { top4Hero, verizonTrustLine } from "./src/content/carrierHero";
 // PRIVACY-1007: privacy policy text (shared with src/pages/PrivacyPolicy.tsx) for the static raw HTML (EN + ES).
@@ -819,7 +821,9 @@ const htmlAliasPlugin = (): Plugin => ({
       }
       // GO-1 dedicated ad landers: noindex,follow (titles from CARRIER_META)
       if (GO_SHELLS.has(route)) {
-        const meta = CARRIER_META[route] || {
+        const lpxMeta = goLpxForRoute(route); // LPX-1010: new title where the H1 changed
+        const meta0 = CARRIER_META[route];
+        const meta = (meta0 && lpxMeta?.title ? { ...meta0, title: lpxMeta.title } : meta0) || {
           title: "Pay Your Bill Online | CellPay",
           description: "No login. Pay for yourself or someone else. Service fee shown before you pay.",
         };
@@ -1110,14 +1114,18 @@ const htmlAliasPlugin = (): Plugin => ({
       );
     };
     const goFirstScreen = (route: string): string | null => {
-      const content = GO_CONTENT[route];
+      const lpx = goLpxForRoute(route); // LPX-1010
+      const content0 = GO_CONTENT[route];
+      const content = content0 && lpx?.h1 ? { ...content0, h1: lpx.h1 } : content0;
       const slug = route.replace(/^es\//, "").replace(/^go\//, "").replace(/(\/index)?\.html$/, "");
       const look = GO_LOOK[slug];
       if (!content || !look) return null;
       const cellpayLogo = goAssetUrl("cellpay-logo.svg");
       if (!cellpayLogo) return null;
       const logo = look.logo ? goAssetUrl(look.logo) : null;
-      const tagline = route.startsWith("es/") ? "Sin cuenta. Pague por usted o por otra persona." : "No login. Pay for yourself or someone else.";
+      const tagline = lpx?.subline
+        ? escAttr(lpx.subline)
+        : route.startsWith("es/") ? "Sin cuenta. Pague por usted o por otra persona." : "No login. Pay for yourself or someone else.";
       // SPEED-LANDER-LCP2: Autopay benefit in the static shell (same classes/copy as GoLander) so LCP can paint with H1.
       const isEs = route.startsWith("es/");
       const autoPayLine = isEs
