@@ -180,7 +180,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     title: "How to Pay Your AT&T Prepaid Bill Online Without Signing In | CellPay",
     description: `AT&T Prepaid pay bill online without signing in: enter the number, pick an amount and pay by ${payWith("en", "card")}.`,
     h1: "How to Pay Your AT&T Prepaid Bill Online Without Signing In",
-    step3: "Choose a plan from the list or enter a custom amount.",
+    step3: "Choose an amount or plan on the page. The available amounts and any minimum are shown at checkout.", // AI-ANSWER-1010 item 2
     faq2: { q: "Does AT&T have its own way to pay prepaid without signing in?", a: "AT&T offers its own payment options on its official website and app. CellPay is another option if you want to pay without an AT&T login, with " + payWallets("en") + "." },
     autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
     autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
@@ -191,7 +191,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     title: "Cómo Pagar su Factura de AT&T Prepaid en Línea Sin Iniciar Sesión | CellPay",
     description: `Pague AT&T Prepaid en línea sin iniciar sesión: ingrese el número, elija el monto y pague con ${payWith("es")}.`,
     h1: "Cómo Pagar su Factura de AT&T Prepaid en Línea Sin Iniciar Sesión",
-    step3: "Elija un plan de la lista o ingrese un monto personalizado.",
+    step3: "Elija un monto o plan en la página. Los montos disponibles y cualquier mínimo se muestran al pagar.", // AI-ANSWER-1010 item 2
     faq2: { q: "¿AT&T tiene su propia forma de pagar el servicio prepagado sin iniciar sesión?", a: "AT&T ofrece sus propias opciones de pago en su sitio web oficial y en su aplicación. CellPay es otra opción si quiere pagar sin una cuenta de AT&T, con " + payWallets("es") + "." },
     autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
     autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
