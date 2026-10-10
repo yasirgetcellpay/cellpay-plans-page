@@ -272,6 +272,29 @@ for (const slug of LEGACY_AMOUNT_SLUGS) {
   }
 }
 
+// LCP-FLOOR-1010: first paint no longer waits for the stylesheet request or the Open Sans file. For the static shells (and the home page
+// file) the built stylesheet is inlined and the Open Sans @font-face + preload are dropped; Open Sans is added with the FontFace API after
+// window.load and swaps in over "Open Sans Fallback" (same metrics via size-adjust, so nothing moves). The CSS file itself and every other
+// route's behavior stay as they are. Any problem returns the page unchanged.
+const lcpFloor1010 = (src: string, outDir: string): string => {
+  try {
+    const link = /<link rel="stylesheet"[^>]*href="(\/assets\/index-[^"]+\.css)"[^>]*>/.exec(src);
+    if (!link) return src;
+    const cssFile = path.join(outDir, link[1]);
+    if (!fs.existsSync(cssFile)) return src;
+    const css = fs.readFileSync(cssFile, "utf-8");
+    const face = /@font-face\{font-family:Open Sans;[^}]*\}/;
+    if (!face.test(css) || /<\/style/i.test(css)) return src;
+    const late =
+      '<script>addEventListener("load",function(){setTimeout(function(){try{var f=new FontFace("Open Sans",\'url(/fonts/open-sans-latin-var-v44.woff2) format("woff2")\',{weight:"300 800",style:"normal",display:"swap"});f.load().then(function(x){document.fonts.add(x)})}catch(e){}},0)})</script>';
+    return src
+      .replace(/<link rel="preload" as="font"[^>]*>/, "")
+      .replace(link[0], () => `<style>${css.replace(face, "")}</style>${late}`);
+  } catch {
+    return src;
+  }
+};
+
 const htmlAliasPlugin = (): Plugin => ({
   name: "lovable-html-route-aliases",
   apply: "build",
@@ -283,7 +306,7 @@ const htmlAliasPlugin = (): Plugin => ({
         "[html-route-aliases] dist/index.html is missing — cannot emit alias HTML files.",
       );
     }
-    const html = fs.readFileSync(indexPath, "utf-8");
+    const html = lcpFloor1010(fs.readFileSync(indexPath, "utf-8"), outDir); // LCP-FLOOR-1010
     // Guest landing pages: H1 + intro paragraph injected into the static
     // shell body so crawlers (Google AdsBot, etc.) see real above-the-fold
     // content in raw HTML, not just after React hydration.
