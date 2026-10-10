@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { fetchCarrierView } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
-import { howToPayByPath, howToPayJsonLd } from "@/content/howToPay";
+import { howToPayByPath, howToPayJsonLd, htpPlanNames, htpPlansNote } from "@/content/howToPay";
 import NotFound from "./NotFound.tsx";
 
 type LivePlan = { label: string };
@@ -91,7 +91,11 @@ const HowToPay = () => {
 
         <h3 className="font-bold mt-5 mb-2">{pg.plansLabel}</h3>
         {plans === null ? (
-          <p className="text-sm text-muted-foreground">{pg.plansLoading}</p>
+          <>
+            {/* AI-ANSWER-1010: same markup as the static raw HTML (howToPayStaticHtml) until the live list arrives */}
+            <ul className="list-disc pl-6 text-sm space-y-1">{htpPlanNames(pg).map((n) => <li key={n}>{n}</li>)}</ul>
+            <p className="text-sm text-muted-foreground mt-2">{htpPlansNote(pg)}</p>
+          </>
         ) : plans.length > 0 ? (
           <ul className="list-disc pl-6 text-sm space-y-1">{plans.map((p) => <li key={p.label}>{p.label}</li>)}</ul>
         ) : (

@@ -303,6 +303,50 @@ export const howToPayJsonLd = (pg: HtpPage): string => {
 };
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+// AI-ANSWER-1010: plan NAMES (no prices) in the raw HTML and in the first React render, so assistants and crawlers see what the carrier
+// offers instead of "Loading current plans". Prices and the live list still come from the CellPay catalog after load (HowToPay.tsx).
+// Names are a general guide (snapshot Oct 10 2026); the note below the list says so.
+const PLAN_NAMES: Record<HtpPage["key"], Record<HtpLang, string[]>> = {
+  "att-prepaid": {
+    en: ["AT&T Prepaid refill: choose one of the fixed amounts shown on the CellPay page, or a custom amount where offered"],
+    es: ["Recarga AT&T Prepaid: elija uno de los montos fijos que aparecen en la página de CellPay, o un monto personalizado cuando esté disponible"],
+  },
+  "t-mobile-prepaid": {
+    en: ["T-Mobile Prepaid refill: choose one of the fixed amounts shown on the CellPay page, or a custom amount where offered"],
+    es: ["Recarga T-Mobile Prepaid: elija uno de los montos fijos que aparecen en la página de CellPay, o un monto personalizado cuando esté disponible"],
+  },
+  "verizon-prepaid": {
+    en: ["Verizon Prepaid refill: choose one of the fixed amounts shown on the CellPay page, or a custom amount where offered"],
+    es: ["Recarga Verizon Prepago: elija uno de los montos fijos que aparecen en la página de CellPay, o un monto personalizado cuando esté disponible"],
+  },
+  "simple-mobile": {
+    en: [
+      "Unlimited Talk, Text, Unlimited 5G Ultra Wideband",
+      "Unlimited Talk, Text, Unlimited high-speed data",
+      "Unlimited Talk, Text, 30 GB high-speed data",
+      "Unlimited Talk, Text, 20 GB high-speed data",
+      "Unlimited Talk, Text, 15 GB high-speed data",
+      "3-month Unlimited plan",
+    ],
+    es: [
+      "Llamadas y texto ilimitados, 5G Ultra Wideband ilimitado",
+      "Llamadas y texto ilimitados, datos de alta velocidad ilimitados",
+      "Llamadas y texto ilimitados, 30 GB de datos de alta velocidad",
+      "Llamadas y texto ilimitados, 20 GB de datos de alta velocidad",
+      "Llamadas y texto ilimitados, 15 GB de datos de alta velocidad",
+      "Plan Ilimitado de 3 meses",
+    ],
+  },
+  "straight-talk": {
+    en: ["Platinum Unlimited", "Gold Unlimited", "Silver Unlimited", "Bronze 10 GB", "2 GB of data (unused balance rolls over)", "Global Calling Add-On"],
+    es: ["Platinum Unlimited", "Gold Unlimited", "Silver Unlimited", "Bronze 10 GB", "2 GB de datos (el saldo no usado se acumula)", "Complemento Global Calling"],
+  },
+};
+export const htpPlanNames = (pg: HtpPage): string[] => PLAN_NAMES[pg.key]?.[pg.lang] ?? [];
+export const htpPlansNote = (pg: HtpPage): string =>
+  pg.lang === "es"
+    ? "Los nombres de planes son una guía general. Los planes y precios actuales los define el operador, se cargan en vivo desde el catálogo de CellPay y se muestran antes de pagar."
+    : "Plan names are a general guide. Current plans and prices are set by the carrier, loaded live from the CellPay catalog, and shown before you pay.";
 
 // TOP4-T4-1009 (guide LCP): static first render for the raw HTML = the SAME DOM, classes and text as the first React render of
 // src/pages/HowToPay.tsx (plans still loading). data-go-prerender lets the browser paint it before React starts (main.tsx),
@@ -321,7 +365,9 @@ export const howToPayStaticHtml = (pg: HtpPage): string => {
     h2(L.fees) + `<table class="w-full text-sm border border-border"><thead><tr class="bg-muted/40"><th class="text-left p-2">${esc(L.item)}</th><th class="text-left p-2">${esc(L.amount)}</th></tr></thead><tbody>` +
     pg.feeRows.map(([a, b]) => `<tr class="border-t border-border"><td class="p-2">${esc(a)}</td><td class="p-2">${esc(b)}</td></tr>`).join("") + `</tbody></table>` +
     `<p class="text-xs text-muted-foreground mt-1">${esc(pg.feeNote)}</p>` +
-    `<h3 class="font-bold mt-5 mb-2">${esc(pg.plansLabel)}</h3><p class="text-sm text-muted-foreground">${esc(pg.plansLoading)}</p>` +
+    `<h3 class="font-bold mt-5 mb-2">${esc(pg.plansLabel)}</h3>` +
+    `<ul class="list-disc pl-6 text-sm space-y-1">${htpPlanNames(pg).map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` +
+    `<p class="text-sm text-muted-foreground mt-2">${esc(htpPlansNote(pg))}</p>` + // AI-ANSWER-1010 (same markup as HowToPay.tsx while plans load)
     h2(L.other) + `<p>${esc(pg.otherWays)}</p>` +
     h2(pg.someoneElseTitle) + `<p>${esc(pg.someoneElse)}</p>` +
     h2(pg.autoPayTitle) + `<p>${esc(pg.autoPay)} <a href="${pg.checkoutPath}" class="underline">${esc(L.payNow)}</a></p>` +
