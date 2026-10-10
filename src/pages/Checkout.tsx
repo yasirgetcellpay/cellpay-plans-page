@@ -157,8 +157,9 @@ const setPurchasePending = (hid: string) => {
 const AP_CYCLE_CONFIRMED = false;
 const AP_COPY = {
   en: {
-    offerTitle: "Turn on Auto Pay (optional)",
-    offerBenefit: "Your number refills itself on your payment date, so service never lapses. Cancel anytime online, no login needed.",
+    offerTitle: "Never miss a refill: turn on Auto Pay (optional)",
+    offerBenefit: "Refills this number each month on your payment date, so your service doesn't lapse.",
+    offerHow: "Charges the same amount to this same payment method. Nothing extra is charged today. Cancel anytime online, no login needed. You'll see the full terms before you agree.", // AUTOPAY-LIFT-1009
     chargeInterim: "Auto Pay recharges this number with this card. Renews monthly on your payment date, cancel anytime.",
     chargeKnown: (amount: string, date: string) => `Auto Pay charges today's total, ${amount}, to this card every 30 days, starting ${date}, until you cancel.`,
     chargeUnknown: (date: string) => `Auto Pay charges the same amount as today's order to this card every 30 days, starting ${date}, until you cancel.`,
@@ -173,8 +174,9 @@ const AP_COPY = {
     dateLocale: "en-US",
   },
   es: {
-    offerTitle: "Activar pago automático (opcional)",
-    offerBenefit: "Su número se recarga solo en su fecha de pago, para que nunca se quede sin servicio. Cancele en línea cuando quiera, sin iniciar sesión.",
+    offerTitle: "No se quede sin recarga: active el pago automático (opcional)",
+    offerBenefit: "Recarga este número cada mes en su fecha de pago, para que su servicio no se interrumpa.",
+    offerHow: "Cobra el mismo monto a este mismo método de pago. Hoy no se cobra nada adicional. Cancele en línea cuando quiera, sin iniciar sesión. Verá los términos completos antes de aceptar.", // AUTOPAY-LIFT-1009
     chargeInterim: "El pago automático recarga este número con esta tarjeta. Se renueva cada mes en la fecha de su pago; cancele cuando quiera.",
     chargeKnown: (amount: string, date: string) => `El pago automático cobra el total de hoy, ${amount}, a esta tarjeta cada 30 días, a partir del ${date}, hasta que usted cancele.`,
     chargeUnknown: (date: string) => `El pago automático cobra el mismo monto del pedido de hoy a esta tarjeta cada 30 días, a partir del ${date}, hasta que usted cancele.`,
@@ -2338,6 +2340,7 @@ const Checkout = () => {
                   <span data-testid="autopay-offer" className="flex-1 text-sm leading-snug rounded-lg border-2 px-3 py-2 -mt-1" style={{ borderColor: brandColor }}>
                     <span className="block font-bold text-foreground">{apCopy.offerTitle}</span>
                     <span className="block text-muted-foreground mt-0.5">{apCopy.offerBenefit}</span>
+                    <span data-testid="autopay-offer-how" className="block text-muted-foreground mt-1">{apCopy.offerHow}</span>
                   </span>
                 </label>
 
