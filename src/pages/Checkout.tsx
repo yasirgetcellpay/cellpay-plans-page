@@ -2029,7 +2029,7 @@ const Checkout = () => {
           </div>
 
           {/* CARRIER-ASSIST-1011 */}
-          <Suspense fallback={null}>
+          <Suspense fallback={<div className="h-5" aria-hidden="true" />}>
             <CarrierAssist lang={lang === "es" ? "es" : "en"} phone={String(state.phone || "")} carrierSlug={state.carrierSlug} brandColor={brandColor} onUse={(slug) => navigate(carrierPageTarget(lang, slug, state.phone, state.amount, location.search, location.hash))} />
           </Suspense>
 

@@ -58,7 +58,7 @@ export default function CarrierAssist({ lang, phone, carrierSlug, brandColor, on
           </p>
         </div>
       )}
-      <div className="text-center -my-2">
+      <div className="text-center h-5">
         <button type="button" data-testid="carrier-help-link" onClick={() => setOpen(true)} className="text-sm underline text-muted-foreground">
           {es ? "¿No está seguro de su compañía?" : "Not sure of your carrier?"}
         </button>

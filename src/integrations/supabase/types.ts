@@ -143,6 +143,42 @@ export type Database = {
         }
         Relationships: []
       }
+      carrier_check_log: {
+        Row: {
+          carrier_slug: string | null
+          created_at: string
+          host: string | null
+          http_status: number | null
+          id: number
+          kind: string | null
+          message: string | null
+          ok: boolean | null
+          phone_last4: string | null
+        }
+        Insert: {
+          carrier_slug?: string | null
+          created_at?: string
+          host?: string | null
+          http_status?: number | null
+          id?: number
+          kind?: string | null
+          message?: string | null
+          ok?: boolean | null
+          phone_last4?: string | null
+        }
+        Update: {
+          carrier_slug?: string | null
+          created_at?: string
+          host?: string | null
+          http_status?: number | null
+          id?: number
+          kind?: string | null
+          message?: string | null
+          ok?: boolean | null
+          phone_last4?: string | null
+        }
+        Relationships: []
+      }
       carrier_history: {
         Row: {
           carrier_slug: string
