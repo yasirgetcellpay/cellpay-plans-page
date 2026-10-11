@@ -313,15 +313,31 @@ const Checkout = () => {
   // CK-0b: back on checkout for the same order (back from Cash App / PayPal / Klarna, reload, resume) -> keep the method chosen
   // before. Hidden (PLAID_ENABLED false) or unavailable -> stays card (the default). Saved per order, this tab only.
   const methodRestoredRef = useRef(false);
+  // CM-WALLET-DEFAULT-1011: what was saved for this order when checkout opened, whether the customer tapped a method tile, and a once-only guard.
+  const savedMethodSeenRef = useRef<string | null | undefined>(undefined);
+  const methodTappedRef = useRef(false);
+  const walletDefaultedRef = useRef(false);
   useEffect(() => {
     if (!state || methodRestoredRef.current) return;
     const saved = readCheckoutMethod({ carrierSlug: state.carrierSlug, phone: state.phone, amount: state.amount });
+    if (savedMethodSeenRef.current === undefined) savedMethodSeenRef.current = saved ?? null; // CM-WALLET-DEFAULT-1011
     if (saved === "applepay" && !applePayAvailable) return; // Apple Pay is detected async: card until it is available
     methodRestoredRef.current = true;
     const allowed: PaymentMethod[] = ppShow() ? ["card", "googlepay", "paypal", "cashapp", "klarna"] : ["card", "googlepay", "cashapp", "klarna"];
     if (applePayAvailable) allowed.push("applepay");
     if (PLAID_ENABLED) allowed.push("plaid");
     if (saved && allowed.includes(saved as PaymentMethod)) setPaymentMethod(saved as PaymentMethod);
+  }, [state, applePayAvailable]);
+  // CM-WALLET-DEFAULT-1011 (iPhone/iPad only): once Apple Pay is detected, start on Apple Pay when the customer has not picked a method and
+  // nothing was saved for this order. Runs once, never overrides a tap or the saved method. Card stays one tap away; Auto Pay stays unchecked.
+  useEffect(() => {
+    if (walletDefaultedRef.current || !state || !applePayAvailable || savedMethodSeenRef.current === undefined) return;
+    walletDefaultedRef.current = true;
+    try {
+      if (!/iPad|iPhone|iPod/.test(navigator.userAgent)) return;
+      if (savedMethodSeenRef.current || methodTappedRef.current) return;
+      setPaymentMethod((cur) => (cur === "card" ? "applepay" : cur));
+    } catch { /* keep card */ }
   }, [state, applePayAvailable]);
   useEffect(() => {
     if (!state || (!methodRestoredRef.current && paymentMethod === "card")) return;
@@ -1955,7 +1971,9 @@ const Checkout = () => {
         baseMethods.find(m => m.key === "applepay")!,
         ...baseMethods.filter(m => m.key !== "applepay"),
       ]
-    : baseMethods;
+    : typeof navigator !== "undefined" && /Android/.test(navigator.userAgent) // CM-WALLET-DEFAULT-1011: Google Pay first on Android (display order only; card stays selected)
+      ? [baseMethods.find(m => m.key === "googlepay")!, ...baseMethods.filter(m => m.key !== "googlepay")]
+      : baseMethods;
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -2035,7 +2053,7 @@ const Checkout = () => {
                 <button
                   key={m.key}
                   type="button"
-                  onClick={() => { if (m.key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); setPaymentMethod(m.key); }}
+                  onClick={() => { if (m.key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); methodTappedRef.current = true; setPaymentMethod(m.key); }}
                   aria-pressed={paymentMethod === m.key}
                   className={`relative rounded-lg border-2 py-2.5 px-2 text-xs font-bold transition-all flex flex-col items-center justify-center gap-1.5 min-h-[68px] ${
                     paymentMethod === m.key
