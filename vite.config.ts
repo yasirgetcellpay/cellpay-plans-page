@@ -19,6 +19,8 @@ import { top4Hero, verizonTrustLine } from "./src/content/carrierHero";
 import { PRIVACY_PAGES, privacyMainHtml, type PpPage } from "./src/content/privacyPolicy";
 // TOP4-T3-1009: Spanish How to Use page head (same title/description HowToUse.tsx sets at runtime)
 import { HOW_TO_USE } from "./src/content/howToUse";
+// SPA-SHELLS-1011: static first screen (<main>) for /about-us, /faq, /how-to-use, /es/how-to-use, /terms-and-conditions.
+import { infoMainHtml } from "./src/content/infoPages";
 
 /**
  * Lovable's static host returns 404 for any URL ending in `.html` (it treats it
@@ -166,6 +168,8 @@ const HTML_ROUTES = [
   "h2o-wireless/bill-payment/index.html",
   // PagePlus path-style alias
   "pageplus/index.html",
+  // SPA-SHELLS-1011: /pageplus-addon had no shell of its own (it served the generic home title); now it has its own title.
+  "pageplus-addon/index.html",
   // Carriers removed from the site (Red Pocket, Movistar, Xbox, US Cellular; Oct 2026): noindex
   // shells only. App.tsx redirects these URLs to the home page.
   "red-pocket-mobile.html",
@@ -998,6 +1002,14 @@ const htmlAliasPlugin = (): Plugin => ({
       if (route === "h2o-wireless/index.html" || route === "h2o-wireless/bill-payment/index.html") {
         return { ...CARRIER_META["h2o.html"], lang: "en" };
       }
+      if (route === "pageplus-addon/index.html") {
+        // SPA-SHELLS-1011
+        return {
+          title: "Page Plus Add-On Balance — Pay Online | CellPay",
+          description: "Add an add-on balance to your Page Plus line online with CellPay. No login needed. Service fee shown before you pay.",
+          lang: "en",
+        };
+      }
       if (route === "pageplus/index.html") {
         return { ...CARRIER_META["pageplus.html"], lang: "en" };
       }
@@ -1501,6 +1513,21 @@ const htmlAliasPlugin = (): Plugin => ({
       return `<div id="root"><div class="min-h-screen flex flex-col bg-background">${nav}${privacyMainHtml(pg)}</div></div>`;
     };
 
+    // SPA-SHELLS-1011: same Navbar look as the privacy shell + the page's own <main> (src/content/infoPages.ts), so the text paints
+    // before the app code runs and sits in the same place after React mounts. No logo asset -> throws -> plain shell (caught at the call).
+    const infoFirstScreen = (main: string): string => {
+      const logo = goAssetUrl("cellpay-logo.svg");
+      if (!logo) throw new Error("no logo asset");
+      const nav =
+        `<nav class="sticky top-0 z-50 bg-card border-b-4 border-cellpay-green shadow-sm">` +
+        `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="relative flex justify-center h-14 sm:h-20 items-center">` +
+        `<a href="/" aria-label="CellPay home" class="flex items-center"><img src="${escAttr(logo)}" alt="CellPay" class="h-8 sm:h-11 w-auto object-contain"></a>` +
+        `</div></div>` +
+        navMenu +
+        `</nav>`;
+      return `<div id="root"><div class="min-h-screen flex flex-col bg-background">${nav}${main}</div></div>`;
+    };
+
     const renderHtml = (route: string): string => {
       const meta = buildMeta(route);
       const url = `/${route.replace(/\/index\.html$/, "/")}`; // relative: resolves to whichever host serves the file
@@ -1615,6 +1642,16 @@ const htmlAliasPlugin = (): Plugin => ({
         }
       }
       // PRIVACY-1007: full privacy policy text in the raw HTML (EN + ES). Any problem keeps the plain shell.
+      // SPA-SHELLS-1011: about-us / faq / how-to-use (EN+ES) / terms-and-conditions: the page's first screen in the raw HTML. Any problem keeps the plain shell.
+      try {
+        const infoMain = infoMainHtml(route);
+        if (infoMain) {
+          const body = infoFirstScreen(infoMain);
+          out = out.replace(/<div id="root"><\/div>/i, () => body);
+        }
+      } catch {
+        /* keep plain shell */
+      }
       const ppPage = PRIVACY_BY_ROUTE[route];
       if (ppPage) {
         try {

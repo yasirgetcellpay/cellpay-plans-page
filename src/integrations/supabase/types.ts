@@ -74,6 +74,90 @@ export type Database = {
         }
         Relationships: []
       }
+      carrier_assist_controls: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
+      carrier_assist_log: {
+        Row: {
+          created_at: string
+          host: string | null
+          id: number
+          mode: string | null
+          ph_h: string | null
+          picked: string | null
+          src: string | null
+          suggested: string | null
+        }
+        Insert: {
+          created_at?: string
+          host?: string | null
+          id?: number
+          mode?: string | null
+          ph_h?: string | null
+          picked?: string | null
+          src?: string | null
+          suggested?: string | null
+        }
+        Update: {
+          created_at?: string
+          host?: string | null
+          id?: number
+          mode?: string | null
+          ph_h?: string | null
+          picked?: string | null
+          src?: string | null
+          suggested?: string | null
+        }
+        Relationships: []
+      }
+      carrier_assist_secret: {
+        Row: {
+          id: number
+          k: string
+        }
+        Insert: {
+          id?: number
+          k: string
+        }
+        Update: {
+          id?: number
+          k?: string
+        }
+        Relationships: []
+      }
+      carrier_history: {
+        Row: {
+          carrier_slug: string
+          phone_hash: string
+        }
+        Insert: {
+          carrier_slug: string
+          phone_hash: string
+        }
+        Update: {
+          carrier_slug?: string
+          phone_hash?: string
+        }
+        Relationships: []
+      }
       checkout_blocklist: {
         Row: {
           active: boolean
@@ -1714,6 +1798,21 @@ export type Database = {
         }[]
       }
       blocklist_norm: { Args: { _raw: string; _type: string }; Returns: string }
+      carrier_assist_hash: { Args: { _phone: string }; Returns: string }
+      carrier_hint: {
+        Args: {
+          _host?: string
+          _ip: string
+          _phone: string
+          _picked: string
+          _sess: string
+        }
+        Returns: Json
+      }
+      carrier_hint_lookup: {
+        Args: { _host?: string; _phone: string; _picked: string }
+        Returns: Json
+      }
       checkout_blocklist_check: {
         Args: {
           _card_h: string
