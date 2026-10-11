@@ -3,6 +3,7 @@ import { Footer } from "@/components/Footer";
 import { LegalBar } from "@/components/LegalBar";
 import { PaymentBar } from "@/components/PaymentBar";
 import { AccountDropdown } from "@/components/AccountDropdown";
+import { PaymentMethodPicker } from "@/components/PaymentMethodPicker"; // METHODS-VISIBILITY-1011
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react"; // CARRIER-ASSIST-1011
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
@@ -2033,19 +2034,9 @@ const Checkout = () => {
             <CarrierAssist lang={lang === "es" ? "es" : "en"} phone={String(state.phone || "")} carrierSlug={state.carrierSlug} brandColor={brandColor} onUse={(slug) => navigate(carrierPageTarget(lang, slug, state.phone, state.amount, location.search, location.hash))} />
           </Suspense>
 
-          {/* Checkout trust badges — feedback Page 5–6 #2 */}
-          <div className="bg-card rounded-xl border border-border px-4 py-3">
-            <div className="flex items-center justify-around gap-2 text-[11px] font-semibold text-muted-foreground">
-              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
-                <Lock className="h-4 w-4 text-cellpay-green" />
-                <span>{tr.sslSecured}</span>
-              </div>
-              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
-                <Headphones className="h-4 w-4 text-cellpay-green" />
-                <span>{tr.supportLine}</span>
-              </div>
-            </div>
-          </div>
+          {/* METHODS-VISIBILITY-1011: wallet/primary method + "or pay with" + other methods, directly under the order summary. Presentation only. */}
+          <PaymentMethodPicker lang={lang === "es" ? "es" : "en"} methods={paymentMethods} selected={paymentMethod} brandColor={brandColor}
+            onSelect={(key) => { if (key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); methodTappedRef.current = true; setPaymentMethod(key as PaymentMethod); }} />
 
           <div className="bg-card rounded-xl border border-border p-5">
             <h2 className="font-bold text-foreground mb-3 text-sm">{tr.contactInformation}</h2>
@@ -2057,35 +2048,17 @@ const Checkout = () => {
             )}
           </div>
 
-          {/* Payment Method Select */}
-          <div className="bg-card rounded-xl border border-border p-5">
-            <h2 className="font-bold text-foreground mb-3 text-sm">{tr.paymentMethod}</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {paymentMethods.map((m) => (
-                <button
-                  key={m.key}
-                  type="button"
-                  onClick={() => { if (m.key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); methodTappedRef.current = true; setPaymentMethod(m.key); }}
-                  aria-pressed={paymentMethod === m.key}
-                  className={`relative rounded-lg border-2 py-2.5 px-2 text-xs font-bold transition-all flex flex-col items-center justify-center gap-1.5 min-h-[68px] ${
-                    paymentMethod === m.key
-                      ? "text-foreground shadow-sm"
-                      : "border-border text-muted-foreground hover:border-current bg-card"
-                  }`}
-                  style={paymentMethod === m.key ? { borderColor: brandColor, backgroundColor: /^#[0-9a-f]{6}$/i.test(brandColor || "") ? `${brandColor}14` : undefined, boxShadow: `0 0 0 1px ${brandColor}` } : undefined}
-                >
-                  {paymentMethod === m.key && (
-                    <CheckCircle2 className="absolute top-1 right-1 h-3.5 w-3.5" style={{ color: brandColor }} aria-hidden="true" />
-                  )}
-                  <span className="h-6 w-full flex items-center justify-center">
-                    <m.Brand className="h-5 w-auto max-w-[64px] object-contain" />
-                  </span>
-                  <span className="text-[11px] leading-tight">{m.label}</span>
-                  {m.key === "plaid" && (
-                    <span className="text-[10px] leading-none font-medium text-muted-foreground">{lang === "es" ? "Vincule su banco" : "Link your bank"}</span>
-                  )}
-                </button>
-              ))}
+          {/* Checkout trust badges — feedback Page 5–6 #2 */}
+          <div className="bg-card rounded-xl border border-border px-4 py-3">
+            <div className="flex items-center justify-around gap-2 text-[11px] font-semibold text-muted-foreground">
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
+                <Lock className="h-4 w-4 text-cellpay-green" />
+                <span>{tr.sslSecured}</span>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 text-center">
+                <Headphones className="h-4 w-4 text-cellpay-green" />
+                <span>{tr.supportLine}</span>
+              </div>
             </div>
           </div>
 
