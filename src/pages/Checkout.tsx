@@ -168,6 +168,63 @@ const setPurchasePending = (hid: string) => {
   try { document.cookie = `cp_purchase_pending=${encodeURIComponent(String(hid))}; path=/; Max-Age=3600; SameSite=Lax; Secure`; } catch { /* cookie unavailable */ }
 };
 
+// BEACON-AT-SUCCESS-1011: fire the SAME purchase beacon /order-confirmation fires, at the moment the payment succeeds, so an order is counted even
+// if the customer leaves before the receipt page loads. Fail-open in every way: anything missing, unknown or failing -> return with nothing pushed and
+// /order-confirmation fires exactly as before. Dedupe: the SAME localStorage key the confirmation page checks (cp_purchase_sent:<order id>) is checked
+// and set before pushing (and read back); the confirmation page also skips when cp_purchase_early:<order id> exists. Value = what the customer paid;
+// item_name/item_id = the hub receipt's names for this (carrier slug, plan id) (verified table, GTM margin lookup keys on item_name).
+// [receipt item_name, receipt item_id, space-separated plan ids] per carrier slug. Unknown carrier/plan -> no early fire.
+const EP_TABLE: Record<string, Array<[string, string, string]>> = {"boost":[["Boost","boost","66666"]],"h2o":[["H2O Wireless","h2o","3520 4439 5213 8282 32205 54787"]],"lyca":[["Lyca Mobile","lyca","1906 1907 1908 1909 1924 8768 8830 8831 8864 8907 9876789 28947019"]],"metropcs":[["Metro PCS","metropcs","33333"]],"net10":[["NET10","net10","3686 3924 3993 6346 9569 9570"]],"pageplus":[["Page Plus","pageplus","4919 31004 32164 8818410 8918412"]],"s1":[["Simple Mobile","s1","2631 2632 2634 2655 12676"]],"straight-talk":[["Straight Talk","straight-talk","39411 39412 39413 39414 addon-39421 Broadband-39422"]],"tmobile":[["T-Mobile","tmobile","834 835 836 8209 8328 8329 28254 28694 232179"],["T-Mobile Flexi","tmobile-flexi","238888"]],"topup-at":[["AT&T","topup-at","23915"],["AT&T","topup-af","9011 9012 9013 9014 9015 9016 9017 9018 9019 9020 9021 9022 9023 9024 9025 9026"]],"topup-crc":[["Cricket Wireless","topup-crc","44444"]],"total-wireless":[["Total Wireless","total-wireless","32140 32191 32193 321450 887800 887801 887802 887803 887804 887805 887806"]],"tracfone":[["Tracfone","tracfone","288 289 298 9545 10647 10648 10649"]],"ultra-mobile":[["Ultra Mobile","ultra-mobile","1367 1469 8274 8275 8278 8279 5523059 32990000 32991000 32992000 32993000"]],"verizon":[["Verizon Wireless Prepaid","verizon","2628 2629 2636 2637 2638 2639 22118 24322 24324 24325 24328"],["Verizon Wireless Flexi","verizon-wireless-flexi","291945"]]};
+const earlyPurchase = (hid: string, slug: string, plan: unknown, amountIn: unknown, totalIn: unknown): void => {
+  try {
+    const id = String(hid || "").trim();
+    if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return;
+    const planKey = String(plan ?? "").trim();
+    const hit = (EP_TABLE[String(slug || "")] || []).find((r) => r[2].split(" ").includes(planKey));
+    if (!planKey || !hit) return;
+    const amount = Number(amountIn);
+    const total = Number(totalIn);
+    if (!Number.isFinite(amount) || !Number.isFinite(total) || !(amount > 0) || !(total >= amount) || total > 5000) return;
+    const value = Math.round(total * 100) / 100;
+    const fee = Math.round((total - amount) * 100) / 100;
+    const sentKey = `cp_purchase_sent:${id}`;
+    if (localStorage.getItem(sentKey) !== null) return; // already counted (retry / duplicate success / confirmation page first)
+    localStorage.setItem(sentKey, String(Date.now()));
+    if (localStorage.getItem(sentKey) === null) return; // storage not usable: leave it to the confirmation page
+    try { localStorage.setItem(`cp_purchase_early:${id}`, "1"); } catch { /* the sent key alone already dedupes */ }
+    try {
+      const w = window as unknown as { dataLayer?: unknown[] };
+      w.dataLayer = w.dataLayer || [];
+      w.dataLayer.push({
+        event: "purchase",
+        ecommerce: {
+          transaction_id: id,
+          value,
+          fee,
+          revenue: amount,
+          currency: "USD",
+          items: [{ item_id: hit[1], item_name: hit[0], price: amount, quantity: 1 }],
+        },
+      });
+    } catch {
+      try { localStorage.removeItem(sentKey); localStorage.removeItem(`cp_purchase_early:${id}`); } catch { /* ignore */ }
+      return; // push failed: the confirmation page fires as before
+    }
+    try { // first-party purchase-tag fire log (no PII), fire-and-forget, one row per order (DB primary key)
+      const _su = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+      const _sk = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+      if (_su && _sk) {
+        fetch(_su + "/rest/v1/rpc/log_purchase_fire", {
+          method: "POST",
+          keepalive: true,
+          headers: { apikey: _sk, Authorization: "Bearer " + _sk, "Content-Type": "application/json" },
+          body: JSON.stringify({ _transaction_id: id, _hashid: id, _value: value, _source: "checkout_success" }),
+        }).catch(() => {});
+      }
+    } catch { /* ignore beacon errors */ }
+  } catch { /* storage / anything else: /order-confirmation fires as before */ }
+};
+
 // ARB-1a: Auto Pay offer + disclosure copy (EN/ES), v2. Display only; payload fields unchanged (autopay / autopay_agreement).
 // AP_CYCLE_CONFIRMED stays false until CellPay confirms the renewal cycle and fee (open with the CellPay backend via the
 // Callingmart Lead). While false, no new copy states a frequency, a $ amount or a date; flip to true only after the answer.
@@ -1239,6 +1296,7 @@ const Checkout = () => {
       const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
       // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1b: sessionStorage + cookie).
       setPurchasePending(hid);
+      earlyPurchase(hid, state.carrierSlug, state.planId, validation?.amount ?? state.amount, validation?.total ?? state.amount); // BEACON-AT-SUCCESS-1011
       const params = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
       clearCheckoutCtx();
       try { sessionStorage.removeItem(AP_TICKS_KEY); } catch { /* ignore */ } // ARB-1b: order placed, forget the ticks
@@ -1754,6 +1812,7 @@ const Checkout = () => {
           try { session.completePayment({ status: session.STATUS_SUCCESS }); } catch (e) { console.warn("[ApplePay] completePayment(success) after the sheet closed", e); }
           const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
           setPurchasePending(hid);
+          earlyPurchase(hid, state.carrierSlug, state.planId, validation?.amount ?? state.amount, validation?.total ?? state.amount); // BEACON-AT-SUCCESS-1011
           const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
           clearCheckoutCtx();
           try { sessionStorage.removeItem(AP_TICKS_KEY); } catch { /* ignore */ } // ARB-1b: order placed, forget the ticks

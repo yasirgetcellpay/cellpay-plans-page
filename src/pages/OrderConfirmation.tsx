@@ -162,7 +162,7 @@ const OrderConfirmation = () => {
               document.cookie = "cp_purchase_pending=; path=/; Max-Age=0; SameSite=Lax; Secure";
             }
           } catch { /* ignore */ }
-          if ((pendingMatch || fresh) && localStorage.getItem(sentKey) === null) {
+          if ((pendingMatch || fresh) && localStorage.getItem(sentKey) === null && localStorage.getItem(`cp_purchase_early:${hashid}`) === null) { // BEACON-AT-SUCCESS-1011: Checkout already fired it
             localStorage.setItem(sentKey, String(Date.now()));
             fire = true;
           }
