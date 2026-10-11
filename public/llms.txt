@@ -49,6 +49,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [How to pay Simple Mobile](https://www.cellpay.us/how-to-pay/simple-mobile) · [Cómo pagar Simple Mobile](https://www.cellpay.us/es/como-pagar/simple-mobile)
 - [How to pay T-Mobile Prepaid](https://www.cellpay.us/how-to-pay/t-mobile-prepaid) · [Cómo pagar T-Mobile Prepaid](https://www.cellpay.us/es/como-pagar/t-mobile-prepaid)
 - [How to pay Verizon Prepaid](https://www.cellpay.us/how-to-pay/verizon-prepaid) · [Cómo pagar Verizon Prepaid](https://www.cellpay.us/es/como-pagar/verizon-prepaid)
+- [How to pay Lyca Mobile](https://www.cellpay.us/how-to-pay/lyca-mobile) · [Cómo pagar Lyca Mobile](https://www.cellpay.us/es/como-pagar/lyca-mobile)
 
 ## Páginas en español
 

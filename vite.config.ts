@@ -247,6 +247,9 @@ const HTML_ROUTES = [
   // TOP4-T4-1009: Verizon Prepaid how-to-pay pages
   "how-to-pay/verizon-prepaid/index.html",
   "es/como-pagar/verizon-prepaid/index.html",
+  // AEO-06-LYCA-1011: Lyca Mobile how-to-pay pages
+  "how-to-pay/lyca-mobile/index.html",
+  "es/como-pagar/lyca-mobile/index.html",
   // Admin SPA routes — emit as folder/index.html so self-hosted servers
   // (which don't do SPA fallback) serve the React app on direct refresh.
   "admin/index.html",
