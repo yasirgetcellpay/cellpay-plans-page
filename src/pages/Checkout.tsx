@@ -147,6 +147,13 @@ const loadScript = (src: string, id: string): Promise<void> =>
     document.head.appendChild(s);
   });
 
+// GPAY-CLICK-1011: pay.js may still be loading when its <script> tag already exists (loadScript then resolves at once). Wait (max 6 s) for the API.
+type GpClient = { isReadyToPay: (req: Record<string, unknown>) => Promise<{ result: boolean }>; loadPaymentData: (req: Record<string, unknown>) => Promise<Record<string, unknown>> };
+const gpApiReady = async (): Promise<boolean> => {
+  for (let i = 0; i < 60; i++) { if (window.google?.payments?.api?.PaymentsClient) return true; await new Promise((r) => setTimeout(r, 100)); }
+  return false;
+};
+
 // CARRIER-ASSIST-1011: carrier hint + "Not sure of your carrier?" help. Lazy and loaded only when the browser is idle, so it never
 // touches the checkout bundle, first paint or the Pay path. Fail-open: if the chunk never loads, nothing renders.
 const CarrierAssist = lazy(() => new Promise<{ default: React.ComponentType<import("@/components/CarrierAssist").CarrierAssistProps> }>((resolve) => {
@@ -458,6 +465,43 @@ const Checkout = () => {
       if (document.readyState === "complete") go(); else window.addEventListener("load", go, { once: true });
     } catch { /* keep card */ }
   }, [state, checkoutConfig]);
+  // GPAY-CLICK-1011 (all devices): as soon as the Google Pay tile is selected, load pay.js and ask isReadyToPay, so PLACE ORDER goes straight to
+  // loadPaymentData and Google opens its sheet inside the click (a popup opened late is what Chrome can turn into a new tab or block). If anything
+  // here fails, the click path does the same steps itself (today's behaviour). No payload, proxy or Auto Pay code involved.
+  const gpPreRef = useRef<{ env: string; client: GpClient } | null>(null);
+  const gpRunRef = useRef(0);
+  useEffect(() => {
+    if (paymentMethod !== "googlepay" || !checkoutConfig || gpPreRef.current) return;
+    let live = true;
+    const cfg = checkoutConfig.googlePay as Record<string, unknown> | undefined;
+    const env = (cfg?.environment as string) || "TEST";
+    void (async () => {
+      try {
+        await loadScript("https://pay.google.com/gp/p/js/pay.js", "gpay-sdk");
+        if (!(await gpApiReady())) return;
+        const client = new window.google!.payments!.api!.PaymentsClient({ environment: env });
+        const ready = await Promise.race([
+          client.isReadyToPay({ apiVersion: 2, apiVersionMinor: 0, allowedPaymentMethods: [{ type: "CARD", parameters: {
+            allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+            allowedCardNetworks: (cfg?.allowedCardNetworks as string[]) || ["AMEX", "DISCOVER", "MASTERCARD", "VISA"],
+            billingAddressRequired: true,
+            billingAddressParameters: { format: "FULL", phoneNumberRequired: true },
+          } }] }),
+          new Promise<{ result: boolean }>((resolve) => setTimeout(() => resolve({ result: false }), 6000)),
+        ]);
+        if (live && ready.result) gpPreRef.current = { env, client };
+      } catch { /* the click path loads everything itself */ }
+    })();
+    return () => { live = false; };
+  }, [paymentMethod, checkoutConfig]);
+  // GPAY-CLICK-1011: "Back to payment options" while Google Pay is processing. Bumping the run counter means a sheet that is finished after
+  // this tap charges nothing; the customer is returned to the method list with everything unticked as they left it.
+  const cancelGooglePay = () => {
+    gpRunRef.current += 1;
+    setSubmitting(false);
+    setErrorMsg(null);
+    try { document.querySelector('[data-testid="method-picker"]')?.scrollIntoView({ behavior: "smooth", block: "start" }); } catch { /* ignore */ }
+  };
   // GPAY-AUTOPAY-1008: Fraud & QA enrollment gates (blocklist, VEL1 24 h, <=1 failed attempt 24 h, 1 name per phone 30 d; A4 behind a
   // DB flag) + our site kill switch, through the boolean-only RPC gpay_autopay_check (it never says which gate failed). Fail closed.
   const gpayAutoPayCheck = useCallback(async (args: { phone: string; email: string; first?: string; last?: string; country?: string; stage: "offer" | "submit" }): Promise<{ ok: boolean; site: string }> => {
@@ -1409,6 +1453,7 @@ const Checkout = () => {
   const handleGooglePay = async () => {
     gpRecurringRef.current = false; // GPAY-AUTOPAY-1008
     const gpWantAutoPay = autoPay && autoPayTerms && googlePayRecurringOk;
+    const gpRun = ++gpRunRef.current; // GPAY-CLICK-1011
     try {
       await loadScript("https://pay.google.com/gp/p/js/pay.js", "gpay-sdk");
     } catch {
@@ -1416,7 +1461,7 @@ const Checkout = () => {
       return;
     }
 
-    if (!window.google?.payments?.api?.PaymentsClient) {
+    if (!(await gpApiReady())) { // GPAY-CLICK-1011: waits for a pay.js that is still loading
       setErrorMsg("Google Pay is not available");
       return;
     }
@@ -1429,7 +1474,8 @@ const Checkout = () => {
     const paymentGateway = (gpayConfig?.paymentGateway || "cybersource") as string;
     const allowedNetworks = (gpayConfig?.allowedCardNetworks as string[]) || ["AMEX", "DISCOVER", "MASTERCARD", "VISA"];
 
-    const client = new window.google.payments.api.PaymentsClient({ environment: gpayEnv });
+    const gpPre = gpPreRef.current && gpPreRef.current.env === gpayEnv ? gpPreRef.current : null; // GPAY-CLICK-1011: client + isReadyToPay already done on tile select
+    const client: GpClient = gpPre ? gpPre.client : new window.google!.payments!.api!.PaymentsClient({ environment: gpayEnv });
     const baseCardMethod = {
       type: "CARD",
       parameters: {
@@ -1440,22 +1486,26 @@ const Checkout = () => {
       },
     };
 
-    const ready = await client.isReadyToPay({ apiVersion: 2, apiVersionMinor: 0, allowedPaymentMethods: [baseCardMethod] });
+    const ready = gpPre ? { result: true } : await client.isReadyToPay({ apiVersion: 2, apiVersionMinor: 0, allowedPaymentMethods: [baseCardMethod] }); // GPAY-CLICK-1011
     if (!ready.result) { setErrorMsg("Google Pay is not available on this device"); return; }
 
-    const paymentData = await client.loadPaymentData({
-      apiVersion: 2,
-      apiVersionMinor: 0,
-      allowedPaymentMethods: [{
-        ...baseCardMethod,
-        tokenizationSpecification: {
-          type: "PAYMENT_GATEWAY",
-          parameters: { gateway: paymentGateway, gatewayMerchantId },
-        },
-      }],
-      transactionInfo: { totalPriceStatus: "FINAL", totalPrice: String(total), currencyCode: (gpayConfig?.currencyCode as string) || "USD", countryCode: (gpayConfig?.countryCode as string) || "US" },
-      merchantInfo: { merchantId, merchantName },
-    });
+    let paymentData: Record<string, unknown>; // GPAY-CLICK-1011: a sheet finished after "Back to payment options" is dropped (no charge, no error)
+    try {
+      paymentData = await client.loadPaymentData({
+        apiVersion: 2,
+        apiVersionMinor: 0,
+        allowedPaymentMethods: [{
+          ...baseCardMethod,
+          tokenizationSpecification: {
+            type: "PAYMENT_GATEWAY",
+            parameters: { gateway: paymentGateway, gatewayMerchantId },
+          },
+        }],
+        transactionInfo: { totalPriceStatus: "FINAL", totalPrice: String(total), currencyCode: (gpayConfig?.currencyCode as string) || "USD", countryCode: (gpayConfig?.countryCode as string) || "US" },
+        merchantInfo: { merchantId, merchantName },
+      });
+    } catch (e) { if (gpRun !== gpRunRef.current) return; throw e; }
+    if (gpRun !== gpRunRef.current) return;
 
     const pmd = paymentData.paymentMethodData as Record<string, any>;
     const tokenizationData = pmd?.tokenizationData as Record<string, unknown> | undefined;
@@ -2507,6 +2557,12 @@ const Checkout = () => {
               <p data-testid="autopay-place-hint" role="status" aria-live="polite" className="text-sm font-semibold text-center" style={{ color: brandColor }}>
                 {apCopy.placeHint}
               </p>
+            )}
+
+            {submitting && paymentMethod === "googlepay" && ( // GPAY-CLICK-1011
+              <button type="button" data-testid="gpay-cancel" onClick={cancelGooglePay} className="block mx-auto text-sm underline text-muted-foreground">
+                {lang === "es" ? "Volver a las opciones de pago" : "Back to payment options"}
+              </button>
             )}
 
             <p className="text-center text-xs text-muted-foreground">

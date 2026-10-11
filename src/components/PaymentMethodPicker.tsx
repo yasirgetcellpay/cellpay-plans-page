@@ -25,7 +25,7 @@ export function PaymentMethodPicker({ methods, selected, onSelect, brandColor, l
   return (
     <div className="bg-card rounded-xl border border-border p-5" role="group" aria-label={es ? "Elija cómo pagar" : "Choose how to pay"} data-testid="method-picker">
       <h2 className="font-bold text-foreground mb-3 text-sm">{es ? "Elija cómo pagar" : "Choose how to pay"}</h2>
-      <button type="button" data-testid="method-primary" data-method={primary.key} onClick={() => onSelect(primary.key)} aria-pressed={selected === primary.key}
+      <button type="button" data-testid="method-primary" data-method={primary.key} onClick={() => onSelect(primary.key)} onPointerDown={(e) => { if (e.pointerType === "mouse" && e.button === 0 && selected !== primary.key) onSelect(primary.key); }} aria-pressed={selected === primary.key}
         className={cls(primary.key, "w-full min-h-[60px] px-3 gap-3 text-sm flex-row")} style={on(primary.key)}>
         {selected === primary.key && <CheckCircle2 className="absolute top-1.5 right-1.5 h-3.5 w-3.5" style={{ color: brandColor }} aria-hidden="true" />}
         <span className="h-7 flex items-center justify-center"><primary.Brand className="h-6 w-auto max-w-[72px] object-contain" /></span>
@@ -38,7 +38,7 @@ export function PaymentMethodPicker({ methods, selected, onSelect, brandColor, l
           </div>
           <div className="grid grid-cols-3 gap-2">
             {rest.map((m) => (
-              <button key={m.key} type="button" data-testid={`method-chip-${m.key}`} data-method={m.key} onClick={() => onSelect(m.key)} aria-pressed={selected === m.key}
+              <button key={m.key} type="button" data-testid={`method-chip-${m.key}`} data-method={m.key} onClick={() => onSelect(m.key)} onPointerDown={(e) => { if (e.pointerType === "mouse" && e.button === 0 && selected !== m.key) onSelect(m.key); }} aria-pressed={selected === m.key}
                 className={cls(m.key, "min-h-[56px] py-2 px-1 text-xs flex-col gap-1")} style={on(m.key)}>
                 {selected === m.key && <CheckCircle2 className="absolute top-1 right-1 h-3.5 w-3.5" style={{ color: brandColor }} aria-hidden="true" />}
                 <span className="h-5 w-full flex items-center justify-center"><m.Brand className="h-5 w-auto max-w-[64px] object-contain" /></span>
