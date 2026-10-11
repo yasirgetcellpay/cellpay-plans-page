@@ -10,7 +10,7 @@ import { refundFaq, searchFaqs } from "./carrierHero";
 export type HtpLang = "en" | "es";
 export type HtpFaq = { q: string; a: string };
 export type HtpPage = {
-  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid"; // AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid
+  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid" | "lyca-mobile"; // AEO-06-LYCA-1011: + Lyca Mobile; AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid
   lang: HtpLang;
   path: string; // www path of this page
   enPath: string;
@@ -59,6 +59,7 @@ const en = (o: {
   key: HtpPage["key"]; name: string; slug: string; checkout: string; title: string; description: string; h1: string;
   step3: string; faq2?: HtpFaq; autoPayA: string; autoPayBody: string; related: Array<[string, string]>; an: string;
   updatedIso?: string; updatedText?: string; // AEO-03-04-1008: faq2 optional (SPEC-03/04 have 7 FAQs); per-page last-updated
+  moreFaqs?: HtpFaq[]; // AEO-06-LYCA-1011: extra FAQs after the standard ones (before any refund FAQ)
 }): HtpPage => ({
   key: o.key, lang: "en", path: `/how-to-pay/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
@@ -94,6 +95,7 @@ const en = (o: {
     { q: `Can I set up automatic ${o.name} payments?`, a: o.autoPayA },
     { q: `What do I need to pay my ${o.name} bill?`, a: `Only the 10-digit ${o.name} phone number, the amount or plan you want, and a payment method. You don't need a carrier login, a CellPay account or the account holder's password.` },
     ...sfRest(o.slug, "en"), // TOP4-T4-1009
+    ...(o.moreFaqs ?? []), // AEO-06-LYCA-1011
     ...[refundFaq(o.slug, "en")].filter((f): f is HtpFaq => !!f), // TOP4-T2A-1009
   ],
   disclaimer: `CellPay is an independent payment service and is not affiliated with ${o.name}.`,
@@ -108,6 +110,7 @@ const es = (o: {
   step3: string; faq2?: HtpFaq; autoPayA: string; autoPayBody: string; related: Array<[string, string]>;
   updatedIso?: string; updatedText?: string;
   introLead?: string; // TOP4-T4-1009: optional first clause of the intro
+  moreFaqs?: HtpFaq[]; // AEO-06-LYCA-1011
 }): HtpPage => ({
   key: o.key, lang: "es", path: `/es/como-pagar/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
@@ -143,6 +146,7 @@ const es = (o: {
     { q: `¿Puedo programar pagos automáticos de ${o.name}?`, a: o.autoPayA },
     { q: `¿Qué necesito para pagar mi factura de ${o.name}?`, a: `Solo el número de teléfono de ${o.name} de 10 dígitos, el monto o el plan que desea y un método de pago. No necesita una cuenta del operador, una cuenta de CellPay ni la contraseña del titular de la cuenta.` },
     ...sfRest(o.slug, "es"), // TOP4-T4-1009
+    ...(o.moreFaqs ?? []), // AEO-06-LYCA-1011
     ...[refundFaq(o.slug, "es")].filter((f): f is HtpFaq => !!f), // TOP4-T2A-1009
   ],
   disclaimer: `CellPay es un servicio de pago independiente y no está afiliado a ${o.name}.`,
@@ -267,6 +271,38 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     related: [["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/como-pagar/simple-mobile", "Cómo pagar Simple Mobile"], ["/es/verizon", "Recarga Verizon Prepago"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
     updatedIso: "2026-10-09", updatedText: "Última actualización: 9 de octubre de 2026",
   }),
+  // AEO-06-LYCA-1011: Lyca Mobile pay-bill pages (SPEC-06 + overrides). "Pay now" goes to /lyca.html (ES: /es/lyca.html). Built like the Verizon pair.
+  en({
+    key: "lyca-mobile", name: "Lyca Mobile", slug: "lyca", checkout: "/lyca.html", an: "a",
+    title: "How to Pay Your Lyca Mobile Bill or Recharge Online (USA) | CellPay",
+    description: `Lyca Mobile pay bill online, no login: enter the number, pick an amount, pay by ${payWith("en", "card")}.`,
+    h1: "How to Pay Your Lyca Mobile Bill or Recharge Online (USA)",
+    step3: "Choose a plan from the list or enter a custom amount.",
+    autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
+    autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
+    moreFaqs: [
+      { q: "What if I don't know how much I owe?", a: "CellPay doesn't show your Lyca Mobile balance. Check the amount due in your Lyca Mobile app, account or text messages, then choose that plan or amount here. The total with the service fee is shown before you pay." },
+      { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." },
+    ],
+    related: [["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/guest-lyca.html", "Pay Lyca Mobile as a guest"], ["/lyca.html", "Lyca Mobile recharge"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
+    updatedIso: "2026-10-11", updatedText: "Last updated: October 11, 2026",
+  }),
+  es({
+    key: "lyca-mobile", name: "Lyca Mobile", slug: "lyca", checkout: "/es/lyca.html",
+    title: "Cómo Pagar su Factura de Lyca Mobile o Recargar en Línea | CellPay",
+    description: "Pagar factura de Lyca Mobile en línea sin iniciar sesión: ingrese el número, elija el monto y pague con tarjeta, Apple Pay, Google Pay y más.",
+    h1: "Cómo pagar su factura de Lyca Mobile o recargar en línea",
+    introLead: "Para pagar su factura o recargar su línea de Lyca Mobile en línea sin iniciar sesión",
+    step3: "Elija un plan de la lista o ingrese un monto personalizado.",
+    autoPayA: "S\u00ed. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca est\u00e1 marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
+    autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca est\u00e1 marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
+    moreFaqs: [
+      { q: "¿Qué hago si no sé cuánto debo?", a: "CellPay no muestra el saldo de Lyca Mobile. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de Lyca Mobile, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar." },
+      { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." },
+    ],
+    related: [["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/simple-mobile", "Cómo pagar Simple Mobile"], ["/guest-lyca.html", "Pagar Lyca Mobile como invitado"], ["/es/lyca.html", "Recarga Lyca Mobile"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
+    updatedIso: "2026-10-11", updatedText: "Última actualización: 11 de octubre de 2026",
+  }),
 ];
 
 export const howToPayByPath = (pathname: string): HtpPage | undefined => {
@@ -315,6 +351,10 @@ const PLAN_NAMES: Record<HtpPage["key"], Record<HtpLang, string[]>> = {
   "t-mobile-prepaid": {
     en: ["T-Mobile Prepaid refill: choose one of the fixed amounts shown on the CellPay page, or a custom amount where offered"],
     es: ["Recarga T-Mobile Prepaid: elija uno de los montos fijos que aparecen en la página de CellPay, o un monto personalizado cuando esté disponible"],
+  },
+  "lyca-mobile": { // AEO-06-LYCA-1011 (no plan names or prices: the live list loads from the CellPay catalog)
+    en: ["Lyca Mobile refill: choose one of the fixed amounts shown on the CellPay page, or a custom amount where offered"],
+    es: ["Recarga Lyca Mobile: elija uno de los montos fijos que aparecen en la página de CellPay, o un monto personalizado cuando esté disponible"],
   },
   "verizon-prepaid": {
     en: ["Verizon Prepaid refill: choose one of the fixed amounts shown on the CellPay page, or a custom amount where offered"],
