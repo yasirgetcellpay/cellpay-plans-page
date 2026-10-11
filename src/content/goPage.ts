@@ -4,6 +4,7 @@
 // Relative imports only (vite.config.ts loads this file).
 import { payWith, CARD_BRANDS } from "./paymentMethods";
 import { top4Name, refundFaq } from "./carrierHero";
+import { isBillSlug, billFaqs } from "./billWording"; // MONTHLY-BILL-COPY-1011
 
 export type GoPageLang = "en" | "es";
 
@@ -101,6 +102,7 @@ export const goFaqsEs = (c: string) => [
 /** FAQ list exactly as the lander shows it (4 carriers also get the refund question). */
 export const goFaqList = (slug: string, lang: GoPageLang, fallbackName = ""): Array<{ q: string; a: string }> => {
   const c = GO_AD_NAMES[slug] ?? fallbackName;
+  if (isBillSlug(slug)) return billFaqs(lang, c); // MONTHLY-BILL-COPY-1011: Metro / Boost / Cricket plain bill Q&A
   const r = refundFaq(slug, lang);
   return [...(lang === "es" ? goFaqsEs(c) : goFaqsEn(c)), ...(r ? [r] : [])];
 };

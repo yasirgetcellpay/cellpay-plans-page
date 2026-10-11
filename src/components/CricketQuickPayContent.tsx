@@ -21,34 +21,34 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
       icon: Phone,
       title: "Step 1 — Enter Your Cricket Phone Number",
       body:
-        "Type the 10-digit Cricket Wireless number you want to refill. No login needed, and no Cricket account password — CellPay is a Cricket quick pay shortcut that works for any active Cricket prepaid line.",
+        "Type the 10-digit Cricket Wireless number you want to pay. No login needed, and no Cricket account password — CellPay is a Cricket quick pay shortcut that works for any active Cricket prepaid line.",
     },
     {
       icon: DollarSign,
-      title: "Step 2 — Choose Your Refill Amount or Plan",
+      title: "Step 2 — Choose Your Amount or Plan",
       body:
-        "Pick from Cricket's standard monthly plans ($30, $40, $55, $60) or enter a custom top-up amount between $5 and $250. Plans renew your service for 30 days; top-ups add airtime to your existing balance.",
+        "Pick from Cricket's standard monthly plans ($30, $40, $55, $60) or enter a custom amount between $5 and $250. Monthly plans renew your service for 30 days; pay-as-you-go payments add to your existing balance. It is the same payment either way.",
     },
     {
       icon: CreditCard,
       title: "Step 3 — Pay Securely With Any Card or Wallet",
       body:
-        "Check out with " + payWith("en", "card") + ". Every Cricket quick pay transaction is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
+        "Check out with " + payWith("en", "card") + ". Every Cricket quick pay transaction is encrypted in transit (TLS). Optional: Auto Pay so you never miss a payment. You can turn it on at checkout — it is never pre-checked.",
     },
   ];
 
   const faqs = [
     {
       q: "What is Cricket Quick Pay?",
-      a: "Cricket Quick Pay lets you pay your Cricket Wireless bill online without signing into your Cricket account. On CellPay, just enter your phone number, pick an amount, and pay — your refill is sent to your line.",
+      a: "Cricket Quick Pay lets you pay your Cricket Wireless bill online without signing into your Cricket account. On CellPay, just enter your phone number, pick an amount, and pay — your payment is applied to your account and plan.",
     },
     {
       q: "How do I pay my Cricket bill online without logging in?",
-      a: "Use this Cricket Wireless quick pay page. Type the Cricket phone number you want to refill, choose a $30, $40, $55, or $60 plan (or a custom top-up amount), and complete payment with " + payWith("en") + ". No Cricket username or password needed.",
+      a: "Use this Cricket Wireless quick pay page. Type the Cricket phone number you want to pay, choose a $30, $40, $55, or $60 plan (or a custom amount), and complete payment with " + payWith("en") + ". No Cricket username or password needed.",
     },
     {
-      q: "How long does a Cricket quick pay refill take?",
-      a: "It can take up to 30 min for a refill to reflect on your account. Cricket usually sends an SMS confirmation to the refilled phone number once your new plan is active.",
+      q: "How long does a Cricket quick pay payment take to show?",
+      a: "It can take up to 30 min to show on your account. Cricket usually sends an SMS confirmation to the phone number once your payment is applied.",
     },
     {
       q: "What payment methods can I use for Cricket Wireless?",
@@ -56,11 +56,11 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
     },
     {
       q: "Can I pay someone else's Cricket bill?",
-      a: "Yes. You don't need to own the Cricket line to use Cricket Quick Pay on CellPay. Just enter the recipient's 10-digit Cricket phone number and the refill will apply to their account.",
+      a: "Yes. You don't need to own the Cricket line to use Cricket Quick Pay on CellPay. Just enter the recipient's 10-digit Cricket phone number and the payment will apply to their account.",
     },
     {
       q: "What Cricket Wireless plans can I pay for here?",
-      a: "All current Cricket prepaid plans, including the $30 Unlimited Talk & Text + 5GB, $40 Unlimited 10GB, $55 Unlimited Smartphone, and $60 Unlimited + 15GB hotspot plan. You can also add airtime in any custom amount from $5 to $250.",
+      a: "All current Cricket prepaid plans, including the $30 Unlimited Talk & Text + 5GB, $40 Unlimited 10GB, $55 Unlimited Smartphone, and $60 Unlimited + 15GB hotspot plan. You can also pay a custom amount from $5 to $250.",
     },
     {
       q: "Is there a fee to use Cricket Quick Pay on CellPay?",
@@ -68,7 +68,7 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
     },
     {
       q: "Will Cricket Quick Pay restore my service if it's suspended?",
-      a: "Yes. Paying your Cricket bill through CellPay reactivates your line as soon as Cricket processes the refill. It can take up to 30 min for a refill to reflect on your account.",
+      a: "Yes. Paying your Cricket bill through CellPay reactivates your line as soon as Cricket processes the payment. It can take up to 30 min to show on your account.",
     },
   ];
 
@@ -79,14 +79,15 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
       {/* Intro paragraph — keyword-anchored, single H2 about Cricket Quick Pay */}
       <section className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-2">
         <h2 className="text-2xl font-extrabold text-foreground mb-3 text-left">
-          Cricket Quick Pay — Refill Your Cricket Wireless Bill Online
+          Cricket Quick Pay — Pay Your Cricket Wireless Bill Online
         </h2>
         <p className="text-sm sm:text-base text-foreground leading-relaxed">
-          CellPay's Cricket Quick Pay lets you refill any Cricket Wireless prepaid
-          line online — no Cricket login, no app download, no waiting
+          CellPay's Cricket Quick Pay lets you pay your Cricket Wireless bill
+          online — no Cricket login, no app download, no waiting
           in line at a store. Just enter the Cricket phone number, choose a plan
-          or custom top-up amount, and pay with the card or wallet you already use.
-          It can take up to 30 min for a refill to reflect on your account.
+          or custom amount, and pay with the card or wallet you already use.
+          Monthly plan or pay-as-you-go, it is the same payment, applied to your account and plan.
+          It can take up to 30 min to show on your account.
         </p>
       </section>
 

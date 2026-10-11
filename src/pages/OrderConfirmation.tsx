@@ -6,6 +6,7 @@ import { PaymentBar } from "@/components/PaymentBar";
 import { LegalBar } from "@/components/LegalBar";
 import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 import { useLang, t, langPath } from "@/lib/i18n";
+import { billTr } from "@/lib/billTr"; // MONTHLY-BILL-COPY-1011
 import { applySeoHead } from "@/lib/seo";
 import { PayAgainCard } from "@/components/PayAgainCard";
 import { ReminderOptIn } from "@/components/ReminderOptIn";
@@ -222,6 +223,7 @@ const OrderConfirmation = () => {
 
   const home = langPath("/", lang);
   const displayCarrier = transaction?.carrier?.name || carrierName || (lang === "es" ? "Recarga" : "Recharge");
+  const trb = billTr(lang, transaction?.carrier?.slug, transaction?.carrier?.name || carrierName); // MONTHLY-BILL-COPY-1011: Metro / Boost / Cricket receipt wording
   const displayEmail = transaction?.user?.email || "";
 
   return (
@@ -246,7 +248,7 @@ const OrderConfirmation = () => {
               <a href="/contact-us" className="underline font-semibold">{tr.contactUs.toLowerCase()}.</a>
             </p>
             <p className="text-xs mt-2 opacity-80">
-              {tr.postedNote}
+              {trb.postedNote}
             </p>
           </div>
         </div>
@@ -279,7 +281,7 @@ const OrderConfirmation = () => {
               <div className="divide-y divide-border">
                 <Row label={tr.orderId} value={<span style={{ color: brandColor }} className="font-bold">{String(transaction.id || transaction.hashid || "—")}</span>} />
                 {transaction.pin && (
-                  <Row label={tr.pinLabel} value={<span className="font-mono font-bold text-foreground">{transaction.pin}</span>} />
+                  <Row label={trb.pinLabel} value={<span className="font-mono font-bold text-foreground">{transaction.pin}</span>} />
                 )}
                 <Row label={tr.productName} value={<span style={{ color: brandColor }} className="font-semibold">{displayCarrier}</span>} />
                 <Row label={tr.phoneNumber} value={<span style={{ color: brandColor }}>{formatPhone(transaction.phone_number)}</span>} />
