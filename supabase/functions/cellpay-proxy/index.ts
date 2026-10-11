@@ -1917,6 +1917,37 @@ async function paypalAction(
   return reply(wrapped);
 }
 
+// [CARRIER-CHECK-LOG-1011] Fire-and-forget log of carriers/verify-phone/<slug> and carriers/validate/<slug> results. Never awaited by the reply path, never throws, 1.5 s cap, stores only carrier, kind, http status, CellPay message, last 4 of the phone and host.
+function logCarrierCheck(endpoint: unknown, status: number, wrapped: Record<string, unknown>, payload: unknown, callerHost: unknown): void {
+  try {
+    const m = /^carriers\/(verify-phone|validate)\/([a-z0-9-]{1,40})$/.exec(String(endpoint ?? ""));
+    if (!m) return;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceKey) return;
+    const outer = (wrapped ?? {}) as Record<string, unknown>;
+    const inner = ((outer.data ?? {}) as Record<string, unknown>);
+    const inner2 = ((inner.data ?? {}) as Record<string, unknown>);
+    const ok = outer.success !== false && inner.success !== false && inner2.status !== false && inner2.Result !== "Error";
+    const msg = String(inner2.Message ?? inner2.msg ?? inner.error ?? outer.error ?? "").slice(0, 120);
+    const phoneRaw = String(((payload ?? {}) as Record<string, unknown>).phone_number ?? "").replace(/\D/g, "");
+    const write = fetch(`${supabaseUrl}/rest/v1/carrier_check_log`, {
+      method: "POST",
+      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json", prefer: "return=minimal" },
+      body: JSON.stringify({
+        carrier_slug: m[2], kind: m[1] === "validate" ? "validate" : "verify", http_status: status, ok, message: msg,
+        phone_last4: phoneRaw.length >= 4 ? phoneRaw.slice(-4) : null, host: typeof callerHost === "string" ? callerHost.slice(0, 80) : null,
+      }),
+      signal: AbortSignal.timeout(1500),
+    }).then(() => {}).catch(() => {});
+    // deno-lint-ignore no-explicit-any
+    const runtime = (globalThis as any).EdgeRuntime;
+    if (runtime && typeof runtime.waitUntil === "function") runtime.waitUntil(write);
+  } catch {
+    // never let logging affect the reply
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -2196,6 +2227,7 @@ serve(async (req) => {
       ? { success: true, data }
       : { success: false, error: (data as Record<string, unknown>)?.message || (data as Record<string, unknown>)?.error || "Request failed", data };
 
+    logCarrierCheck(endpoint, response.status, wrapped, payload, callerHost); // [CARRIER-CHECK-LOG-1011] not awaited
     // [refill-cooldown Fix F] Start the 10-min cooldown ONLY on CellPay's refill-error result. Fail-open (1 s), response unchanged.
     if (shouldLogTransaction && refillKey && isRefillErrorResult(wrapped)) {
       try { await refillCooldownRpc("refill_cooldown_mark", refillKey); } catch { /* refill cooldown fails open */ }
