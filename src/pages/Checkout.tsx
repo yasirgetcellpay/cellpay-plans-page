@@ -3,7 +3,7 @@ import { Footer } from "@/components/Footer";
 import { LegalBar } from "@/components/LegalBar";
 import { PaymentBar } from "@/components/PaymentBar";
 import { AccountDropdown } from "@/components/AccountDropdown";
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react"; // CARRIER-ASSIST-1011
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
 import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass } from "@/lib/declineRecovery";
@@ -144,6 +144,13 @@ const loadScript = (src: string, id: string): Promise<void> =>
     document.head.appendChild(s);
   });
 
+// CARRIER-ASSIST-1011: carrier hint + "Not sure of your carrier?" help. Lazy and loaded only when the browser is idle, so it never
+// touches the checkout bundle, first paint or the Pay path. Fail-open: if the chunk never loads, nothing renders.
+const CarrierAssist = lazy(() => new Promise<{ default: React.ComponentType<import("@/components/CarrierAssist").CarrierAssistProps> }>((resolve) => {
+  const go = () => { void import("@/components/CarrierAssist").then(resolve).catch(() => resolve({ default: () => null })); };
+  if (typeof window !== "undefined" && "requestIdleCallback" in window) (window as unknown as { requestIdleCallback: (cb: () => void, o?: { timeout: number }) => void }).requestIdleCallback(go, { timeout: 2500 });
+  else setTimeout(go, 1500);
+}));
 // CV-1b: write pending to sessionStorage AND a SameSite=Lax Secure cookie so Apple Pay / Cash App / redirect returns still match.
 const setPurchasePending = (hid: string) => {
   if (!hid) return;
@@ -2021,6 +2028,11 @@ const Checkout = () => {
             </div>
           </div>
 
+          {/* CARRIER-ASSIST-1011 */}
+          <Suspense fallback={null}>
+            <CarrierAssist lang={lang === "es" ? "es" : "en"} phone={String(state.phone || "")} carrierSlug={state.carrierSlug} brandColor={brandColor} onUse={(slug) => navigate(carrierPageTarget(lang, slug, state.phone, state.amount, location.search, location.hash))} />
+          </Suspense>
+
           {/* Checkout trust badges — feedback Page 5–6 #2 */}
           <div className="bg-card rounded-xl border border-border px-4 py-3">
             <div className="flex items-center justify-around gap-2 text-[11px] font-semibold text-muted-foreground">
@@ -2701,6 +2713,7 @@ const Checkout = () => {
               <div className="space-y-2">
                 <button type="button" data-testid="refund-try-again" onClick={() => toCarrier(state.phone)} className={btn + " text-primary-foreground"} style={{ backgroundColor: brandColor }}>{es ? "Intentar de nuevo" : "Try again"}</button>
                 <button type="button" data-testid="refund-change-number" onClick={() => toCarrier("")} className={btn + " border-2 border-border text-foreground bg-background"}>{es ? "Cambiar número" : "Change number"}</button>
+                <button type="button" data-testid="refund-carrier-help" onClick={() => { close(); window.setTimeout(() => window.dispatchEvent(new CustomEvent("cp-carrier-help")), 50); }} className="w-full text-sm underline text-muted-foreground pt-1">{es ? "¿No está seguro de su compañía?" : "Not sure of your carrier?"}</button>
                 <button type="button" data-testid="refund-help" onClick={openHelp} className="w-full text-sm underline text-muted-foreground pt-1">{es ? "Ayuda" : "Help"}</button>
               </div>
             </div>
