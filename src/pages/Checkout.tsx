@@ -413,6 +413,46 @@ const Checkout = () => {
 
   // Checkout config from API (typed)
   const [checkoutConfig, setCheckoutConfig] = useState<Record<string, unknown> | null>(null);
+  // ANDROID-GPAY-DEFAULT-1011 (Android only): start on Google Pay when this device reports it can pay (isReadyToPay) and the customer has not picked
+  // a method, nothing was saved for this order, and no card details are typed. Runs once, after load + idle, so it adds nothing to first paint.
+  // Same pattern as the iPhone Apple Pay default: never overrides a tap or the saved method; no answer / not ready / error = stays on card.
+  // Card stays one tap away; Auto Pay stays visible and unchecked (nothing is ever ticked for the customer). Desktop and iPhone are untouched.
+  const gpayDefaultedRef = useRef(false);
+  const cardTypedRef = useRef(false);
+  useEffect(() => { cardTypedRef.current = !!(cardNumber || cardExpiry || cardCvv || cardZip); }, [cardNumber, cardExpiry, cardCvv, cardZip]);
+  useEffect(() => {
+    if (gpayDefaultedRef.current || !state || !checkoutConfig || savedMethodSeenRef.current === undefined) return;
+    gpayDefaultedRef.current = true;
+    try {
+      if (!/Android/.test(navigator.userAgent) || savedMethodSeenRef.current || methodTappedRef.current) return;
+      const cfg = checkoutConfig.googlePay as Record<string, unknown> | undefined;
+      const run = async () => {
+        try {
+          if (methodTappedRef.current || cardTypedRef.current) return;
+          await loadScript("https://pay.google.com/gp/p/js/pay.js", "gpay-sdk");
+          const api = window.google?.payments?.api;
+          if (!api?.PaymentsClient) return;
+          const client = new api.PaymentsClient({ environment: (cfg?.environment as string) || "TEST" });
+          const ready = await Promise.race([
+            client.isReadyToPay({ apiVersion: 2, apiVersionMinor: 0, allowedPaymentMethods: [{ type: "CARD", parameters: {
+              allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+              allowedCardNetworks: (cfg?.allowedCardNetworks as string[]) || ["AMEX", "DISCOVER", "MASTERCARD", "VISA"],
+              billingAddressRequired: true,
+              billingAddressParameters: { format: "FULL", phoneNumberRequired: true },
+            } }] }),
+            new Promise<{ result: boolean }>((resolve) => setTimeout(() => resolve({ result: false }), 6000)),
+          ]);
+          if (!ready.result || methodTappedRef.current || cardTypedRef.current) return;
+          setPaymentMethod((cur) => (cur === "card" ? "googlepay" : cur));
+        } catch { /* stay on card */ }
+      };
+      const go = () => {
+        const idle = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void }).requestIdleCallback;
+        if (idle) idle(() => void run(), { timeout: 2500 }); else setTimeout(() => void run(), 1500);
+      };
+      if (document.readyState === "complete") go(); else window.addEventListener("load", go, { once: true });
+    } catch { /* keep card */ }
+  }, [state, checkoutConfig]);
   // GPAY-AUTOPAY-1008: Fraud & QA enrollment gates (blocklist, VEL1 24 h, <=1 failed attempt 24 h, 1 name per phone 30 d; A4 behind a
   // DB flag) + our site kill switch, through the boolean-only RPC gpay_autopay_check (it never says which gate failed). Fail closed.
   const gpayAutoPayCheck = useCallback(async (args: { phone: string; email: string; first?: string; last?: string; country?: string; stage: "offer" | "submit" }): Promise<{ ok: boolean; site: string }> => {
