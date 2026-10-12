@@ -501,6 +501,16 @@ const Checkout = () => {
   const gpayDefaultedRef = useRef(false);
   const cardTypedRef = useRef(false);
   useEffect(() => { cardTypedRef.current = !!(cardNumber || cardExpiry || cardCvv || cardZip); }, [cardNumber, cardExpiry, cardCvv, cardZip]);
+  // ANDROID-AUTOPAY-1012: also never switch away from card once Auto Pay or its terms are ticked, the receipt's Auto Pay highlight is active,
+  // or the customer has focused any checkout field (switching cleared their Auto Pay ticks silently).
+  const apGuardRef = useRef({ ap: false, hl: false, focused: false });
+  useEffect(() => { apGuardRef.current.ap = autoPay || autoPayTerms; }, [autoPay, autoPayTerms]);
+  useEffect(() => {
+    const onFocus = (e: FocusEvent) => { const t = e.target as HTMLElement | null; if (t && /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName)) apGuardRef.current.focused = true; };
+    document.addEventListener("focusin", onFocus);
+    return () => document.removeEventListener("focusin", onFocus);
+  }, []);
+  const apGuardBlocks = () => apGuardRef.current.ap || apGuardRef.current.hl || apGuardRef.current.focused;
   useEffect(() => {
     if (gpayDefaultedRef.current || !state || !checkoutConfig || savedMethodSeenRef.current === undefined) return;
     gpayDefaultedRef.current = true;
@@ -509,7 +519,7 @@ const Checkout = () => {
       const cfg = checkoutConfig.googlePay as Record<string, unknown> | undefined;
       const run = async () => {
         try {
-          if (methodTappedRef.current || cardTypedRef.current) return;
+          if (methodTappedRef.current || cardTypedRef.current || apGuardBlocks()) return;
           await loadScript("https://pay.google.com/gp/p/js/pay.js", "gpay-sdk");
           const api = window.google?.payments?.api;
           if (!api?.PaymentsClient) return;
@@ -523,7 +533,7 @@ const Checkout = () => {
             } }] }),
             new Promise<{ result: boolean }>((resolve) => setTimeout(() => resolve({ result: false }), 6000)),
           ]);
-          if (!ready.result || methodTappedRef.current || cardTypedRef.current) return;
+          if (!ready.result || methodTappedRef.current || cardTypedRef.current || apGuardBlocks()) return;
           setPaymentMethod((cur) => (cur === "card" ? "googlepay" : cur));
         } catch { /* stay on card */ }
       };
@@ -1187,6 +1197,7 @@ const Checkout = () => {
     if (!state) return;
     let want = false;
     try { want = sessionStorage.getItem("cp_ap_highlight_v1") === "1"; if (want) sessionStorage.removeItem("cp_ap_highlight_v1"); } catch { /* ignore */ }
+    if (want) apGuardRef.current.hl = true; // ANDROID-AUTOPAY-1012
     if (!want || paymentMethod !== "card") return;
     const t = setTimeout(() => {
       const el = document.querySelector<HTMLElement>('[data-testid="autopay-offer"]');
