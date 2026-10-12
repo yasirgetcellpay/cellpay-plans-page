@@ -2261,6 +2261,10 @@ export type Database = {
           value: number
         }[]
       }
+      purchase_fallback_csv_token_ok: {
+        Args: { _token: string }
+        Returns: boolean
+      }
       purchase_fallback_sweep: { Args: never; Returns: undefined }
       purchase_tag_cliff_sweep: { Args: never; Returns: number }
       record_presence: {
