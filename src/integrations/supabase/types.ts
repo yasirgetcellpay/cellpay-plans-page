@@ -683,6 +683,30 @@ export type Database = {
         }
         Relationships: []
       }
+      fraud_link_queue: {
+        Row: {
+          block_id: string
+          done_at: string | null
+          enqueued_at: string
+          err: string | null
+          linked: number | null
+        }
+        Insert: {
+          block_id: string
+          done_at?: string | null
+          enqueued_at?: string
+          err?: string | null
+          linked?: number | null
+        }
+        Update: {
+          block_id?: string
+          done_at?: string | null
+          enqueued_at?: string
+          err?: string | null
+          linked?: number | null
+        }
+        Relationships: []
+      }
       fraud_seed_log: {
         Row: {
           action: string
@@ -2267,6 +2291,14 @@ export type Database = {
         Args: { _mode: string; _run_id: number }
         Returns: Json
       }
+      fraud_ids_of: {
+        Args: { _txs: string[] }
+        Returns: {
+          kt: string
+          kv: string
+          tx: string
+        }[]
+      }
       fraud_is_cgnat: { Args: { _ip: string }; Returns: boolean }
       fraud_link_apply: { Args: { _block_id: string }; Returns: number }
       fraud_link_candidates: {
@@ -2279,6 +2311,7 @@ export type Database = {
           via_tx: string
         }[]
       }
+      fraud_link_worker: { Args: { _max?: number }; Returns: number }
       fraud_mask_text: { Args: { _s: string }; Returns: string }
       fraud_near_copy_ratio: {
         Args: { _a: string; _b: string }
@@ -2307,6 +2340,7 @@ export type Database = {
           tx: string
         }[]
       }
+      fraud_txs_for: { Args: { _kt: string; _kv: string }; Returns: string[] }
       fraud_watch_apply: {
         Args: {
           _all?: boolean

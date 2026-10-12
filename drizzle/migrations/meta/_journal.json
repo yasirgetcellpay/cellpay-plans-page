@@ -43,6 +43,13 @@
       "when": 1791814180284,
       "tag": "0005_fraud_multiblock_1012",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791815246524,
+      "tag": "0006_fraud_multiblock_1012_fix_async_link",
+      "breakpoints": true
     }
   ]
 }
