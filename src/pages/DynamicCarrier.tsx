@@ -934,6 +934,7 @@ const HTP_GUIDE_BY_SLUG: Record<string, { key: string; name: string }> = {
   "topup-at": { key: "att-prepaid", name: "AT&T Prepaid" },
   verizon: { key: "verizon-prepaid", name: "Verizon Prepaid" }, // TOP4-T4-1009: /verizon, /es/verizon
   lyca: { key: "lyca-mobile", name: "Lyca Mobile" }, // AEO-06-LYCA-1011: /lyca.html, /es/lyca.html
+  metropcs: { key: "metro-pcs", name: "Metro by T-Mobile" }, // AEO-07-METRO-1012: /metropcs.html, /es/metropcs.html
 };
 
 /* ── FAQ sub-component ── */

@@ -1659,6 +1659,9 @@ const App = () => (
         {/* AEO-06-LYCA-1011 */}
         <Route path="/how-to-pay/lyca-mobile" element={<HowToPay />} />
         <Route path="/es/como-pagar/lyca-mobile" element={<HowToPay />} />
+        {/* AEO-07-METRO-1012 */}
+        <Route path="/how-to-pay/metro-pcs" element={<HowToPay />} />
+        <Route path="/es/como-pagar/metro-pcs" element={<HowToPay />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/privacy-policy.html" element={<AliasRedirect to="/privacy-policy" />} />
         {/* PRIVACY-1007: Spanish privacy policy (same page; text in src/content/privacyPolicy.ts) */}
