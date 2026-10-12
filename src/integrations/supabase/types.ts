@@ -1151,6 +1151,30 @@ export type Database = {
         }
         Relationships: []
       }
+      mf_link_live_1012: {
+        Row: {
+          linked_type: string | null
+          linked_value: string | null
+          source_id: string | null
+          source_type: string | null
+          via_tx: string | null
+        }
+        Insert: {
+          linked_type?: string | null
+          linked_value?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          via_tx?: string | null
+        }
+        Update: {
+          linked_type?: string | null
+          linked_value?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          via_tx?: string | null
+        }
+        Relationships: []
+      }
       ops_alarms: {
         Row: {
           acked_at: string | null
