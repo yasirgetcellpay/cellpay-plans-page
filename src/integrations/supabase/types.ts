@@ -1286,6 +1286,81 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_fallback_excluded: {
+        Row: {
+          transaction_id: string
+        }
+        Insert: {
+          transaction_id: string
+        }
+        Update: {
+          transaction_id?: string
+        }
+        Relationships: []
+      }
+      purchase_fallback_items: {
+        Row: {
+          carrier_slug: string
+          item_name: string
+          margin: number
+          plan_id: string
+        }
+        Insert: {
+          carrier_slug: string
+          item_name: string
+          margin: number
+          plan_id: string
+        }
+        Update: {
+          carrier_slug?: string
+          item_name?: string
+          margin?: number
+          plan_id?: string
+        }
+        Relationships: []
+      }
+      purchase_fallback_queue: {
+        Row: {
+          ads_value: number
+          amount: number
+          conv_time: string
+          created_at: string
+          first_served_at: string | null
+          gclid: string | null
+          item_name: string
+          note: string | null
+          status: string
+          total: number
+          transaction_id: string
+        }
+        Insert: {
+          ads_value: number
+          amount: number
+          conv_time: string
+          created_at?: string
+          first_served_at?: string | null
+          gclid?: string | null
+          item_name: string
+          note?: string | null
+          status: string
+          total: number
+          transaction_id: string
+        }
+        Update: {
+          ads_value?: number
+          amount?: number
+          conv_time?: string
+          created_at?: string
+          first_served_at?: string | null
+          gclid?: string | null
+          item_name?: string
+          note?: string | null
+          status?: string
+          total?: number
+          transaction_id?: string
+        }
+        Relationships: []
+      }
       purchase_tag_fires: {
         Row: {
           created_at: string
@@ -2173,6 +2248,20 @@ export type Database = {
         Returns: string
       }
       pockyt_sweep_secret_ok: { Args: { _s: string }; Returns: boolean }
+      purchase_fallback_claimed: {
+        Args: { _transaction_id: string }
+        Returns: boolean
+      }
+      purchase_fallback_csv: {
+        Args: { _token: string }
+        Returns: {
+          conv_time: string
+          gclid: string
+          order_id: string
+          value: number
+        }[]
+      }
+      purchase_fallback_sweep: { Args: never; Returns: undefined }
       purchase_tag_cliff_sweep: { Args: never; Returns: number }
       record_presence: {
         Args: { _path: string; _session_id: string; _user_agent: string }
