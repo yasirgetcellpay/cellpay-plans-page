@@ -1203,6 +1203,8 @@ const Checkout = () => {
   // CHECKOUT-FUNNEL: invisible funnel analytics (no UI). Hooks sit above the "if (!state)" return. All fire-and-forget.
   const funnelDataRef = useRef<{ carrier: string | null; amount: number | null; fee: number | null; total: number | null }>({ carrier: null, amount: null, fee: null, total: null });
   useEffect(() => { resetFunnel(); }, []);
+  const funnelCardLabelsRef = useRef<string[]>([]);
+  funnelCardLabelsRef.current = [tr.cardNumber, tr.expiry, tr.cvv].filter(Boolean) as string[];
   useEffect(() => {
     try {
       if (!state?.carrierSlug) return;
@@ -1221,7 +1223,8 @@ const Checkout = () => {
     const onFocus = (e: Event) => {
       try {
         const el = e.target as HTMLElement | null;
-        if (el && el.tagName === "INPUT" && /^cc-/.test(el.getAttribute("autocomplete") || "")) started();
+        const lbl = el && el.tagName === "INPUT" ? el.getAttribute("aria-label") || "" : "";
+        if (lbl && (/^cc-/.test(el?.getAttribute("autocomplete") || "") || funnelCardLabelsRef.current.includes(lbl))) started();
       } catch { /* ignore */ }
     };
     const onClick = (e: Event) => {
