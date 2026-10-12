@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.email-links]
 verify_jwt = false
+
+[functions.ads-fallback-csv]
+verify_jwt = false

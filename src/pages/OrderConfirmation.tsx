@@ -168,6 +168,19 @@ const OrderConfirmation = () => {
           }
         } catch { fire = false; }
         if (fire) {
+          // SERVER-FALLBACK-1012: skip if the server already queued this order for Ads upload (fail-open, 1.5 s max)
+          try {
+            const _su0 = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+            const _sk0 = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+            if (_su0 && _sk0 && txnId) {
+              const _ac = new AbortController(); const _t = setTimeout(() => _ac.abort(), 1500);
+              const _r = await fetch(_su0 + "/rest/v1/rpc/purchase_fallback_claimed", { method: "POST", signal: _ac.signal, headers: { apikey: _sk0, Authorization: "Bearer " + _sk0, "Content-Type": "application/json" }, body: JSON.stringify({ _transaction_id: txnId }) }).catch(() => null);
+              clearTimeout(_t);
+              if (_r && _r.ok && (await _r.json().catch(() => false)) === true) fire = false;
+            }
+          } catch { /* fail open */ }
+        }
+        if (fire) {
           // @ts-expect-error - dataLayer global
           window.dataLayer = window.dataLayer || [];
           // @ts-expect-error - dataLayer global
