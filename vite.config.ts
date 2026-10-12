@@ -258,6 +258,17 @@ const HTML_ROUTES = [
   "admin/breakdowns/index.html",
   "admin/customers/index.html",
   "admin/transactions/index.html",
+  // GSC-401-403-1012: private pages get their own folder shell: noindex,nofollow in the first HTML, no canonical/hreflang.
+  // Same built index.html (same bundle/body/inline scripts), so the app boots as today and query strings keep working.
+  "checkout/index.html", "es/checkout/index.html",
+  "order-confirmation/index.html", "es/order-confirmation/index.html",
+  "payment-callback/index.html", "es/payment-callback/index.html",
+  "orders/index.html", "es/orders/index.html",
+  "profile/index.html", "es/profile/index.html",
+  "es/admin/index.html",
+  "account/index.html", "es/account/index.html",
+  "login/index.html", "es/login/index.html",
+  "auth/index.html", "es/auth/index.html",
 ];
 
 // Legacy per-amount product URLs from the old PHP site, e.g. /40-topup-at-prepaid-refill.html.
@@ -612,6 +623,7 @@ const htmlAliasPlugin = (): Plugin => ({
       title: string;
       description: string;
       noindex?: boolean;
+      nofollow?: boolean; // GSC-401-403-1012: private pages are noindex,nofollow
       lang?: string;
       enPath?: string; // for hreflang pairing
       esPath?: string;
@@ -843,12 +855,25 @@ const htmlAliasPlugin = (): Plugin => ({
           lang: "es",
         };
       }
-      // Admin shells: noindex
+      // GSC-401-403-1012: private page shells (checkout, order status, account): noindex,nofollow, no canonical/hreflang
+      const privM = /^(es\/)?(checkout|order-confirmation|payment-callback|orders|profile|admin|account|login|auth)\/index\.html$/.exec(route);
+      if (privM && !route.startsWith("admin/")) {
+        const es = !!privM[1];
+        const kind = privM[2];
+        const title = kind === "checkout"
+          ? (es ? "Pago seguro | CellPay" : "Secure Checkout | CellPay")
+          : ["order-confirmation", "payment-callback", "orders"].includes(kind)
+          ? (es ? "Estado del pedido | CellPay" : "Order Status | CellPay")
+          : (es ? "Cuenta | CellPay" : "Account | CellPay");
+        return { title, description: es ? "Página privada de CellPay." : "Private CellPay page.", noindex: true, nofollow: true, lang: es ? "es" : "en" };
+      }
+      // Admin shells: noindex,nofollow (GSC-401-403-1012)
       if (route.startsWith("admin/")) {
         return {
           title: "Admin | CellPay",
           description: "CellPay administration.",
           noindex: true,
+          nofollow: true,
           lang: "en",
         };
       }
@@ -1583,11 +1608,11 @@ const htmlAliasPlugin = (): Plugin => ({
       if (meta.noindex) {
         out = out.replace(
           /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i,
-          `<meta name="robots" content="noindex,follow" />`,
+          `<meta name="robots" content="${meta.nofollow ? "noindex,nofollow" : "noindex,follow"}" />`,
         );
         // If no robots tag existed, inject one
         if (!/name="robots"/i.test(out)) {
-          out = out.replace(/<\/head>/i, `  <meta name="robots" content="noindex,follow" />\n  </head>`);
+          out = out.replace(/<\/head>/i, `  <meta name="robots" content="${meta.nofollow ? "noindex,nofollow" : "noindex,follow"}" />\n  </head>`);
         }
       }
 

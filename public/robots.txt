@@ -3,17 +3,9 @@
 # /sitemap.xml is an index of that one file.
 # The Googlebot group is merged with * so the Disallow lines apply to Googlebot too.
 # (A crawler obeys only its most specific group; a separate "Googlebot: Allow /" group would cancel them.)
+# GSC-401-403-1012: private pages are crawlable so Google sees their noindex; they are never in the sitemap.
 User-agent: *
 User-agent: Googlebot
-Disallow: /checkout
-Disallow: /es/checkout
-Disallow: /payment-callback
-Disallow: /es/payment-callback
-Disallow: /order-confirmation
-Disallow: /es/order-confirmation
-Disallow: /admin
-Disallow: /profile
-Disallow: /orders
 Allow: /
 
 # Google Ads landing-page crawlers ignore "*"; keep them fully allowed.
@@ -48,15 +40,6 @@ User-agent: Perplexity-User
 User-agent: DuckAssistBot
 User-agent: Applebot
 User-agent: Bingbot
-Disallow: /checkout
-Disallow: /es/checkout
-Disallow: /payment-callback
-Disallow: /es/payment-callback
-Disallow: /order-confirmation
-Disallow: /es/order-confirmation
-Disallow: /admin
-Disallow: /profile
-Disallow: /orders
 Allow: /
 
 Sitemap: https://www.cellpay.us/sitemap-www.xml
