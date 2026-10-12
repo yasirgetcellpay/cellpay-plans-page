@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { scoreRisk, riskEngineMode } from "../risk-score/logic.ts"; // FRAUD-MULTIBLOCK-1012 5b
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -130,6 +131,7 @@ async function createTransactionLog(
   userAgent: string | null,
   arb: Record<string, unknown> = {},
   clicks: Record<string, string> = {},
+  mfMeta: Record<string, unknown> = {}, // [FRAUD-MULTIBLOCK-1012] mf_* keys only (never a PAN)
 ): Promise<string | null> {
   const payment = asRecord(payload.payment);
   try {
@@ -163,6 +165,7 @@ async function createTransactionLog(
               return { fp_visitor: false, fp_timeout: false };
             }
           })(),
+          ...mfMeta, // [FRAUD-MULTIBLOCK-1012] mf_device, mf_did, mf_card (BIN6:last4), mf_card_fp, mf_addr, mf_addr_h, mf_ip
         },
       },
     });
@@ -1205,6 +1208,160 @@ async function vel1Refuse(p: Record<string, unknown>, method: string | null, ori
   }
 }
 
+// [FRAUD-MULTIBLOCK-1012] Multi-factor block keys: device fingerprint (own, fp1:), device id, exact card (BIN6:last4 + MMYY) and
+// normalized billing address. Built from the checkout payload inside the proxy; the full card number never leaves this function
+// except as a keyed hash (mf_card_fp). Kill switch checkout_guard_controls.mfblock = on | shadow | off (missing row = off).
+type Mf = { device: string | null; did: string | null; visitor: string | null; card: string | null; card_exp: string | null; addr: string | null; cardFpSrc: string | null; bin6: string | null; last4: string | null };
+
+// Same rules as SQL public.addr_norm (keep in sync).
+function mfAddrNorm(line: unknown, zip: unknown): string | null {
+  let v = String(line ?? "").toLowerCase();
+  const z = String(zip ?? "").replace(/\D/g, "").slice(0, 5);
+  v = v.replace(/[^a-z0-9 ]/g, " ");
+  v = " " + v.replace(/\s+/g, " ") + " ";
+  const subs: Array<[RegExp, string]> = [
+    [/ (street|str) /g, " st "], [/ (avenue|av|ave) /g, " ave "], [/ (road) /g, " rd "], [/ (drive) /g, " dr "],
+    [/ (boulevard|blv) /g, " blvd "], [/ (lane) /g, " ln "], [/ (court) /g, " ct "], [/ (place) /g, " pl "],
+    [/ (apartment|apt|unit|suite|ste|#) /g, " apt "], [/ (north) /g, " n "], [/ (south) /g, " s "], [/ (east) /g, " e "], [/ (west) /g, " w "],
+  ];
+  for (const [re, rp] of subs) v = v.replace(re, rp);
+  v = v.replace(/\s+/g, " ").trim();
+  if (v.length < 4 || z.length !== 5) return null;
+  return `${v}|${z}`;
+}
+
+function mfJson(v: unknown): Record<string, unknown> {
+  if (typeof v !== "string") return asRecord(v);
+  try { return asRecord(JSON.parse(v)); } catch { return {}; }
+}
+
+function buildMf(p: Record<string, unknown>, cpDev: Record<string, unknown>, method: string | null): Mf {
+  const out: Mf = { device: null, did: null, visitor: null, card: null, card_exp: null, addr: null, cardFpSrc: null, bin6: null, last4: null };
+  try {
+    const fp = String(cpDev.dev_fp ?? "");
+    if (/^fp1:[0-9a-f]{40}$/.test(fp)) out.device = fp;
+    const did = String(cpDev.dev_id ?? "");
+    if (/^[0-9a-z-]{8,64}$/i.test(did)) out.did = did.toLowerCase();
+    try { out.visitor = text(asRecord(JSON.parse(String(p.browser_info ?? "{}"))).visitorId); } catch { out.visitor = null; }
+    const m = String(method || "").toLowerCase();
+    const pay = asRecord(p.payment);
+    if (m.startsWith("card")) {
+      const pan = String(pay.cc_number ?? p.cc_number ?? "").replace(/\D/g, "");
+      if (pan.length >= 12) {
+        out.bin6 = pan.slice(0, 6); out.last4 = pan.slice(-4); out.card = `${out.bin6}:${out.last4}`;
+        const mm = String(pay.cc_exp_month ?? p.cc_exp_month ?? "").replace(/\D/g, "").padStart(2, "0").slice(-2);
+        const yy = String(pay.cc_exp_year ?? p.cc_exp_year ?? "").replace(/\D/g, "").slice(-2);
+        if (/^(0[1-9]|1[0-2])$/.test(mm) && /^\d{2}$/.test(yy)) out.card_exp = mm + yy;
+        out.cardFpSrc = "fpc1:" + pan + (out.card_exp ?? "");
+      }
+    }
+    let line: unknown = null, zip: unknown = null;
+    if (m === "applepay") {
+      const bc = mfJson(p.apple_pay_billing_contact);
+      line = Array.isArray(bc.addressLines) ? bc.addressLines[0] : null; zip = bc.postalCode;
+    } else if (m === "googlepay") {
+      const ba = mfJson(p.gpay_billing_details);
+      line = ba.address1; zip = ba.postalCode;
+    } else if (m === "klarna") {
+      const kb = asRecord(p.billing_address);
+      line = kb.street_address; zip = kb.postal_code;
+    } else if (m.startsWith("card")) {
+      line = pay.address; zip = pay.zip;
+    }
+    if (!line) { const b = asRecord(p.billing); line = b.street ?? b.address ?? b.street_address ?? null; zip = zip ?? b.zip ?? b.postal_code; }
+    out.addr = mfAddrNorm(line, zip);
+  } catch { /* partial mf is fine */ }
+  return out;
+}
+
+async function mfHex(buf: ArrayBuffer): Promise<string> {
+  return Array.from(new Uint8Array(buf), (x) => x.toString(16).padStart(2, "0")).join("");
+}
+
+async function mfLogMeta(mf: Mf, ipInfo: Record<string, unknown> | null): Promise<Record<string, unknown>> {
+  const out: Record<string, unknown> = {};
+  try {
+    if (mf.device) out.mf_device = mf.device;
+    if (mf.did) out.mf_did = mf.did;
+    if (mf.card) out.mf_card = mf.card;
+    if (mf.addr) {
+      out.mf_addr = mf.addr;
+      out.mf_addr_h = await mfHex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(mf.addr)));
+    }
+    const sk = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (mf.cardFpSrc && sk) {
+      const keyBytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("mf-card-fp-v1:" + sk));
+      const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+      out.mf_card_fp = (await mfHex(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(mf.cardFpSrc)))).slice(0, 32);
+    }
+    if (ipInfo && (ipInfo.asn !== undefined || ipInfo.country !== undefined)) {
+      out.mf_ip = { asn: ipInfo.asn ?? null, country: ipInfo.country ?? null, datacenter: ipInfo.datacenter === true };
+    }
+  } catch { /* best effort */ }
+  return out;
+}
+
+let mfModeCache: { v: string; t: number } | null = null;
+async function mfBlockMode(): Promise<string> {
+  if (mfModeCache && Date.now() - mfModeCache.t < 30000) return mfModeCache.v;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceKey) return "off";
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/checkout_guard_controls?key=eq.mfblock&select=value`, {
+      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}` }, signal: AbortSignal.timeout(600),
+    });
+    if (!res.ok) { await res.body?.cancel(); return "off"; }
+    const rows = await res.json();
+    const v = String(asRecord(Array.isArray(rows) ? rows[0] : rows).value ?? "off");
+    mfModeCache = { v, t: Date.now() };
+    return v;
+  } catch {
+    return "off";
+  }
+}
+
+async function mfBlocklistCheck(mf: Mf): Promise<{ key_type: string; reason: string } | null> {
+  try {
+    if (!mf.device && !mf.did && !mf.card && !mf.addr) return null;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceKey) return null;
+    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/checkout_blocklist_check_mf`, {
+      method: "POST",
+      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
+      body: JSON.stringify({ _devices: [mf.device, mf.did].filter(Boolean), _card: mf.card, _card_exp: mf.card_exp, _address: mf.addr }),
+      signal: AbortSignal.timeout(1200),
+    });
+    if (!res.ok) { await res.body?.cancel(); return null; }
+    const rows = await res.json();
+    const r = asRecord(Array.isArray(rows) ? rows[0] : rows);
+    return r.blocked === true ? { key_type: String(r.key_type), reason: String(r.reason) } : null;
+  } catch {
+    return null;
+  }
+}
+
+// IP -> ASN/country (best effort, 300 ms). Never a block.
+async function mfIpEnrich(ip: string | null): Promise<Record<string, unknown> | null> {
+  try {
+    if (!ip) return null;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceKey) return null;
+    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/ip_enrich`, {
+      method: "POST",
+      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
+      body: JSON.stringify({ _ip: ip }), signal: AbortSignal.timeout(300),
+    });
+    if (!res.ok) { await res.body?.cancel(); return null; }
+    const rows = await res.json();
+    return asRecord(Array.isArray(rows) ? rows[0] : rows);
+  } catch {
+    return null;
+  }
+}
+
 async function blocklistCheck(p: Record<string, unknown>, cardH: string | null): Promise<{ key_type: string; reason: string } | null> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -1793,6 +1950,16 @@ async function paypalAction(
         return reply({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: PP_BLOCK_MSG });
       }
     } catch { /* blocklist fails open */ }
+    // [FRAUD-MULTIBLOCK-1012] multi-factor block (device / card / address keys present on this order view only). Fail-open.
+    try {
+      const mfPp = buildMf(lr, {}, "paypal");
+      const mfHit = await mfBlocklistCheck(mfPp);
+      if (mfHit) {
+        const mode = await mfBlockMode();
+        recordGuardEvent({ code: `mfblock_${mode}:${mfHit.reason}:${mfHit.key_type}`, method: "POST", endpoint_shape: PP_CREATE, origin_host: originHost(origin), has_origin: origin !== null });
+        if (mode === "on") return reply({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: PP_BLOCK_MSG });
+      }
+    } catch { /* mfblock fails open */ }
     // [Fix F] refill cooldown (1 s, fail-open)
     try {
       const cd = refillKey ? await refillCooldownRpc("refill_cooldown_check", refillKey) : null;
@@ -1937,6 +2104,13 @@ function logCarrierCheck(endpoint: unknown, status: number, wrapped: Record<stri
       body: JSON.stringify({
         carrier_slug: m[2], kind: m[1] === "validate" ? "validate" : "verify", http_status: status, ok, message: msg,
         phone_last4: phoneRaw.length >= 4 ? phoneRaw.slice(-4) : null, host: typeof callerHost === "string" ? callerHost.slice(0, 80) : null,
+        // [FRAUD-MULTIBLOCK-1012 5b] full phone + checkout session join key (service role only table)
+        ...(phoneRaw ? { phone: phoneRaw.slice(0, 15) } : {}),
+        ...((): Record<string, string> => {
+          const pr = (payload ?? {}) as Record<string, unknown>;
+          const sid = text(pr.kount_ssid ?? pr.riskified_sessionid ?? pr.cbsys_sessionid);
+          return sid ? { checkout_session_id: sid.slice(0, 100) } : {};
+        })(),
       }),
       signal: AbortSignal.timeout(1500),
     }).then(() => {}).catch(() => {});
@@ -2046,6 +2220,16 @@ serve(async (req) => {
 
     const shouldLogTransaction = endpoint === "checkout/transaction" && method === "POST";
     const payloadRecord = asRecord(payload);
+    // [FRAUD-MULTIBLOCK-1012] cp_dev is site-only: read and removed here so CellPay never sees it (body rebuilt).
+    const cpDev = asRecord(payloadRecord.cp_dev);
+    if ("cp_dev" in payloadRecord) {
+      delete payloadRecord.cp_dev;
+      if (typeof fetchOptions.body === "string") fetchOptions.body = JSON.stringify(payloadRecord);
+    }
+    let mf: Mf | null = null;
+    let mfIpP: Promise<Record<string, unknown> | null> = Promise.resolve(null);
+    let riskAction: string | null = null;
+    const reqIp = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
     const paymentMethod = text(payloadRecord.payment_method ?? payloadRecord.paymentMethod);
     // [plaid v2] A Plaid checkout carries no Plaid token or Link metadata past this point (guards, log row, CellPay).
     const isPlaidCheckout = shouldLogTransaction && (paymentMethod || "").toLowerCase() === "plaid";
@@ -2105,6 +2289,54 @@ serve(async (req) => {
           return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: "We couldn't process this card right now. Please try again in about 30 minutes or use a different payment method. You were not charged." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       } catch { /* blocklist fails open */ }
+      // [FRAUD-MULTIBLOCK-1012] Multi-factor block (device / exact card / address). mfblock on = same calm 200 as above; shadow = log only.
+      try {
+        mf = buildMf(payloadRecord, cpDev, paymentMethod);
+        mfIpP = mfIpEnrich(reqIp);
+        const mfHit = await mfBlocklistCheck(mf);
+        if (mfHit) {
+          const mode = await mfBlockMode();
+          recordGuardEvent({ code: `mfblock_${mode}:${mfHit.reason}:${mfHit.key_type}`, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: true });
+          if (mode === "on") {
+            return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: "We couldn't process this card right now. Please try again in about 30 minutes or use a different payment method. You were not charged." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+        }
+      } catch { /* mfblock fails open */ }
+      // [FRAUD-MULTIBLOCK-1012 5b] Pre-payment risk score. Shadow: fire-and-forget (zero added latency). Enforce: wait max 700 ms,
+      // block = same calm 200; step_up / hold are logged (step_up is passed to the page as risk_action). Any error = allow.
+      try {
+        const mode = await riskEngineMode(AbortSignal.timeout(300));
+        if (mode !== "off") {
+          const pay = asRecord(payloadRecord.payment);
+          const m0 = mf ?? buildMf(payloadRecord, cpDev, paymentMethod);
+          const rin = {
+            phone: text(payloadRecord.phone_number ?? payloadRecord.phoneNumber), email: text(pay.email ?? payloadRecord.email),
+            amount: Number(payloadRecord.amount), carrier_slug: text(payloadRecord.carrier_slug ?? payloadRecord.carrierSlug),
+            payment_method: paymentMethod, checkout_session_id: text(payloadRecord.kount_ssid ?? payloadRecord.riskified_sessionid ?? payloadRecord.cbsys_sessionid),
+            cp_dev: { dev_fp: m0.device ?? undefined, dev_id: m0.did ?? undefined }, visitorId: m0.visitor,
+            card_bin6: m0.bin6, card_last4: m0.last4, card_exp: m0.card_exp, addr_norm: m0.addr, ip: reqIp,
+          };
+          if (mode === "enforce") {
+            const rr = await Promise.race([
+              scoreRisk(rin, mode),
+              new Promise<{ action: "allow" }>((r) => setTimeout(() => r({ action: "allow" }), 700)),
+            ]);
+            if (rr.action === "block") {
+              recordGuardEvent({ code: "risk_block", method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: true });
+              return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: "We couldn't process this card right now. Please try again in about 30 minutes or use a different payment method. You were not charged." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            }
+            if (rr.action === "step_up" || rr.action === "hold") {
+              recordGuardEvent({ code: `risk_${rr.action}`, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: true });
+              if (rr.action === "step_up") riskAction = "step_up";
+            }
+          } else {
+            const job = scoreRisk(rin, mode).catch(() => null);
+            // deno-lint-ignore no-explicit-any
+            const runtime = (globalThis as any).EdgeRuntime;
+            if (runtime && typeof runtime.waitUntil === "function") runtime.waitUntil(job);
+          }
+        }
+      } catch { /* risk engine fails open */ }
     }
     // [VEL1-ENFORCE-1009] Card only. Calm 200 before the log and CellPay, nothing is charged. The page shows its "use another method"
     // panel (the message holds "velocity", which its decline classifier files under "blocked": wallets / Cash App / bank, no card retry).
@@ -2180,7 +2412,8 @@ serve(async (req) => {
       } catch { /* dedupe fails open */ }
     }
     const txLogId = shouldLogTransaction
-      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}) }, clickIdsFrom(body.click_ids))
+      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}) }, clickIdsFrom(body.click_ids),
+          mf ? await mfLogMeta(mf, await Promise.race([mfIpP, new Promise<null>((r) => setTimeout(() => r(null), 300))])) : {})
       : null;
     if (shouldLogTransaction) velocityShadow(txLogId, payloadRecord, paymentMethod); // [VEL1-1007] log-only, not awaited
 
@@ -2253,6 +2486,7 @@ serve(async (req) => {
       await finishTransactionLog(txLogId, wrapped, paymentMethod);
       if (!isPlaidCheckout && /^(card|applepay|googlepay|klarna)/i.test(String(paymentMethod || ""))) await logCardFacts(txLogId, payloadRecord, wrapped, paymentMethod); // [CARDLOG-1007 v3] never throws
       if (txLogId) wrapped.pending_log_id = txLogId;
+      if (riskAction === "step_up") wrapped.risk_action = "step_up"; // [FRAUD-MULTIBLOCK-1012 5c] enforce mode only
     }
 
     // Pockyt Cash App session status polling — finalize the pending log when

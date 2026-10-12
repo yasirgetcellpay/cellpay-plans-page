@@ -146,6 +146,7 @@ export type Database = {
       carrier_check_log: {
         Row: {
           carrier_slug: string | null
+          checkout_session_id: string | null
           created_at: string
           host: string | null
           http_status: number | null
@@ -153,10 +154,12 @@ export type Database = {
           kind: string | null
           message: string | null
           ok: boolean | null
+          phone: string | null
           phone_last4: string | null
         }
         Insert: {
           carrier_slug?: string | null
+          checkout_session_id?: string | null
           created_at?: string
           host?: string | null
           http_status?: number | null
@@ -164,10 +167,12 @@ export type Database = {
           kind?: string | null
           message?: string | null
           ok?: boolean | null
+          phone?: string | null
           phone_last4?: string | null
         }
         Update: {
           carrier_slug?: string | null
+          checkout_session_id?: string | null
           created_at?: string
           host?: string | null
           http_status?: number | null
@@ -175,6 +180,7 @@ export type Database = {
           kind?: string | null
           message?: string | null
           ok?: boolean | null
+          phone?: string | null
           phone_last4?: string | null
         }
         Relationships: []
@@ -635,6 +641,48 @@ export type Database = {
         }
         Relationships: []
       }
+      fraud_link_log: {
+        Row: {
+          action: string
+          created_at: string
+          distinct_ids: number | null
+          id: number
+          linked_type: string | null
+          linked_value: string | null
+          mode: string | null
+          source_id: string | null
+          source_type: string | null
+          source_value: string | null
+          via_tx: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          distinct_ids?: number | null
+          id?: number
+          linked_type?: string | null
+          linked_value?: string | null
+          mode?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          source_value?: string | null
+          via_tx?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          distinct_ids?: number | null
+          id?: number
+          linked_type?: string | null
+          linked_value?: string | null
+          mode?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          source_value?: string | null
+          via_tx?: string | null
+        }
+        Relationships: []
+      }
       fraud_seed_log: {
         Row: {
           action: string
@@ -995,6 +1043,45 @@ export type Database = {
           id?: number
           status_enabled?: boolean
           updated_at?: string
+        }
+        Relationships: []
+      }
+      ip_asn_ranges: {
+        Row: {
+          as_name: string | null
+          asn: number | null
+          country: string | null
+          range_end: unknown
+          range_start: unknown
+        }
+        Insert: {
+          as_name?: string | null
+          asn?: number | null
+          country?: string | null
+          range_end: unknown
+          range_start: unknown
+        }
+        Update: {
+          as_name?: string | null
+          asn?: number | null
+          country?: string | null
+          range_end?: unknown
+          range_start?: unknown
+        }
+        Relationships: []
+      }
+      ip_hosting_asns: {
+        Row: {
+          asn: number
+          name: string | null
+        }
+        Insert: {
+          asn: number
+          name?: string | null
+        }
+        Update: {
+          asn?: number
+          name?: string | null
         }
         Relationships: []
       }
@@ -1544,6 +1631,87 @@ export type Database = {
         }
         Relationships: []
       }
+      risk_decisions: {
+        Row: {
+          action: string | null
+          amount: number | null
+          checkout_session_id: string | null
+          created_at: string | null
+          id: number
+          ip_asn: number | null
+          ip_country: string | null
+          ip_datacenter: boolean | null
+          latency_ms: number | null
+          linked_block: Json | null
+          mode: string | null
+          payment_method: string | null
+          phone_last4: string | null
+          reasons: Json | null
+          score: number | null
+          transaction_log_id: string | null
+        }
+        Insert: {
+          action?: string | null
+          amount?: number | null
+          checkout_session_id?: string | null
+          created_at?: string | null
+          id?: number
+          ip_asn?: number | null
+          ip_country?: string | null
+          ip_datacenter?: boolean | null
+          latency_ms?: number | null
+          linked_block?: Json | null
+          mode?: string | null
+          payment_method?: string | null
+          phone_last4?: string | null
+          reasons?: Json | null
+          score?: number | null
+          transaction_log_id?: string | null
+        }
+        Update: {
+          action?: string | null
+          amount?: number | null
+          checkout_session_id?: string | null
+          created_at?: string | null
+          id?: number
+          ip_asn?: number | null
+          ip_country?: string | null
+          ip_datacenter?: boolean | null
+          latency_ms?: number | null
+          linked_block?: Json | null
+          mode?: string | null
+          payment_method?: string | null
+          phone_last4?: string | null
+          reasons?: Json | null
+          score?: number | null
+          transaction_log_id?: string | null
+        }
+        Relationships: []
+      }
+      risk_rules: {
+        Row: {
+          cap: number | null
+          key: string
+          note: string | null
+          updated_at: string | null
+          weight: number
+        }
+        Insert: {
+          cap?: number | null
+          key: string
+          note?: string | null
+          updated_at?: string | null
+          weight: number
+        }
+        Update: {
+          cap?: number | null
+          key?: string
+          note?: string | null
+          updated_at?: string | null
+          weight?: number
+        }
+        Relationships: []
+      }
       support_requests: {
         Row: {
           category: string | null
@@ -1642,6 +1810,13 @@ export type Database = {
           transaction_log_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "transaction_card_facts_transaction_log_id_fkey"
+            columns: ["transaction_log_id"]
+            isOneToOne: true
+            referencedRelation: "fraud_ip_risk"
+            referencedColumns: ["tx"]
+          },
           {
             foreignKeyName: "transaction_card_facts_transaction_log_id_fkey"
             columns: ["transaction_log_id"]
@@ -1851,12 +2026,34 @@ export type Database = {
         }
         Relationships: []
       }
+      fraud_ip_risk: {
+        Row: {
+          created_at: string | null
+          ip_class: string | null
+          source_ip: string | null
+          tx: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          ip_class?: never
+          source_ip?: string | null
+          tx?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          ip_class?: never
+          source_ip?: string | null
+          tx?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       ad1_prune_page_visitors: {
         Args: { _archive?: boolean; _batch?: number; _days?: number }
         Returns: number
       }
+      addr_norm: { Args: { _line: string; _zip: string }; Returns: string }
       ap1_alarm_sweep: { Args: never; Returns: number }
       ap1_owner_match: {
         Args: { _email: string; _last4: string; _phone: string }
@@ -1936,6 +2133,20 @@ export type Database = {
           blocked: boolean
           key_type: string
           reason: string
+        }[]
+      }
+      checkout_blocklist_check_mf: {
+        Args: {
+          _address: string
+          _card: string
+          _card_exp: string
+          _devices: string[]
+        }
+        Returns: {
+          blocked: boolean
+          key_type: string
+          reason: string
+          value_norm: string
         }[]
       }
       checkout_dedupe_claim: {
@@ -2057,6 +2268,17 @@ export type Database = {
         Returns: Json
       }
       fraud_is_cgnat: { Args: { _ip: string }; Returns: boolean }
+      fraud_link_apply: { Args: { _block_id: string }; Returns: number }
+      fraud_link_candidates: {
+        Args: { _block_id: string }
+        Returns: {
+          action: string
+          distinct_ids: number
+          linked_type: string
+          linked_value: string
+          via_tx: string
+        }[]
+      }
       fraud_mask_text: { Args: { _s: string }; Returns: string }
       fraud_near_copy_ratio: {
         Args: { _a: string; _b: string }
@@ -2077,6 +2299,14 @@ export type Database = {
       }
       fraud_split: { Args: { _s: string }; Returns: string[] }
       fraud_truthy: { Args: { _v: Json }; Returns: boolean }
+      fraud_tx_identifiers: {
+        Args: { _since?: string }
+        Returns: {
+          kt: string
+          kv: string
+          tx: string
+        }[]
+      }
       fraud_watch_apply: {
         Args: {
           _all?: boolean
@@ -2147,6 +2377,15 @@ export type Database = {
       help_rate_limit_hit: {
         Args: { _bucket: string; _max: number; _window_seconds: number }
         Returns: boolean
+      }
+      ip_enrich: {
+        Args: { _ip: string }
+        Returns: {
+          asn: number
+          cgnat: boolean
+          country: string
+          datacenter: boolean
+        }[]
       }
       log_card_facts: { Args: { _data: Json }; Returns: undefined }
       log_paypal_funnel: {
@@ -2336,6 +2575,17 @@ export type Database = {
           skip_reason: string
           status: string
         }[]
+      }
+      risk_score_features: {
+        Args: {
+          _amount: number
+          _device: string
+          _email: string
+          _ip: string
+          _method: string
+          _phone: string
+        }
+        Returns: Json
       }
       vel1_enforce_check: {
         Args: {
