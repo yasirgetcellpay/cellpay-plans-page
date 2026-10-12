@@ -275,6 +275,48 @@ export type Database = {
         }
         Relationships: []
       }
+      checkout_funnel_events: {
+        Row: {
+          amount: number | null
+          carrier: string | null
+          client_ts: string | null
+          created_at: string
+          event: string
+          fee: number | null
+          host: string | null
+          id: number
+          lang: string | null
+          session_id: string | null
+          total: number | null
+        }
+        Insert: {
+          amount?: number | null
+          carrier?: string | null
+          client_ts?: string | null
+          created_at?: string
+          event: string
+          fee?: number | null
+          host?: string | null
+          id?: number
+          lang?: string | null
+          session_id?: string | null
+          total?: number | null
+        }
+        Update: {
+          amount?: number | null
+          carrier?: string | null
+          client_ts?: string | null
+          created_at?: string
+          event?: string
+          fee?: number | null
+          host?: string | null
+          id?: number
+          lang?: string | null
+          session_id?: string | null
+          total?: number | null
+        }
+        Relationships: []
+      }
       checkout_guard_controls: {
         Row: {
           key: string
