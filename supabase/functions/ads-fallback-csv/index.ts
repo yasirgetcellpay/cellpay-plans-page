@@ -14,13 +14,13 @@ Deno.serve(async (req) => {
     const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!url || !key) return empty(500);
     const sb = createClient(url, key, { auth: { persistSession: false } });
-    const { data, error } = await sb.rpc("purchase_fallback_csv", { _token: k });
-    if (error) return empty(500);
-    const rows = (data ?? []) as Array<{ gclid: string; order_id: string; conv_time: string; value: number }>;
-    // The function returns no rows for a wrong token; check the token separately so a wrong token is a 404, never an empty list.
+    // Check the token first so a wrong token is a 404, never an empty list.
     const { data: ok, error: e2 } = await sb.rpc("purchase_fallback_csv_token_ok", { _token: k });
     if (e2) return empty(500);
     if (ok !== true) return empty(404);
+    const { data, error } = await sb.rpc("purchase_fallback_csv", { _token: k });
+    if (error) return empty(500);
+    const rows = (data ?? []) as Array<{ gclid: string; order_id: string; conv_time: string; value: number }>;
     const clean = (s: unknown) => String(s ?? "").replace(/[\r\n,"]/g, "");
     const lines = ["Google Click ID,Conversion Name,Conversion Time,Conversion Value,Conversion Currency,Order ID"];
     for (const r of rows) {
