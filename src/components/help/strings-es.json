@@ -17,7 +17,6 @@
     "carrierAsk": "Dígame su operador y le mostraré su número de servicio al cliente."
   },
   "quick": {
-    "monthly_bill": "¿Factura mensual o pago por uso?",
     "refill_how": "Cómo recargar",
     "carriers": "Operadores y montos",
     "fee": "Cargo por servicio",
@@ -36,12 +35,6 @@
     "refill_how": [
       "Elija su operador, ingrese el número de teléfono, elija un plan o monto y pague con tarjeta de crédito o débito.",
       "No necesita crear una cuenta ni iniciar sesión."
-    ],
-    "monthly_bill": [
-      "Plan mensual o de pago por uso es el mismo pago en CellPay. Sin importar su plan, su pago se aplica a su cuenta y a su plan.",
-      "Si tiene un plan mensual, su pago va a ese plan. No tiene que elegir un tipo de pago.",
-      "La mayoría de los pagos se ven en pocos minutos. Puede tardar hasta 30 minutos.",
-      "¿Eligió la compañía o el número equivocado? Revise ambos antes de pagar, porque los pagos son finales una vez aplicados a una línea. Use \"Estado del pedido\" abajo o escriba a support@getcellpay.com."
     ],
     "carriers": [
       "Elija su operador abajo para ver los planes o montos de recarga disponibles."

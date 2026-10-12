@@ -5,7 +5,7 @@ import es from "./strings-es.json";
 import { HELP_CARRIERS, type HelpCarrier } from "./helpRoutes";
 
 export type HelpLang = "en" | "es";
-export type FaqTopic = "not_received" | "declined" | "fee" | "no_account" | "carriers" | "refill_how" | "monthly_bill" | "carrier_issue" | "refund" | "not_working" | "balance";
+export type FaqTopic = "not_received" | "declined" | "fee" | "no_account" | "carriers" | "refill_how" | "carrier_issue" | "refund" | "not_working" | "balance";
 export type HelpIntent = FaqTopic | "order_status" | "autopay" | "contact";
 export type HelpStrings = typeof en;
 
@@ -13,7 +13,7 @@ export const STRINGS: Record<HelpLang, HelpStrings> = { en, es };
 
 /** Quick-reply order shown in the panel. */
 export const QUICK_REPLIES: HelpIntent[] = [
-  "refill_how", "monthly_bill", "carriers", "fee", "declined", "not_received", "not_working", "no_account", "order_status", "autopay", "contact",
+  "refill_how", "carriers", "fee", "declined", "not_received", "not_working", "no_account", "order_status", "autopay", "contact",
 ];
 
 /** Lower-case, strip accents and apostrophes, collapse everything else to single spaces. */
@@ -128,11 +128,6 @@ const KEYWORDS: Array<[HelpIntent, string[]]> = [
     "conservar mi numero", "cambiar mi numero", "desbloquear", "sin servicio", "sin senal", "no tengo servicio",
     "no tengo senal", "mi telefono no funciona", "se me rompio el telefono", "telefono roto", "perdi mi telefono",
     "me robaron el telefono", "cambiar mi plan", "cambiar de plan",
-  ]],
-  ["monthly_bill", [
-    "monthly", "monthly bill", "monthly plan", "monthly payment", "pay my monthly bill", "refill or monthly", "refill vs monthly",
-    "is refill different", "paid as refill", "paid refill", "pay as you go", "wrong payment type", "applied to my monthly",
-    "mensual", "factura mensual", "plan mensual", "pago mensual", "pago por uso", "recarga o mensual", "pague como recarga",
   ]],
   ["refill_how", [
     "how to refill", "how do i refill", "how to recharge", "how do i recharge", "how to top up", "how do i top up",

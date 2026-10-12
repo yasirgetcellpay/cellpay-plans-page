@@ -12,8 +12,7 @@ import { weAcceptLine, payBrandsComma, PAYPAL_SHOWN } from "./src/content/paymen
 // LPX-1010: ad-lander H1 / title / subline per carrier (shared with GoLander.tsx).
 import { goLpxForRoute } from "./src/content/goCopy";
 // LPX-1010 (SPEC-LPX-3): carrier sentence + FAQ in the raw HTML of every /go page (shared with GoLander.tsx).
-import { goStaticSentence, goStaticFaqHtml, goRouteInfo } from "./src/content/goPage";
-import { isBillSlug, billAutoPayLine, billAmountHelp } from "./src/content/billWording"; // MONTHLY-BILL-COPY-1011
+import { goStaticSentence, goStaticFaqHtml } from "./src/content/goPage";
 // TOP4-T1-1009: carrier first-screen copy (H1/subline, Verizon trust row) shared with DynamicCarrier.tsx / Verizon.tsx.
 import { top4Hero, verizonTrustLine } from "./src/content/carrierHero";
 // PRIVACY-1007: privacy policy text (shared with src/pages/PrivacyPolicy.tsx) for the static raw HTML (EN + ES).
@@ -1145,9 +1144,9 @@ const htmlAliasPlugin = (): Plugin => ({
     const goCricketScreen = (isEs: boolean, color: string): string => {
       const s = isEs
         ? { steps: "3 pasos: número → monto → pagar", phone: "Ingrese su número de teléfono de Cricket Wireless", amount: "Seleccione el monto",
-            ph: "Ingrese un monto entre 5 - 250", help: billAmountHelp("es"), pay: "PAGAR AHORA", faq: "Preguntas frecuentes" }
+            ph: "Ingrese un monto entre 5 - 250", help: "Ingrese el monto que desea recargar", pay: "PAGAR AHORA", faq: "Preguntas frecuentes" }
         : { steps: "3 steps: number → amount → pay", phone: "Enter Your Cricket Wireless Phone Number", amount: "Select Amount",
-            ph: "Enter an amount between 5 - 250", help: billAmountHelp("en"), pay: "PAY NOW", faq: "Common questions" };
+            ph: "Enter an amount between 5 - 250", help: "Enter the amount you want to recharge", pay: "PAY NOW", faq: "Common questions" };
       const inputCls = "w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center";
       const faqItems = GO_CRICKET_FAQ_Q[isEs ? "es" : "en"]
         .map(
@@ -1194,9 +1193,7 @@ const htmlAliasPlugin = (): Plugin => ({
         : route.startsWith("es/") ? "Sin cuenta. Pague por usted o por otra persona." : "No login. Pay for yourself or someone else.";
       // SPEED-LANDER-LCP2: Autopay benefit in the static shell (same classes/copy as GoLander) so LCP can paint with H1.
       const isEs = route.startsWith("es/");
-      const autoPayLine = isBillSlug(goRouteInfo(route)?.slug)
-        ? billAutoPayLine(isEs ? "es" : "en") // MONTHLY-BILL-COPY-1011
-        : isEs
+      const autoPayLine = isEs
         ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano."
         : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.";
       const feeLine = isEs
@@ -1407,9 +1404,7 @@ const htmlAliasPlugin = (): Plugin => ({
         : slug === "metropcs"
         ? "Pay your Metro by T-Mobile prepaid bill online. No login needed."
         : "No login needed. Enter your phone number, choose your plan, and you're recharged.";
-      const info = isBillSlug(slug)
-        ? billAutoPayLine(isEs ? "es" : "en") + (isEs ? " Cargo por servicio bajo, mostrado antes de pagar. " : " Low service fee shown before you pay. ") + weAcceptLine(isEs ? "es" : "en") // MONTHLY-BILL-COPY-1011
-        : isEs
+      const info = isEs
         ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PAYCOPY-1008: shared payment list
         : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked. Low service fee shown before you pay. " + weAcceptLine("en");
       return (
