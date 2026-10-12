@@ -1390,15 +1390,35 @@ const Checkout = () => {
   };
 
   // ─── Credit Card ───
+  // [ATT-CARRIERID-1012] Carrier id for card orders: never the plan id.
+  const resolveCarrierId = (v: ValidationResult | null | undefined = validation): string => {
+    const plan = state.planId !== undefined && state.planId !== null ? String(state.planId) : "";
+    for (const c of [v?.carrier_id, v?.carrierId, (state as unknown as Record<string, unknown>).carrierId]) {
+      const s = c === undefined || c === null ? "" : String(c).trim();
+      if (s && s !== plan) return s;
+    }
+    return "";
+  };
   const handleCard = async () => {
     await fpReady();
+    let carrierIdForCard = resolveCarrierId();
+    if (!carrierIdForCard) {
+      try {
+        const again = await validateRecharge(state.carrierSlug, normalizePhone(state.phone), state.planId, Number(state.amount));
+        if (again && again.success !== false) carrierIdForCard = resolveCarrierId(again);
+      } catch { /* handled below */ }
+    }
+    if (!carrierIdForCard) {
+      setErrorMsg(lang === "es" ? "Vuelve a seleccionar tu compañía e inténtalo de nuevo." : "Please re-select your carrier and try again.");
+      return;
+    }
     const payload = {
       checkout_version: "5.0",
       payment_method: "cardpayment",
       amount: validation?.amount ?? Number(state.amount),
       total: validation?.total ?? Number(state.amount),
       phone_number: normalizePhone(state.phone),
-      carrierId: validation?.carrier_id || validation?.carrierId || state.planId,
+      carrierId: carrierIdForCard,
       carrier_slug: state.carrierSlug,
       carrier_name: state.carrierName,
       plan_id: state.planId ? String(state.planId) : undefined,
