@@ -65,6 +65,10 @@ Deno.serve(async (req) => {
     for (const r of rows) {
       lines.push([clean(r.gclid), "CP offline missed purchase", clean(r.conv_time), Number(r.value).toFixed(2), "USD", clean(r.order_id)].join(","));
     }
+    // Real already-missed order zpGkw5 from the manual 93-order upload, same action + Order ID so Google dedupes;
+    // only there so Data Manager can detect the schema when the queue is empty.
+    const SCHEMA_ROW = "CjwKCAjw_pzWBhAkEiwAwDCi1TbvsUjNUCyz-nw0NrAlFo_ep4kupdN4BTM5k_k6Y1TVzYw_gHZl5hoClKUQAvD_BwE,CP offline missed purchase,2026-10-08 07:23:05-05:00,39.99,USD,zpGkw5";
+    if (rows.length === 0) lines.push(SCHEMA_ROW);
     return new Response(isHead ? null : lines.join("\n") + "\n", {
       status: 200,
       headers: { "Content-Type": "text/csv; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" },
