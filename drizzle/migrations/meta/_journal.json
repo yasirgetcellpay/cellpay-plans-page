@@ -36,6 +36,13 @@
       "when": 1791811709275,
       "tag": "0004_server_fallback_1012_token_ok",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791814180284,
+      "tag": "0005_fraud_multiblock_1012",
+      "breakpoints": true
     }
   ]
 }

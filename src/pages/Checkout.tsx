@@ -440,11 +440,27 @@ const Checkout = () => {
   const [dupAsk, setDupAsk] = useState<{ amount: string } | null>(null);
   // DUPCHARGE-FOLLOWUPS-1008: IN_FLIGHT = the first charge for this order is still at CellPay (< 2 min): calm notice, not an error.
   const [inFlightNote, setInFlightNote] = useState(false);
+  // FRAUD-MULTIBLOCK-1012: own device fingerprint, started in the FP-IDLE-1007 idle callback (never on mount, never blocks).
+  const devFpRef = useRef<Promise<{ dev_fp: string; dev_id: string }> | null>(null);
+  // FRAUD-MULTIBLOCK-1012 5c: the proxy sets risk_action "step_up" only in enforce mode; in shadow this never turns on.
+  const [stepUp, setStepUp] = useState(false);
   const submitTransaction = async (p: Record<string, unknown>): Promise<unknown> => {
     const confirmed = dupConfirmRef.current;
     dupConfirmRef.current = false;
-    const raw = await submitTransactionRaw(confirmed ? { ...p, dup_confirm: true } : p);
+    // FRAUD-MULTIBLOCK-1012: cp_dev (proxy reads and removes it; never sent to CellPay). At most 300 ms wait, empty on timeout.
+    let cpDev = { dev_fp: "", dev_id: "" };
+    try {
+      if (devFpRef.current) {
+        let t: ReturnType<typeof setTimeout> | undefined;
+        const v = await Promise.race([devFpRef.current, new Promise<null>((r) => { t = setTimeout(() => r(null), 300); })]);
+        if (t) clearTimeout(t);
+        if (v && typeof v.dev_fp === "string" && typeof v.dev_id === "string") cpDev = { dev_fp: v.dev_fp, dev_id: v.dev_id };
+      }
+    } catch { /* empty cp_dev */ }
+    const withDev = { ...p, cp_dev: cpDev };
+    const raw = await submitTransactionRaw(confirmed ? { ...withDev, dup_confirm: true } : withDev);
     const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+    if (r.risk_action === "step_up") setStepUp(true); // FRAUD-MULTIBLOCK-1012 5c (enforce only)
     if (r.code === "DUP_CONFIRM") setDupAsk({ amount: String(r.amount ?? "") });
     if (r.code === "IN_FLIGHT") setInFlightNote(true); // DUPCHARGE-FOLLOWUPS-1008
     if (r.code === "SESSION_PAID" && typeof r.hashid === "string" && r.hashid) {
@@ -652,6 +668,10 @@ const Checkout = () => {
     browserInfoRef.current = JSON.stringify(getClientProps());
 
     const run = (): Promise<void> => {
+      // FRAUD-MULTIBLOCK-1012: start the own device fingerprint here too (lazy chunk, idle time only)
+      if (!devFpRef.current) {
+        devFpRef.current = import("@/lib/deviceFp").then((m) => m.getDeviceFp()).catch(() => ({ dev_fp: "", dev_id: "" }));
+      }
       if (fpPromiseRef.current) return fpPromiseRef.current;
       fpPromiseRef.current = (async () => {
         try {
@@ -2224,8 +2244,14 @@ const Checkout = () => {
             </div>
           )}
 
+          {/* FRAUD-MULTIBLOCK-1012 5c: step-up (enforce mode only; never shown in shadow) */}
+          {stepUp && paymentMethod === "card" && (
+            <div role="alert" data-testid="risk-stepup" className="bg-card rounded-xl border border-border p-5 text-sm font-semibold text-foreground">
+              {lang === "es" ? "Por tu seguridad, termina el pago con Apple Pay, Google Pay o PayPal." : "For your security, please finish with Apple Pay, Google Pay or PayPal."}
+            </div>
+          )}
           {/* Card form (only shown for credit card) */}
-          {paymentMethod === "card" && (
+          {paymentMethod === "card" && !stepUp && (
             <div ref={cardFormRef} className="bg-card rounded-xl border border-border p-5 space-y-4">
               <h2 className="font-bold text-foreground mb-1 text-sm flex items-center gap-2">
                 <CreditCard className="h-4 w-4" /> {tr.cardDetails}
