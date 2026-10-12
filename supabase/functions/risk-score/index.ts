@@ -1,7 +1,7 @@
 // FRAUD-MULTIBLOCK-1012 5b: pre-payment risk score endpoint (shadow by default; checkout_guard_controls.riskengine).
 // Service role inside. IP comes from x-forwarded-for (first hop), never from the client body. Any error -> allow.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { scoreRisk } from "./logic.ts";
+import { scoreRisk } from "../_shared/riskLogic.ts";
 
 const json = (b: unknown) => new Response(JSON.stringify(b), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
