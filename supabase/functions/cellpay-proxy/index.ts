@@ -2170,6 +2170,34 @@ function logCarrierCheck(endpoint: unknown, status: number, wrapped: Record<stri
   }
 }
 
+// [EMOJI-STRIP-1012] CellPay's billing DB (MySQL utf8, not utf8mb4) rejects 4-byte chars. Clean free-text fields only.
+const FREE_TEXT_KEYS = new Set(["first_name","firstname","last_name","lastname","name","full_name","fullname","billing_name","cardholder_name","card_holder_name","holder_name","givenname","familyname","email","emailaddress","address","address1","address2","address_line1","address_line2","street","street_address","addresslines","city","locality","sublocality","state","administrativearea","subadministrativearea","country_name","note","notes","comment","comments","memo","company"]);
+const SKIP_RECURSE = /token|paymentdata|signature|cryptogram|cp_dev|^mf|^mf_|fraud|risk|kount|riskified|cbsys|turnstile|gclid|gbraid|wbraid|amount|total|fee|price|_id$|^id$|hash/i;
+function cleanFreeText(s: string): string {
+  return s
+    .replace(/[\u{10000}-\u{10FFFF}]/gu, "")            // emoji & other non-BMP
+    .replace(/[\uD800-\uDFFF]/g, "")                    // lone surrogates
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF\uFE0E\uFE0F\u20E3]/g, "") // zero-width / bidi / variation selectors
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "") // control chars
+    .replace(/[\t\r\n]+/g, " ")
+    .replace(/ {2,}/g, " ")
+    .trim();
+}
+function sanitizeFreeText(v: unknown, depth = 0): void {
+  if (!v || typeof v !== "object" || depth > 6) return;
+  const o = v as Record<string, unknown>;
+  for (const k of Object.keys(o)) {
+    const val = o[k];
+    if (FREE_TEXT_KEYS.has(k.toLowerCase())) {
+      if (typeof val === "string") o[k] = cleanFreeText(val);
+      else if (Array.isArray(val)) o[k] = val.map((x) => (typeof x === "string" ? cleanFreeText(x) : x));
+      else if (val && typeof val === "object" && !SKIP_RECURSE.test(k)) sanitizeFreeText(val, depth + 1);
+    } else if (val && typeof val === "object" && !SKIP_RECURSE.test(k)) {
+      sanitizeFreeText(val, depth + 1);
+    }
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -2187,6 +2215,8 @@ serve(async (req) => {
 
     const body = await req.json();
     const { endpoint, method = "GET", payload, bearerToken, callerHost } = body;
+    // [EMOJI-STRIP-1012] clean free-text fields in place before any guard/log/forward (covers every route incl. PayPal + checkout/transaction).
+    try { if (typeof method === "string" && method.toUpperCase() !== "GET") sanitizeFreeText(payload); } catch { /* fail-open */ }
 
     if (!endpoint) {
       return new Response(JSON.stringify({ error: "Missing endpoint" }), {
