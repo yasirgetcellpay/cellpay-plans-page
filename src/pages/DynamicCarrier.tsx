@@ -18,8 +18,6 @@ import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/
 import { applySeoHead } from "@/lib/seo";
 import { takeCheckoutPrefill } from "@/lib/checkoutResume";
 import { t, type Language } from "@/lib/i18n";
-import { billTr } from "@/lib/billTr"; // MONTHLY-BILL-COPY-1011
-import { isBillSlug, billAutoPayLine, billFaqs } from "@/content/billWording"; // MONTHLY-BILL-COPY-1011
 import {
   CricketQuickPayContent,
   CRICKET_QUICK_PAY_FAQ_SCHEMA,
@@ -228,7 +226,7 @@ const DynamicCarrier = ({
 }: DynamicCarrierProps) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const tr = billTr(lang, carrierSlug); // MONTHLY-BILL-COPY-1011: Metro / Boost / Cricket plain bill wording
+  const tr = t(lang);
   // CK-0: number handed back by Checkout when a direct /checkout load can't be resumed (read once; never in the URL).
   const [phone, setPhone] = useState(() => formatPhone(takeCheckoutPrefill(carrierSlug)));
   const [amount, setAmount] = useState("");
@@ -628,9 +626,7 @@ const DynamicCarrier = ({
   const sf = top4 ? searchFaqs(carrierSlug, lang === "es" ? "es" : "en") : [];
   const qa = (l: Array<{ q: string; a: string }>) => l.map((f) => ({ question: f.q, answer: f.a }));
   const baseFaqs = esTop4 ? [...qa(sf.slice(0, 1)), ...qa(esCarrierFaqs(carrierSlug).slice(1)), ...qa(sf.slice(1))] : [...faqs, ...qa(sf)];
-  const shownFaqs = isBillSlug(carrierSlug)
-    ? billFaqs(lang === "es" ? "es" : "en", displayCarrierName(carrierName, lang === "es" ? "es" : "en")).map((f) => ({ question: f.q, answer: f.a })) // MONTHLY-BILL-COPY-1011
-    : extraFaq ? [...baseFaqs, { question: extraFaq.q, answer: extraFaq.a }] : baseFaqs;
+  const shownFaqs = extraFaq ? [...baseFaqs, { question: extraFaq.q, answer: extraFaq.a }] : baseFaqs;
   const faqName = esTop4 ? top4Name(carrierSlug, "es") || shownName : shownName;
   // SIMPLE-SPEC-1-1009 (display only): Simple Mobile plan names/order, answer, FAQ and links from src/content/simplePage.ts.
   const isSimple = carrierSlug === "s1";
@@ -692,9 +688,7 @@ const DynamicCarrier = ({
           vite.config.ts carrierFirstScreen). Information only: Auto Pay is chosen at checkout and is never pre-checked. */}
       <div className="max-w-[420px] mx-auto px-4 pt-3">
         <p className="bg-card rounded-xl border border-border px-3 py-2.5 text-xs text-foreground leading-relaxed text-center">
-          {isBillSlug(carrierSlug)
-            ? billAutoPayLine(lang === "es" ? "es" : "en") + (lang === "es" ? " Cargo por servicio bajo, mostrado antes de pagar. " : " Low service fee shown before you pay. ") + weAcceptLine(lang === "es" ? "es" : "en")
-            : lang === "es"
+          {lang === "es"
             ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es")
             : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked. Low service fee shown before you pay. " + weAcceptLine("en")}
         </p>

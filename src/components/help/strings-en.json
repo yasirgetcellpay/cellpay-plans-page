@@ -18,7 +18,6 @@
   },
   "quick": {
     "refill_how": "How to refill",
-    "monthly_bill": "Monthly bill or pay-as-you-go?",
     "carriers": "Carriers & amounts",
     "fee": "Service fee",
     "declined": "Payment declined",
@@ -36,12 +35,6 @@
     "refill_how": [
       "Choose your carrier, enter the phone number, choose a plan or amount, and pay with a credit or debit card.",
       "You don't need to create an account or log in."
-    ],
-    "monthly_bill": [
-      "Monthly plan or pay-as-you-go is the same payment on CellPay. Whatever plan you have, your payment is applied to your account and plan.",
-      "If you have a monthly plan, your payment goes to that plan. You don't need to choose a type of payment.",
-      "Most payments show within a few minutes. It can take up to 30 minutes.",
-      "Picked the wrong carrier or number? Check both before you pay, because payments are final once applied to a line. Use \"Check order status\" below, or email support@getcellpay.com."
     ],
     "carriers": [
       "Choose your carrier below to see the available plans or refill amounts."

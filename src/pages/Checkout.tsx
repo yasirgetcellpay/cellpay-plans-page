@@ -43,8 +43,6 @@ import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib
 import { useLang, t } from "@/lib/i18n";
 // TOP4-T2B-1009: carrier name for the "Your payment was refunded" card (display only)
 import { top4Name, displayCarrierName } from "@/content/carrierHero";
-import { billTr, isBillCarrier } from "@/lib/billTr"; // MONTHLY-BILL-COPY-1011
-import { BILL_AP, BILL_MSG, BILL_SUMMARY_NOTE } from "@/content/billWording"; // MONTHLY-BILL-COPY-1011
 import { readCheckoutCtx, writeCheckoutCtx, clearCheckoutCtx, resolveCheckoutFromUrl, carrierPageTarget, cashAppReturnTarget, stripResumeParams, readCheckoutMethod, writeCheckoutMethod } from "@/lib/checkoutResume";
 import { trackFunnel, resetFunnel, funnelFired } from "@/lib/funnelEvents"; // CHECKOUT-FUNNEL
 
@@ -278,11 +276,8 @@ const Checkout = () => {
   const state = routerState ?? savedState;
   const resumed = !routerState || !!routerState.resumed;
   const lang = useLang();
-  // MONTHLY-BILL-COPY-1011: Metro / Boost / Cricket show plain "bill payment" wording (no refill / recharge). Copy only.
-  const bill = isBillCarrier(state?.carrierSlug, state?.carrierName);
-  const tr = billTr(lang, state?.carrierSlug, state?.carrierName);
-  const apCopyBase = AP_COPY[lang === "es" ? "es" : "en"];
-  const apCopy = bill ? { ...apCopyBase, ...BILL_AP[lang === "es" ? "es" : "en"] } : apCopyBase;
+  const tr = t(lang);
+  const apCopy = AP_COPY[lang === "es" ? "es" : "en"];
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -941,7 +936,7 @@ const Checkout = () => {
           if (code === "DUP_CONFIRM" || code === "IN_FLIGHT") return; // "Charge again?" / "still processing" dialog is open (wrapper)
           const again = es ? " Para intentarlo de nuevo, toque PayPal y apruebe un pago nuevo." : " To try again, tap PayPal and approve a new payment.";
           setErrorMsg((code === "REFILL_COOLDOWN"
-            ? (bill ? BILL_MSG[es ? "es" : "en"].cooldown : es ? "Este plan no se pudo recargar en este momento. Intente de nuevo en unos 10 minutos o elija otro plan. No se le cobró." : "This plan couldn't be refilled just now. Please try again in about 10 minutes or choose a different plan. You were not charged.")
+            ? (es ? "Este plan no se pudo recargar en este momento. Intente de nuevo en unos 10 minutos o elija otro plan. No se le cobró." : "This plan couldn't be refilled just now. Please try again in about 10 minutes or choose a different plan. You were not charged.")
             : code === "PAYPAL_UNAVAILABLE"
             ? (es ? "PayPal no está disponible en este momento. Use otro método de pago. No se le cobró." : "PayPal is not available right now. Please use another payment method. You were not charged.")
             : code === "PAYPAL_DETAILS_MISSING"
@@ -1022,7 +1017,7 @@ const Checkout = () => {
           const es = lang === "es";
           const amt = String(orderRaw.amount || "");
           setErrorMsg(code === "REFILL_COOLDOWN"
-            ? (bill ? BILL_MSG[es ? "es" : "en"].cooldown : es ? "Este plan no se pudo recargar en este momento. Su intento anterior no se completó; cualquier cargo pendiente desaparecerá. Intente de nuevo en unos 10 minutos o elija otro plan." : String(orderRaw.message || "Please try again in about 10 minutes."))
+            ? (es ? "Este plan no se pudo recargar en este momento. Su intento anterior no se completó; cualquier cargo pendiente desaparecerá. Intente de nuevo en unos 10 minutos o elija otro plan." : String(orderRaw.message || "Please try again in about 10 minutes."))
             : code === "SESSION_PAID"
             ? (es ? `Este pedido ya está pagado ($${amt}), así que no le cobramos de nuevo. Su recibo se envió por correo electrónico.` : `This order is already paid ($${amt}), so we did not charge you again. Your receipt was sent by email.`)
             : code === "DUP_CONFIRM"
@@ -2274,7 +2269,6 @@ const Checkout = () => {
                 <span className="text-foreground">{tr.total}</span>
                 <span style={{ color: brandColor }}>${Number(total).toFixed(2)}</span>
               </div>
-              {bill && <p className="text-[11px] leading-snug text-muted-foreground pt-1.5" data-testid="bill-summary-note">{BILL_SUMMARY_NOTE[lang === "es" ? "es" : "en"]}</p>}
             </div>
           </div>
 
@@ -2805,13 +2799,13 @@ const Checkout = () => {
             <h3 className="text-xl font-bold text-foreground mb-2">{lang === "es" ? "Pago recibido" : "Payment received"}</h3>
             <p className="text-sm text-muted-foreground mb-2">
               {lang === "es"
-                ? (bill ? BILL_MSG.es.ppPaid : "PayPal confirmó su pago. Su recarga se está procesando y recibirá su recibo por correo electrónico. No pague de nuevo.")
-                : (bill ? BILL_MSG.en.ppPaid : "PayPal confirmed your payment. Your refill is being processed and your receipt will be emailed to you. Please don't pay again.")}
+                ? "PayPal confirmó su pago. Su recarga se está procesando y recibirá su recibo por correo electrónico. No pague de nuevo."
+                : "PayPal confirmed your payment. Your refill is being processed and your receipt will be emailed to you. Please don't pay again."}
             </p>
             <p className="text-xs text-muted-foreground mb-4">
               {lang === "es"
-                ? <>{bill ? BILL_MSG.es.ppPaidHelp : "Si su recarga no llega en 15 minutos, escriba a support@getcellpay.com con la orden de PayPal"} <span className="font-mono">{ppPaidNoId}</span>.</>
-                : <>{bill ? BILL_MSG.en.ppPaidHelp : "If your refill hasn't arrived in 15 minutes, email support@getcellpay.com with PayPal order"} <span className="font-mono">{ppPaidNoId}</span>.</>}
+                ? <>Si su recarga no llega en 15 minutos, escriba a support@getcellpay.com con la orden de PayPal <span className="font-mono">{ppPaidNoId}</span>.</>
+                : <>If your refill hasn't arrived in 15 minutes, email support@getcellpay.com with PayPal order <span className="font-mono">{ppPaidNoId}</span>.</>}
             </p>
             <button type="button" onClick={() => navigate(lang === "es" ? "/es" : "/")}
               className="px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
@@ -2827,13 +2821,13 @@ const Checkout = () => {
             <h3 className="text-xl font-bold text-foreground mb-2">{lang === "es" ? "Estamos revisando su pago" : "We're checking your payment"}</h3>
             <p className="text-sm text-muted-foreground mb-2">
               {lang === "es"
-                ? (bill ? BILL_MSG.es.ppReceived : "Es posible que su pago de PayPal se haya realizado, pero no pudimos confirmar su recarga. Por favor no pague de nuevo.")
-                : (bill ? BILL_MSG.en.ppReceived : "Your PayPal payment may have gone through, but we couldn't confirm your refill. Please don't pay again.")}
+                ? "Es posible que su pago de PayPal se haya realizado, pero no pudimos confirmar su recarga. Por favor no pague de nuevo."
+                : "Your PayPal payment may have gone through, but we couldn't confirm your refill. Please don't pay again."}
             </p>
             <p className="text-xs text-muted-foreground mb-4">
               {lang === "es"
-                ? <>{bill ? BILL_MSG.es.ppReceivedHelp : "Lo revisaremos y completaremos su recarga o le devolveremos el dinero. Si no sabe de nosotros en 30 minutos, escriba a support@getcellpay.com con la orden de PayPal"} <span className="font-mono">{ppReceivedId}</span>.</>
-                : <>{bill ? BILL_MSG.en.ppReceivedHelp : "We'll check it and either complete your refill or refund you. If you don't hear from us within 30 minutes, email support@getcellpay.com with PayPal order"} <span className="font-mono">{ppReceivedId}</span>.</>}
+                ? <>Lo revisaremos y completaremos su recarga o le devolveremos el dinero. Si no sabe de nosotros en 30 minutos, escriba a support@getcellpay.com con la orden de PayPal <span className="font-mono">{ppReceivedId}</span>.</>
+                : <>We'll check it and either complete your refill or refund you. If you don't hear from us within 30 minutes, email support@getcellpay.com with PayPal order <span className="font-mono">{ppReceivedId}</span>.</>}
             </p>
             <p className="text-xs text-muted-foreground mb-4">
               {lang === "es"
@@ -2940,7 +2934,7 @@ const Checkout = () => {
             <div className="bg-card rounded-2xl p-5 max-w-sm w-full overflow-y-auto overscroll-contain text-center shadow-xl" style={{ maxHeight: "calc(100dvh - 2rem)" }} onClick={(e) => e.stopPropagation()} data-testid="refund-card">
               <h3 className="text-xl font-bold text-foreground mb-2">{es ? "Le devolvimos su pago" : "Your payment was refunded"}</h3>
               <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">
-                {bill ? BILL_MSG[es ? "es" : "en"].errNotAdded(carrier, last4) : es
+                {es
                   ? `No pudimos agregar esta recarga al número •••${last4} de ${carrier}, por eso su pago se devolvió automáticamente. Revise que sea una línea activa de ${carrier} y que eligió la compañía correcta.`
                   : `We couldn't add this refill to ${carrier} number •••${last4}, so your payment was refunded automatically. Please check that this is an active ${carrier} line and that you picked the right carrier.`}
               </p>

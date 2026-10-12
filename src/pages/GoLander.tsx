@@ -16,8 +16,6 @@ import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/
 import { applySeoHead } from "@/lib/seo";
 import { takeCheckoutPrefill } from "@/lib/checkoutResume";
 import { t, type Language } from "@/lib/i18n";
-import { billTr } from "@/lib/billTr"; // MONTHLY-BILL-COPY-1011
-import { isBillSlug, billAutoPayLine, billFaqs } from "@/content/billWording"; // MONTHLY-BILL-COPY-1011
 import cellpayLogo from "@/assets/cellpay-logo.svg";
 import {
   Accordion,
@@ -184,7 +182,7 @@ const GoLander = ({
 }: GoLanderProps) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const tr = billTr(lang, carrierSlug); // MONTHLY-BILL-COPY-1011: Metro / Boost / Cricket plain bill wording
+  const tr = t(lang);
   const lpx = goLpxForCarrier(carrierSlug, lang === "es" ? "es" : "en"); // LPX-1010
   const { toast } = useToast();
 
@@ -466,9 +464,7 @@ const GoLander = ({
   // GO-COPY-1008: visible "En español" switch on English /go pages (every /go page has an /es/go twin).
   const esHref = !isEs && typeof window !== "undefined" ? `/es${window.location.pathname}` : null;
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
-  const autoPayLine = isBillSlug(carrierSlug)
-    ? billAutoPayLine(isEs ? "es" : "en")
-    : isEs
+  const autoPayLine = isEs
     ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano."
     : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.";
   const feeLine = isEs
@@ -478,8 +474,7 @@ const GoLander = ({
   const faqName = GO_AD_NAMES[carrierSlug] ?? initialName; // ADS-FOLLOWUPS-1008: ad-style name in the FAQs only
   // TOP4-T2A-1009: + "Why was my payment refunded?" (T-Mobile, AT&T, Simple Mobile, Verizon only); also in the FAQPage JSON-LD below.
   const goRefundFaq = refundFaq(carrierSlug, isEs ? "es" : "en");
-  const faqsLd = [...(isEs ? goFaqsEs(faqName) : goFaqsEn(faqName)), ...(goRefundFaq ? [goRefundFaq] : [])]; // JSON-LD source (unchanged, Tier B)
-  const faqs = isBillSlug(carrierSlug) ? billFaqs(isEs ? "es" : "en", faqName) : faqsLd; // MONTHLY-BILL-COPY-1011: visible Q&A
+  const faqs = [...(isEs ? goFaqsEs(faqName) : goFaqsEn(faqName)), ...(goRefundFaq ? [goRefundFaq] : [])];
   // TOP4-T2A-1009: "active line" note under the number field (same in the loading and loaded layouts, so nothing moves).
   const lineNote = activeLineNote(carrierSlug, isEs ? "es" : "en");
   // SPEED-WWW-1008: while the carrier view loads, Cricket (amount range, no plan grid) shows its loaded layout (same form, pay bar
@@ -496,7 +491,7 @@ const GoLander = ({
     "@context": "https://schema.org",
     "@type": "FAQPage",
     inLanguage: isEs ? "es" : "en",
-    mainEntity: faqsLd.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+    mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
   });
   useEffect(() => {
     const el = document.createElement("script");
