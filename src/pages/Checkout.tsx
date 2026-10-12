@@ -46,6 +46,7 @@ import { top4Name, displayCarrierName } from "@/content/carrierHero";
 import { billTr, isBillCarrier } from "@/lib/billTr"; // MONTHLY-BILL-COPY-1011
 import { BILL_AP, BILL_MSG, BILL_SUMMARY_NOTE } from "@/content/billWording"; // MONTHLY-BILL-COPY-1011
 import { readCheckoutCtx, writeCheckoutCtx, clearCheckoutCtx, resolveCheckoutFromUrl, carrierPageTarget, cashAppReturnTarget, stripResumeParams, readCheckoutMethod, writeCheckoutMethod } from "@/lib/checkoutResume";
+import { trackFunnel, resetFunnel, funnelFired } from "@/lib/funnelEvents"; // CHECKOUT-FUNNEL
 
 interface LocationState {
   phone: string;
@@ -1199,6 +1200,54 @@ const Checkout = () => {
     return () => clearTimeout(t);
   }, [paymentMethod, !!state]);
 
+  // CHECKOUT-FUNNEL: invisible funnel analytics (no UI). Hooks sit above the "if (!state)" return. All fire-and-forget.
+  const funnelDataRef = useRef<{ carrier: string | null; amount: number | null; fee: number | null; total: number | null }>({ carrier: null, amount: null, fee: null, total: null });
+  useEffect(() => { resetFunnel(); }, []);
+  useEffect(() => {
+    try {
+      if (!state?.carrierSlug) return;
+      const amount = Number(state.amount);
+      funnelDataRef.current = {
+        carrier: state.carrierSlug, amount: Number.isFinite(amount) ? amount : null,
+        fee: validation ? Number(validation.fee ?? 0) : null,
+        total: validation ? Number(validation.total ?? amount) : null,
+      };
+      trackFunnel("checkout_view", funnelDataRef.current);
+      if (validation && !loading) trackFunnel("total_shown", funnelDataRef.current);
+    } catch { /* ignore */ }
+  }, [state?.carrierSlug, state?.amount, validation, loading]);
+  useEffect(() => {
+    const started = () => { try { trackFunnel("payment_started", funnelDataRef.current); } catch { /* ignore */ } };
+    const onFocus = (e: Event) => {
+      try {
+        const el = e.target as HTMLElement | null;
+        if (el && el.tagName === "INPUT" && /^cc-/.test(el.getAttribute("autocomplete") || "")) started();
+      } catch { /* ignore */ }
+    };
+    const onClick = (e: Event) => {
+      try {
+        const el = (e.target as HTMLElement | null)?.closest?.("[data-method], .gpay-button, apple-pay-button, [data-funding-source], iframe[title*='PayPal' i]");
+        if (el) started();
+      } catch { /* ignore */ }
+    };
+    const leave = () => {
+      try {
+        if (funnelFired("total_shown") && !funnelFired("submitted")) trackFunnel("left_at_total", funnelDataRef.current);
+      } catch { /* ignore */ }
+    };
+    const onVis = () => { if (document.visibilityState === "hidden") leave(); };
+    document.addEventListener("focusin", onFocus, true);
+    document.addEventListener("click", onClick, true);
+    window.addEventListener("pagehide", leave);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      document.removeEventListener("focusin", onFocus, true);
+      document.removeEventListener("click", onClick, true);
+      window.removeEventListener("pagehide", leave);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
+
   if (!state) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background" aria-busy="true">
@@ -2100,6 +2149,8 @@ const Checkout = () => {
     if (validationErr) { setErrorMsg(validationErr); return; }
     if (!canSubmit) return;
     setSubmitting(true);
+    // CHECKOUT-FUNNEL: queued after the order flow below has started; never awaited, never throws.
+    try { setTimeout(() => trackFunnel("submitted", funnelDataRef.current), 0); } catch { /* ignore */ }
     setErrorMsg(null);
     setShowNotChargedNote(false);
     setDeclineInfo(null);

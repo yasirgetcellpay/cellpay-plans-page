@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.ads-fallback-csv]
 verify_jwt = false
+
+[functions.funnel-event]
+verify_jwt = false
