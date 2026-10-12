@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { scoreRisk, riskEngineMode } from "../risk-score/logic.ts"; // FRAUD-MULTIBLOCK-1012 5b
+import { scoreRisk, riskEngineMode } from "../_shared/riskLogic.ts"; // FRAUD-MULTIBLOCK-1012 5b
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
