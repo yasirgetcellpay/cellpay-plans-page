@@ -10,7 +10,7 @@ import { refundFaq, searchFaqs } from "./carrierHero";
 export type HtpLang = "en" | "es";
 export type HtpFaq = { q: string; a: string };
 export type HtpPage = {
-  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid" | "lyca-mobile"; // AEO-06-LYCA-1011: + Lyca Mobile; AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid
+  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid" | "lyca-mobile" | "metro-pcs"; // AEO-07-METRO-1012: + Metro by T-Mobile; AEO-06-LYCA-1011: + Lyca Mobile; AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid
   lang: HtpLang;
   path: string; // www path of this page
   enPath: string;
@@ -303,6 +303,37 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     related: [["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/simple-mobile", "Cómo pagar Simple Mobile"], ["/guest-lyca.html", "Pagar Lyca Mobile como invitado"], ["/es/lyca.html", "Recarga Lyca Mobile"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
     updatedIso: "2026-10-11", updatedText: "Última actualización: 11 de octubre de 2026",
   }),
+  // AEO-07-METRO-1012: Metro by T-Mobile pay-bill pages (SPEC-07/08 + overrides). "Pay now" goes to /metropcs.html (ES: /es/metropcs.html). Built like the Lyca/Verizon pairs.
+  en({
+    key: "metro-pcs", name: "Metro by T-Mobile", slug: "metropcs", checkout: "/metropcs.html", an: "a",
+    title: "How to Pay Your Metro by T-Mobile (MetroPCS) Bill Online | CellPay",
+    description: `Metro PCS pay bill online, no login: enter the Metro by T-Mobile number, pick an amount, pay by ${payWith("en", "card")}.`,
+    h1: "How to Pay Your Metro by T-Mobile (MetroPCS) Bill Online",
+    step3: "Choose a plan from the list or enter a custom amount.",
+    autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
+    autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
+    moreFaqs: [
+      { q: "What if I don't know how much I owe?", a: "CellPay doesn't show your Metro by T-Mobile balance. Check the amount due in your Metro by T-Mobile app, account or text messages, then choose that plan or amount here. The total with the service fee is shown before you pay." },
+      { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." },
+    ],
+    related: [["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/lyca-mobile", "How to pay Lyca Mobile"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/guest-metro-pcs.html", "Pay Metro by T-Mobile as a guest"], ["/metropcs.html", "Pay Metro by T-Mobile now"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
+    updatedIso: "2026-10-12", updatedText: "Last updated: October 12, 2026",
+  }),
+  es({
+    key: "metro-pcs", name: "Metro by T-Mobile", slug: "metropcs", checkout: "/es/metropcs.html",
+    title: "Cómo Pagar su Factura de Metro by T-Mobile (MetroPCS) en Línea | CellPay",
+    description: "Pagar Metro PCS en línea sin iniciar sesión: ingrese el número de Metro by T-Mobile, elija el monto y pague con tarjeta, Apple Pay, Google Pay y más.",
+    h1: "Cómo pagar su factura de Metro by T-Mobile (MetroPCS) en línea",
+    step3: "Elija un plan de la lista o ingrese un monto personalizado.",
+    autoPayA: "S\u00ed. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca est\u00e1 marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
+    autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca est\u00e1 marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
+    moreFaqs: [
+      { q: "¿Qué hago si no sé cuánto debo?", a: "CellPay no muestra el saldo de Metro by T-Mobile. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de Metro by T-Mobile, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar." },
+      { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." },
+    ],
+    related: [["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/lyca-mobile", "Cómo pagar Lyca Mobile"], ["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], ["/guest-metro-pcs.html", "Pagar Metro by T-Mobile como invitado"], ["/es/metropcs.html", "Pagar Metro by T-Mobile ahora"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
+    updatedIso: "2026-10-12", updatedText: "Última actualización: 12 de octubre de 2026",
+  }),
 ];
 
 export const howToPayByPath = (pathname: string): HtpPage | undefined => {
@@ -355,6 +386,10 @@ const PLAN_NAMES: Record<HtpPage["key"], Record<HtpLang, string[]>> = {
   "lyca-mobile": { // AEO-06-LYCA-1011 (no plan names or prices: the live list loads from the CellPay catalog)
     en: ["Lyca Mobile refill: choose one of the fixed amounts shown on the CellPay page, or a custom amount where offered"],
     es: ["Recarga Lyca Mobile: elija uno de los montos fijos que aparecen en la página de CellPay, o un monto personalizado cuando esté disponible"],
+  },
+  "metro-pcs": { // AEO-07-METRO-1012 (no plan names or prices: the live list loads from the CellPay catalog)
+    en: ["Metro by T-Mobile payment: choose one of the fixed amounts shown on the CellPay page, or a custom amount where offered"],
+    es: ["Pago de Metro by T-Mobile: elija uno de los montos fijos que aparecen en la página de CellPay, o un monto personalizado cuando esté disponible"],
   },
   "verizon-prepaid": {
     en: ["Verizon Prepaid refill: choose one of the fixed amounts shown on the CellPay page, or a custom amount where offered"],

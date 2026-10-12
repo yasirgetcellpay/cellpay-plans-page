@@ -534,4 +534,22 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/lyca-mobile" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/lyca-mobile" />
   </url>
+  <url>
+    <loc>https://www.cellpay.us/how-to-pay/metro-pcs</loc>
+    <lastmod>2026-10-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/metro-pcs" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/metro-pcs" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/metro-pcs" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/es/como-pagar/metro-pcs</loc>
+    <lastmod>2026-10-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/metro-pcs" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/metro-pcs" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/metro-pcs" />
+  </url>
 </urlset>

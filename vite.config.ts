@@ -249,6 +249,9 @@ const HTML_ROUTES = [
   // AEO-06-LYCA-1011: Lyca Mobile how-to-pay pages
   "how-to-pay/lyca-mobile/index.html",
   "es/como-pagar/lyca-mobile/index.html",
+  // AEO-07-METRO-1012: Metro by T-Mobile how-to-pay pages
+  "how-to-pay/metro-pcs/index.html",
+  "es/como-pagar/metro-pcs/index.html",
   // Admin SPA routes — emit as folder/index.html so self-hosted servers
   // (which don't do SPA fallback) serve the React app on direct refresh.
   "admin/index.html",
