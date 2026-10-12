@@ -1284,16 +1284,20 @@ async function mfLogMeta(mf: Mf, ipInfo: Record<string, unknown> | null): Promis
     if (mf.device) out.mf_device = mf.device;
     if (mf.did) out.mf_did = mf.did;
     if (mf.card) out.mf_card = mf.card;
-    if (mf.addr) {
-      out.mf_addr = mf.addr;
-      out.mf_addr_h = await mfHex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(mf.addr)));
-    }
+    if (mf.addr) out.mf_addr = mf.addr;
+  } catch { /* best effort */ }
+  try {
+    if (mf.addr) out.mf_addr_h = await mfHex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(mf.addr)));
+  } catch { /* hash failure never affects the payment */ }
+  try {
     const sk = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (mf.cardFpSrc && sk) {
       const keyBytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("mf-card-fp-v1:" + sk));
       const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
       out.mf_card_fp = (await mfHex(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(mf.cardFpSrc)))).slice(0, 32);
     }
+  } catch { /* HMAC failure never affects the payment */ }
+  try {
     if (ipInfo && (ipInfo.asn !== undefined || ipInfo.country !== undefined)) {
       out.mf_ip = { asn: ipInfo.asn ?? null, country: ipInfo.country ?? null, datacenter: ipInfo.datacenter === true };
     }
@@ -1301,15 +1305,54 @@ async function mfLogMeta(mf: Mf, ipInfo: Record<string, unknown> | null): Promis
   return out;
 }
 
+// deno-lint-ignore no-explicit-any
+function mfWaitUntil(p: Promise<unknown>): void { try { const rt = (globalThis as any).EdgeRuntime; if (rt && typeof rt.waitUntil === "function") rt.waitUntil(p); } catch { /* ignore */ } }
+
+// [FRAUD-MULTIBLOCK-1012 FIX] shadow: blocklist check + guard event entirely in the background (never awaited by the request).
+function mfShadowLater(mf: Mf, shape: string, host: string | null, hasOrigin: boolean): void {
+  try {
+    mfWaitUntil((async () => {
+      try {
+        const hit = await mfBlocklistCheck(mf);
+        if (hit) recordGuardEvent({ code: `mfblock_shadow:${hit.reason}:${hit.key_type}`, method: "POST", endpoint_shape: shape, origin_host: host, has_origin: hasOrigin });
+      } catch { /* ignore */ }
+    })());
+  } catch { /* ignore */ }
+}
+
+// [FRAUD-MULTIBLOCK-1012 FIX] mf_ip merged into the log row's metadata in the background (read-merge-patch, 3 s cap).
+function mfIpPatchLater(logId: string, ipP: Promise<Record<string, unknown> | null>): void {
+  try {
+    mfWaitUntil((async () => {
+      try {
+        const ip = await Promise.race([ipP, new Promise<null>((r) => setTimeout(() => r(null), 1500))]);
+        if (!ip || (ip.asn === undefined && ip.country === undefined)) return;
+        const url = Deno.env.get("SUPABASE_URL"); const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        if (!url || !key) return;
+        const h = { apikey: key, authorization: `Bearer ${key}`, "content-type": "application/json" };
+        const g = await fetch(`${url}/rest/v1/transaction_logs?id=eq.${encodeURIComponent(logId)}&select=metadata`, { headers: h, signal: AbortSignal.timeout(1500) });
+        if (!g.ok) { await g.body?.cancel(); return; }
+        const rows = await g.json();
+        const meta = asRecord(asRecord(Array.isArray(rows) ? rows[0] : rows).metadata);
+        const mf_ip = { asn: ip.asn ?? null, country: ip.country ?? null, datacenter: ip.datacenter === true };
+        const p = await fetch(`${url}/rest/v1/transaction_logs?id=eq.${encodeURIComponent(logId)}`, {
+          method: "PATCH", headers: { ...h, prefer: "return=minimal" }, body: JSON.stringify({ metadata: { ...meta, mf_ip } }), signal: AbortSignal.timeout(1500),
+        });
+        await p.body?.cancel();
+      } catch { /* ignore */ }
+    })());
+  } catch { /* ignore */ }
+}
+
 let mfModeCache: { v: string; t: number } | null = null;
 async function mfBlockMode(): Promise<string> {
-  if (mfModeCache && Date.now() - mfModeCache.t < 30000) return mfModeCache.v;
+  if (mfModeCache && Date.now() - mfModeCache.t < 60000) return mfModeCache.v;
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) return "off";
   try {
     const res = await fetch(`${supabaseUrl}/rest/v1/checkout_guard_controls?key=eq.mfblock&select=value`, {
-      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}` }, signal: AbortSignal.timeout(600),
+      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}` }, signal: AbortSignal.timeout(300),
     });
     if (!res.ok) { await res.body?.cancel(); return "off"; }
     const rows = await res.json();
@@ -1951,13 +1994,18 @@ async function paypalAction(
       }
     } catch { /* blocklist fails open */ }
     // [FRAUD-MULTIBLOCK-1012] multi-factor block (device / card / address keys present on this order view only). Fail-open.
+    // Mode first: on = await check; shadow = background only; off = skip.
     try {
       const mfPp = buildMf(lr, {}, "paypal");
-      const mfHit = await mfBlocklistCheck(mfPp);
-      if (mfHit) {
-        const mode = await mfBlockMode();
-        recordGuardEvent({ code: `mfblock_${mode}:${mfHit.reason}:${mfHit.key_type}`, method: "POST", endpoint_shape: PP_CREATE, origin_host: originHost(origin), has_origin: origin !== null });
-        if (mode === "on") return reply({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: PP_BLOCK_MSG });
+      const mfMode = await mfBlockMode();
+      if (mfMode === "on") {
+        const mfHit = await mfBlocklistCheck(mfPp);
+        if (mfHit) {
+          recordGuardEvent({ code: `mfblock_on:${mfHit.reason}:${mfHit.key_type}`, method: "POST", endpoint_shape: PP_CREATE, origin_host: originHost(origin), has_origin: origin !== null });
+          return reply({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: PP_BLOCK_MSG });
+        }
+      } else if (mfMode === "shadow") {
+        mfShadowLater(mfPp, PP_CREATE, originHost(origin), origin !== null);
       }
     } catch { /* mfblock fails open */ }
     // [Fix F] refill cooldown (1 s, fail-open)
@@ -2289,23 +2337,26 @@ serve(async (req) => {
           return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: "We couldn't process this card right now. Please try again in about 30 minutes or use a different payment method. You were not charged." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       } catch { /* blocklist fails open */ }
-      // [FRAUD-MULTIBLOCK-1012] Multi-factor block (device / exact card / address). mfblock on = same calm 200 as above; shadow = log only.
+      // [FRAUD-MULTIBLOCK-1012] Multi-factor block (device / exact card / address). Mode read first (60 s cache, 300 ms, error = off).
+      // on = await check (1.2 s fail-open), same calm 200 as above; shadow = check + log in the background only; off = skip.
       try {
         mf = buildMf(payloadRecord, cpDev, paymentMethod);
         mfIpP = mfIpEnrich(reqIp);
-        const mfHit = await mfBlocklistCheck(mf);
-        if (mfHit) {
-          const mode = await mfBlockMode();
-          recordGuardEvent({ code: `mfblock_${mode}:${mfHit.reason}:${mfHit.key_type}`, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: true });
-          if (mode === "on") {
+        const mfMode = await mfBlockMode();
+        if (mfMode === "on") {
+          const mfHit = await mfBlocklistCheck(mf);
+          if (mfHit) {
+            recordGuardEvent({ code: `mfblock_on:${mfHit.reason}:${mfHit.key_type}`, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: true });
             return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: "We couldn't process this card right now. Please try again in about 30 minutes or use a different payment method. You were not charged." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
+        } else if (mfMode === "shadow") {
+          mfShadowLater(mf, "checkout/transaction", originHost(guardOrigin), true);
         }
       } catch { /* mfblock fails open */ }
       // [FRAUD-MULTIBLOCK-1012 5b] Pre-payment risk score. Shadow: fire-and-forget (zero added latency). Enforce: wait max 700 ms,
       // block = same calm 200; step_up / hold are logged (step_up is passed to the page as risk_action). Any error = allow.
       try {
-        const mode = await riskEngineMode(AbortSignal.timeout(300));
+        const mode = await riskEngineMode(AbortSignal.timeout(300)); // 60 s per-isolate cache
         if (mode !== "off") {
           const pay = asRecord(payloadRecord.payment);
           const m0 = mf ?? buildMf(payloadRecord, cpDev, paymentMethod);
@@ -2413,8 +2464,9 @@ serve(async (req) => {
     }
     const txLogId = shouldLogTransaction
       ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}) }, clickIdsFrom(body.click_ids),
-          mf ? await mfLogMeta(mf, await Promise.race([mfIpP, new Promise<null>((r) => setTimeout(() => r(null), 300))])) : {})
+          mf ? await mfLogMeta(mf, null) : {})
       : null;
+    if (mf && txLogId) mfIpPatchLater(txLogId, mfIpP); // [FRAUD-MULTIBLOCK-1012 FIX] mf_ip added in the background only
     if (shouldLogTransaction) velocityShadow(txLogId, payloadRecord, paymentMethod); // [VEL1-1007] log-only, not awaited
 
     // [plaid v2] Plaid checkout: claim the bound plaid_ref (single use, same order values) and send CellPay's v2 body only.

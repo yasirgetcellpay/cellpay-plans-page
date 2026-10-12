@@ -42,11 +42,11 @@ const first = (v: unknown): Record<string, unknown> => {
   return x && typeof x === "object" ? x as Record<string, unknown> : {};
 };
 
-let modeCache: { v: string; t: number } | null = null; // 30 s cache so the payment path rarely waits on it
+let modeCache: { v: string; t: number } | null = null; // 60 s per-isolate cache so the payment path rarely waits on it
 export async function riskEngineMode(signal?: AbortSignal): Promise<string> {
-  if (modeCache && Date.now() - modeCache.t < 30000) return modeCache.v;
+  if (modeCache && Date.now() - modeCache.t < 60000) return modeCache.v;
   try {
-    const rows = await rest("checkout_guard_controls?key=eq.riskengine&select=value", signal ?? AbortSignal.timeout(400));
+    const rows = await rest("checkout_guard_controls?key=eq.riskengine&select=value", signal ?? AbortSignal.timeout(300));
     const v = String(first(rows).value ?? "off");
     modeCache = { v, t: Date.now() };
     return v;
