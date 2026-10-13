@@ -11,6 +11,9 @@ import { PayAgainCard } from "@/components/PayAgainCard";
 import { ReminderOptIn } from "@/components/ReminderOptIn";
 import { AutoPayReceiptCard } from "@/components/AutoPayReceiptCard";
 import { NotWorkingYet } from "@/components/NotWorkingYet";
+import { supabase } from "@/integrations/supabase/client"; // AUTOPAY-POSTPURCHASE-1013
+import { carrierPagePath } from "@/lib/checkoutResume"; // AUTOPAY-POSTPURCHASE-1013
+import { trackFunnel } from "@/lib/funnelEvents"; // AUTOPAY-POSTPURCHASE-1013
 
 interface TransactionData {
   id?: number;
@@ -359,6 +362,9 @@ const OrderConfirmation = () => {
 
             {/* retention-1006: optional refill reminder email (UNCHECKED; saved only on tick; no payment/tracking change) */}
             <ReminderOptIn lang={lang} hashid={hashid} email={transaction.user?.email} brandColor={brandColor} />
+
+            {/* AUTOPAY-POSTPURCHASE-1013: Auto Pay for next month (below the receipt; link only, never enrolls or charges) */}
+            <PostPurchaseAutoPay lang={lang} hashid={hashid} brandColor={brandColor} />
           </div>
         ) : null}
       </main>
@@ -366,6 +372,58 @@ const OrderConfirmation = () => {
       <PaymentBar lang={lang} />
       <Footer />
       <LegalBar />
+    </div>
+  );
+};
+
+// AUTOPAY-POSTPURCHASE-1013: fire-and-forget lookup (4 s cap); any error/null -> nothing rendered.
+const PostPurchaseAutoPay = ({ lang, hashid, brandColor }: { lang: string; hashid: string; brandColor: string }) => {
+  const [offer, setOffer] = useState<{ t: string; slug: string; amount: number | null; path: string } | null>(null);
+  const shownRef = useRef(false);
+  useEffect(() => {
+    let alive = true;
+    try {
+      if (!hashid) return;
+      const call = Promise.resolve(supabase.rpc("postpurchase_autopay_link", { p_hashid: hashid }));
+      const timeout = new Promise<null>((res) => setTimeout(() => res(null), 4000));
+      Promise.race([call, timeout]).then((r) => {
+        if (!alive || !r || r.error || !r.data || typeof r.data !== "object" || Array.isArray(r.data)) return;
+        const d = r.data as { t?: unknown; slug?: unknown; amount?: unknown };
+        const tok = String(d.t ?? "");
+        const slug = String(d.slug ?? "");
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(tok)) return;
+        const path = carrierPagePath(slug);
+        if (!path) return;
+        const n = Number(d.amount);
+        setOffer({ t: tok, slug, amount: Number.isFinite(n) && n > 0 ? n : null, path });
+      }).catch(() => {});
+    } catch { /* render nothing */ }
+    return () => { alive = false; };
+  }, [hashid]);
+  useEffect(() => {
+    if (!offer || shownRef.current) return;
+    shownRef.current = true;
+    trackFunnel("autopay_postpurchase_offer_shown", { carrier: offer.slug, amount: offer.amount, fee: null, total: null });
+  }, [offer]);
+  if (!offer) return null;
+  const es = lang === "es";
+  const bill = ["metropcs", "boost", "topup-crc"].includes(offer.slug);
+  const text = bill
+    ? (es ? "Su próximo pago se abrirá listo, con el pago automático seleccionado. Verá los términos completos del pago automático y el mismo cargo por servicio antes de aceptar." : "Your next payment opens ready to go, with Auto Pay selected. You'll see the full Auto Pay terms and the same service fee before you agree.")
+    : (es ? "Su próxima recarga se abrirá lista, con el pago automático seleccionado. Verá los términos completos del pago automático y el mismo cargo por servicio antes de aceptar." : "Your next refill opens ready to go, with Auto Pay selected. You'll see the full Auto Pay terms and the same service fee before you agree.");
+  const href = `${es ? "/es" : ""}${offer.path}?t=${offer.t}&ap=1&utm_source=site&utm_medium=postpurchase&utm_campaign=autopay_postpurchase`;
+  return (
+    <div className="bg-card rounded-xl border-2 p-5" style={{ borderColor: brandColor }}>
+      <h2 className="text-base sm:text-lg font-bold text-foreground">{es ? "Active el pago automático para el próximo mes" : "Turn on Auto Pay for next month"}</h2>
+      <p className="text-sm text-muted-foreground mt-1">{text}</p>
+      <a
+        href={href}
+        onClick={() => { try { trackFunnel("autopay_postpurchase_offer_accepted", { carrier: offer.slug, amount: offer.amount, fee: null, total: null }); } catch { /* ignore */ } }}
+        className="mt-4 inline-flex items-center justify-center px-6 py-3 rounded-full text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity"
+        style={{ backgroundColor: brandColor }}
+      >
+        {es ? "Activar el pago automático" : "Turn on Auto Pay"}
+      </a>
     </div>
   );
 };
