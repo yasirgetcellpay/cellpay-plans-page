@@ -33,7 +33,7 @@ export const CricketQuickPayContent = ({ brandColor }: { brandColor: string }) =
       icon: CreditCard,
       title: "Step 3 — Pay Securely With Any Card or Wallet",
       body:
-        "Check out with " + payWith("en", "card") + ". Every Cricket quick pay transaction is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
+        "Check out with " + payWith("en", "card") + ". Every Cricket quick pay transaction is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link.",
     },
   ];
 
