@@ -80,6 +80,7 @@ export type Database = {
           carrier_name: string | null
           carrier_slug: string | null
           created_at: string
+          email_plain: string | null
           email_sha256: string
           error: string | null
           expected_next: string | null
@@ -89,6 +90,7 @@ export type Database = {
           phone_h: string | null
           phone_last4: string | null
           pick_reason: string | null
+          prefill_token: string | null
           resend_id: string | null
           sent_at: string | null
           status: string
@@ -99,6 +101,7 @@ export type Database = {
           carrier_name?: string | null
           carrier_slug?: string | null
           created_at?: string
+          email_plain?: string | null
           email_sha256: string
           error?: string | null
           expected_next?: string | null
@@ -108,6 +111,7 @@ export type Database = {
           phone_h?: string | null
           phone_last4?: string | null
           pick_reason?: string | null
+          prefill_token?: string | null
           resend_id?: string | null
           sent_at?: string | null
           status?: string
@@ -118,6 +122,7 @@ export type Database = {
           carrier_name?: string | null
           carrier_slug?: string | null
           created_at?: string
+          email_plain?: string | null
           email_sha256?: string
           error?: string | null
           expected_next?: string | null
@@ -127,6 +132,7 @@ export type Database = {
           phone_h?: string | null
           phone_last4?: string | null
           pick_reason?: string | null
+          prefill_token?: string | null
           resend_id?: string | null
           sent_at?: string | null
           status?: string
@@ -2218,6 +2224,23 @@ export type Database = {
           event_id?: number | null
           origin_host?: string | null
           queue_row_id?: never
+        }
+        Relationships: []
+      }
+      email_campaign_funnel: {
+        Row: {
+          attempts: number | null
+          autopay_orders: number | null
+          campaign: string | null
+          carrier_slug: string | null
+          clicks_prefill: number | null
+          decline_reasons: string | null
+          declines: number | null
+          last_used_at: string | null
+          orders: number | null
+          recipient_id: string | null
+          resend_id: string | null
+          sent_at: string | null
         }
         Relationships: []
       }
