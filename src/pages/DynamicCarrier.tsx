@@ -16,7 +16,8 @@ import { SIMPLE_META, SIMPLE_ANSWER, SIMPLE_FAQ_TITLE, SIMPLE_LINKS, simpleFaqs,
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
-import { takeCheckoutPrefill } from "@/lib/checkoutResume";
+import { takeCheckoutPrefill, resolveEmailPrefill } from "@/lib/checkoutResume"; // EMAIL-PREFILL-1013
+import { trackFunnel } from "@/lib/funnelEvents"; // EMAIL-PREFILL-1013
 import { t, type Language } from "@/lib/i18n";
 import {
   CricketQuickPayContent,
@@ -513,6 +514,41 @@ const DynamicCarrier = ({
     // Only run once after initial load; ignore changes to searchParams afterwards.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
+
+  // EMAIL-PREFILL-1013: ?t=<token> from a reminder email -> phone (only if the field is still empty) and amount (only if the page
+  // offers it), once after plans load; then t is removed from the address bar. Any failure: page behaves as before.
+  const [emailPrefillDone, setEmailPrefillDone] = useState(false); // EMAIL-PREFILL-1013
+  useEffect(() => {
+    if (loading || emailPrefillDone) return;
+    setEmailPrefillDone(true);
+    let tok: string | null = null;
+    try { tok = new URLSearchParams(window.location.search).get("t"); } catch { tok = null; }
+    if (!tok) return;
+    void (async () => {
+      try {
+        const r = await resolveEmailPrefill(carrierSlug, window.location.search);
+        if (r) {
+          setPhone((cur) => (cur.replace(/\D/g, "") === "" ? formatPhone(r.phone) : cur));
+          const n = r.amount;
+          if (n !== null) {
+            if (showRange) {
+              if (Number.isInteger(n) && n >= rangeMin && n <= rangeMax) setAmount(String(n));
+            } else if (showFixedPlans && plans.length > 0) {
+              const match = plans.find((p) => p.amount === n);
+              if (match) setAmount(String(match.amount));
+            }
+          }
+          trackFunnel("prefill_used", { carrier: carrierSlug, amount: n ?? null, fee: null, total: null });
+        }
+      } catch { /* behave as today */ }
+      try {
+        const u = new URL(window.location.href);
+        u.searchParams.delete("t");
+        window.history.replaceState(window.history.state, "", u.pathname + u.search + u.hash);
+      } catch { /* ignore */ }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]); // EMAIL-PREFILL-1013
 
   const phoneDigits = phone.replace(/\D/g, "");
   const amountNum = parseAmountDollars(amount) || 0; // dollars, same unit checkout and the API use
