@@ -1211,6 +1211,23 @@ const Checkout = () => {
   // CHECKOUT-FUNNEL: invisible funnel analytics (no UI). Hooks sit above the "if (!state)" return. All fire-and-forget.
   const funnelDataRef = useRef<{ carrier: string | null; amount: number | null; fee: number | null; total: number | null }>({ carrier: null, amount: null, fee: null, total: null });
   useEffect(() => { resetFunnel(); }, []);
+  // [OURSIDE-RETRY-1012] state (above the "if (!state)" return). Flag ourside_retry: default off on any error.
+  const [oursideRetryOn, setOursideRetryOn] = useState(false);
+  const [orsFailed, setOrsFailed] = useState<string | null>(null);
+  const [orsRetry, setOrsRetry] = useState(false);
+  useEffect(() => {
+    let off = false;
+    (async () => { try { const { data } = await supabase.rpc("ourside_retry_enabled"); if (!off) setOursideRetryOn(data === true); } catch { /* stays off */ } })();
+    return () => { off = true; };
+  }, []);
+  useEffect(() => {
+    try {
+      document.querySelectorAll<HTMLElement>('[data-testid="method-picker"] [data-method]').forEach((el) => {
+        el.style.opacity = orsFailed && el.dataset.method === orsFailed && el.dataset.method !== paymentMethod ? "0.5" : "";
+      });
+      if (orsFailed && !errorMsg) document.querySelector('[data-testid="method-picker"]')?.scrollIntoView({ behavior: "smooth", block: "center" });
+    } catch { /* ignore */ }
+  }, [orsFailed, paymentMethod, errorMsg]);
   const funnelCardLabelsRef = useRef<string[]>([]);
   funnelCardLabelsRef.current = [tr.cardNumber, tr.expiry, tr.cvv].filter(Boolean) as string[];
   useEffect(() => {
@@ -1359,6 +1376,30 @@ const Checkout = () => {
 
   const canSubmit = agreedTerms && !submitting && isEmailValid && methodValid && (!autoPay || autoPayTerms);
 
+  // [OURSIDE-RETRY-1012] Data-error fallback (never resends) + flagged single Retry. Per-session record in sessionStorage
+  // "cp_ors:<checkout session id>" ({ fallback_shown, failed_method, retry_offered, retry_clicked }); read by submitTransaction.
+  const ORS_DATA_ERR = /Validation failed|One or more fields in the request contains invalid data/i;
+  const ORS_REFILL_ERR = /error during refill|Backend exception|System malfunction/i;
+  const orsKey = () => `cp_ors:${sessionIdRef.current || "none"}`;
+  const orsRead = (): Record<string, unknown> => { try { return JSON.parse(sessionStorage.getItem(orsKey()) || "{}") || {}; } catch { return {}; } };
+  const orsWrite = (patch: Record<string, unknown>) => { try { sessionStorage.setItem(orsKey(), JSON.stringify({ ...orsRead(), ...patch })); } catch { /* ignore */ } };
+  /** Returns the message to show for a failed payment (data errors get the fallback text) and sets the highlight / Retry state. */
+  const orsOnFail = (msg: string): string => {
+    try {
+      setOrsRetry(false);
+      if (ORS_DATA_ERR.test(msg)) {
+        orsWrite({ fallback_shown: true, failed_method: paymentMethod });
+        setOrsFailed(paymentMethod);
+        setDeclineInfo(null);
+        return lang === "es" ? "Ese pago no se procesó. Prueba con otra tarjeta u otro método de pago." : "That payment didn't go through. Try another card or payment method.";
+      }
+      if (oursideRetryOn && ORS_REFILL_ERR.test(msg)) {
+        setOrsFailed(paymentMethod);
+        if (!orsRead().retry_clicked) { orsWrite({ retry_offered: true, failed_method: paymentMethod }); setOrsRetry(true); }
+      }
+    } catch { /* ignore */ }
+    return msg;
+  };
   const handleResult = (raw: Record<string, unknown>) => {
     // Unwrap double-nested { data: { data: { status, message, transactionId } } }
     let result = raw;
@@ -1393,7 +1434,7 @@ const Checkout = () => {
       setShowNotChargedNote(!autoRefund && !txn);
       setDeclineInfo(paymentMethod === "card" && !autoRefund && !txn && raw.code !== "DUP_CONFIRM" && raw.code !== "SESSION_PAID" ? { cls: classifyDecline(msg), n: bumpCardDeclines(apTicksOrder) } : null); // DUPCHARGE-1008: not a decline
       setRefundCard(autoRefund); // TOP4-T2B-1009
-      setErrorMsg(msg);
+      setErrorMsg(orsOnFail(msg)); // [OURSIDE-RETRY-1012]
     }
   };
 
@@ -1928,7 +1969,7 @@ const Checkout = () => {
             const autoRefund = /auto[\s-]?refund/i.test(msg);
             setShowNotChargedNote(!autoRefund && !txn);
             setRefundCard(autoRefund); // TOP4-T2B-1009
-            setErrorMsg(msg);
+            setErrorMsg(orsOnFail(msg)); // [OURSIDE-RETRY-1012]
           }
         }
       } catch (err) {
@@ -2139,7 +2180,7 @@ const Checkout = () => {
       (result.msg as string) ||
       (raw.message as string) ||
       "Cash App Pay is currently unavailable. Please try another payment method.";
-    if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") setErrorMsg(errMsg); // DUPCHARGE-FOLLOWUPS-1008: our own dialog shows instead
+    if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") setErrorMsg(orsOnFail(errMsg)); // [OURSIDE-RETRY-1012] // DUPCHARGE-FOLLOWUPS-1008: our own dialog shows instead
     try { sessionStorage.removeItem("cashapp_return_ctx"); } catch { /* ignore */ }
   };
 
@@ -2291,8 +2332,10 @@ const Checkout = () => {
           </Suspense>
 
           {/* METHODS-VISIBILITY-1011: wallet/primary method + "or pay with" + other methods, directly under the order summary. Presentation only. */}
+          <div className={orsFailed ? "rounded-xl ring-2 ring-offset-2 ring-primary" : undefined} data-testid="ors-highlight">{/* [OURSIDE-RETRY-1012] */}
           <PaymentMethodPicker lang={lang === "es" ? "es" : "en"} methods={paymentMethods} selected={paymentMethod} brandColor={brandColor}
             onSelect={(key) => { if (key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); methodTappedRef.current = true; setPaymentMethod(key as PaymentMethod); }} />
+          </div>
 
           <div className="bg-card rounded-xl border border-border p-5">
             <h2 className="font-bold text-foreground mb-3 text-sm">{tr.contactInformation}</h2>
@@ -2865,6 +2908,12 @@ const Checkout = () => {
             <div className="text-3xl mb-2">❌</div>
             <h3 className="text-xl font-bold text-foreground mb-2">{tr.paymentFailed}</h3>
             {!declineInfo && <p className="text-sm text-muted-foreground mb-2">{errorMsg}</p>}
+            {orsRetry && oursideRetryOn && paymentMethod === orsFailed && (
+              <button type="button" data-testid="ors-retry" className="w-full mb-2 rounded-lg py-2.5 font-bold text-primary-foreground" style={{ backgroundColor: brandColor }}
+                onClick={() => { orsWrite({ retry_clicked: true }); setOrsRetry(false); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); void handlePlaceOrder(); }}>
+                {lang === "es" ? "Reintentar" : "Retry"}
+              </button>
+            )}
             {showNotChargedNote && (
               <p className="text-sm text-muted-foreground mb-4" data-testid="cx-hold-not-charged">{tr.notChargedNote}</p>
             )}
