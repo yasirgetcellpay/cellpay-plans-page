@@ -13,6 +13,8 @@ interface ProxyRequest {
   lang?: "en" | "es";
   /** AI-REFERRALS-1010b: top-level; cellpay-proxy stores it in transaction_logs.metadata only (ref_host, utm_source, landing_path). Never sent to CellPay. */
   visit_source?: { ref_host?: string; utm_source?: string; landing_path?: string };
+  /** OURSIDE-RETRY-1012: top-level; cellpay-proxy stores it in transaction_logs.metadata only. Never sent to CellPay. */
+  retry_meta?: Record<string, unknown>;
 }
 
 export async function callProxy(req: ProxyRequest): Promise<unknown> {
@@ -315,11 +317,33 @@ function storedVisitSource(): { ref_host?: string; utm_source?: string; landing_
   }
 }
 
+// OURSIDE-RETRY-1012: retry context for this checkout session (sessionStorage "cp_ors:<kount_ssid>", written by Checkout after a
+// data-error / refill-error reply). Booleans + method word only; undefined when nothing was recorded. Never throws.
+function storedRetryMeta(payload: Record<string, unknown>): Record<string, unknown> | undefined {
+  try {
+    const sid = typeof payload.kount_ssid === "string" ? payload.kount_ssid : "";
+    if (!sid) return undefined;
+    const s = JSON.parse(sessionStorage.getItem(`cp_ors:${sid}`) || "null") as Record<string, unknown> | null;
+    if (!s || typeof s !== "object") return undefined;
+    const m = String(payload.payment_method || "").toLowerCase();
+    const now = m.startsWith("card") ? "card" : m;
+    const prior = typeof s.failed_method === "string" ? s.failed_method : "";
+    const out: Record<string, unknown> = {};
+    if (s.fallback_shown === true) { out.retry_after_data_err = true; out.method_switched = !!prior && prior !== now; }
+    if (prior) out.prior_failed_method = prior;
+    if (s.retry_offered === true) out.retry_offered = true;
+    if (s.retry_clicked === true) out.retry_clicked = true;
+    return Object.keys(out).length ? out : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function submitTransaction(
   payload: Record<string, unknown>,
   bearerToken?: string
 ): Promise<unknown> {
-  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds(), lang: pageLang(), visit_source: storedVisitSource() });
+  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds(), lang: pageLang(), visit_source: storedVisitSource(), retry_meta: storedRetryMeta(payload) });
 }
 
 export async function fetchCheckoutConfig(): Promise<Record<string, unknown>> {
