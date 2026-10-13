@@ -125,6 +125,60 @@ function visitSourceMeta(v: unknown): Record<string, string> {
   }
 }
 
+// [OURSIDE-RETRY-1012] Retry context from the site's top-level body.retry_meta (never sent to CellPay): booleans and a method word only.
+const ORS_METHOD_RE = /^[a-z]{2,20}$/;
+function retryMetaFrom(v: unknown): Record<string, unknown> {
+  try {
+    const r = asRecord(v);
+    const out: Record<string, unknown> = {};
+    for (const k of ["retry_after_data_err", "method_switched", "retry_offered", "retry_clicked"]) if (r[k] === true) out[k] = true;
+    if (r.retry_after_data_err === true && r.method_switched === false) out.method_switched = false;
+    if (typeof r.prior_failed_method === "string" && ORS_METHOD_RE.test(r.prior_failed_method)) out.prior_failed_method = r.prior_failed_method;
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+// [OURSIDE-RETRY-1012] CellPay "data error" replies: masked outgoing details on the failed log row (lengths / flags only;
+// no card data, no tokens, no names, no address text). Merged atomically into metadata; never throws.
+const DATA_ERR_RE = /Validation failed|One or more fields in the request contains invalid data/i;
+async function logDataErr(id: string | null, payload: Record<string, unknown>, wrapped: Record<string, unknown>, paymentMethod: string | null | undefined): Promise<void> {
+  try {
+    if (!id) return;
+    const r = unwrapTransactionResult(wrapped);
+    const msg = String(r.msg ?? r.message ?? wrapped.error ?? "");
+    if (!DATA_ERR_RE.test(msg)) return;
+    const pay = asRecord(payload.payment);
+    const bill = asRecord(payload.billing);
+    const pick = (...vals: unknown[]): string => { for (const v of vals) if (typeof v === "string" && v.trim()) return v.trim(); return ""; };
+    const fn = pick(payload.first_name, pay.first_name, pay.firstname, bill.first_name);
+    const ln = pick(payload.last_name, pay.last_name, pay.lastname, bill.last_name);
+    const em = pick(payload.email, pay.email);
+    const ad = pick(pay.address, payload.address, bill.street, bill.address, bill.street_address);
+    const zp = pick(pay.zip, payload.zip, bill.zip, bill.postal_code);
+    const ci = pick(pay.city, payload.city, bill.city);
+    const st = pick(pay.state, payload.state, bill.state);
+    const num = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
+    const patch = {
+      data_err_payload: {
+        carrier_id: text(payload.carrierId ?? payload.carrier_id), plan_id: text(payload.plan_id), amount: num(payload.amount),
+        payment_method: paymentMethod ?? null,
+        first_name_len: fn.length, last_name_len: ln.length, name_has_non_ascii: /[^\x20-\x7E]/.test(fn + ln),
+        email_len: em.length, address_len: ad.length, address_present: ad.length > 0, zip_present: zp.length > 0, zip_len: zp.length,
+        city_len: ci.length, state: /^[A-Za-z]{2}$/.test(st) ? st.toUpperCase() : null,
+      },
+      data_err_msg_shown: true,
+    };
+    await Promise.race([
+      callDatabaseRpc("tx_log_meta_merge", { _id: id, _patch: patch }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("db timeout")), 1500)),
+    ]);
+  } catch (e) {
+    console.error("[tx-log] data_err meta failed:", e instanceof Error ? e.message : e);
+  }
+}
+
 async function createTransactionLog(
   payload: Record<string, unknown>,
   callerHost: string | undefined,
@@ -2493,7 +2547,7 @@ serve(async (req) => {
       } catch { /* dedupe fails open */ }
     }
     const txLogId = shouldLogTransaction
-      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}) }, clickIdsFrom(body.click_ids),
+      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...retryMetaFrom(body.retry_meta), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}) }, clickIdsFrom(body.click_ids),
           mf ? await mfLogMeta(mf, null) : {})
       : null;
     if (mf && txLogId) mfIpPatchLater(txLogId, mfIpP); // [FRAUD-MULTIBLOCK-1012 FIX] mf_ip added in the background only
@@ -2566,6 +2620,7 @@ serve(async (req) => {
     if (isPayPalTx) ppScrub(wrapped); // [PAYPAL-REBUILD-1009] never log or return PayPal approval secrets
     if (shouldLogTransaction) {
       await finishTransactionLog(txLogId, wrapped, paymentMethod);
+      await logDataErr(txLogId, payloadRecord, wrapped, paymentMethod); // [OURSIDE-RETRY-1012] masked, failed data-error rows only
       if (!isPlaidCheckout && /^(card|applepay|googlepay|klarna)/i.test(String(paymentMethod || ""))) await logCardFacts(txLogId, payloadRecord, wrapped, paymentMethod); // [CARDLOG-1007 v3] never throws
       if (txLogId) wrapped.pending_log_id = txLogId;
       if (riskAction === "step_up") wrapped.risk_action = "step_up"; // [FRAUD-MULTIBLOCK-1012 5c] enforce mode only
