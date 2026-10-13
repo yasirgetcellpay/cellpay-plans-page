@@ -1,0 +1,8 @@
+ALTER TABLE public.checkout_guard_controls DROP CONSTRAINT checkout_guard_controls_check;
+ALTER TABLE public.checkout_guard_controls ADD CONSTRAINT checkout_guard_controls_check CHECK ((((key = ANY (ARRAY['dupcharge'::text, 'spread'::text, 'vel1'::text])) AND (value = ANY (ARRAY['on'::text, 'shadow'::text, 'off'::text])) AND (NOT ((key = 'spread'::text) AND (value = 'shadow'::text)))) OR ((key = 'server_fallback'::text) AND (value = ANY (ARRAY['off'::text, 'shadow'::text, 'live'::text]))) OR (key = 'server_fallback_csv_sha256'::text) OR ((key = 'mfblock'::text) AND (value = ANY (ARRAY['on'::text, 'shadow'::text, 'off'::text]))) OR ((key = 'mflink'::text) AND (value = ANY (ARRAY['on'::text, 'dryrun'::text, 'off'::text]))) OR ((key = 'riskengine'::text) AND (value = ANY (ARRAY['off'::text, 'shadow'::text, 'enforce'::text]))) OR ((key = 'ourside_retry'::text) AND (value = ANY (ARRAY['on'::text, 'off'::text])))));
+-- OURSIDE-RETRY-1012: public read of this one flag only (true only when value = 'on'; missing/other = false).
+CREATE OR REPLACE FUNCTION public.ourside_retry_enabled() RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO 'public' AS $$
+  SELECT coalesce((SELECT value = 'on' FROM public.checkout_guard_controls WHERE key = 'ourside_retry'), false);
+$$;
+REVOKE ALL ON FUNCTION public.ourside_retry_enabled() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.ourside_retry_enabled() TO anon, authenticated, service_role;

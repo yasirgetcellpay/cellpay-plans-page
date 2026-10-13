@@ -2520,6 +2520,7 @@ export type Database = {
         }
         Returns: number
       }
+      ourside_retry_enabled: { Args: never; Returns: boolean }
       pay_by_bank_available: { Args: never; Returns: boolean }
       paypal_capture_context: {
         Args: { _log_id?: string; _order_id: string }

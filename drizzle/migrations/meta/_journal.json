@@ -57,6 +57,13 @@
       "when": 1791818508256,
       "tag": "0007_checkout_funnel_events",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791857006596,
+      "tag": "0008_ourside_retry_1012",
+      "breakpoints": true
     }
   ]
 }
