@@ -41,7 +41,7 @@ export const simpleFaqs = (lang: SimpleLang): Array<{ q: string; a: string }> =>
         { q: "¿Cuánto tarda la recarga?", a: "La mayoría de los pagos se acreditan en pocos minutos y pueden tardar hasta 30 minutos. Si el teléfono no tiene servicio después, reinícielo." },
         { q: "¿Cómo puedo pagar?", a: methodsLong("es") },
         refund,
-        { q: "¿Puedo activar Auto Pago?", a: "Sí. Es opcional al pagar y nunca está marcado de antemano. Puede cancelarlo cuando quiera." },
+        { q: "¿Puedo activar Auto Pago?", a: "Sí. Es opcional al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Puede cancelarlo cuando quiera." },
       ]
     : [
         { q: "How do I pay my Simple Mobile bill online without logging in?", a: "Enter the 10-digit Simple Mobile number on this page, tap your plan and pay. No Simple Mobile login or CellPay account is needed." },
@@ -51,7 +51,7 @@ export const simpleFaqs = (lang: SimpleLang): Array<{ q: string; a: string }> =>
         { q: "How fast does the refill post?", a: "Most payments post within a few minutes, and it can take up to 30 minutes. If the phone has no service after that, restart it." },
         { q: "What payment methods can I use?", a: methodsLong("en") },
         refund,
-        { q: "Can I turn on Auto Pay?", a: "Yes, it's optional at checkout and never pre-checked. You can cancel any time." },
+        { q: "Can I turn on Auto Pay?", a: "Yes, it's optional at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. You can cancel any time." },
       ];
 };
 

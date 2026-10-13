@@ -736,8 +736,8 @@ const DynamicCarrier = ({
       <div className="max-w-[420px] mx-auto px-4 pt-3">
         <p className="bg-card rounded-xl border border-border px-3 py-2.5 text-xs text-foreground leading-relaxed text-center">
           {lang === "es"
-            ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es")
-            : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked. Low service fee shown before you pay. " + weAcceptLine("en")}
+            ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es")
+            : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en")}
         </p>
       </div>
 

@@ -281,7 +281,13 @@ const Checkout = () => {
   const resumed = !routerState || !!routerState.resumed;
   const lang = useLang();
   const tr = t(lang);
-  const apCopy = AP_COPY[lang === "es" ? "es" : "en"];
+  // WORDING-1013: Metro, Boost and Cricket are bill payments -> "payment" wording in the Auto Pay offer (text only).
+  const apBill = ["metropcs", "boost", "topup-crc"].includes(String(state?.carrierSlug || ""));
+  const apCopy = apBill
+    ? (lang === "es"
+      ? { ...AP_COPY.es, offerTitle: "Nunca te pierdas un pago: active el pago automático (opcional)", offerBenefit: "Paga este número cada mes en su fecha de pago, para que su servicio no se interrumpa.", chargeInterim: "El pago automático paga este número con esta tarjeta. Se renueva cada mes en la fecha de su pago; cancele cuando quiera." }
+      : { ...AP_COPY.en, offerTitle: "Never miss a payment: turn on Auto Pay (optional)", offerBenefit: "Pays this number each month on your payment date, so your service doesn't lapse.", chargeInterim: "Auto Pay pays this number with this card. Renews monthly on your payment date, cancel anytime." })
+    : AP_COPY[lang === "es" ? "es" : "en"];
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);

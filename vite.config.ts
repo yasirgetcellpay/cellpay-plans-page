@@ -1197,8 +1197,8 @@ const htmlAliasPlugin = (): Plugin => ({
       // SPEED-LANDER-LCP2: Autopay benefit in the static shell (same classes/copy as GoLander) so LCP can paint with H1.
       const isEs = route.startsWith("es/");
       const autoPayLine = isEs
-        ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano."
-        : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.";
+        ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático."
+        : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link.";
       const feeLine = isEs
         ? "Cargo por servicio mostrado antes de pagar"
         : "Service fee shown before you pay";
@@ -1408,8 +1408,8 @@ const htmlAliasPlugin = (): Plugin => ({
         ? "Pay your Metro by T-Mobile prepaid bill online. No login needed."
         : "No login needed. Enter your phone number, choose your plan, and you're recharged.";
       const info = isEs
-        ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PAYCOPY-1008: shared payment list
-        : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked. Low service fee shown before you pay. " + weAcceptLine("en");
+        ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PAYCOPY-1008: shared payment list
+        : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en");
       return (
         `<div id="root" data-go-prerender="1">` +
         `<div class="min-h-screen bg-background font-sans antialiased">` +

@@ -170,7 +170,7 @@ export const ATT_PREPAID_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with " + payWith("en", "card") + ". Every AT&T Prepaid payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
+      body: "Check out with " + payWith("en", "card") + ". Every AT&T Prepaid payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link.",
     },
   ],
   plansH2: "Supported AT&T Prepaid Plans",
@@ -234,7 +234,7 @@ export const STRAIGHT_TALK_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with " + payWith("en", "card") + ". Every Straight Talk payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
+      body: "Check out with " + payWith("en", "card") + ". Every Straight Talk payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link.",
     },
   ],
   plansH2: "Supported Straight Talk Service Plans",
@@ -298,7 +298,7 @@ export const VERIZON_CONFIG: CarrierLongFormConfig = {
     },
     {
       title: "Step 3 — Pay Securely With Card or Wallet",
-      body: "Check out with " + payWith("en", "card") + ". Every Verizon Prepaid payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.",
+      body: "Check out with " + payWith("en", "card") + ". Every Verizon Prepaid payment is encrypted in transit (TLS). Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link.",
     },
   ],
   plansH2: "Supported Verizon Prepaid Plans",

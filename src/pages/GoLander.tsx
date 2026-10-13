@@ -465,8 +465,8 @@ const GoLander = ({
   const esHref = !isEs && typeof window !== "undefined" ? `/es${window.location.pathname}` : null;
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
   const autoPayLine = isEs
-    ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar — nunca está marcado de antemano."
-    : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout — it is never pre-checked.";
+    ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático."
+    : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link.";
   const feeLine = isEs
     ? "Cargo por servicio mostrado antes de pagar"
     : "Service fee shown before you pay";
