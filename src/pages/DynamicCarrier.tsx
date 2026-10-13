@@ -523,6 +523,16 @@ const DynamicCarrier = ({
     setEmailPrefillDone(true);
     let tok: string | null = null;
     try { tok = new URLSearchParams(window.location.search).get("t"); } catch { tok = null; }
+    // AUTOPAY-VISIBLE-1013: ap=1 -> checkout pre-ticks Auto Pay (not its terms) for this carrier; ap leaves the address bar with t.
+    try {
+      const q = new URLSearchParams(window.location.search);
+      if (q.get("ap") === "1") sessionStorage.setItem("cp_email_ap", JSON.stringify({ slug: carrierSlug, ts: Date.now() }));
+      if (!tok && q.has("ap")) {
+        const u = new URL(window.location.href);
+        u.searchParams.delete("ap");
+        window.history.replaceState(window.history.state, "", u.pathname + u.search + u.hash);
+      }
+    } catch { /* ignore */ }
     if (!tok) return;
     void (async () => {
       try {
@@ -544,6 +554,7 @@ const DynamicCarrier = ({
       try {
         const u = new URL(window.location.href);
         u.searchParams.delete("t");
+        u.searchParams.delete("ap"); // AUTOPAY-VISIBLE-1013
         window.history.replaceState(window.history.state, "", u.pathname + u.search + u.hash);
       } catch { /* ignore */ }
     })();
