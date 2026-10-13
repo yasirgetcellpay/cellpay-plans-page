@@ -74,6 +74,66 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_email_log: {
+        Row: {
+          campaign: string
+          carrier_name: string | null
+          carrier_slug: string | null
+          created_at: string
+          email_sha256: string
+          error: string | null
+          expected_next: string | null
+          id: string
+          lang: string | null
+          last_order_at: string | null
+          phone_h: string | null
+          phone_last4: string | null
+          pick_reason: string | null
+          resend_id: string | null
+          sent_at: string | null
+          status: string
+          unsub_token: string
+        }
+        Insert: {
+          campaign: string
+          carrier_name?: string | null
+          carrier_slug?: string | null
+          created_at?: string
+          email_sha256: string
+          error?: string | null
+          expected_next?: string | null
+          id?: string
+          lang?: string | null
+          last_order_at?: string | null
+          phone_h?: string | null
+          phone_last4?: string | null
+          pick_reason?: string | null
+          resend_id?: string | null
+          sent_at?: string | null
+          status?: string
+          unsub_token?: string
+        }
+        Update: {
+          campaign?: string
+          carrier_name?: string | null
+          carrier_slug?: string | null
+          created_at?: string
+          email_sha256?: string
+          error?: string | null
+          expected_next?: string | null
+          id?: string
+          lang?: string | null
+          last_order_at?: string | null
+          phone_h?: string | null
+          phone_last4?: string | null
+          pick_reason?: string | null
+          resend_id?: string | null
+          sent_at?: string | null
+          status?: string
+          unsub_token?: string
+        }
+        Relationships: []
+      }
       carrier_assist_controls: {
         Row: {
           key: string
@@ -419,6 +479,45 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: string
+        }
+        Relationships: []
+      }
+      email_prefill_tokens: {
+        Row: {
+          amount: number | null
+          campaign: string | null
+          carrier_slug: string
+          created_at: string
+          expires_at: string
+          last_used_at: string | null
+          log_id: string | null
+          phone: string
+          token: string
+          used_count: number
+        }
+        Insert: {
+          amount?: number | null
+          campaign?: string | null
+          carrier_slug: string
+          created_at?: string
+          expires_at?: string
+          last_used_at?: string | null
+          log_id?: string | null
+          phone: string
+          token?: string
+          used_count?: number
+        }
+        Update: {
+          amount?: number | null
+          campaign?: string | null
+          carrier_slug?: string
+          created_at?: string
+          expires_at?: string
+          last_used_at?: string | null
+          log_id?: string | null
+          phone?: string
+          token?: string
+          used_count?: number
         }
         Relationships: []
       }
@@ -2650,6 +2749,10 @@ export type Database = {
       reminder_unsubscribe: {
         Args: { _source: string; _token: string }
         Returns: string
+      }
+      resolve_email_prefill: {
+        Args: { p_slug: string; p_token: string }
+        Returns: Json
       }
       retention_bucket: { Args: { _phone: string }; Returns: number }
       retention_email_cron_auth: { Args: { _token: string }; Returns: boolean }
