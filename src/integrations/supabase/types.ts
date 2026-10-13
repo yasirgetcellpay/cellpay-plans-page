@@ -2688,6 +2688,10 @@ export type Database = {
         }
         Returns: Json
       }
+      tx_log_meta_merge: {
+        Args: { _id: string; _patch: Json }
+        Returns: undefined
+      }
       vel1_enforce_check: {
         Args: {
           _email: string
