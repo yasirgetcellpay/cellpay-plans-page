@@ -1932,6 +1932,8 @@ export type Database = {
           hashid: string | null
           id: string
           last_name: string | null
+          marketing_opt_in: boolean | null
+          marketing_opt_in_at: string | null
           metadata: Json | null
           payment_method: string | null
           phone_number: string | null
@@ -1959,6 +1961,8 @@ export type Database = {
           hashid?: string | null
           id?: string
           last_name?: string | null
+          marketing_opt_in?: boolean | null
+          marketing_opt_in_at?: string | null
           metadata?: Json | null
           payment_method?: string | null
           phone_number?: string | null
@@ -1986,6 +1990,8 @@ export type Database = {
           hashid?: string | null
           id?: string
           last_name?: string | null
+          marketing_opt_in?: boolean | null
+          marketing_opt_in_at?: string | null
           metadata?: Json | null
           payment_method?: string | null
           phone_number?: string | null
@@ -2607,6 +2613,10 @@ export type Database = {
       }
       purchase_fallback_sweep: { Args: never; Returns: undefined }
       purchase_tag_cliff_sweep: { Args: never; Returns: number }
+      record_marketing_opt_in: {
+        Args: { p_hashid: string; p_opt_in: boolean }
+        Returns: undefined
+      }
       record_presence: {
         Args: { _path: string; _session_id: string; _user_agent: string }
         Returns: undefined
