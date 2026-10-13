@@ -71,6 +71,13 @@
       "when": 1791857042661,
       "tag": "0009_ourside_retry_1012_meta_merge",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791892266732,
+      "tag": "0010_marketing_optin_1013",
+      "breakpoints": true
     }
   ]
 }

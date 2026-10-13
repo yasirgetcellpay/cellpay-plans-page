@@ -174,6 +174,8 @@ const setPurchasePending = (hid: string) => {
 // item_name/item_id = the hub receipt's names for this (carrier slug, plan id) (verified table, GTM margin lookup keys on item_name).
 // [receipt item_name, receipt item_id, space-separated plan ids] per carrier slug. Unknown carrier/plan -> no early fire.
 const EP_TABLE: Record<string, Array<[string, string, string]>> = {"boost":[["Boost","boost","66666"]],"h2o":[["H2O Wireless","h2o","3520 4439 5213 8282 32205 54787"]],"lyca":[["Lyca Mobile","lyca","1906 1907 1908 1909 1924 8768 8830 8831 8864 8907 9876789 28947019"]],"metropcs":[["Metro PCS","metropcs","33333"]],"net10":[["NET10","net10","3686 3924 3993 6346 9569 9570"]],"pageplus":[["Page Plus","pageplus","4919 31004 32164 8818410 8918412"]],"s1":[["Simple Mobile","s1","2631 2632 2634 2655 12676"]],"straight-talk":[["Straight Talk","straight-talk","39411 39412 39413 39414 addon-39421 Broadband-39422"]],"tmobile":[["T-Mobile","tmobile","834 835 836 8209 8328 8329 28254 28694 232179"],["T-Mobile Flexi","tmobile-flexi","238888"]],"topup-at":[["AT&T","topup-at","23915"],["AT&T","topup-af","9011 9012 9013 9014 9015 9016 9017 9018 9019 9020 9021 9022 9023 9024 9025 9026"]],"topup-crc":[["Cricket Wireless","topup-crc","44444"]],"total-wireless":[["Total Wireless","total-wireless","32140 32191 32193 321450 887800 887801 887802 887803 887804 887805 887806"]],"tracfone":[["Tracfone","tracfone","288 289 298 9545 10647 10648 10649"]],"ultra-mobile":[["Ultra Mobile","ultra-mobile","1367 1469 8274 8275 8278 8279 5523059 32990000 32991000 32992000 32993000"]],"verizon":[["Verizon Wireless Prepaid","verizon","2628 2629 2636 2637 2638 2639 22118 24322 24324 24325 24328"],["Verizon Wireless Flexi","verizon-wireless-flexi","291945"]]};
+// MARKETING-OPTIN-1013: record the optional email opt-in on the order row (by order id), best-effort, never blocks.
+const recordMarketingOptIn = (hid: string, optIn: boolean): void => { try { const id = String(hid || "").trim(); if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return; void Promise.resolve((supabase as unknown as { rpc: (fn: string, a: Record<string, unknown>) => PromiseLike<unknown> }).rpc("record_marketing_opt_in", { p_hashid: id, p_opt_in: optIn === true })).catch(() => {}); } catch { /* best-effort, never blocks */ } };
 const earlyPurchase = (hid: string, slug: string, plan: unknown, amountIn: unknown, totalIn: unknown): void => {
   try {
     const id = String(hid || "").trim();
@@ -317,6 +319,9 @@ const Checkout = () => {
   const [saveCard, setSaveCard] = useState(false);
   const [autoPay, setAutoPay] = useState(false);
   const [autoPayTerms, setAutoPayTerms] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false); // MARKETING-OPTIN-1013
+  const mktOptInRef = useRef(false); // MARKETING-OPTIN-1013
+  mktOptInRef.current = marketingOptIn; // MARKETING-OPTIN-1013
   const checkoutConfigRef = useRef<Record<string, unknown> | null>(null); // APAP-1007: mirror of checkoutConfig (state is declared below)
   const [gpGate, setGpGate] = useState<{ ok: boolean; site: string } | null>(null); // GPAY-AUTOPAY-1008: gpay_autopay_check answer (offer stage)
   const gpRecurringRef = useRef(false); // GPAY-AUTOPAY-1008: true only when THIS Google Pay order sent the Auto Pay flags
@@ -1285,6 +1290,7 @@ const Checkout = () => {
   }
 
   const brandColor = state.brandColor;
+  const mktLabel = ["metropcs","boost","topup-crc"].includes(String(state?.carrierSlug || "")) ? (lang === "es" ? "Envíame recordatorios de pago y ofertas" : "Email me payment reminders and deals") : (lang === "es" ? "Envíame recordatorios de recarga y ofertas" : "Email me refill reminders and deals"); // MARKETING-OPTIN-1013
   const total = validation?.total ?? Number(state.amount);
   const fee = validation?.fee ?? 0;
   const tax = validation?.tax ?? 0;
@@ -1418,6 +1424,7 @@ const Checkout = () => {
       // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1b: sessionStorage + cookie).
       setPurchasePending(hid);
       earlyPurchase(hid, state.carrierSlug, state.planId, validation?.amount ?? state.amount, validation?.total ?? state.amount); // BEACON-AT-SUCCESS-1011
+      recordMarketingOptIn(hid, mktOptInRef.current); // MARKETING-OPTIN-1013
       const params = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
       clearCheckoutCtx();
       try { sessionStorage.removeItem(AP_TICKS_KEY); } catch { /* ignore */ } // ARB-1b: order placed, forget the ticks
@@ -1954,6 +1961,7 @@ const Checkout = () => {
           const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
           setPurchasePending(hid);
           earlyPurchase(hid, state.carrierSlug, state.planId, validation?.amount ?? state.amount, validation?.total ?? state.amount); // BEACON-AT-SUCCESS-1011
+          recordMarketingOptIn(hid, mktOptInRef.current); // MARKETING-OPTIN-1013
           const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
           clearCheckoutCtx();
           try { sessionStorage.removeItem(AP_TICKS_KEY); } catch { /* ignore */ } // ARB-1b: order placed, forget the ticks
@@ -2619,6 +2627,8 @@ const Checkout = () => {
                 {tr.agreeTermsSuffix}
               </span>
             </label>
+            {/* MARKETING-OPTIN-1013: optional, unticked, every payment method; not part of canSubmit or any payment request */}
+            <label className="flex items-start gap-3 cursor-pointer"><input type="checkbox" checked={marketingOptIn} onChange={(e) => setMarketingOptIn(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} /><span className="text-sm text-foreground leading-relaxed">{mktLabel}</span></label>
 
             {paymentMethod === "card" && (
               <>

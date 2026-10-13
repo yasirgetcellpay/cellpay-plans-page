@@ -3,6 +3,7 @@
 // so the policy text in the raw HTML and on screen stays word for word identical. No imports: vite.config.ts loads this file.
 // Legal text: change only with Parvez's OK. Oct 7, 2026 update (Parvez approved): section 2 ads line, section 3 sharing text,
 // section 6 ads opt-out, new Effective Date, Spanish version.
+// Oct 13, 2026 (Parvez approved): section 6 email line.
 
 export type PpLang = "en" | "es";
 export type PpInline = string | { strong: string } | { href: string; text: string };
@@ -31,7 +32,7 @@ export const PRIVACY_PAGES: Record<PpLang, PpPage> = {
       "How CellPay collects, uses, and protects customer information when you purchase a prepaid mobile refill: data we collect, how we share it, and your choices.",
     h1: "Privacy Policy",
     effectiveLabel: "Effective Date:",
-    effectiveDate: "October 7, 2026",
+    effectiveDate: "October 13, 2026",
     sections: [
       {
         h: "1. Information We Collect",
@@ -83,6 +84,7 @@ export const PRIVACY_PAGES: Record<PpLang, PpPage> = {
         h: "6. Your Rights",
         blocks: [
           { p: ["You may request access to, correction of, or deletion of your personal data by contacting us at support@getcellpay.com."] },
+          { p: ["CellPay may email you about your refills, Auto Pay, and special offers. You can unsubscribe anytime using the link in any email or by emailing support@getcellpay.com."] },
           {
             p: [
               "You can ask us at any time to stop using your email or phone number for ads. Email ",
@@ -108,7 +110,7 @@ export const PRIVACY_PAGES: Record<PpLang, PpPage> = {
       "Cómo CellPay recopila, usa y protege la información de sus clientes cuando compra una recarga prepagada: qué datos recopilamos, cómo los compartimos y sus opciones.",
     h1: "Política de Privacidad",
     effectiveLabel: "Fecha de vigencia:",
-    effectiveDate: "7 de octubre de 2026",
+    effectiveDate: "13 de octubre de 2026",
     sections: [
       {
         h: "1. Información que recopilamos",
@@ -160,6 +162,7 @@ export const PRIVACY_PAGES: Record<PpLang, PpPage> = {
         h: "6. Sus derechos",
         blocks: [
           { p: ["Puede pedir ver, corregir o borrar sus datos personales escribiéndonos a support@getcellpay.com."] },
+          { p: ["CellPay puede enviarle correos electrónicos sobre sus recargas, el pago automático y ofertas especiales. Puede darse de baja en cualquier momento con el enlace que aparece en cada correo o escribiendo a support@getcellpay.com."] },
           {
             p: [
               "Puede pedirnos en cualquier momento que dejemos de usar su correo electrónico o número de teléfono para anuncios. Escriba a ",
