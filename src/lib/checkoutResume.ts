@@ -3,6 +3,7 @@
 // computed here: Checkout re-runs validateRecharge and the server recalculates (Yasir lock 2).
 import { fetchCarrierView, verifyPhone } from "@/services/apiWrapper";
 import type { Language } from "@/lib/i18n";
+import { supabase } from "@/integrations/supabase/client"; // EMAIL-PREFILL-1013
 
 export interface CheckoutHandoff {
   phone: string;
@@ -50,7 +51,31 @@ const URL_ALIASES: Record<string, string> = {
   cricket: "topup-crc", att: "topup-at", "at-t": "topup-at", "simple-mobile": "s1", simple: "s1", metro: "metropcs",
   "metro-pcs": "metropcs", "t-mobile": "tmobile", "tmobile-flexi": "tmobile", "pageplus-addon": "pageplusadd",
 };
-const RESUME_PARAMS = ["carrier", "carrierSlug", "slug", "plan", "plan_id", "planId", "amount", "phone", "phone_number"];
+const RESUME_PARAMS = ["carrier", "carrierSlug", "slug", "plan", "plan_id", "planId", "amount", "phone", "phone_number", "t"]; // EMAIL-PREFILL-1013: "t"
+
+// EMAIL-PREFILL-1013: ?t=<uuid> from a reminder email -> { phone, amount } for this carrier, or null. 4 s cap, never throws.
+const EP_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+export async function resolveEmailPrefill(slug: string, search: string): Promise<{ phone: string; amount: number | null } | null> {
+  try {
+    const t = new URLSearchParams(search).get("t");
+    if (!t || !EP_UUID.test(t)) return null;
+    const call = Promise.resolve(
+      (supabase as unknown as { rpc: (fn: string, a: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }> })
+        .rpc("resolve_email_prefill", { p_token: t, p_slug: slug }),
+    );
+    const timeout = new Promise<null>((res) => setTimeout(() => res(null), 4000));
+    const r = await Promise.race([call, timeout]);
+    if (!r || r.error || !r.data || typeof r.data !== "object") return null;
+    const d = r.data as { phone?: unknown; slug?: unknown; amount?: unknown };
+    if (String(d.slug ?? "") !== slug) return null;
+    const phone = String(d.phone ?? "");
+    if (!/^\d{10}$/.test(phone)) return null;
+    const n = Number(d.amount);
+    return { phone, amount: n > 0 ? n : null };
+  } catch {
+    return null;
+  }
+}
 
 const digits10 = (input: string): string => {
   let d = (input || "").replace(/\D/g, "");
