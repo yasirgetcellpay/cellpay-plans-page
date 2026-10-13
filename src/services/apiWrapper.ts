@@ -326,7 +326,7 @@ function storedRetryMeta(payload: Record<string, unknown>): Record<string, unkno
     const s = JSON.parse(sessionStorage.getItem(`cp_ors:${sid}`) || "null") as Record<string, unknown> | null;
     if (!s || typeof s !== "object") return undefined;
     const m = String(payload.payment_method || "").toLowerCase();
-    const now = m.startsWith("card") ? "card" : m;
+    const now = m.startsWith("card") ? "card" : m === "pockyt" ? "cashapp" : m;
     const prior = typeof s.failed_method === "string" ? s.failed_method : "";
     const out: Record<string, unknown> = {};
     if (s.fallback_shown === true) { out.retry_after_data_err = true; out.method_switched = !!prior && prior !== now; }
