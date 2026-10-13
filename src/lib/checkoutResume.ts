@@ -51,6 +51,12 @@ const URL_ALIASES: Record<string, string> = {
   cricket: "topup-crc", att: "topup-at", "at-t": "topup-at", "simple-mobile": "s1", simple: "s1", metro: "metropcs",
   "metro-pcs": "metropcs", "t-mobile": "tmobile", "tmobile-flexi": "tmobile", "pageplus-addon": "pageplusadd",
 };
+// AUTOPAY-POSTPURCHASE-1013: carrier page path (EN) for an API slug or alias, else null.
+export function carrierPagePath(slug: string): string | null {
+  const s = String(slug || "").trim().toLowerCase();
+  const k = CARRIERS[s] ? s : URL_ALIASES[s];
+  return k && CARRIERS[k] ? CARRIERS[k].path : null;
+}
 const RESUME_PARAMS = ["carrier", "carrierSlug", "slug", "plan", "plan_id", "planId", "amount", "phone", "phone_number", "t", "ap"]; // EMAIL-PREFILL-1013: "t"; AUTOPAY-VISIBLE-1013: "ap"
 
 // EMAIL-PREFILL-1013: ?t=<uuid> from a reminder email -> { phone, amount } for this carrier, or null. 4 s cap, never throws.
