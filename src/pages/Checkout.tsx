@@ -361,6 +361,27 @@ const Checkout = () => {
       setAutoPayTerms(choice.autoPayTerms);
     }
   }, [paymentMethod, autoPayMethodOk, autoPay, autoPayTerms]);
+  // AUTOPAY-VISIBLE-1013: switch to an Auto Pay-capable method (Google Pay, else Apple Pay, else card).
+  const apSwitchToCapable = () => {
+    methodTappedRef.current = true;
+    setPaymentMethod(googlePayRecurringOk ? "googlepay" : applePayRecurringOk ? "applepay" : "card");
+  };
+  // AUTOPAY-VISIBLE-1013: email link with ap=1 pre-ticks Auto Pay once (never the Auto Pay terms). Any error: ignore.
+  const emailApDoneRef = useRef(false);
+  useEffect(() => {
+    if (emailApDoneRef.current || !state?.carrierSlug) return;
+    emailApDoneRef.current = true;
+    try {
+      const raw = sessionStorage.getItem("cp_email_ap");
+      if (!raw) return;
+      const v = JSON.parse(raw);
+      if (!v || v.slug !== state.carrierSlug || typeof v.ts !== "number" || !(Date.now() - v.ts < 2 * 60 * 60 * 1000)) return;
+      sessionStorage.removeItem("cp_email_ap");
+      if (!autoPayMethodOk) apSwitchToCapable();
+      setAutoPay(true);
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.carrierSlug]);
   // ARB-1b: keep the customer's OWN Auto Pay, Auto Pay-terms and Terms ticks through a refresh or Back, for THIS checkout only
   // (same carrier + number + amount, this tab's sessionStorage, 30 min). Card only: any other method clears it, and so does a
   // successful order. Only a box the customer ticked in this tab comes back; nothing is ever ticked for anyone who didn't tick it.
@@ -2650,18 +2671,23 @@ const Checkout = () => {
               </>
             )}
 
-            {autoPayMethodOk && (
-              <>
+                {/* AUTOPAY-VISIBLE-1013: the Auto Pay box shows for every payment method; ticking it on a non-Auto Pay method switches to one that supports it */}
                 <label className="flex items-start gap-3 cursor-pointer">
-                  <input type="checkbox" checked={autoPay} onChange={(e) => setAutoPay(e.target.checked)}
+                  <input type="checkbox" checked={autoPay} onChange={(e) => { if (e.target.checked && !autoPayMethodOk) { apSwitchToCapable(); setAutoPay(true); } else { setAutoPay(e.target.checked); } }} // AUTOPAY-VISIBLE-1013
                     className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
                   <span data-testid="autopay-offer" className="flex-1 text-sm leading-snug rounded-lg border-2 px-3 py-3 -mt-1 shadow-sm" style={{ borderColor: brandColor, backgroundColor: `color-mix(in srgb, ${brandColor} 7%, transparent)` }}>{/* AUTOPAY-PUSH-1012: more visible, still unticked by default */}
                     <span data-testid="autopay-offer-badge" className="inline-block mb-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white" style={{ backgroundColor: brandColor }}>{apCopy.offerBadge}</span>
                     <span className="block text-base font-extrabold text-foreground">{apCopy.offerTitle}</span>
                     <span className="block text-muted-foreground mt-0.5">{apCopy.offerBenefit}</span>
                     <span data-testid="autopay-offer-how" className="block text-muted-foreground mt-1">{apCopy.offerHow}</span>
+                    {!autoPayMethodOk && (
+                      <span className="block text-xs text-muted-foreground mt-1">{lang === "es" ? "El pago automático funciona con tarjeta, Apple Pay o Google Pay." : "Auto Pay works with card, Apple Pay or Google Pay."}</span>
+                    )}{/* AUTOPAY-VISIBLE-1013 */}
                   </span>
                 </label>
+
+            {autoPayMethodOk && (
+              <>
 
 
                 {autoPay && (
