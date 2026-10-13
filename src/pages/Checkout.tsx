@@ -231,6 +231,7 @@ const AP_CYCLE_CONFIRMED = false;
 const AP_COPY = {
   en: {
     offerTitle: "Never miss a refill: turn on Auto Pay (optional)",
+    offerBadge: "Recommended", // AUTOPAY-PUSH-1012
     offerBenefit: "Refills this number each month on your payment date, so your service doesn't lapse.",
     offerHow: "Charges the same amount to this same payment method. Nothing extra is charged today. Cancel anytime online, no login needed. You'll see the full terms before you agree.", // AUTOPAY-LIFT-1009
     chargeInterim: "Auto Pay recharges this number with this card. Renews monthly on your payment date, cancel anytime.",
@@ -248,6 +249,7 @@ const AP_COPY = {
   },
   es: {
     offerTitle: "No se quede sin recarga: active el pago automático (opcional)",
+    offerBadge: "Recomendado", // AUTOPAY-PUSH-1012
     offerBenefit: "Recarga este número cada mes en su fecha de pago, para que su servicio no se interrumpa.",
     offerHow: "Cobra el mismo monto a este mismo método de pago. Hoy no se cobra nada adicional. Cancele en línea cuando quiera, sin iniciar sesión. Verá los términos completos antes de aceptar.", // AUTOPAY-LIFT-1009
     chargeInterim: "El pago automático recarga este número con esta tarjeta. Se renueva cada mes en la fecha de su pago; cancele cuando quiera.",
@@ -2600,8 +2602,9 @@ const Checkout = () => {
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" checked={autoPay} onChange={(e) => setAutoPay(e.target.checked)}
                     className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
-                  <span data-testid="autopay-offer" className="flex-1 text-sm leading-snug rounded-lg border-2 px-3 py-2 -mt-1" style={{ borderColor: brandColor }}>
-                    <span className="block font-bold text-foreground">{apCopy.offerTitle}</span>
+                  <span data-testid="autopay-offer" className="flex-1 text-sm leading-snug rounded-lg border-2 px-3 py-3 -mt-1 shadow-sm" style={{ borderColor: brandColor, backgroundColor: `color-mix(in srgb, ${brandColor} 7%, transparent)` }}>{/* AUTOPAY-PUSH-1012: more visible, still unticked by default */}
+                    <span data-testid="autopay-offer-badge" className="inline-block mb-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white" style={{ backgroundColor: brandColor }}>{apCopy.offerBadge}</span>
+                    <span className="block text-base font-extrabold text-foreground">{apCopy.offerTitle}</span>
                     <span className="block text-muted-foreground mt-0.5">{apCopy.offerBenefit}</span>
                     <span data-testid="autopay-offer-how" className="block text-muted-foreground mt-1">{apCopy.offerHow}</span>
                   </span>
