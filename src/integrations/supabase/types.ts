@@ -2716,6 +2716,7 @@ export type Database = {
         Returns: string
       }
       pockyt_sweep_secret_ok: { Args: { _s: string }; Returns: boolean }
+      postpurchase_autopay_link: { Args: { p_hashid: string }; Returns: Json }
       purchase_fallback_claimed: {
         Args: { _transaction_id: string }
         Returns: boolean
