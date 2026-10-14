@@ -1685,6 +1685,27 @@ export type Database = {
         }
         Relationships: []
       }
+      receipt_assets: {
+        Row: {
+          b64: string
+          mime: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          b64: string
+          mime: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          b64?: string
+          mime?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       refill_cooldown: {
         Row: {
           created_at: string
