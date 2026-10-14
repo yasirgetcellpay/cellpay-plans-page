@@ -143,7 +143,7 @@ type HowToPayModule = typeof import("./pages/HowToPay.tsx");
 let howToPayModule: HowToPayModule | null = null;
 const loadHowToPay = () => import("./pages/HowToPay.tsx").then((m) => (howToPayModule = m));
 export const preloadHowToPay = (): Promise<unknown> => loadHowToPay();
-export const isHowToPayPath = (p: string): boolean => /^\/(how-to-pay|es\/como-pagar)\/[^/]+\/?$/.test(p);
+export const isHowToPayPath = (p: string): boolean => /^\/(how-to-pay|es\/como-pagar)\/[^/]+(\/\d+)?\/?$/.test(p); // AI-ANSWERS-1014: + /<amount>
 const HowToPayLazy = lazyPage(loadHowToPay);
 const HowToPayReady = lazy(
   () => ({ then: (ok: (m: HowToPayModule) => void) => ok(howToPayModule as HowToPayModule) }) as unknown as Promise<HowToPayModule>,
@@ -1670,6 +1670,25 @@ const App = () => (
         {/* CRICKET-GUIDE-1014: Cricket Wireless how-to-pay pair */}
         <Route path="/how-to-pay/cricket" element={<HowToPay />} />
         <Route path="/es/como-pagar/cricket" element={<HowToPay />} />
+        {/* AI-ANSWERS-1014: amount answer pages */}
+        <Route path="/how-to-pay/boost-mobile/25" element={<HowToPay />} />
+        <Route path="/es/como-pagar/boost-mobile/25" element={<HowToPay />} />
+        <Route path="/how-to-pay/boost-mobile/45" element={<HowToPay />} />
+        <Route path="/es/como-pagar/boost-mobile/45" element={<HowToPay />} />
+        <Route path="/how-to-pay/boost-mobile/50" element={<HowToPay />} />
+        <Route path="/es/como-pagar/boost-mobile/50" element={<HowToPay />} />
+        <Route path="/how-to-pay/metro-pcs/25" element={<HowToPay />} />
+        <Route path="/es/como-pagar/metro-pcs/25" element={<HowToPay />} />
+        <Route path="/how-to-pay/metro-pcs/45" element={<HowToPay />} />
+        <Route path="/es/como-pagar/metro-pcs/45" element={<HowToPay />} />
+        <Route path="/how-to-pay/metro-pcs/50" element={<HowToPay />} />
+        <Route path="/es/como-pagar/metro-pcs/50" element={<HowToPay />} />
+        <Route path="/how-to-pay/cricket/25" element={<HowToPay />} />
+        <Route path="/es/como-pagar/cricket/25" element={<HowToPay />} />
+        <Route path="/how-to-pay/cricket/45" element={<HowToPay />} />
+        <Route path="/es/como-pagar/cricket/45" element={<HowToPay />} />
+        <Route path="/how-to-pay/cricket/50" element={<HowToPay />} />
+        <Route path="/es/como-pagar/cricket/50" element={<HowToPay />} />
         {/* ES-FIRST-1014: Spanish-first bill-pay hub + EN twin */}
         <Route path="/es/paga-tu-factura" element={<PayHub />} />
         <Route path="/pay-your-phone-bill" element={<PayHub />} />

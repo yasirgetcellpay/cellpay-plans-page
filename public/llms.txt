@@ -56,6 +56,9 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [How to pay Metro by T-Mobile](https://www.cellpay.us/how-to-pay/metro-pcs) · [Cómo pagar Metro by T-Mobile](https://www.cellpay.us/es/como-pagar/metro-pcs)
 - [How to pay Boost Mobile](https://www.cellpay.us/how-to-pay/boost-mobile) · [Cómo pagar Boost Mobile](https://www.cellpay.us/es/como-pagar/boost-mobile)
 - [How to pay Cricket Wireless](https://www.cellpay.us/how-to-pay/cricket) · [Cómo pagar Cricket Wireless](https://www.cellpay.us/es/como-pagar/cricket)
+- Boost Mobile amounts: [$25](https://www.cellpay.us/how-to-pay/boost-mobile/25) · [$45](https://www.cellpay.us/how-to-pay/boost-mobile/45) · [$50](https://www.cellpay.us/how-to-pay/boost-mobile/50)
+- Metro by T-Mobile amounts: [$25](https://www.cellpay.us/how-to-pay/metro-pcs/25) · [$45](https://www.cellpay.us/how-to-pay/metro-pcs/45) · [$50](https://www.cellpay.us/how-to-pay/metro-pcs/50)
+- Cricket Wireless amounts: [$25](https://www.cellpay.us/how-to-pay/cricket/25) · [$45](https://www.cellpay.us/how-to-pay/cricket/45) · [$50](https://www.cellpay.us/how-to-pay/cricket/50)
 
 ## Páginas en español
 
@@ -83,6 +86,9 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [Pagar Simple Mobile (español)](https://www.cellpay.us/es/s1.html)
 - [Cómo pagar Boost Mobile](https://www.cellpay.us/es/como-pagar/boost-mobile)
 - [Cómo pagar Cricket Wireless](https://www.cellpay.us/es/como-pagar/cricket)
+- Montos de Boost Mobile: [$25](https://www.cellpay.us/es/como-pagar/boost-mobile/25) · [$45](https://www.cellpay.us/es/como-pagar/boost-mobile/45) · [$50](https://www.cellpay.us/es/como-pagar/boost-mobile/50)
+- Montos de Metro by T-Mobile: [$25](https://www.cellpay.us/es/como-pagar/metro-pcs/25) · [$45](https://www.cellpay.us/es/como-pagar/metro-pcs/45) · [$50](https://www.cellpay.us/es/como-pagar/metro-pcs/50)
+- Montos de Cricket Wireless: [$25](https://www.cellpay.us/es/como-pagar/cricket/25) · [$45](https://www.cellpay.us/es/como-pagar/cricket/45) · [$50](https://www.cellpay.us/es/como-pagar/cricket/50)
 
 ## Key facts for every carrier
 

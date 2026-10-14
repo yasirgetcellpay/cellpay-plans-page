@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { fetchCarrierView } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
-import { howToPayByPath, howToPayJsonLd, htpPlanNames, htpPlansNote } from "@/content/howToPay";
+import { howToPayByPath, howToPayJsonLd, htpPlanNames, htpPlansNote, htpCommonAmounts } from "@/content/howToPay"; // AI-ANSWERS-1014: + htpCommonAmounts
 import NotFound from "./NotFound.tsx";
 
 type LivePlan = { label: string };
@@ -49,6 +49,7 @@ const HowToPay = () => {
     applySeoHead({ title: pg.title, description: pg.description, path: pg.path, ...(hasStatic ? {} : { schema: howToPayJsonLd(pg) }) });
     let cancelled = false;
     setPlans(null);
+    if (pg.amount) return; // AI-ANSWERS-1014: amount pages show no plan list
     fetchCarrierView(pg.carrierSlug)
       .then((data) => { if (!cancelled) setPlans(extractPlans(data, pg.carrierSlug, pg.lang === "es")); })
       .catch(() => { if (!cancelled) setPlans([]); });
@@ -57,6 +58,7 @@ const HowToPay = () => {
 
   if (!pg) return <NotFound />;
   const L = pg.labels;
+  const common = htpCommonAmounts(pg); // AI-ANSWERS-1014
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased text-foreground" lang={pg.lang}>
@@ -79,6 +81,25 @@ const HowToPay = () => {
           ))}
         </ol>
 
+        {pg.amount ? (
+          <>
+            {/* AI-ANSWERS-1014: amount page (same markup as howToPayStaticHtml) */}
+            <h2 className="text-xl font-extrabold mt-8 mb-3">{pg.methodsTitle}</h2>
+            <p>{pg.methodsLine}</p>
+            <p className="mt-2 font-bold">{pg.feeLine}</p>
+            <h2 className="text-xl font-extrabold mt-8 mb-3">{L.faq}</h2>
+            {pg.faqs.map((f) => (
+              <div key={f.q} className="mb-4">
+                <h3 className="font-bold">{f.q}</h3>
+                <p>{f.a}</p>
+              </div>
+            ))}
+            <p className="text-xs text-muted-foreground mt-8">{pg.disclaimer}</p>
+            <p className="text-xs text-muted-foreground">{pg.updated}</p>
+            <p className="mt-6"><a href={pg.parentPath} className="underline">{pg.parentLabel}</a></p>
+          </>
+        ) : (
+        <>
         <h2 className="text-xl font-extrabold mt-8 mb-3">{L.need}</h2>
         <ul className="list-disc pl-6 space-y-1">{pg.need.map((n) => <li key={n}>{n}</li>)}</ul>
 
@@ -122,10 +143,19 @@ const HowToPay = () => {
         <p className="text-xs text-muted-foreground mt-8">{pg.disclaimer}</p>
         <p className="text-xs text-muted-foreground">{pg.updated}</p>
 
+        {common.length > 0 && (
+          <>
+            {/* AI-ANSWERS-1014 */}
+            <h2 className="text-xl font-extrabold mt-8 mb-3">{pg.lang === "es" ? "Montos comunes" : "Common amounts"}</h2>
+            <ul className="list-disc pl-6 space-y-1">{common.map(([h, t]) => <li key={h}><a href={h} className="underline">{t}</a></li>)}</ul>
+          </>
+        )}
         <h2 className="text-xl font-extrabold mt-8 mb-3">{L.related}</h2>
         <ul className="list-disc pl-6 space-y-1">
           {pg.related.map(([h, t]) => <li key={h}><a href={h} className="underline">{t}</a></li>)}
         </ul>
+        </>
+        )}
       </main>
     </div>
   );
