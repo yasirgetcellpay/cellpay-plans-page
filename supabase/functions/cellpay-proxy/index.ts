@@ -2252,6 +2252,22 @@ function sanitizeFreeText(v: unknown, depth = 0): void {
   }
 }
 
+// NAME-DIGITS-1014: name keys checked for 6+ digits (per field, and first+last together in the same object). Nothing is logged.
+const NAME_KEY_RE = /^(first_?name|last_?name|given_?name|family_?name|full_?name|billing_?name|card_?holder_?name|holder_?name|name_?on_?card)$/i;
+function nameHasCardDigits(v: unknown, depth = 0): boolean {
+  if (!v || typeof v !== "object" || depth > 6) return false;
+  if (Array.isArray(v)) return v.some((x) => nameHasCardDigits(x, depth + 1));
+  let sum = 0;
+  for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+    if (typeof x === "string" && NAME_KEY_RE.test(k)) {
+      const d = x.replace(/\D/g, "").length;
+      if (d >= 6) return true;
+      if (/^(first|last|given|family)_?name$/i.test(k)) sum += d;
+    } else if (x && typeof x === "object" && nameHasCardDigits(x, depth + 1)) return true;
+  }
+  return sum >= 6;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -2271,6 +2287,17 @@ serve(async (req) => {
     const { endpoint, method = "GET", payload, bearerToken, callerHost } = body;
     // [EMOJI-STRIP-1012] clean free-text fields in place before any guard/log/forward (covers every route incl. PayPal + checkout/transaction).
     try { if (typeof method === "string" && method.toUpperCase() !== "GET") sanitizeFreeText(payload); } catch { /* fail-open */ }
+    // NAME-DIGITS-1014: a cardholder name with 6+ digits is likely a card number in the name field -> 400 before any log/store/forward.
+    try {
+      if (typeof method === "string" && method.toUpperCase() !== "GET" && nameHasCardDigits(payload)) {
+        const ref = req.headers.get("referer") || "";
+        const lg = String((body as Record<string, unknown>)?.lang ?? (payload as Record<string, unknown>)?.lang ?? "").toLowerCase();
+        const es = lg.startsWith("es") || /\/es(\/|$)/.test((() => { try { return new URL(ref).pathname; } catch { return ""; } })());
+        return new Response(JSON.stringify({ success: false, code: "NAME_INVALID", message: es ? "Ingrese el nombre que aparece en su tarjeta" : "Please enter the name on your card" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } catch { /* fail-open: the check never breaks a request */ }
 
     if (!endpoint) {
       return new Response(JSON.stringify({ error: "Missing endpoint" }), {
