@@ -1763,6 +1763,24 @@ export type Database = {
         }
         Relationships: []
       }
+      receipt_test_claims: {
+        Row: {
+          category: string
+          claimed_at: string | null
+          transaction_id: string | null
+        }
+        Insert: {
+          category: string
+          claimed_at?: string | null
+          transaction_id?: string | null
+        }
+        Update: {
+          category?: string
+          claimed_at?: string | null
+          transaction_id?: string | null
+        }
+        Relationships: []
+      }
       refill_cooldown: {
         Row: {
           created_at: string
