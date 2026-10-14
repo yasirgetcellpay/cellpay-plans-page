@@ -92,8 +92,12 @@ export type Database = {
           pick_reason: string | null
           prefill_token: string | null
           resend_id: string | null
+          sender_variant: string | null
           sent_at: string | null
           status: string
+          subj_variant: string | null
+          subject: string | null
+          template: string | null
           unsub_token: string
         }
         Insert: {
@@ -113,8 +117,12 @@ export type Database = {
           pick_reason?: string | null
           prefill_token?: string | null
           resend_id?: string | null
+          sender_variant?: string | null
           sent_at?: string | null
           status?: string
+          subj_variant?: string | null
+          subject?: string | null
+          template?: string | null
           unsub_token?: string
         }
         Update: {
@@ -134,8 +142,12 @@ export type Database = {
           pick_reason?: string | null
           prefill_token?: string | null
           resend_id?: string | null
+          sender_variant?: string | null
           sent_at?: string | null
           status?: string
+          subj_variant?: string | null
+          subject?: string | null
+          template?: string | null
           unsub_token?: string
         }
         Relationships: []
@@ -2477,6 +2489,7 @@ export type Database = {
         Args: { _id: string; _outcome: string }
         Returns: boolean
       }
+      cp_clean_first_name: { Args: { fn: string; ln: string }; Returns: string }
       dupcharge_check: {
         Args: { _amount: string; _phone: string; _session: string }
         Returns: Json

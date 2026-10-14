@@ -25,7 +25,17 @@ export function classifyDecline(msg: string, carrierSlug?: string): DeclineClass
 export function noSameRetry(msg: string, method: string): boolean {
   const m = String(msg || "");
   return /general decline|insufficient|not sufficient|nsf|transaction (was )?rejected|do not honou?r/i.test(m)
-    || (method === "googlepay" && /reject/i.test(m));
+    || (method === "googlepay" && /reject/i.test(m))
+    || /problem with the card|soft decline/i.test(m) || /^declined?\.?$/i.test(m.trim()); // DECLINE-RECOVERY-1014C
+}
+
+// DECLINE-RECOVERY-1014C: wallets declined in this tab (never cleared on success; lasts the tab session).
+const WALLET_KEY = "cp_wallet_declined_v1";
+export function walletDeclined(): string[] {
+  try { const v = JSON.parse(sessionStorage.getItem(WALLET_KEY) || "[]"); return Array.isArray(v) ? v.filter((x) => typeof x === "string") : []; } catch { return []; }
+}
+export function markWalletDeclined(m: string) {
+  try { const v = walletDeclined(); if (!v.includes(m)) sessionStorage.setItem(WALLET_KEY, JSON.stringify([...v, m])); } catch { /* ignore */ }
 }
 
 export const MAX_CARD_RETRIES = 2; // after 2 declined card tries on this order, only other methods are offered
