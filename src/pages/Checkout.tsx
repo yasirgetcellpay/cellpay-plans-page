@@ -7,7 +7,7 @@ import { PaymentMethodPicker } from "@/components/PaymentMethodPicker"; // METHO
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react"; // CARRIER-ASSIST-1011
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
-import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014: + session counter, email cleanup
+import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry
 import { AP_LAST_KEY } from "@/components/AutoPayReceiptCard";
 import { PLAID_ENABLED, PAYPAL_ENABLED } from "@/config/paymentFlags";
 // [PAYPAL-REBUILD-1009] QA only: ?pp_qa=1 shows the PayPal tile in this tab while PAYPAL_ENABLED is false (?pp_qa=0 clears it).
@@ -648,7 +648,7 @@ const Checkout = () => {
   // CX-HOLD: show "card was NOT charged" on declines with no txn id (not on auto-refund).
   const [showNotChargedNote, setShowNotChargedNote] = useState(false);
   // GROWTH-1007-A: card-decline recovery. Set ONLY for a card decline with no txn id and no auto-refund (= not charged).
-  const [declineInfo, setDeclineInfo] = useState<{ cls: DeclineClass; n: number; method: PaymentMethod; sess: number } | null>(null); // DECLINE-RECOVERY-1014: + method, sess
+  const [declineInfo, setDeclineInfo] = useState<{ cls: DeclineClass; n: number; method: PaymentMethod; sess: number; msg?: string } | null>(null); // DECLINE-RECOVERY-1014: + method, sess // DECLINE-RECOVERY-1014B: + msg
   const emailCleanRef = useRef(""); emailCleanRef.current = cleanEmail(email); // DECLINE-RECOVERY-1014: cleaned email sent on submit
   // DECLINE-RECOVERY-1014: recovery prompt shown -> funnel event + flag for recovery_success.
   useEffect(() => {
@@ -1482,7 +1482,7 @@ const Checkout = () => {
       // DECLINE-RECOVERY-1014: card, Apple Pay and Google Pay; card keeps its per-card counter, every method bumps the session counter.
       const dWallet = paymentMethod === "applepay" || paymentMethod === "googlepay";
       const dOk = (paymentMethod === "card" || dWallet) && !autoRefund && !txn && raw.code !== "DUP_CONFIRM" && raw.code !== "SESSION_PAID" && raw.code !== "IN_FLIGHT";
-      setDeclineInfo(dOk ? { cls: classifyDecline(msg, state.carrierSlug), n: paymentMethod === "card" ? bumpCardDeclines(apTicksOrder) : 0, method: paymentMethod, sess: bumpSessionDeclines() } : null);
+      setDeclineInfo(dOk ? { cls: classifyDecline(msg, state.carrierSlug), n: paymentMethod === "card" ? bumpCardDeclines(apTicksOrder) : 0, method: paymentMethod, sess: bumpSessionDeclines(), msg: String(msg || "") } : null); // DECLINE-RECOVERY-1014B: + msg
       if (dOk && paymentMethod === "card") { setCardNumber(""); setCardExpiry(""); setCardCvv(""); } // DECLINE-RECOVERY-1014: card fields cleared, rest kept // DUPCHARGE-1008: not a decline
       setRefundCard(autoRefund); // TOP4-T2B-1009
       setErrorMsg(orsOnFail(msg)); // [OURSIDE-RETRY-1012]
@@ -3010,12 +3010,13 @@ const Checkout = () => {
               const offered = new Set<PaymentMethod>(paymentMethods.map((pm) => pm.key));
               const btn = "w-full px-4 py-2.5 rounded-lg font-bold text-sm";
               const isCard = declineInfo.method === "card";
+              const noRetry = noSameRetry(declineInfo.msg || "", declineInfo.method); // DECLINE-RECOVERY-1014B
               const hint = sessCap ? dc.capSession : capped && declineInfo.cls !== "blocked" ? dc.capReached : dc[declineInfo.cls]; // DECLINE-RECOVERY-1014
               return (
                 <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls}>
                   <p className="text-sm text-foreground mb-2" data-testid="decline-hint">{hint}</p>
                   {/* DECLINE-RECOVERY-1014: a) Try again, b) Use another card, c) PayPal, d) existing wallets / Cash App / Pay by Bank */}
-                  {!sessCap && !(isCard && capped) && (
+                  {!sessCap && !(isCard && capped) && !noRetry && ( // DECLINE-RECOVERY-1014B: no same-method retry on bank declines
                     <button type="button" data-testid="decline-retry-card"
                       onClick={() => { if (isCard) focusCard(); else toMethod(declineInfo.method); }}
                       className={btn + " border-2 border-border text-foreground bg-background"}>
@@ -3032,10 +3033,10 @@ const Checkout = () => {
                   {offered.has("paypal") && (
                     <button type="button" data-testid="decline-paypal" onClick={() => toMethod("paypal")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayPal}</button>
                   )}
-                  {!sessCap && applePayAvailable && offered.has("applepay") && (
+                  {!sessCap && applePayAvailable && offered.has("applepay") && !(noRetry && declineInfo.method === "applepay") && ( // DECLINE-RECOVERY-1014B
                     <button type="button" data-testid="decline-applepay" onClick={() => toMethod("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
                   )}
-                  {!sessCap && offered.has("googlepay") && (
+                  {!sessCap && offered.has("googlepay") && !(noRetry && declineInfo.method === "googlepay") && ( // DECLINE-RECOVERY-1014B
                     <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " bg-black text-white"}>{dc.useGooglePay}</button>
                   )}
                   {!sessCap && offered.has("cashapp") && (
