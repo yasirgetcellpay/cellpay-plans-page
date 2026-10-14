@@ -397,7 +397,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
   es({
     key: "cricket", name: "Cricket Wireless", slug: "topup-crc", checkout: "/es/topup-crc.html",
     title: "Cómo pagar Cricket Wireless en línea | CellPay",
-    description: "Pague su factura de Cricket Wireless en línea solo con el número. Sin iniciar sesión. Elija el monto y pague. El cargo por servicio se muestra antes de pagar.",
+    description: "Pague su factura de Cricket Wireless en línea con solo el número. Sin cuenta. Elija el monto y pague. El cargo por servicio se muestra antes de pagar.",
     h1: "Cómo pagar Cricket Wireless en línea",
     intro: `Para pagar Cricket Wireless en línea, abra la página de Cricket de CellPay, ingrese el número de Cricket de 10 dígitos, elija el monto y revise el total (el cargo por servicio se muestra antes de pagar). Luego pague con ${PAY_ES}. No necesita iniciar sesión en Cricket.`,
     step3: "Elija un plan de la lista o ingrese el monto que desea pagar.",
