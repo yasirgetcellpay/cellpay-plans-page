@@ -430,27 +430,27 @@ const AMT_CARRIERS: AmtCarrier[] = [
 ];
 export const HTP_AMOUNTS = [25, 45, 50] as const;
 const AMT_TAIL_EN: Record<string, string> = {
-  "boost-mobile": "It works for a Boost line you just switched to, too.",
-  "metro-pcs": "It works the same whether you call it Metro PCS or Metro by T-Mobile.",
-  cricket: "It works for your own Cricket line or a family member's.",
+  "boost-mobile": "New Boost lines work too.",
+  "metro-pcs": "Metro PCS is now Metro by T-Mobile.",
+  cricket: "Any Cricket line works, yours or family.",
 };
 const AMT_TAIL_ES: Record<string, string> = {
-  "boost-mobile": "También sirve para una línea de Boost a la que se cambió hace poco.",
-  "metro-pcs": "Funciona igual si usted la conoce como Metro PCS o como Metro by T-Mobile.",
-  cricket: "Sirve para su propia línea de Cricket o la de un familiar.",
+  "boost-mobile": "Sirve también para líneas nuevas de Boost.",
+  "metro-pcs": "Metro PCS ahora es Metro by T-Mobile.",
+  cricket: "Sirve para su línea o la de un familiar.",
 };
 const amtIntroEn = (c: AmtCarrier, a: number): string =>
   a === 25
-    ? `Yes, you can pay $25 to ${c.name} online. Open CellPay's ${c.short} page, enter the 10-digit ${c.short} number, type $25 as the amount, check the total and pay with ${PAY_EN}. No ${c.short} login is needed. ${AMT_TAIL_EN[c.key]}`
+    ? `Yes, you can pay $25 to ${c.name} online. Open CellPay's ${c.short} page, enter the 10-digit ${c.short} number, type $25, check the total and pay with ${PAY_EN}. No login needed. ${AMT_TAIL_EN[c.key]}`
     : a === 45
-      ? `To pay $45 on a ${c.name} line, go to CellPay's ${c.short} page, enter the phone number, enter $45, review the order summary and pay with ${PAY_EN}. You don't need an account or a carrier login. ${AMT_TAIL_EN[c.key]}`
-      : `Paying $50 toward ${c.name} takes about a minute on CellPay: enter the 10-digit ${c.short} number, enter $50 as the amount, confirm the total, then pay with ${PAY_EN}. No login is required. ${AMT_TAIL_EN[c.key]}`;
+      ? `To pay $45 on a ${c.name} line, go to CellPay's ${c.short} page, enter the phone number, enter $45, review the total and pay with ${PAY_EN}. No account or login needed. ${AMT_TAIL_EN[c.key]}`
+      : `Paying $50 toward ${c.name} takes about a minute on CellPay: enter the 10-digit ${c.short} number, enter $50, confirm the total, then pay with ${PAY_EN}. No login needed. ${AMT_TAIL_EN[c.key]}`;
 const amtIntroEs = (c: AmtCarrier, a: number): string =>
   a === 25
-    ? `Sí, puede pagar $25 a ${c.name} en línea. Abra la página de ${c.short} de CellPay, ingrese el número de ${c.short} de 10 dígitos, escriba $25 como monto, revise el total y pague con ${PAY_ES}. No necesita iniciar sesión. ${AMT_TAIL_ES[c.key]}`
+    ? `Sí, puede pagar $25 a ${c.name} en línea. Abra la página de ${c.short} de CellPay, ingrese el número de ${c.short} de 10 dígitos, escriba $25, revise el total y pague con ${PAY_ES}. Sin iniciar sesión. ${AMT_TAIL_ES[c.key]}`
     : a === 45
-      ? `Para pagar $45 en una línea de ${c.name}, vaya a la página de ${c.short} de CellPay, ingrese el número, ingrese $45, revise el resumen del pedido y pague con ${PAY_ES}. No necesita cuenta ni contraseña. ${AMT_TAIL_ES[c.key]}`
-      : `Pagar $50 a ${c.name} toma cerca de un minuto en CellPay: ingrese el número de ${c.short} de 10 dígitos, ingrese $50 como monto, confirme el total y pague con ${PAY_ES}. No necesita iniciar sesión. ${AMT_TAIL_ES[c.key]}`;
+      ? `Para pagar $45 en una línea de ${c.name}, vaya a la página de ${c.short} de CellPay, ingrese el número, ingrese $45, revise el total y pague con ${PAY_ES}. Sin cuenta. ${AMT_TAIL_ES[c.key]}`
+      : `Pagar $50 a ${c.name} toma cerca de un minuto en CellPay: ingrese el número de ${c.short} de 10 dígitos, ingrese $50, confirme el total y pague con ${PAY_ES}. Sin iniciar sesión. ${AMT_TAIL_ES[c.key]}`;
 const AMT_DATE_EN = "Last updated: October 14, 2026";
 const AMT_DATE_ES = "Última actualización: 14 de octubre de 2026";
 const amtPage = (c: AmtCarrier, a: number, lang: HtpLang): HtpPage => {
@@ -466,8 +466,8 @@ const amtPage = (c: AmtCarrier, a: number, lang: HtpLang): HtpPage => {
       ? (c.key === "metro-pcs" ? `Cómo pagar ${shortTitle} $${a} | CellPay` : `Cómo pagar ${c.name} $${a} en línea | CellPay`)
       : (c.key === "metro-pcs" ? `How to Pay ${shortTitle} $${a} | CellPay` : `How to Pay ${c.name} $${a} Online | CellPay`),
     description: isEs
-      ? `Pague $${a} a ${c.name} en línea con solo el número de ${c.short}. Sin iniciar sesión. La tarifa de servicio se muestra antes de pagar.`
-      : `Pay $${a} to ${c.name} online with just the ${c.short} number. No login needed. Enter $${a}, review the total and pay. Service fee shown before you pay.`,
+      ? `Pague $${a} a ${c.key === "metro-pcs" ? "Metro by T-Mobile" : c.name} en línea con solo el número de ${c.short}. Sin iniciar sesión. La tarifa de servicio se muestra antes de pagar.`
+      : `Pay $${a} to ${c.key === "metro-pcs" ? "Metro by T-Mobile" : c.name} online with just the ${c.short} number. No login needed. Enter $${a}, review the total and pay. Service fee shown before you pay.`,
     h1: isEs ? `Cómo pagar ${c.name} $${a} en línea` : `How to pay ${c.name} $${a} online`,
     intro: isEs ? amtIntroEs(c, a) : amtIntroEn(c, a),
     steps: isEs
