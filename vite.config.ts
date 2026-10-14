@@ -16,7 +16,7 @@ import { goLpxForRoute } from "./src/content/goCopy";
 // LPX-1010 (SPEC-LPX-3): carrier sentence + FAQ in the raw HTML of every /go page (shared with GoLander.tsx).
 import { goStaticSentence, goStaticFaqHtml } from "./src/content/goPage";
 // TOP4-T1-1009: carrier first-screen copy (H1/subline, Verizon trust row) shared with DynamicCarrier.tsx / Verizon.tsx.
-import { top4Hero, verizonTrustLine } from "./src/content/carrierHero";
+import { top4Hero, verizonTrustLine, usCellularNote } from "./src/content/carrierHero"; // BATCH3-1014
 // PRIVACY-1007: privacy policy text (shared with src/pages/PrivacyPolicy.tsx) for the static raw HTML (EN + ES).
 import { PRIVACY_PAGES, privacyMainHtml, type PpPage } from "./src/content/privacyPolicy";
 // TOP4-T3-1009: Spanish How to Use page head (same title/description HowToUse.tsx sets at runtime)
@@ -1436,6 +1436,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<div class="max-w-7xl mx-auto px-5 py-4 sm:py-5 sm:px-6 lg:px-8 text-center">` +
         `<h1 class="text-xl md:text-2xl font-extrabold">${escAttr(h1)}</h1>` +
         `<p class="text-sm opacity-90 mt-1">${escAttr(h2)}</p>` +
+        (usCellularNote(slug, isEs ? "es" : "en") ? `<p class="text-xs opacity-90 mt-1">${escAttr(usCellularNote(slug, isEs ? "es" : "en") as string)}</p>` : "") + // BATCH3-1014
         `</div></section>` +
         `<div class="max-w-[420px] mx-auto px-4 pt-3">` +
         `<p class="bg-card rounded-xl border border-border px-3 py-2.5 text-xs text-foreground leading-relaxed text-center">${info}</p>` +
