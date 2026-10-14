@@ -261,6 +261,9 @@ const HTML_ROUTES = [
   // SEO-CONTENT-1014: Boost Mobile how-to-pay pages
   "how-to-pay/boost-mobile/index.html",
   "es/como-pagar/boost-mobile/index.html",
+  // CRICKET-GUIDE-1014: Cricket Wireless how-to-pay pages
+  "how-to-pay/cricket/index.html",
+  "es/como-pagar/cricket/index.html",
   // ES-FIRST-1014: bill-pay hub pair
   "es/paga-tu-factura/index.html",
   "pay-your-phone-bill/index.html",

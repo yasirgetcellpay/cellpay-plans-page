@@ -1667,6 +1667,9 @@ const App = () => (
         {/* SEO-CONTENT-1014: Boost Mobile how-to-pay pair */}
         <Route path="/how-to-pay/boost-mobile" element={<HowToPay />} />
         <Route path="/es/como-pagar/boost-mobile" element={<HowToPay />} />
+        {/* CRICKET-GUIDE-1014: Cricket Wireless how-to-pay pair */}
+        <Route path="/how-to-pay/cricket" element={<HowToPay />} />
+        <Route path="/es/como-pagar/cricket" element={<HowToPay />} />
         {/* ES-FIRST-1014: Spanish-first bill-pay hub + EN twin */}
         <Route path="/es/paga-tu-factura" element={<PayHub />} />
         <Route path="/pay-your-phone-bill" element={<PayHub />} />

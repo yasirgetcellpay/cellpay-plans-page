@@ -55,6 +55,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [How to pay Lyca Mobile](https://www.cellpay.us/how-to-pay/lyca-mobile) · [Cómo pagar Lyca Mobile](https://www.cellpay.us/es/como-pagar/lyca-mobile)
 - [How to pay Metro by T-Mobile](https://www.cellpay.us/how-to-pay/metro-pcs) · [Cómo pagar Metro by T-Mobile](https://www.cellpay.us/es/como-pagar/metro-pcs)
 - [How to pay Boost Mobile](https://www.cellpay.us/how-to-pay/boost-mobile) · [Cómo pagar Boost Mobile](https://www.cellpay.us/es/como-pagar/boost-mobile)
+- [How to pay Cricket Wireless](https://www.cellpay.us/how-to-pay/cricket) · [Cómo pagar Cricket Wireless](https://www.cellpay.us/es/como-pagar/cricket)
 
 ## Páginas en español
 
@@ -81,6 +82,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [Ultra Mobile (español)](https://www.cellpay.us/es/ultra-mobile.html)
 - [Pagar Simple Mobile (español)](https://www.cellpay.us/es/s1.html)
 - [Cómo pagar Boost Mobile](https://www.cellpay.us/es/como-pagar/boost-mobile)
+- [Cómo pagar Cricket Wireless](https://www.cellpay.us/es/como-pagar/cricket)
 
 ## Key facts for every carrier
 
