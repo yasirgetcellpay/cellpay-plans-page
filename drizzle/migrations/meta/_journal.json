@@ -78,6 +78,13 @@
       "when": 1791892266732,
       "tag": "0010_marketing_optin_1013",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791978906915,
+      "tag": "0011_decline_recovery_1014_funnel_events",
+      "breakpoints": true
     }
   ]
 }
