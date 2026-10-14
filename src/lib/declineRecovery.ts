@@ -21,6 +21,13 @@ export function classifyDecline(msg: string, carrierSlug?: string): DeclineClass
   return "funds"; // generic "declined" / unknown: treat like a bank decline (offer wallets, one retry)
 }
 
+// DECLINE-RECOVERY-1014B: Fraud & QA: bank declines (and Google Pay "rejected") get no same-method retry.
+export function noSameRetry(msg: string, method: string): boolean {
+  const m = String(msg || "");
+  return /general decline|insufficient|not sufficient|nsf|transaction (was )?rejected|do not honou?r/i.test(m)
+    || (method === "googlepay" && /reject/i.test(m));
+}
+
 export const MAX_CARD_RETRIES = 2; // after 2 declined card tries on this order, only other methods are offered
 const KEY = "cp_card_declines_v1";
 
@@ -77,7 +84,7 @@ export const DECLINE_COPY = {
     tryAgain: "Try again", // DECLINE-RECOVERY-1014
     useAnotherCard: "Use another card", // DECLINE-RECOVERY-1014
     usePayPal: "Pay with PayPal", // DECLINE-RECOVERY-1014
-    funds: "Your bank declined this payment, often because of available funds or a daily limit. You can try again, use another card, or pay another way.", // DECLINE-RECOVERY-1014
+    funds: "Your bank declined this payment, often because of available funds or a daily limit. Please use another card or a different way to pay.", // DECLINE-RECOVERY-1014B
     blocked: "Your bank declined this card. Please use another payment method.",
     system: "We couldn't reach the payment network. Please try again in a moment, or use another payment method.",
     checkDetails: "Check card details",
@@ -99,7 +106,7 @@ export const DECLINE_COPY = {
     tryAgain: "Intentar de nuevo", // DECLINE-RECOVERY-1014
     useAnotherCard: "Usar otra tarjeta", // DECLINE-RECOVERY-1014
     usePayPal: "Pagar con PayPal", // DECLINE-RECOVERY-1014
-    funds: "Su banco rechazó este pago, muchas veces por fondos disponibles o un límite diario. Puede intentar de nuevo, usar otra tarjeta o pagar de otra forma.", // DECLINE-RECOVERY-1014
+    funds: "Su banco rechazó este pago, muchas veces por fondos disponibles o un límite diario. Use otra tarjeta u otra forma de pago.", // DECLINE-RECOVERY-1014B
     blocked: "Su banco rechazó esta tarjeta. Use otro método de pago.",
     system: "No pudimos conectar con la red de pagos. Intente de nuevo en un momento o use otro método de pago.",
     checkDetails: "Revisar datos de la tarjeta",
