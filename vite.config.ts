@@ -264,6 +264,25 @@ const HTML_ROUTES = [
   // CRICKET-GUIDE-1014: Cricket Wireless how-to-pay pages
   "how-to-pay/cricket/index.html",
   "es/como-pagar/cricket/index.html",
+  // AI-ANSWERS-1014: amount answer pages
+  "how-to-pay/boost-mobile/25/index.html",
+  "es/como-pagar/boost-mobile/25/index.html",
+  "how-to-pay/boost-mobile/45/index.html",
+  "es/como-pagar/boost-mobile/45/index.html",
+  "how-to-pay/boost-mobile/50/index.html",
+  "es/como-pagar/boost-mobile/50/index.html",
+  "how-to-pay/metro-pcs/25/index.html",
+  "es/como-pagar/metro-pcs/25/index.html",
+  "how-to-pay/metro-pcs/45/index.html",
+  "es/como-pagar/metro-pcs/45/index.html",
+  "how-to-pay/metro-pcs/50/index.html",
+  "es/como-pagar/metro-pcs/50/index.html",
+  "how-to-pay/cricket/25/index.html",
+  "es/como-pagar/cricket/25/index.html",
+  "how-to-pay/cricket/45/index.html",
+  "es/como-pagar/cricket/45/index.html",
+  "how-to-pay/cricket/50/index.html",
+  "es/como-pagar/cricket/50/index.html",
   // ES-FIRST-1014: bill-pay hub pair
   "es/paga-tu-factura/index.html",
   "pay-your-phone-bill/index.html",
@@ -1706,6 +1725,12 @@ const htmlAliasPlugin = (): Plugin => ({
         const mt = "Pay Metro by T-Mobile Bill Online – Metro PCS | CellPay";
         out = out.replace(/\s*<meta name="keywords"[^>]*>/i, "");
         out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${mt}"`);
+      }
+      // AI-ANSWERS-1014: amount answer pages never say "refill": drop the sitewide keywords tag; image alt = page title.
+      if (htpPage?.amount) {
+        const at = htpPage.title.replace(/"/g, "&quot;");
+        out = out.replace(/\s*<meta name="keywords"[^>]*>/i, "");
+        out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${at}"`);
       }
       // ES-FIRST-1014: bill-pay hub: static first screen + WebPage/BreadcrumbList/FAQPage/Organization JSON-LD.
       const hubPg = HUB_BY_ROUTE[route];

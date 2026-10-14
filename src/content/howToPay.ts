@@ -39,6 +39,13 @@ export type HtpPage = {
   updatedIso: string; // AEO-03-04-1008: JSON-LD dateModified per page
   related: Array<[string, string]>;
   labels: { payNow: string; steps: string; need: string; fees: string; item: string; amount: string; other: string; faq: string; related: string; breadcrumbHowTo: string; tool: string; supply: string };
+  // AI-ANSWERS-1014: amount answer pages (/how-to-pay/<carrier>/<amount>) only
+  amount?: number;
+  parentPath?: string;
+  parentLabel?: string;
+  methodsTitle?: string;
+  methodsLine?: string;
+  feeLine?: string;
 };
 
 const WWW = "https://www.cellpay.us";
@@ -413,6 +420,104 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
   }),
 ];
 
+// AI-ANSWERS-1014: 18 amount answer pages (Boost, Metro, Cricket x $25/$45/$50, EN + ES). Same template/renderers as the parent
+// guides; pay wording only, no fee amounts, no plan contents or prices. Payment methods come from the shared flag-driven list.
+type AmtCarrier = { key: HtpPage["key"]; name: string; short: string; slug: string; enPay: string; esPay: string };
+const AMT_CARRIERS: AmtCarrier[] = [
+  { key: "boost-mobile", name: "Boost Mobile", short: "Boost", slug: "boost", enPay: "/boost.html", esPay: "/es/boost.html" },
+  { key: "metro-pcs", name: "Metro by T-Mobile (Metro PCS)", short: "Metro", slug: "metropcs", enPay: "/metropcs.html", esPay: "/es/metropcs.html" },
+  { key: "cricket", name: "Cricket Wireless", short: "Cricket", slug: "topup-crc", enPay: "/topup-crc.html", esPay: "/es/topup-crc.html" },
+];
+export const HTP_AMOUNTS = [25, 45, 50] as const;
+const AMT_TAIL_EN: Record<string, string> = {
+  "boost-mobile": "New Boost lines work too.",
+  "metro-pcs": "Metro PCS is now Metro by T-Mobile.",
+  cricket: "Any Cricket line works, yours or family.",
+};
+const AMT_TAIL_ES: Record<string, string> = {
+  "boost-mobile": "Sirve también para líneas nuevas de Boost.",
+  "metro-pcs": "Metro PCS ahora es Metro by T-Mobile.",
+  cricket: "Sirve para su línea o la de un familiar.",
+};
+const amtIntroEn = (c: AmtCarrier, a: number): string =>
+  a === 25
+    ? `Yes, you can pay $25 to ${c.name} online. Open CellPay's ${c.short} page, enter the 10-digit ${c.short} number, type $25, check the total and pay with ${PAY_EN}. No login needed. ${AMT_TAIL_EN[c.key]}`
+    : a === 45
+      ? `To pay $45 on a ${c.name} line, go to CellPay's ${c.short} page, enter the phone number, enter $45, review the total and pay with ${PAY_EN}. No account or login needed. ${AMT_TAIL_EN[c.key]}`
+      : `Paying $50 toward ${c.name} takes about a minute on CellPay: enter the 10-digit ${c.short} number, enter $50, confirm the total, then pay with ${PAY_EN}. No login needed. ${AMT_TAIL_EN[c.key]}`;
+const amtIntroEs = (c: AmtCarrier, a: number): string =>
+  a === 25
+    ? `Sí, puede pagar $25 a ${c.name} en línea. Abra la página de ${c.short} de CellPay, ingrese el número de ${c.short} de 10 dígitos, escriba $25, revise el total y pague con ${PAY_ES}. Sin iniciar sesión. ${AMT_TAIL_ES[c.key]}`
+    : a === 45
+      ? `Para pagar $45 en una línea de ${c.name}, vaya a la página de ${c.short} de CellPay, ingrese el número, ingrese $45, revise el total y pague con ${PAY_ES}. Sin cuenta. ${AMT_TAIL_ES[c.key]}`
+      : `Pagar $50 a ${c.name} toma cerca de un minuto en CellPay: ingrese el número de ${c.short} de 10 dígitos, ingrese $50, confirme el total y pague con ${PAY_ES}. Sin iniciar sesión. ${AMT_TAIL_ES[c.key]}`;
+const AMT_DATE_EN = "Last updated: October 14, 2026";
+const AMT_DATE_ES = "Última actualización: 14 de octubre de 2026";
+const amtPage = (c: AmtCarrier, a: number, lang: HtpLang): HtpPage => {
+  const isEs = lang === "es";
+  const enPath = `/how-to-pay/${c.key}/${a}`;
+  const esPath = `/es/como-pagar/${c.key}/${a}`;
+  const parentPath = isEs ? `/es/como-pagar/${c.key}` : `/how-to-pay/${c.key}`;
+  const pay = isEs ? c.esPay : c.enPay;
+  const shortTitle = c.key === "metro-pcs" ? "Metro by T-Mobile (Metro PCS)" : c.name;
+  return {
+    key: c.key, lang, path: isEs ? esPath : enPath, enPath, esPath, carrierSlug: c.slug, carrierName: c.name, checkoutPath: pay,
+    title: isEs
+      ? (c.key === "metro-pcs" ? `Cómo pagar ${shortTitle} $${a} | CellPay` : `Cómo pagar ${c.name} $${a} en línea | CellPay`)
+      : (c.key === "metro-pcs" ? `How to Pay ${shortTitle} $${a} | CellPay` : `How to Pay ${c.name} $${a} Online | CellPay`),
+    description: isEs
+      ? `Pague $${a} a ${c.key === "metro-pcs" ? "Metro by T-Mobile" : c.name} en línea con solo el número de ${c.short}. Sin iniciar sesión. La tarifa de servicio se muestra antes de pagar.`
+      : `Pay $${a} to ${c.key === "metro-pcs" ? "Metro by T-Mobile" : c.name} online with just the ${c.short} number. No login needed. Enter $${a}, review the total and pay. Service fee shown before you pay.`,
+    h1: isEs ? `Cómo pagar ${c.name} $${a} en línea` : `How to pay ${c.name} $${a} online`,
+    intro: isEs ? amtIntroEs(c, a) : amtIntroEn(c, a),
+    steps: isEs
+      ? [
+          { name: "Ingrese el número de teléfono", text: `En la página de ${c.short} de CellPay (${pay}), escriba el número de ${c.short} de 10 dígitos y verifíquelo.` },
+          { name: `Ingrese $${a}`, text: `Escriba $${a} como el monto que desea pagar.` },
+          { name: "Revise el total", text: "El resumen del pedido muestra el número, el monto, la tarifa de servicio y el total." },
+          { name: "Pague", text: `Pague con ${PAY_ES} y guarde su confirmación.` },
+        ]
+      : [
+          { name: "Enter the phone number", text: `On the CellPay ${c.short} page (${pay}), type the 10-digit ${c.short} number and check it.` },
+          { name: `Enter $${a}`, text: `Type $${a} as the amount you want to pay.` },
+          { name: "Review the total", text: "The order summary shows the number, the amount, the service fee and the total." },
+          { name: "Pay", text: `Pay with ${PAY_EN} and keep your confirmation.` },
+        ],
+    need: [], feeRows: [], feeNote: "", plansLabel: "", plansLoading: "", otherWays: "", someoneElseTitle: "", someoneElse: "", autoPayTitle: "", autoPay: "",
+    faqs: isEs
+      ? [
+          { q: `¿Puedo pagar exactamente $${a} a ${c.name}?`, a: `Sí. La página de ${c.short} de CellPay acepta montos desde $5 hasta $250 o más, así que puede ingresar $${a}. No necesita iniciar sesión en ${c.short} ni una cuenta de CellPay.` },
+          { q: "¿Qué métodos de pago puedo usar?", a: METHODS_ES },
+          { q: `¿Hay un cargo por pagar $${a} a ${c.name}?`, a: "Sí, se aplica una tarifa de servicio. La tarifa de servicio se muestra antes de pagar, en el resumen del pedido, así que ve el total completo primero." },
+        ]
+      : [
+          { q: `Can I pay exactly $${a} to ${c.name}?`, a: `Yes. CellPay's ${c.short} page accepts amounts from $5 to $250 or more, so you can enter $${a}. You don't need a ${c.short} login or a CellPay account.` },
+          { q: "What payment methods can I use?", a: METHODS_EN },
+          { q: `Is there a fee to pay $${a} to ${c.name}?`, a: "Yes, a service fee applies. The service fee is shown before you pay, in the order summary, so you see the full total first." },
+        ],
+    disclaimer: isEs ? `CellPay es un servicio de pago independiente y no está afiliado a ${c.name}.` : `CellPay is an independent payment service and is not affiliated with ${c.name}.`,
+    updated: isEs ? AMT_DATE_ES : AMT_DATE_EN,
+    updatedIso: "2026-10-14",
+    related: [],
+    labels: isEs
+      ? { ...LABELS_ES, payNow: `Pagar ${c.name} ahora`, other: "" }
+      : { ...LABELS_EN, payNow: `Pay ${c.name} now`, other: "" },
+    amount: a,
+    parentPath,
+    parentLabel: isEs ? `Guía completa: cómo pagar ${c.name}` : `Full guide: how to pay ${c.name}`,
+    methodsTitle: isEs ? "Métodos de pago" : "Payment methods",
+    methodsLine: isEs ? METHODS_ES : METHODS_EN,
+    feeLine: isEs ? "La tarifa de servicio se muestra antes de pagar." : "Service fee shown before you pay.",
+  };
+};
+HOW_TO_PAY_PAGES.push(...AMT_CARRIERS.flatMap((c) => HTP_AMOUNTS.flatMap((a) => [amtPage(c, a, "en"), amtPage(c, a, "es")])));
+
+/** AI-ANSWERS-1014: "Common amounts" links for a parent guide (empty for amount pages and other carriers). */
+export const htpCommonAmounts = (pg: HtpPage): Array<[string, string]> =>
+  pg.amount || !AMT_CARRIERS.some((c) => c.key === pg.key)
+    ? []
+    : HTP_AMOUNTS.map((a) => [pg.lang === "es" ? `/es/como-pagar/${pg.key}/${a}` : `/how-to-pay/${pg.key}/${a}`, pg.lang === "es" ? `Pagar $${a} a ${pg.carrierName}` : `Pay $${a} to ${pg.carrierName}`]);
+
 export const howToPayByPath = (pathname: string): HtpPage | undefined => {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
   return HOW_TO_PAY_PAGES.find((x) => x.path === p);
@@ -436,9 +541,18 @@ export const howToPayJsonLd = (pg: HtpPage): string => {
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "CellPay", item: `${WWW}/` },
-          { "@type": "ListItem", position: 2, name: pg.labels.breadcrumbHowTo, item: `${WWW}/how-to-use` },
-          { "@type": "ListItem", position: 3, name: pg.carrierName, item: url },
+          ...(pg.amount // AI-ANSWERS-1014: Home › How to pay › <Carrier> › $<amount>
+            ? [
+                { "@type": "ListItem", position: 1, name: pg.lang === "es" ? "Inicio" : "Home", item: `${WWW}${pg.lang === "es" ? "/es" : "/"}` },
+                { "@type": "ListItem", position: 2, name: pg.labels.breadcrumbHowTo, item: `${WWW}${pg.lang === "es" ? "/es/how-to-use" : "/how-to-use"}` },
+                { "@type": "ListItem", position: 3, name: pg.carrierName, item: `${WWW}${pg.parentPath}` },
+                { "@type": "ListItem", position: 4, name: `$${pg.amount}`, item: url },
+              ]
+            : [
+                { "@type": "ListItem", position: 1, name: "CellPay", item: `${WWW}/` },
+                { "@type": "ListItem", position: 2, name: pg.labels.breadcrumbHowTo, item: `${WWW}/how-to-use` },
+                { "@type": "ListItem", position: 3, name: pg.carrierName, item: url },
+              ]),
         ],
       },
     ],
@@ -515,6 +629,26 @@ export const htpPlansNote = (pg: HtpPage): string =>
 export const howToPayStaticHtml = (pg: HtpPage): string => {
   const L = pg.labels;
   const h2 = (t: string) => `<h2 class="text-xl font-extrabold mt-8 mb-3">${esc(t)}</h2>`;
+  const head =
+    `<div id="root" data-go-prerender="1"><div class="min-h-screen bg-background font-sans antialiased text-foreground" lang="${pg.lang}">` +
+    `<nav class="border-b border-border bg-card"><div class="max-w-3xl mx-auto px-5 h-14 flex items-center"><a class="font-extrabold text-lg" href="${pg.lang === "es" ? "/es" : "/"}">CellPay</a></div></nav>` +
+    `<main class="max-w-3xl mx-auto px-5 py-8 leading-relaxed">` +
+    `<h1 class="text-2xl md:text-3xl font-extrabold leading-tight mb-4">${esc(pg.h1)}</h1>` +
+    `<div class="rounded-xl border border-border bg-muted/40 p-4 mb-6"><p>${esc(pg.intro)}</p><a href="${pg.checkoutPath}" class="inline-block mt-3 rounded-lg bg-primary text-primary-foreground font-bold px-5 py-2.5">${esc(L.payNow)}</a></div>` +
+    h2(L.steps) + `<ol class="list-decimal pl-6 space-y-2">` + pg.steps.map((s, i) => `<li id="step-${i + 1}"><strong>${esc(s.name)}.</strong> ${esc(s.text)}</li>`).join("") + `</ol>`;
+  const faqHtml = h2(L.faq) + pg.faqs.map((f) => `<div class="mb-4"><h3 class="font-bold">${esc(f.q)}</h3><p>${esc(f.a)}</p></div>`).join("");
+  const foot = `<p class="text-xs text-muted-foreground mt-8">${esc(pg.disclaimer)}</p><p class="text-xs text-muted-foreground">${esc(pg.updated)}</p>`;
+  if (pg.amount) {
+    // AI-ANSWERS-1014: amount page (same markup as HowToPay.tsx AmountView)
+    return (
+      head +
+      h2(pg.methodsTitle ?? "") + `<p>${esc(pg.methodsLine ?? "")}</p>` + `<p class="mt-2 font-bold">${esc(pg.feeLine ?? "")}</p>` +
+      faqHtml + foot +
+      `<p class="mt-6"><a href="${pg.parentPath}" class="underline">${esc(pg.parentLabel ?? "")}</a></p>` +
+      `</main></div></div>`
+    );
+  }
+  const common = htpCommonAmounts(pg); // AI-ANSWERS-1014
   return (
     `<div id="root" data-go-prerender="1"><div class="min-h-screen bg-background font-sans antialiased text-foreground" lang="${pg.lang}">` +
     `<nav class="border-b border-border bg-card"><div class="max-w-3xl mx-auto px-5 h-14 flex items-center"><a class="font-extrabold text-lg" href="${pg.lang === "es" ? "/es" : "/"}">CellPay</a></div></nav>` +
@@ -534,6 +668,7 @@ export const howToPayStaticHtml = (pg: HtpPage): string => {
     h2(pg.autoPayTitle) + `<p>${esc(pg.autoPay)} <a href="${pg.checkoutPath}" class="underline">${esc(L.payNow)}</a></p>` +
     h2(L.faq) + pg.faqs.map((f) => `<div class="mb-4"><h3 class="font-bold">${esc(f.q)}</h3><p>${esc(f.a)}</p></div>`).join("") +
     `<p class="text-xs text-muted-foreground mt-8">${esc(pg.disclaimer)}</p><p class="text-xs text-muted-foreground">${esc(pg.updated)}</p>` +
+    (common.length ? h2(pg.lang === "es" ? "Montos comunes" : "Common amounts") + `<ul class="list-disc pl-6 space-y-1">` + common.map(([h, t]) => `<li><a href="${h}" class="underline">${esc(t)}</a></li>`).join("") + `</ul>` : "") + // AI-ANSWERS-1014
     h2(L.related) + `<ul class="list-disc pl-6 space-y-1">` + pg.related.map(([h, t]) => `<li><a href="${h}" class="underline">${esc(t)}</a></li>`).join("") + `</ul>` +
     `</main></div></div>`
   );
