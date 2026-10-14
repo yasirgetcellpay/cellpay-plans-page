@@ -7,7 +7,7 @@ import { PaymentMethodPicker } from "@/components/PaymentMethodPicker"; // METHO
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react"; // CARRIER-ASSIST-1011
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
-import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass } from "@/lib/declineRecovery";
+import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014: + session counter, email cleanup
 import { AP_LAST_KEY } from "@/components/AutoPayReceiptCard";
 import { PLAID_ENABLED, PAYPAL_ENABLED } from "@/config/paymentFlags";
 // [PAYPAL-REBUILD-1009] QA only: ?pp_qa=1 shows the PayPal tile in this tab while PAYPAL_ENABLED is false (?pp_qa=0 clears it).
@@ -629,7 +629,7 @@ const Checkout = () => {
     try { return await Promise.race([call, timeout]); } catch { return { ok: false, site: "off" }; }
   }, []);
   const gpPhone = state ? normalizePhone(String(state.phone || "")) : "";
-  const gpEmail = email.trim();
+  const gpEmail = cleanEmail(email); // DECLINE-RECOVERY-1014
   const gpEmailOk = gpEmail.length > 0 && gpEmail.includes("@") && gpEmail.includes(".");
   useEffect(() => {
     setGpGate(null);
@@ -648,7 +648,14 @@ const Checkout = () => {
   // CX-HOLD: show "card was NOT charged" on declines with no txn id (not on auto-refund).
   const [showNotChargedNote, setShowNotChargedNote] = useState(false);
   // GROWTH-1007-A: card-decline recovery. Set ONLY for a card decline with no txn id and no auto-refund (= not charged).
-  const [declineInfo, setDeclineInfo] = useState<{ cls: DeclineClass; n: number } | null>(null);
+  const [declineInfo, setDeclineInfo] = useState<{ cls: DeclineClass; n: number; method: PaymentMethod; sess: number } | null>(null); // DECLINE-RECOVERY-1014: + method, sess
+  const emailCleanRef = useRef(""); emailCleanRef.current = cleanEmail(email); // DECLINE-RECOVERY-1014: cleaned email sent on submit
+  // DECLINE-RECOVERY-1014: recovery prompt shown -> funnel event + flag for recovery_success.
+  useEffect(() => {
+    if (!declineInfo) return;
+    try { trackFunnel("recovery_prompt_shown", funnelDataRef.current); sessionStorage.setItem("cp_recovery_shown", "1"); } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [declineInfo]);
   // TOP4-T2B-1009: the provider auto-refunded this payment -> show the refund card instead of the raw provider sentence.
   const [refundCard, setRefundCard] = useState(false);
   const cardFormRef = useRef<HTMLDivElement>(null);
@@ -895,7 +902,7 @@ const Checkout = () => {
     } catch { /* funnel is best-effort */ }
   };
   const ppEmailRef = useRef(""); // the PayPal buttons are built once; this keeps the latest email for the log row
-  ppEmailRef.current = email.trim();
+  ppEmailRef.current = cleanEmail(email); // DECLINE-RECOVERY-1014
   const ppLogIdRef = useRef<string | null>(null); // pending_log_id of the current PayPal order (proxy log row)
   const ppDupOkRef = useRef(false); // customer saw "You just paid $X" (DUP_CONFIRM) and taps PayPal again = confirmed
   const [ppPaidNoId, setPpPaidNoId] = useState<string | null>(null); // PayPal order id: paid, but CellPay sent no receipt id
@@ -1152,7 +1159,7 @@ const Checkout = () => {
         if (msg === "__PP_BLOCKED__") return; // [PAYPAL-1008] guard refusal: message already shown in createOrder
         ppFunnel("error", msg === "Could not create PayPal order" ? "create" : "sdk");
         console.error("PayPal error:", err);
-        setErrorMsg("PayPal payment failed");
+        setErrorMsg(String(state?.carrierSlug || "").includes("ultra") && /paypal declined/i.test(msg) ? DECLINE_COPY[lang === "es" ? "es" : "en"].plan : "PayPal payment failed"); // DECLINE-RECOVERY-1014
       },
     });
 
@@ -1390,7 +1397,7 @@ const Checkout = () => {
     country.trim().length > 0 &&
     regionCode.length > 0;
 
-  const isEmailValid = email.trim().length > 0 && email.includes("@") && email.includes(".");
+  const isEmailValid = isValidEmail(cleanEmail(email)); // DECLINE-RECOVERY-1014
 
   // Per-method required-field validation. Every payment method requires email + phone (already provided).
   const isKlarnaValid =
@@ -1462,6 +1469,8 @@ const Checkout = () => {
       // GROWTH-1007: receipt shows "Auto Pay is on" only when THIS order was card + both Auto Pay ticks. Reset decline count.
       try { if (((paymentMethod === "card" && autoPay && autoPayTerms) || (paymentMethod === "googlepay" && gpRecurringRef.current)) && hid) sessionStorage.setItem(AP_LAST_KEY, hid); else sessionStorage.removeItem(AP_LAST_KEY); } catch { /* ignore */ } // GPAY-AUTOPAY-1008: Google Pay Auto Pay orders too
       clearCardDeclines();
+      clearSessionDeclines(); // DECLINE-RECOVERY-1014
+      try { if (sessionStorage.getItem("cp_recovery_shown") === "1") { sessionStorage.removeItem("cp_recovery_shown"); trackFunnel("recovery_success", funnelDataRef.current); } } catch { /* ignore */ } // DECLINE-RECOVERY-1014
       navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
     } else {
       // DUPCHARGE-FOLLOWUPS-1008: DUP_CONFIRM / IN_FLIGHT already opened our own dialog (submitTransaction wrapper): no error box, not a decline.
@@ -1470,7 +1479,11 @@ const Checkout = () => {
       const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
       const autoRefund = /auto[\s-]?refund/i.test(msg);
       setShowNotChargedNote(!autoRefund && !txn);
-      setDeclineInfo(paymentMethod === "card" && !autoRefund && !txn && raw.code !== "DUP_CONFIRM" && raw.code !== "SESSION_PAID" ? { cls: classifyDecline(msg), n: bumpCardDeclines(apTicksOrder) } : null); // DUPCHARGE-1008: not a decline
+      // DECLINE-RECOVERY-1014: card, Apple Pay and Google Pay; card keeps its per-card counter, every method bumps the session counter.
+      const dWallet = paymentMethod === "applepay" || paymentMethod === "googlepay";
+      const dOk = (paymentMethod === "card" || dWallet) && !autoRefund && !txn && raw.code !== "DUP_CONFIRM" && raw.code !== "SESSION_PAID" && raw.code !== "IN_FLIGHT";
+      setDeclineInfo(dOk ? { cls: classifyDecline(msg, state.carrierSlug), n: paymentMethod === "card" ? bumpCardDeclines(apTicksOrder) : 0, method: paymentMethod, sess: bumpSessionDeclines() } : null);
+      if (dOk && paymentMethod === "card") { setCardNumber(""); setCardExpiry(""); setCardCvv(""); } // DECLINE-RECOVERY-1014: card fields cleared, rest kept // DUPCHARGE-1008: not a decline
       setRefundCard(autoRefund); // TOP4-T2B-1009
       setErrorMsg(orsOnFail(msg)); // [OURSIDE-RETRY-1012]
     }
@@ -1513,7 +1526,7 @@ const Checkout = () => {
       payment: {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        email: email.trim(),
+        email: emailCleanRef.current, // DECLINE-RECOVERY-1014
         address: address.trim(),
         city: city.trim(),
         zip: cardZip,
@@ -1527,7 +1540,7 @@ const Checkout = () => {
         autopay_agreement: autoPay && autoPayTerms,
       },
       billing: {
-        bill_email: email.trim(),
+        bill_email: emailCleanRef.current, // DECLINE-RECOVERY-1014
         country_id: country,
         region_id: regionCode || cardZip,
         state: regionCode,
@@ -1562,7 +1575,7 @@ const Checkout = () => {
     plan_id: state.planId ? String(state.planId) : undefined,
     phone_number: normalizePhone(state.phone),
     amount: validation?.amount ?? Number(state.amount),
-    email: email.trim(),
+    email: emailCleanRef.current, // DECLINE-RECOVERY-1014
     slug: state.carrierSlug,
   });
   type PlaidOrder = ReturnType<typeof plaidOrder>;
@@ -1768,7 +1781,7 @@ const Checkout = () => {
     if (gpWantAutoPay) {
       const ba = (billingAddress || {}) as Record<string, unknown>;
       const nameParts = String(ba.name || "").trim().split(/\s+/).filter(Boolean);
-      const r = await gpayAutoPayCheck({ phone: normalizePhone(state.phone), email: email.trim(), first: nameParts[0] || "", last: nameParts.slice(1).join(" "), country: String(ba.countryCode || ""), stage: "submit" });
+      const r = await gpayAutoPayCheck({ phone: normalizePhone(state.phone), email: emailCleanRef.current /* DECLINE-RECOVERY-1014 */, first: nameParts[0] || "", last: nameParts.slice(1).join(" "), country: String(ba.countryCode || ""), stage: "submit" });
       const cfg = (checkoutConfigRef.current?.googlePay as Record<string, unknown> | undefined)?.recurringSupported;
       gpRecurring = r.ok === true && r.site !== "off" && cfg !== false && (cfg === true || r.site === "on");
     }
@@ -1790,7 +1803,7 @@ const Checkout = () => {
       payment: {
         firstName: firstName.trim() || "Customer",
         lastName: lastName.trim() || "User",
-        email: email.trim() || "customer@cellpay.us",
+        email: emailCleanRef.current || "customer@cellpay.us" /* DECLINE-RECOVERY-1014 */,
         ...(gpRecurring ? { autopay: true, autopay_agreement: true } : {}), // GPAY-AUTOPAY-1008: same field names as card/APAP; never a profileId
       },
       google_pay_token: googlePayTokenPayload,
@@ -1957,7 +1970,7 @@ const Checkout = () => {
           payment: {
             firstName: (billingContact as Record<string, unknown>)?.givenName || firstName.trim() || "Customer",
             lastName: (billingContact as Record<string, unknown>)?.familyName || lastName.trim() || "User",
-            email: email.trim() || "customer@cellpay.us",
+            email: emailCleanRef.current || "customer@cellpay.us" /* DECLINE-RECOVERY-1014 */,
             // APAP-1007: same field names as card; never a profileId. true only when the v14 recurring session was used.
             autopay: apRecurring,
             autopay_agreement: apRecurring,
@@ -2051,7 +2064,7 @@ const Checkout = () => {
     payment: {
       firstName: firstName.trim() || "Customer",
       lastName: lastName.trim() || "User",
-      email: email.trim() || "customer@cellpay.us",
+      email: emailCleanRef.current || "customer@cellpay.us" /* DECLINE-RECOVERY-1014 */,
     },
     klarna_auth_token: authToken,
     browser_info: browserInfoRef.current,
@@ -2106,7 +2119,7 @@ const Checkout = () => {
           billing_address: {
             given_name: klarnaFirstName,
             family_name: klarnaLastName,
-            email: email.trim(),
+            email: emailCleanRef.current, // DECLINE-RECOVERY-1014
             phone: klarnaPhone.replace(/\D/g, ""),
             street_address: klarnaAddress,
             city: klarnaCity,
@@ -2167,7 +2180,7 @@ const Checkout = () => {
       payment: {
         firstName: firstName.trim() || "Customer",
         lastName: lastName.trim() || "User",
-        email: email.trim() || "customer@cellpay.us",
+        email: emailCleanRef.current || "customer@cellpay.us" /* DECLINE-RECOVERY-1014 */,
       },
       browser_info: browserInfoRef.current,
       gclid: getGclid(),
@@ -2257,6 +2270,8 @@ const Checkout = () => {
 
   // ─── Main handler ───
   const handlePlaceOrder = async () => {
+    // DECLINE-RECOVERY-1014: clean the email first and use the cleaned value for this submit.
+    { const ce = cleanEmail(email); emailCleanRef.current = ce; if (ce !== email) setEmail(ce); }
     const validationErr = validateBeforeSubmit();
     if (validationErr) { setErrorMsg(validationErr); return; }
     if (!canSubmit) return;
@@ -2379,10 +2394,10 @@ const Checkout = () => {
 
           <div className="bg-card rounded-xl border border-border p-5">
             <h2 className="font-bold text-foreground mb-3 text-sm">{tr.contactInformation}</h2>
-            <input type="email" placeholder={tr.emailPlaceholder} aria-label={tr.emailPlaceholder} value={email} onChange={(e) => setEmail(e.target.value)}
+            <input type="email" placeholder={tr.emailPlaceholder} aria-label={tr.emailPlaceholder} value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => setEmail(cleanEmail(email))} /* DECLINE-RECOVERY-1014 */
               className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
               style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-            {email.length > 0 && !email.includes("@") && (
+            {email.length > 3 && !isValidEmail(cleanEmail(email)) && ( /* DECLINE-RECOVERY-1014 */
               <p className="text-xs text-destructive mt-1">{tr.invalidEmail}</p>
             )}
           </div>
@@ -2516,7 +2531,7 @@ const Checkout = () => {
                   (firstName / lastName / email / agreedTerms) as the rest of checkout; nothing new is sent or validated. */}
               {(() => {
                 const es = lang === "es";
-                const ppEmailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+                const ppEmailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail(email)); // DECLINE-RECOVERY-1014
                 const bad = { first: !firstName.trim() || nameDigitsBad /* NAME-DIGITS-1014 */, last: !lastName.trim(), email: !ppEmailOk, terms: !agreedTerms };
                 const anyBad = bad.first || bad.last || bad.email || bad.terms;
                 const cls = (b: boolean) => `h-11 px-4 rounded-lg border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent ${b && ppTried ? "border-destructive" : "border-input"}`;
@@ -2541,7 +2556,7 @@ const Checkout = () => {
                       </div>
                     </div>
                     <div data-testid="paypal-email">
-                      <input ref={ppEmailElRef} type="email" inputMode="email" autoComplete="email" placeholder={es ? "Correo electrónico para su recibo *" : "Email for your receipt *"} aria-label={es ? "Correo electrónico para su recibo" : "Email for your receipt"} aria-invalid={bad.email && ppTried} value={email} onChange={(e) => setEmail(e.target.value)}
+                      <input ref={ppEmailElRef} type="email" inputMode="email" autoComplete="email" placeholder={es ? "Correo electrónico para su recibo *" : "Email for your receipt *"} aria-label={es ? "Correo electrónico para su recibo" : "Email for your receipt"} aria-invalid={bad.email && ppTried} value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => setEmail(cleanEmail(email))} /* DECLINE-RECOVERY-1014 */
                         className={`w-full ${cls(bad.email)}`} style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                       {fe(bad.email, es ? "Escriba un correo electrónico válido" : "Enter a valid email address")}
                     </div>
@@ -2973,10 +2988,14 @@ const Checkout = () => {
               // Nothing is submitted until the customer taps PLACE ORDER again. Non-card methods stay after the card cap and on blocked.
               const dc = DECLINE_COPY[lang === "es" ? "es" : "en"];
               const capped = declineInfo.n > MAX_CARD_RETRIES || declineInfo.cls === "blocked";
+              // DECLINE-RECOVERY-1014: card-testing guard (3+ declines this tab, or blocked) -> only PayPal + support + close.
+              const sessCap = declineInfo.sess >= 3 || declineInfo.cls === "blocked";
               const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); };
+              const rec = () => { try { trackFunnel("recovery_retry", funnelDataRef.current); } catch { /* ignore */ } }; // DECLINE-RECOVERY-1014
               // DECLINE-DIALOG-1008: after the switch, bring PLACE ORDER NOW into view and outline it for 1.5 s so the customer sees
               // where to tap next. Only scrolls; it never submits and never opens a wallet sheet by itself.
               const toMethod = (m: PaymentMethod) => {
+                rec(); // DECLINE-RECOVERY-1014
                 close(); setPaymentMethod(m);
                 window.setTimeout(() => {
                   const el = inlinePayRef.current;
@@ -2986,33 +3005,47 @@ const Checkout = () => {
                   window.setTimeout(() => el.classList.remove("ring-4", "ring-offset-2"), 1500);
                 }, 120);
               };
+              const focusCard = () => { rec(); close(); setTimeout(() => { const el = cardFormRef.current?.querySelector<HTMLInputElement>("input"); cardFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); el?.focus(); }, 50); }; // DECLINE-RECOVERY-1014
+              const focusCardNumber = () => { rec(); close(); setTimeout(() => { const el = cardFormRef.current?.querySelector<HTMLInputElement>(`input[aria-label="${tr.cardNumber}"]`) || cardFormRef.current?.querySelector<HTMLInputElement>("input"); cardFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); el?.focus(); }, 50); }; // DECLINE-RECOVERY-1014
               const offered = new Set<PaymentMethod>(paymentMethods.map((pm) => pm.key));
               const btn = "w-full px-4 py-2.5 rounded-lg font-bold text-sm";
+              const isCard = declineInfo.method === "card";
+              const hint = sessCap ? dc.capSession : capped && declineInfo.cls !== "blocked" ? dc.capReached : dc[declineInfo.cls]; // DECLINE-RECOVERY-1014
               return (
                 <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls}>
-                  <p className="text-sm text-foreground mb-2" data-testid="decline-hint">{capped && declineInfo.cls !== "blocked" ? dc.capReached : dc[declineInfo.cls]}</p>
-                  {/* DECLINE-DIALOG-1008: wallets first and filled (Apple Pay, Google Pay), then Cash App; card retry is an outline. */}
-                  {applePayAvailable && offered.has("applepay") && (
-                    <button type="button" data-testid="decline-applepay" onClick={() => toMethod("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
-                  )}
-                  {offered.has("googlepay") && (
-                    <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " bg-black text-white"}>{dc.useGooglePay}</button>
-                  )}
-                  {offered.has("cashapp") && (
-                    <button type="button" data-testid="decline-cashapp" onClick={() => toMethod("cashapp")} className={btn + " text-black"} style={{ backgroundColor: "#00D632" }}>{dc.useCashApp}</button>
-                  )}
-                  {!capped && (
+                  <p className="text-sm text-foreground mb-2" data-testid="decline-hint">{hint}</p>
+                  {/* DECLINE-RECOVERY-1014: a) Try again, b) Use another card, c) PayPal, d) existing wallets / Cash App / Pay by Bank */}
+                  {!sessCap && !(isCard && capped) && (
                     <button type="button" data-testid="decline-retry-card"
-                      onClick={() => { close(); setTimeout(() => { const el = cardFormRef.current?.querySelector<HTMLInputElement>("input"); cardFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); el?.focus(); }, 50); }}
+                      onClick={() => { if (isCard) focusCard(); else toMethod(declineInfo.method); }}
                       className={btn + " border-2 border-border text-foreground bg-background"}>
-                      {declineInfo.cls === "details" ? dc.checkDetails : dc.retryCard}
+                      {isCard && declineInfo.cls === "details" ? dc.checkDetails : dc.tryAgain}
                     </button>
                   )}
-                  {offered.has("plaid") && plaidOn === true && (
+                  {!sessCap && !(isCard && capped) && (
+                    <button type="button" data-testid="decline-another-card"
+                      onClick={() => { if (isCard) focusCardNumber(); else toMethod("card"); }}
+                      className={btn + " border-2 border-border text-foreground bg-background"}>
+                      {dc.useAnotherCard}
+                    </button>
+                  )}
+                  {offered.has("paypal") && (
+                    <button type="button" data-testid="decline-paypal" onClick={() => toMethod("paypal")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayPal}</button>
+                  )}
+                  {!sessCap && applePayAvailable && offered.has("applepay") && (
+                    <button type="button" data-testid="decline-applepay" onClick={() => toMethod("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
+                  )}
+                  {!sessCap && offered.has("googlepay") && (
+                    <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " bg-black text-white"}>{dc.useGooglePay}</button>
+                  )}
+                  {!sessCap && offered.has("cashapp") && (
+                    <button type="button" data-testid="decline-cashapp" onClick={() => toMethod("cashapp")} className={btn + " text-black"} style={{ backgroundColor: "#00D632" }}>{dc.useCashApp}</button>
+                  )}
+                  {!sessCap && offered.has("plaid") && plaidOn === true && (
                     <button type="button" data-testid="decline-paybybank" onClick={() => toMethod("plaid")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayByBank}</button>
                   )}
-                  <button type="button" data-testid="decline-other" onClick={close} className="w-full text-xs underline text-muted-foreground pt-1">{dc.otherMethod}</button>
-                  {declineInfo.n >= 2 && <p className="text-xs text-muted-foreground text-center pt-1">{dc.help}</p>}
+                  <button type="button" data-testid="decline-other" onClick={close} className="w-full text-xs underline text-muted-foreground pt-1">{sessCap ? dc.close : dc.otherMethod}</button>
+                  {(sessCap || declineInfo.n >= 2) && <p className="text-xs text-muted-foreground text-center pt-1">{dc.help}</p>}
                 </div>
               );
             })() : (

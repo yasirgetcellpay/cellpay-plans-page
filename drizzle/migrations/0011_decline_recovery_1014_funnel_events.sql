@@ -1,0 +1,3 @@
+-- DECLINE-RECOVERY-1014: allow the 3 recovery funnel events (plus the 3 added earlier that the old check still rejected).
+ALTER TABLE public.checkout_funnel_events DROP CONSTRAINT IF EXISTS checkout_funnel_events_event_check;
+ALTER TABLE public.checkout_funnel_events ADD CONSTRAINT checkout_funnel_events_event_check CHECK (event = ANY (ARRAY['checkout_view','total_shown','payment_started','submitted','left_at_total','prefill_used','autopay_postpurchase_offer_shown','autopay_postpurchase_offer_accepted','recovery_prompt_shown','recovery_retry','recovery_success']::text[]));
