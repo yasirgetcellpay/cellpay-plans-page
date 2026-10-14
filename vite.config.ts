@@ -25,6 +25,8 @@ import { HOW_TO_USE } from "./src/content/howToUse";
 import { infoMainHtml } from "./src/content/infoPages";
 // ES-FIRST-1014: bill-pay hub (/es/paga-tu-factura + /pay-your-phone-bill) head, first screen and JSON-LD.
 import { HUB_PAGES, HUB_PATHS, hubJsonLd, hubStaticHtml } from "./src/content/payHub";
+// SWITCHER-1014: carrier-switcher pages head, first screen and JSON-LD.
+import { SW_PAGES, swJsonLd, swStaticHtml } from "./src/content/switcher";
 
 /**
  * Lovable's static host returns 404 for any URL ending in `.html` (it treats it
@@ -262,6 +264,11 @@ const HTML_ROUTES = [
   // ES-FIRST-1014: bill-pay hub pair
   "es/paga-tu-factura/index.html",
   "pay-your-phone-bill/index.html",
+  // SWITCHER-1014: carrier-switcher pages
+  "switched-to-boost/index.html",
+  "es/cambiaste-a-boost/index.html",
+  "switched-to-metro/index.html",
+  "es/cambiaste-a-metro/index.html",
   // Admin SPA routes — emit as folder/index.html so self-hosted servers
   // (which don't do SPA fallback) serve the React app on direct refresh.
   "admin/index.html",
@@ -847,11 +854,14 @@ const htmlAliasPlugin = (): Plugin => ({
     // AEO-PAGES-1007: route -> how-to-pay page (title/description/lang from src/content/howToPay.ts)
     const HTP_BY_ROUTE = new Map(HOW_TO_PAY_PAGES.map((p) => [p.path.slice(1) + "/index.html", p] as const));
     const HUB_BY_ROUTE: Record<string, (typeof HUB_PAGES)["es"]> = { "es/paga-tu-factura/index.html": HUB_PAGES.es, "pay-your-phone-bill/index.html": HUB_PAGES.en }; // ES-FIRST-1014
+    const SW_BY_ROUTE = new Map(SW_PAGES.map((p) => [p.path.slice(1) + "/index.html", p] as const)); // SWITCHER-1014
     const buildMeta = (route: string): Meta => {
       const htp = HTP_BY_ROUTE.get(route);
       if (htp) return { title: htp.title, description: htp.description, lang: htp.lang };
       const hubM = HUB_BY_ROUTE[route]; // ES-FIRST-1014
       if (hubM) return { title: hubM.title, description: hubM.description, lang: hubM.lang };
+      const swM = SW_BY_ROUTE.get(route); // SWITCHER-1014
+      if (swM) return { title: swM.title, description: swM.description, lang: swM.lang };
       // Legacy per-amount redirect shells: noindex,follow
       if (/^\d+-.+-prepaid-refill\.html$/.test(route)) {
         return {
@@ -1511,6 +1521,8 @@ const htmlAliasPlugin = (): Plugin => ({
       meta.canonical || VARIANT_CANON[route] || routeToPath(route);
     const pairFor = (canonPath: string): [string, string] | null => {
       if (canonPath === HUB_PATHS.en || canonPath === HUB_PATHS.es) return [HUB_PATHS.en, HUB_PATHS.es]; // ES-FIRST-1014
+      const swP = SW_PAGES.find((p) => p.path === canonPath); // SWITCHER-1014
+      if (swP) return [swP.enPath, swP.esPath];
       // AEO-PAGES-1007: /how-to-pay/x <-> /es/como-pagar/x
       const en = canonPath === "/es" ? "/" : canonPath.startsWith("/es/como-pagar/") ? canonPath.replace("/es/como-pagar/", "/how-to-pay/") : canonPath.replace(/^\/es(?=\/)/, "");
       const es = en === "/" ? "/es" : en.startsWith("/how-to-pay/") ? en.replace("/how-to-pay/", "/es/como-pagar/") : "/es" + en;
@@ -1692,6 +1704,18 @@ const htmlAliasPlugin = (): Plugin => ({
           out = out.replace(/<\/head>/i, () => `  ${ld}\n  </head>`).replace(/<div id="root"><\/div>/i, () => hubStaticHtml(hubPg));
           out = out.replace(/\s*<meta name="keywords"[^>]*>/i, ""); // ES-FIRST-1014: sitewide keywords say "refill"
           out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${hubPg.title}"`); // ES-FIRST-1014
+        } catch {
+          /* keep plain shell */
+        }
+      }
+      // SWITCHER-1014: carrier-switcher pages: static first screen + WebPage/BreadcrumbList/FAQPage/Organization JSON-LD.
+      const swPg = SW_BY_ROUTE.get(route);
+      if (swPg) {
+        try {
+          const ld = `<script type="application/ld+json" data-sw="1">${swJsonLd(swPg)}</script>`;
+          out = out.replace(/<\/head>/i, () => `  ${ld}\n  </head>`).replace(/<div id="root"><\/div>/i, () => swStaticHtml(swPg));
+          out = out.replace(/\s*<meta name="keywords"[^>]*>/i, ""); // SWITCHER-1014: sitewide keywords say "refill"
+          out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${swPg.title}"`); // SWITCHER-1014
         } catch {
           /* keep plain shell */
         }
