@@ -1691,6 +1691,7 @@ const htmlAliasPlugin = (): Plugin => ({
           const ld = `<script type="application/ld+json" data-hub="1">${hubJsonLd(hubPg)}</script>`;
           out = out.replace(/<\/head>/i, () => `  ${ld}\n  </head>`).replace(/<div id="root"><\/div>/i, () => hubStaticHtml(hubPg));
           out = out.replace(/\s*<meta name="keywords"[^>]*>/i, ""); // ES-FIRST-1014: sitewide keywords say "refill"
+          out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${hubPg.title}"`); // ES-FIRST-1014
         } catch {
           /* keep plain shell */
         }
