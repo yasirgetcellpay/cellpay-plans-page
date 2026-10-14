@@ -1,6 +1,7 @@
 // SERVER-FALLBACK-1012: CSV of server-queued missed purchases for Google Ads offline conversion upload.
 // GET/HEAD ?k=<token>. Missing/short/wrong token -> 404 empty. Errors -> 500 empty. No PII in the output.
 // CSV-BASIC-AUTH-1012: without ?k, HTTP Basic auth (password = token). Failure -> 401. Any path under the function.
+// ADS-CSV-FIX-1014: name = new Data Manager action, rolling 7 days, dedupe by Order ID, header-only 200 when empty.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const USER_SHA256 = "5f10590e26b7a02bdc7b435745b323874cdb948d72e2df2909914b8e45db8de9";
@@ -60,15 +61,20 @@ Deno.serve(async (req) => {
     const { data, error } = await sb.rpc("purchase_fallback_csv", { _token: token });
     if (error) return empty(500);
     const rows = (data ?? []) as Array<{ gclid: string; order_id: string; conv_time: string; value: number }>;
+    const CONV_NAME = "cp-missed.csv - All records from cp-missed.csv";
     const clean = (s: unknown) => String(s ?? "").replace(/[\r\n,"]/g, "");
+    const cutoff = Date.now() - 7 * 24 * 3600 * 1000;
+    const seen = new Set<string>();
     const lines = ["Google Click ID,Conversion Name,Conversion Time,Conversion Value,Conversion Currency,Order ID"];
     for (const r of rows) {
-      lines.push([clean(r.gclid), "CP offline missed purchase", clean(r.conv_time), Number(r.value).toFixed(2), "USD", clean(r.order_id)].join(","));
+      const t = Date.parse(String(r.conv_time).replace(" ", "T"));
+      if (!Number.isFinite(t) || t < cutoff) continue;
+      const gclid = clean(r.gclid);
+      const oid = clean(r.order_id);
+      if (!gclid || !oid || seen.has(oid)) continue;
+      seen.add(oid);
+      lines.push([gclid, CONV_NAME, clean(r.conv_time), Number(r.value).toFixed(2), "USD", oid].join(","));
     }
-    // Real already-missed order zpGkw5 from the manual 93-order upload, same action + Order ID so Google dedupes;
-    // only there so Data Manager can detect the schema when the queue is empty.
-    const SCHEMA_ROW = "CjwKCAjw_pzWBhAkEiwAwDCi1TbvsUjNUCyz-nw0NrAlFo_ep4kupdN4BTM5k_k6Y1TVzYw_gHZl5hoClKUQAvD_BwE,CP offline missed purchase,2026-10-08 07:23:05-05:00,39.99,USD,zpGkw5";
-    if (rows.length === 0) lines.push(SCHEMA_ROW);
     return new Response(isHead ? null : lines.join("\n") + "\n", {
       status: 200,
       headers: { "Content-Type": "text/csv; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" },
