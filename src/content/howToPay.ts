@@ -10,7 +10,7 @@ import { refundFaq, searchFaqs } from "./carrierHero";
 export type HtpLang = "en" | "es";
 export type HtpFaq = { q: string; a: string };
 export type HtpPage = {
-  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid" | "lyca-mobile" | "metro-pcs" | "boost-mobile"; // SEO-CONTENT-1014: + Boost Mobile; AEO-07-METRO-1012: + Metro by T-Mobile; AEO-06-LYCA-1011: + Lyca Mobile; AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid
+  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid" | "lyca-mobile" | "metro-pcs" | "boost-mobile" | "cricket"; // CRICKET-GUIDE-1014: + Cricket Wireless; SEO-CONTENT-1014: + Boost Mobile; AEO-07-METRO-1012: + Metro by T-Mobile; AEO-06-LYCA-1011: + Lyca Mobile; AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid
   lang: HtpLang;
   path: string; // www path of this page
   enPath: string;
@@ -61,10 +61,11 @@ const en = (o: {
   updatedIso?: string; updatedText?: string; // AEO-03-04-1008: faq2 optional (SPEC-03/04 have 7 FAQs); per-page last-updated
   moreFaqs?: HtpFaq[]; // AEO-06-LYCA-1011: extra FAQs after the standard ones (before any refund FAQ)
   postA?: string; // SEO-CONTENT-1014: optional "how fast" answer (pay-wording carriers)
+  intro?: string; // CRICKET-GUIDE-1014: optional answer-first intro override
 }): HtpPage => ({
   key: o.key, lang: "en", path: `/how-to-pay/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
-  intro: `To pay your ${o.name} bill online without logging in, go to CellPay's ${o.name} page, enter the 10-digit ${o.name} phone number, pick your amount or plan, and pay with ${PAY_EN}. The service fee is shown before you pay, and most payments post within a few minutes (up to 30 minutes). CellPay is an independent payment service, not ${o.name}; you can also pay ${o.name} directly on its official site.`,
+  intro: o.intro ?? /* CRICKET-GUIDE-1014 */ `To pay your ${o.name} bill online without logging in, go to CellPay's ${o.name} page, enter the 10-digit ${o.name} phone number, pick your amount or plan, and pay with ${PAY_EN}. The service fee is shown before you pay, and most payments post within a few minutes (up to 30 minutes). CellPay is an independent payment service, not ${o.name}; you can also pay ${o.name} directly on its official site.`,
   steps: [
     { name: "Open the page", text: `Go to the CellPay ${o.name} page (${o.checkout}).` },
     { name: "Enter the number", text: `Type the 10-digit ${o.name} phone number and check it.` },
@@ -113,10 +114,11 @@ const es = (o: {
   introLead?: string; // TOP4-T4-1009: optional first clause of the intro
   moreFaqs?: HtpFaq[]; // AEO-06-LYCA-1011
   postA?: string; // SEO-CONTENT-1014
+  intro?: string; // CRICKET-GUIDE-1014: optional answer-first intro override
 }): HtpPage => ({
   key: o.key, lang: "es", path: `/es/como-pagar/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
-  intro: `${o.introLead ?? `Para pagar su factura de ${o.name} en línea sin iniciar sesión`}, vaya a la página de ${o.name} de CellPay, ingrese el número de teléfono de ${o.name} de 10 dígitos, elija el monto o el plan y pague con ${PAY_ES}. El cargo por servicio se muestra antes de pagar y la mayoría de los pagos se acreditan en pocos minutos (hasta 30 minutos). CellPay es un servicio de pago independiente, no ${o.name}; también puede pagar directamente en el sitio oficial de ${o.name}.`,
+  intro: o.intro ?? /* CRICKET-GUIDE-1014 */ `${o.introLead ?? `Para pagar su factura de ${o.name} en línea sin iniciar sesión`}, vaya a la página de ${o.name} de CellPay, ingrese el número de teléfono de ${o.name} de 10 dígitos, elija el monto o el plan y pague con ${PAY_ES}. El cargo por servicio se muestra antes de pagar y la mayoría de los pagos se acreditan en pocos minutos (hasta 30 minutos). CellPay es un servicio de pago independiente, no ${o.name}; también puede pagar directamente en el sitio oficial de ${o.name}.`,
   steps: [
     { name: "Abra la página", text: `Vaya a la página de ${o.name} de CellPay (${o.checkout}).` },
     { name: "Ingrese el número", text: `Escriba el número de teléfono de ${o.name} de 10 dígitos y verifíquelo.` },
@@ -318,7 +320,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
       { q: "What if I don't know how much I owe?", a: "CellPay doesn't show your Metro by T-Mobile balance. Check the amount due in your Metro by T-Mobile app, account or text messages, then choose that plan or amount here. The total with the service fee is shown before you pay." },
       { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." },
     ],
-    related: [["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/lyca-mobile", "How to pay Lyca Mobile"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/guest-metro-pcs.html", "Pay Metro by T-Mobile as a guest"], ["/metropcs.html", "Pay Metro by T-Mobile now"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
+    related: [["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/boost-mobile", "How to pay Boost Mobile"], ["/how-to-pay/cricket", "How to pay Cricket Wireless"] /* CRICKET-GUIDE-1014 */, ["/how-to-pay/lyca-mobile", "How to pay Lyca Mobile"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/guest-metro-pcs.html", "Pay Metro by T-Mobile as a guest"], ["/metropcs.html", "Pay Metro by T-Mobile now"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
     updatedIso: "2026-10-12", updatedText: "Last updated: October 12, 2026",
   }),
   es({
@@ -333,7 +335,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
       { q: "¿Qué hago si no sé cuánto debo?", a: "CellPay no muestra el saldo de Metro by T-Mobile. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de Metro by T-Mobile, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar." },
       { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." },
     ],
-    related: [["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/lyca-mobile", "Cómo pagar Lyca Mobile"], ["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], ["/guest-metro-pcs.html", "Pagar Metro by T-Mobile como invitado"], ["/es/metropcs.html", "Pagar Metro by T-Mobile ahora"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
+    related: [["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"], ["/es/como-pagar/cricket", "Cómo pagar Cricket Wireless"] /* CRICKET-GUIDE-1014 */, ["/es/como-pagar/lyca-mobile", "Cómo pagar Lyca Mobile"], ["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], ["/guest-metro-pcs.html", "Pagar Metro by T-Mobile como invitado"], ["/es/metropcs.html", "Pagar Metro by T-Mobile ahora"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
     updatedIso: "2026-10-12", updatedText: "Última actualización: 12 de octubre de 2026",
   }),
   // SEO-CONTENT-1014 (AEO-08-BOOST-1014): Boost Mobile pay-bill guide pair (SPEC-09 + Oct 14 overrides). "Pay now" goes to /boost.html
@@ -352,7 +354,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
       { q: "What if I don't know how much I owe?", a: "CellPay doesn't show your Boost Mobile balance. Check the amount due in your Boost Mobile app, account or text messages, then choose that plan or amount here. The total with the service fee is shown before you pay." },
       { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." },
     ],
-    related: [["/how-to-pay/metro-pcs", "How to pay Metro by T-Mobile"], ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/guest-boost.html", "Pay Boost Mobile as a guest"], ["/boost.html", "Pay Boost Mobile now"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
+    related: [["/how-to-pay/metro-pcs", "How to pay Metro by T-Mobile"], ["/how-to-pay/cricket", "How to pay Cricket Wireless"] /* CRICKET-GUIDE-1014 */, ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/guest-boost.html", "Pay Boost Mobile as a guest"], ["/boost.html", "Pay Boost Mobile now"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
     updatedIso: "2026-10-14", updatedText: "Last updated: October 14, 2026",
   }),
   es({
@@ -370,7 +372,43 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
       { q: "¿Qué hago si no sé cuánto debo?", a: "CellPay no muestra el saldo de Boost Mobile. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de Boost Mobile, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar." },
       { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." },
     ],
-    related: [["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"], ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/guest-boost.html", "Pagar Boost Mobile como invitado"], ["/es/boost.html", "Pagar Boost Mobile ahora"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
+    related: [["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"], ["/es/como-pagar/cricket", "Cómo pagar Cricket Wireless"] /* CRICKET-GUIDE-1014 */, ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/guest-boost.html", "Pagar Boost Mobile como invitado"], ["/es/boost.html", "Pagar Boost Mobile ahora"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
+    updatedIso: "2026-10-14", updatedText: "Última actualización: 14 de octubre de 2026",
+  }),
+  // CRICKET-GUIDE-1014: Cricket Wireless pay-bill guide pair, built like the Boost/Metro pairs. "Pay now" goes to /topup-crc.html
+  // (ES: /es/topup-crc.html), no amount prefill. Pay wording only; no fee amounts or plan prices.
+  en({
+    key: "cricket", name: "Cricket Wireless", slug: "topup-crc", checkout: "/topup-crc.html", an: "a",
+    title: "How to Pay Cricket Wireless Online | CellPay",
+    description: "Pay your Cricket Wireless bill online with just the phone number. No login. Choose the amount, see the total and pay. Service fee shown before you pay.",
+    h1: "How to pay Cricket Wireless online",
+    intro: `To pay Cricket Wireless online, open CellPay's Cricket page, enter the 10-digit Cricket number, choose the amount and review the total (service fee shown before you pay). Then pay with ${PAY_EN}. No Cricket login needed.`,
+    step3: "Choose a plan from the list or enter the amount you want to pay.",
+    postA: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. If it hasn't posted after 30 minutes, email support@getcellpay.com with your phone number and transaction details. You see a confirmation with your transaction details once the payment goes through.",
+    autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
+    autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
+    moreFaqs: [
+      { q: "What if I don't know how much I owe?", a: "CellPay doesn't show your Cricket Wireless balance. Check the amount due in your Cricket Wireless app, account or text messages, then choose that plan or amount here. The total with the service fee is shown before you pay." },
+      { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." },
+    ],
+    related: [["/how-to-pay/boost-mobile", "How to pay Boost Mobile"], ["/how-to-pay/metro-pcs", "How to pay Metro by T-Mobile"], ["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"], ["/topup-crc.html", "Pay Cricket Wireless now"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
+    updatedIso: "2026-10-14", updatedText: "Last updated: October 14, 2026",
+  }),
+  es({
+    key: "cricket", name: "Cricket Wireless", slug: "topup-crc", checkout: "/es/topup-crc.html",
+    title: "Cómo pagar Cricket Wireless en línea | CellPay",
+    description: "Pague su factura de Cricket Wireless en línea con solo el número. Sin cuenta. Elija el monto y pague. El cargo por servicio se muestra antes de pagar.",
+    h1: "Cómo pagar Cricket Wireless en línea",
+    intro: `Para pagar Cricket Wireless en línea, abra la página de Cricket de CellPay, ingrese el número de Cricket de 10 dígitos, elija el monto y revise el total (el cargo por servicio se muestra antes de pagar). Luego pague con ${PAY_ES}. No necesita iniciar sesión en Cricket.`,
+    step3: "Elija un plan de la lista o ingrese el monto que desea pagar.",
+    postA: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Si no se ha acreditado después de 30 minutos, escriba a support@getcellpay.com con su número de teléfono y los datos de la transacción. Cuando el pago se completa, verá una confirmación con los datos de su transacción.",
+    autoPayA: "S\u00ed. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca est\u00e1 marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
+    autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca est\u00e1 marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
+    moreFaqs: [
+      { q: "¿Qué hago si no sé cuánto debo?", a: "CellPay no muestra el saldo de Cricket Wireless. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de Cricket Wireless, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar." },
+      { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." },
+    ],
+    related: [["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"], ["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"], ["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/topup-crc.html", "Pagar Cricket Wireless ahora"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
     updatedIso: "2026-10-14", updatedText: "Última actualización: 14 de octubre de 2026",
   }),
 ];
@@ -433,6 +471,10 @@ const PLAN_NAMES: Record<HtpPage["key"], Record<HtpLang, string[]>> = {
   "boost-mobile": { // SEO-CONTENT-1014 (no plan names or prices: the live list loads from the CellPay catalog)
     en: ["Boost Mobile payment: enter the amount you want to pay on the CellPay page, or choose a plan where offered"],
     es: ["Pago de Boost Mobile: ingrese el monto que desea pagar en la página de CellPay, o elija un plan cuando esté disponible"],
+  },
+  cricket: { // CRICKET-GUIDE-1014 (no plan names or prices: the live list loads from the CellPay catalog)
+    en: ["Cricket Wireless payment: choose one of the amounts shown on the CellPay page, or enter the amount you want to pay where offered"],
+    es: ["Pago de Cricket Wireless: elija uno de los montos que aparecen en la página de CellPay, o ingrese el monto que desea pagar cuando esté disponible"],
   },
   "verizon-prepaid": {
     en: ["Verizon Prepaid refill: choose one of the fixed amounts shown on the CellPay page, or a custom amount where offered"],

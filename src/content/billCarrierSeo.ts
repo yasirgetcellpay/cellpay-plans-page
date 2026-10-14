@@ -19,7 +19,7 @@ export type BillPage = {
   securePayment: string;
   faqTitle: string;
   faqs: BillFaq[];
-  guide?: [string, string]; // how-to-pay guide link (Metro, Boost only)
+  guide?: [string, string]; // how-to-pay guide link (Metro, Boost; CRICKET-GUIDE-1014: + Cricket)
 };
 
 const WWW = "https://www.cellpay.us";
@@ -57,7 +57,7 @@ const esPage = (path: string, name: string, guide?: [string, string]): BillPage 
 export const BILL_PAGES: BillPage[] = [
   esPage("/es/metropcs.html", "Metro PCS", ["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"]),
   esPage("/es/boost.html", "Boost Mobile", ["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"]),
-  esPage("/es/topup-crc.html", "Cricket Wireless"),
+  esPage("/es/topup-crc.html", "Cricket Wireless", ["/es/como-pagar/cricket", "Cómo pagar Cricket Wireless"]), // CRICKET-GUIDE-1014
   {
     path: "/topup-crc.html", lang: "en", name: "Cricket Wireless",
     // title kept: "Cricket Quick Pay — Pay Your Cricket Bill Online | CellPay"
@@ -69,6 +69,7 @@ export const BILL_PAGES: BillPage[] = [
     securePayment: "Secure payment. Your payment goes to the number you entered.",
     faqTitle: "Common questions",
     faqs: faqsEn("Cricket Wireless"),
+    guide: ["/how-to-pay/cricket", "How to pay Cricket Wireless"], // CRICKET-GUIDE-1014
   },
 ];
 

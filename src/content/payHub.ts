@@ -48,6 +48,7 @@ const GUIDES = (es: boolean) => {
   return [
     { name: "Boost Mobile", href: `${p}boost-mobile` },
     { name: "Metro by T-Mobile", href: `${p}metro-pcs` },
+    { name: "Cricket Wireless", href: `${p}cricket` }, // CRICKET-GUIDE-1014
     { name: "Simple Mobile", href: `${p}simple-mobile` },
     { name: "T-Mobile Prepaid", href: `${p}t-mobile-prepaid` },
     { name: "AT&T Prepaid", href: `${p}att-prepaid` },
