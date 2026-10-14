@@ -1701,6 +1701,12 @@ const htmlAliasPlugin = (): Plugin => ({
           /* keep plain shell */
         }
       }
+      // GSC-MAULIK-1014: /metropcs.html never says "refill": drop the sitewide keywords tag and use the page title as image alt.
+      if (route === "metropcs.html" || route === "metro-pcs.html") {
+        const mt = "Pay Metro by T-Mobile Bill Online – Metro PCS | CellPay";
+        out = out.replace(/\s*<meta name="keywords"[^>]*>/i, "");
+        out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${mt}"`);
+      }
       // ES-FIRST-1014: bill-pay hub: static first screen + WebPage/BreadcrumbList/FAQPage/Organization JSON-LD.
       const hubPg = HUB_BY_ROUTE[route];
       if (hubPg) {
