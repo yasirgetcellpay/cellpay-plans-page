@@ -1726,6 +1726,12 @@ const htmlAliasPlugin = (): Plugin => ({
         out = out.replace(/\s*<meta name="keywords"[^>]*>/i, "");
         out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${mt}"`);
       }
+      // AI-ANSWERS-1014: amount answer pages never say "refill": drop the sitewide keywords tag; image alt = page title.
+      if (htpPage?.amount) {
+        const at = htpPage.title.replace(/"/g, "&quot;");
+        out = out.replace(/\s*<meta name="keywords"[^>]*>/i, "");
+        out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${at}"`);
+      }
       // ES-FIRST-1014: bill-pay hub: static first screen + WebPage/BreadcrumbList/FAQPage/Organization JSON-LD.
       const hubPg = HUB_BY_ROUTE[route];
       if (hubPg) {
