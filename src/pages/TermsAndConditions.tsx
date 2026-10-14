@@ -47,6 +47,10 @@ const TermsAndConditions = () => {
         <h2 className="text-lg font-bold text-foreground pt-3">9. Changes to Terms</h2>
         <p>We reserve the right to update these terms at any time. Continued use of CellPay after changes constitutes acceptance of the updated terms.</p>
 
+        {/* CONSENT-TERMS-1014 */}
+        <h2 className="text-lg font-bold text-foreground pt-3">Email Communications</h2>
+        <p>By placing an order, you agree to receive payment reminders, account updates and offers from CellPay by email. You can unsubscribe at any time using the link in any email. This consent does not cover SMS or text messages.</p>
+
         <h2 className="text-lg font-bold text-foreground pt-3">10. Contact</h2>
         <p>Questions about these terms? Email us at <strong>support@getcellpay.com</strong>.</p>
       </div>

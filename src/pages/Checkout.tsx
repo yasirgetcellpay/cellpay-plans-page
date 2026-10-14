@@ -175,7 +175,7 @@ const setPurchasePending = (hid: string) => {
 // [receipt item_name, receipt item_id, space-separated plan ids] per carrier slug. Unknown carrier/plan -> no early fire.
 const EP_TABLE: Record<string, Array<[string, string, string]>> = {"boost":[["Boost","boost","66666"]],"h2o":[["H2O Wireless","h2o","3520 4439 5213 8282 32205 54787"]],"lyca":[["Lyca Mobile","lyca","1906 1907 1908 1909 1924 8768 8830 8831 8864 8907 9876789 28947019"]],"metropcs":[["Metro PCS","metropcs","33333"]],"net10":[["NET10","net10","3686 3924 3993 6346 9569 9570"]],"pageplus":[["Page Plus","pageplus","4919 31004 32164 8818410 8918412"]],"s1":[["Simple Mobile","s1","2631 2632 2634 2655 12676"]],"straight-talk":[["Straight Talk","straight-talk","39411 39412 39413 39414 addon-39421 Broadband-39422"]],"tmobile":[["T-Mobile","tmobile","834 835 836 8209 8328 8329 28254 28694 232179"],["T-Mobile Flexi","tmobile-flexi","238888"]],"topup-at":[["AT&T","topup-at","23915"],["AT&T","topup-af","9011 9012 9013 9014 9015 9016 9017 9018 9019 9020 9021 9022 9023 9024 9025 9026"]],"topup-crc":[["Cricket Wireless","topup-crc","44444"]],"total-wireless":[["Total Wireless","total-wireless","32140 32191 32193 321450 887800 887801 887802 887803 887804 887805 887806"]],"tracfone":[["Tracfone","tracfone","288 289 298 9545 10647 10648 10649"]],"ultra-mobile":[["Ultra Mobile","ultra-mobile","1367 1469 8274 8275 8278 8279 5523059 32990000 32991000 32992000 32993000"]],"verizon":[["Verizon Wireless Prepaid","verizon","2628 2629 2636 2637 2638 2639 22118 24322 24324 24325 24328"],["Verizon Wireless Flexi","verizon-wireless-flexi","291945"]]};
 // MARKETING-OPTIN-1013: record the optional email opt-in on the order row (by order id), best-effort, never blocks.
-const recordMarketingOptIn = (hid: string, optIn: boolean): void => { try { const id = String(hid || "").trim(); if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return; void Promise.resolve((supabase as unknown as { rpc: (fn: string, a: Record<string, unknown>) => PromiseLike<unknown> }).rpc("record_marketing_opt_in", { p_hashid: id, p_opt_in: optIn === true })).catch(() => {}); } catch { /* best-effort, never blocks */ } };
+const recordMarketingOptIn = (hid: string, optIn: boolean, uiLang?: string): void => { try { const id = String(hid || "").trim(); if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return; let pLang = "en"; try { if (window.location.pathname.startsWith("/es") || uiLang === "es") pLang = "es"; } catch { /* ignore */ } let pBrowser: string | null = null; try { pBrowser = typeof navigator !== "undefined" && typeof navigator.language === "string" ? navigator.language : null; } catch { /* ignore */ } /* CONSENT-TERMS-1014 */ void Promise.resolve((supabase as unknown as { rpc: (fn: string, a: Record<string, unknown>) => PromiseLike<unknown> }).rpc("record_marketing_opt_in", { p_hashid: id, p_opt_in: optIn === true, p_lang: pLang, p_browser_language: pBrowser })).catch(() => {}); } catch { /* best-effort, never blocks */ } };
 const earlyPurchase = (hid: string, slug: string, plan: unknown, amountIn: unknown, totalIn: unknown): void => {
   try {
     const id = String(hid || "").trim();
@@ -327,9 +327,8 @@ const Checkout = () => {
   const [saveCard, setSaveCard] = useState(false);
   const [autoPay, setAutoPay] = useState(false);
   const [autoPayTerms, setAutoPayTerms] = useState(false);
-  const [marketingOptIn, setMarketingOptIn] = useState(false); // MARKETING-OPTIN-1013
-  const mktOptInRef = useRef(false); // MARKETING-OPTIN-1013
-  mktOptInRef.current = marketingOptIn; // MARKETING-OPTIN-1013
+  const mktOptInRef = useRef(true); // MARKETING-OPTIN-1013
+  mktOptInRef.current = true; // CONSENT-TERMS-1014: consent is given by placing the order (see terms line above PLACE ORDER NOW)
   const checkoutConfigRef = useRef<Record<string, unknown> | null>(null); // APAP-1007: mirror of checkoutConfig (state is declared below)
   const [gpGate, setGpGate] = useState<{ ok: boolean; site: string } | null>(null); // GPAY-AUTOPAY-1008: gpay_autopay_check answer (offer stage)
   const gpRecurringRef = useRef(false); // GPAY-AUTOPAY-1008: true only when THIS Google Pay order sent the Auto Pay flags
@@ -1326,7 +1325,8 @@ const Checkout = () => {
   }
 
   const brandColor = state.brandColor;
-  const mktLabel = ["metropcs","boost","topup-crc"].includes(String(state?.carrierSlug || "")) ? (lang === "es" ? "Envíame recordatorios de pago y ofertas" : "Email me payment reminders and deals") : (lang === "es" ? "Envíame recordatorios de recarga y ofertas" : "Email me refill reminders and deals"); // MARKETING-OPTIN-1013
+  // CONSENT-TERMS-1014: consent line shown directly above PLACE ORDER NOW
+  const consentLine = (<p className="text-xs text-muted-foreground text-center leading-snug">{lang === "es" ? <>Al realizar su pedido, acepta nuestros <a href="/terms-and-conditions" target="_blank" rel="noopener" className="underline">Términos</a> y recibir recordatorios de pago y ofertas por correo electrónico. Puede darse de baja en cualquier momento.</> : <>By placing your order you agree to our <a href="/terms-and-conditions" target="_blank" rel="noopener" className="underline">Terms</a> and to receive payment reminders and offers by email. Unsubscribe anytime.</>}</p>);
   const total = validation?.total ?? Number(state.amount);
   const fee = validation?.fee ?? 0;
   const tax = validation?.tax ?? 0;
@@ -1464,7 +1464,7 @@ const Checkout = () => {
       // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1b: sessionStorage + cookie).
       setPurchasePending(hid);
       earlyPurchase(hid, state.carrierSlug, state.planId, validation?.amount ?? state.amount, validation?.total ?? state.amount); // BEACON-AT-SUCCESS-1011
-      recordMarketingOptIn(hid, mktOptInRef.current); // MARKETING-OPTIN-1013
+      recordMarketingOptIn(hid, mktOptInRef.current, lang); // MARKETING-OPTIN-1013 // CONSENT-TERMS-1014
       const params = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
       clearCheckoutCtx();
       try { sessionStorage.removeItem(AP_TICKS_KEY); } catch { /* ignore */ } // ARB-1b: order placed, forget the ticks
@@ -2008,7 +2008,7 @@ const Checkout = () => {
           const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
           setPurchasePending(hid);
           earlyPurchase(hid, state.carrierSlug, state.planId, validation?.amount ?? state.amount, validation?.total ?? state.amount); // BEACON-AT-SUCCESS-1011
-          recordMarketingOptIn(hid, mktOptInRef.current); // MARKETING-OPTIN-1013
+          recordMarketingOptIn(hid, mktOptInRef.current, lang); // MARKETING-OPTIN-1013 // CONSENT-TERMS-1014
           const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
           clearCheckoutCtx();
           try { sessionStorage.removeItem(AP_TICKS_KEY); } catch { /* ignore */ } // ARB-1b: order placed, forget the ticks
@@ -2679,8 +2679,7 @@ const Checkout = () => {
                 {tr.agreeTermsSuffix}
               </span>
             </label>
-            {/* MARKETING-OPTIN-1013: optional, unticked, every payment method; not part of canSubmit or any payment request */}
-            <label className="flex items-start gap-3 cursor-pointer"><input type="checkbox" checked={marketingOptIn} onChange={(e) => setMarketingOptIn(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} /><span className="text-sm text-foreground leading-relaxed">{mktLabel}</span></label>
+            {/* CONSENT-TERMS-1014: marketing opt-in checkbox removed; consent line sits above PLACE ORDER NOW */}
 
             {paymentMethod === "card" && (
               <>
@@ -2816,6 +2815,7 @@ const Checkout = () => {
               </>
             )}
 
+            {paymentMethod !== "paypal" && consentLine /* CONSENT-TERMS-1014 */}
             {paymentMethod !== "paypal" && (
               <button
                 ref={inlinePayRef}
@@ -2861,6 +2861,8 @@ const Checkout = () => {
             <p className="text-[10px] text-muted-foreground">{tr.total}</p>
             <p data-testid="checkout-bar-total" className="text-base font-extrabold" style={{ color: brandColor }}>${Number(total).toFixed(2)}</p>
           </div>
+          <div className="flex-1 min-w-0 flex flex-col gap-1">{/* CONSENT-TERMS-1014 */}
+          {consentLine}
           <button
             type="button"
             data-testid="checkout-bar-pay"
@@ -2877,6 +2879,7 @@ const Checkout = () => {
             {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
             {submitting ? tr.processing : tr.placeOrder}
           </button>
+          </div>{/* CONSENT-TERMS-1014 */}
         </div>
       )}
 
