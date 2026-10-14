@@ -1,7 +1,7 @@
 // CHECKOUT-FUNNEL: invisible carrier-tagged checkout funnel events. Always 204, never errors to the client.
 // Accepts JSON or text/plain (sendBeacon), one object or an array of up to 10. Only whitelisted fields are stored.
 const ALLOWED = new Set(["https://refill.cellpay.us", "https://www.cellpay.us"]);
-const EVENTS = new Set(["checkout_view", "total_shown", "payment_started", "submitted", "left_at_total", "prefill_used", "autopay_postpurchase_offer_shown", "autopay_postpurchase_offer_accepted"]); // EMAIL-PREFILL-1013: prefill_used; AUTOPAY-POSTPURCHASE-1013: autopay_postpurchase_*
+const EVENTS = new Set(["checkout_view", "total_shown", "payment_started", "submitted", "left_at_total", "prefill_used", "autopay_postpurchase_offer_shown", "autopay_postpurchase_offer_accepted", "recovery_prompt_shown", "recovery_retry", "recovery_success"]); // DECLINE-RECOVERY-1014: recovery_*; // EMAIL-PREFILL-1013: prefill_used; AUTOPAY-POSTPURCHASE-1013: autopay_postpurchase_*
 
 function cors(origin: string | null): Record<string, string> {
   const h: Record<string, string> = {
