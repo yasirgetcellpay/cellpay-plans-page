@@ -133,6 +133,7 @@ const AboutUs = lazyPage(() => import("./pages/AboutUs.tsx"));
 const ContactUs = lazyPage(() => import("./pages/ContactUs.tsx"));
 const FAQ = lazyPage(() => import("./pages/FAQ.tsx"));
 const HowToUse = lazyPage(() => import("./pages/HowToUse.tsx"));
+const PayHub = lazyPage(() => import("./pages/PayHub.tsx")); // ES-FIRST-1014
 // AEO-PAGES-1007
 // TOP4-T4-1009 (guide LCP): main.tsx preloads the guide chunk before React starts on /how-to-pay/* and /es/como-pagar/*.
 // Once it has loaded, the guide resolves synchronously (no empty Suspense fallback), so React's first render is the guide
@@ -1665,6 +1666,9 @@ const App = () => (
         {/* SEO-CONTENT-1014: Boost Mobile how-to-pay pair */}
         <Route path="/how-to-pay/boost-mobile" element={<HowToPay />} />
         <Route path="/es/como-pagar/boost-mobile" element={<HowToPay />} />
+        {/* ES-FIRST-1014: Spanish-first bill-pay hub + EN twin */}
+        <Route path="/es/paga-tu-factura" element={<PayHub />} />
+        <Route path="/pay-your-phone-bill" element={<PayHub />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/privacy-policy.html" element={<AliasRedirect to="/privacy-policy" />} />
         {/* PRIVACY-1007: Spanish privacy policy (same page; text in src/content/privacyPolicy.ts) */}

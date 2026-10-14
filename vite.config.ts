@@ -23,6 +23,8 @@ import { PRIVACY_PAGES, privacyMainHtml, type PpPage } from "./src/content/priva
 import { HOW_TO_USE } from "./src/content/howToUse";
 // SPA-SHELLS-1011: static first screen (<main>) for /about-us, /faq, /how-to-use, /es/how-to-use, /terms-and-conditions.
 import { infoMainHtml } from "./src/content/infoPages";
+// ES-FIRST-1014: bill-pay hub (/es/paga-tu-factura + /pay-your-phone-bill) head, first screen and JSON-LD.
+import { HUB_PAGES, HUB_PATHS, hubJsonLd, hubStaticHtml } from "./src/content/payHub";
 
 /**
  * Lovable's static host returns 404 for any URL ending in `.html` (it treats it
@@ -257,6 +259,9 @@ const HTML_ROUTES = [
   // SEO-CONTENT-1014: Boost Mobile how-to-pay pages
   "how-to-pay/boost-mobile/index.html",
   "es/como-pagar/boost-mobile/index.html",
+  // ES-FIRST-1014: bill-pay hub pair
+  "es/paga-tu-factura/index.html",
+  "pay-your-phone-bill/index.html",
   // Admin SPA routes — emit as folder/index.html so self-hosted servers
   // (which don't do SPA fallback) serve the React app on direct refresh.
   "admin/index.html",
@@ -841,9 +846,12 @@ const htmlAliasPlugin = (): Plugin => ({
     };
     // AEO-PAGES-1007: route -> how-to-pay page (title/description/lang from src/content/howToPay.ts)
     const HTP_BY_ROUTE = new Map(HOW_TO_PAY_PAGES.map((p) => [p.path.slice(1) + "/index.html", p] as const));
+    const HUB_BY_ROUTE: Record<string, (typeof HUB_PAGES)["es"]> = { "es/paga-tu-factura/index.html": HUB_PAGES.es, "pay-your-phone-bill/index.html": HUB_PAGES.en }; // ES-FIRST-1014
     const buildMeta = (route: string): Meta => {
       const htp = HTP_BY_ROUTE.get(route);
       if (htp) return { title: htp.title, description: htp.description, lang: htp.lang };
+      const hubM = HUB_BY_ROUTE[route]; // ES-FIRST-1014
+      if (hubM) return { title: hubM.title, description: hubM.description, lang: hubM.lang };
       // Legacy per-amount redirect shells: noindex,follow
       if (/^\d+-.+-prepaid-refill\.html$/.test(route)) {
         return {
@@ -1502,6 +1510,7 @@ const htmlAliasPlugin = (): Plugin => ({
     const canonicalPathFor = (route: string, meta: Meta): string =>
       meta.canonical || VARIANT_CANON[route] || routeToPath(route);
     const pairFor = (canonPath: string): [string, string] | null => {
+      if (canonPath === HUB_PATHS.en || canonPath === HUB_PATHS.es) return [HUB_PATHS.en, HUB_PATHS.es]; // ES-FIRST-1014
       // AEO-PAGES-1007: /how-to-pay/x <-> /es/como-pagar/x
       const en = canonPath === "/es" ? "/" : canonPath.startsWith("/es/como-pagar/") ? canonPath.replace("/es/como-pagar/", "/how-to-pay/") : canonPath.replace(/^\/es(?=\/)/, "");
       const es = en === "/" ? "/es" : en.startsWith("/how-to-pay/") ? en.replace("/how-to-pay/", "/es/como-pagar/") : "/es" + en;
@@ -1671,6 +1680,18 @@ const htmlAliasPlugin = (): Plugin => ({
           const ld = `<script type="application/ld+json" data-htp="1">${howToPayJsonLd(htpPage)}</script>`;
           const body = howToPayStaticHtml(htpPage);
           out = out.replace(/<\/head>/i, () => `  ${ld}\n  </head>`).replace(/<div id="root"><\/div>/i, () => body);
+        } catch {
+          /* keep plain shell */
+        }
+      }
+      // ES-FIRST-1014: bill-pay hub: static first screen + WebPage/BreadcrumbList/FAQPage/Organization JSON-LD.
+      const hubPg = HUB_BY_ROUTE[route];
+      if (hubPg) {
+        try {
+          const ld = `<script type="application/ld+json" data-hub="1">${hubJsonLd(hubPg)}</script>`;
+          out = out.replace(/<\/head>/i, () => `  ${ld}\n  </head>`).replace(/<div id="root"><\/div>/i, () => hubStaticHtml(hubPg));
+          out = out.replace(/\s*<meta name="keywords"[^>]*>/i, ""); // ES-FIRST-1014: sitewide keywords say "refill"
+          out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${hubPg.title}"`); // ES-FIRST-1014
         } catch {
           /* keep plain shell */
         }

@@ -571,4 +571,23 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/boost-mobile" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/boost-mobile" />
   </url>
+  <!-- ES-FIRST-1014: bill-pay hub pair -->
+  <url>
+    <loc>https://www.cellpay.us/es/paga-tu-factura</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/pay-your-phone-bill" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/paga-tu-factura" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/pay-your-phone-bill" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/pay-your-phone-bill</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/pay-your-phone-bill" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/paga-tu-factura" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/pay-your-phone-bill" />
+  </url>
 </urlset>
