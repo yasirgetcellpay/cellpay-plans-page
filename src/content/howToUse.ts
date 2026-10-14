@@ -47,6 +47,7 @@ export const HOW_TO_USE: Record<HtuLang, HtuPage> = {
       ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], // TOP4-T4-1009
       ["/how-to-pay/lyca-mobile", "How to pay Lyca Mobile"], // AEO-06-LYCA-1011
       ["/how-to-pay/metro-pcs", "How to pay Metro by T-Mobile"], // AEO-07-METRO-1012
+      ["/how-to-pay/boost-mobile", "How to pay Boost Mobile"], // SEO-CONTENT-1014
     ],
   },
   es: {
@@ -78,6 +79,7 @@ export const HOW_TO_USE: Record<HtuLang, HtuPage> = {
       ["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], // TOP4-T4-1009
       ["/es/como-pagar/lyca-mobile", "Cómo pagar Lyca Mobile"], // AEO-06-LYCA-1011
       ["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"], // AEO-07-METRO-1012
+      ["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"], // SEO-CONTENT-1014
     ],
   },
 };

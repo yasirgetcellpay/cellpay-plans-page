@@ -1725,6 +1725,7 @@ const htmlAliasPlugin = (): Plugin => ({
           `<main role="main" style="font-family:'Open Sans',system-ui,Arial,sans-serif;max-width:760px;margin:48px auto;padding:0 20px;color:#0f172a;text-align:center">` +
           `<h1 style="font-size:28px;line-height:1.25;font-weight:800;margin:0 0 16px">${escAttr(guest.h1)}</h1>` +
           `<p style="font-size:16px;line-height:1.55;margin:0;color:#334155">${escAttr(GO_SHELLS.has(route) ? goFeeCopy(guest.intro) : guest.intro)}</p>` +
+          (route === "guest-boost.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/how-to-pay/boost-mobile" style="text-decoration:underline">How to pay Boost Mobile</a></p>` : "") + // SEO-CONTENT-1014
           `</main>` +
           `</div>`;
         out = out.replace(/<div id="root"><\/div>/i, prerender);

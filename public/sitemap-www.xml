@@ -552,4 +552,23 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/metro-pcs" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/metro-pcs" />
   </url>
+  <!-- SEO-CONTENT-1014: Boost Mobile how-to-pay pair -->
+  <url>
+    <loc>https://www.cellpay.us/how-to-pay/boost-mobile</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/boost-mobile" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/boost-mobile" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/boost-mobile" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/es/como-pagar/boost-mobile</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/boost-mobile" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/boost-mobile" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/boost-mobile" />
+  </url>
 </urlset>
