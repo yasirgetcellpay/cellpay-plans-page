@@ -350,9 +350,9 @@ const DynamicCarrier = ({
           applySeoHead({
             title: "Cricket Quick Pay — Pay Your Cricket Bill Online | CellPay",
             description:
-              "Cricket Quick Pay on CellPay: refill any Cricket Wireless phone online. No login needed. All major cards & wallets. Pay your Cricket bill online now.",
+              "Cricket Quick Pay on CellPay: pay any Cricket Wireless bill online. No login needed. All major cards & wallets. Service fee shown before you pay.", // SEO-CONTENT-1014
             keywords:
-              "cricket quick pay, cricket wireless quick pay, pay cricket bill online, cricket bill pay, cricket refill, cricket wireless payment",
+              "cricket quick pay, cricket wireless quick pay, pay cricket bill online, cricket bill pay, cricket wireless payment", // SEO-CONTENT-1014
             schemaSecondary: CRICKET_QUICK_PAY_FAQ_SCHEMA,
           });
         }

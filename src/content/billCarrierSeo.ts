@@ -43,7 +43,7 @@ const faqsEs = (name: string): BillFaq[] => [
 const esPage = (path: string, name: string, guide?: [string, string]): BillPage => ({
   path, lang: "es", name,
   title: `Pague su factura de ${name} en línea | CellPay`,
-  description: `Pague su factura de ${name} en línea. Sin cuenta y sin iniciar sesión. Puede pagar por otra persona. El cargo por servicio se muestra antes de pagar.`,
+  description: `Pague su factura de ${name} en línea, sin cuenta y sin iniciar sesión, también por otra persona. El cargo por servicio se muestra antes de pagar.`,
   h1: `Pague su factura de ${name} en línea, rápido y seguro`,
   sub: "Sin cuenta y sin iniciar sesión. Ingrese el número, elija el monto y pague.",
   autoPayInfoLead: "Opcional: Auto Pago para no olvidar su pago.",
