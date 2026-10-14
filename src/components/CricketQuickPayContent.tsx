@@ -167,7 +167,7 @@ export const CRICKET_QUICK_PAY_FAQ_SCHEMA = JSON.stringify({
       name: "How do I pay my Cricket bill online without logging in?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Use the Cricket Wireless quick pay page on CellPay. Enter the Cricket phone number, choose a $30, $40, $55, or $60 plan or a custom top-up, and pay with " + payWith("en") + ". No Cricket login required.",
+        text: "Use the Cricket Wireless quick pay page on CellPay. Enter the Cricket phone number, choose a $30, $40, $55, or $60 plan or a custom amount, and pay with " + payWith("en") + ". No Cricket login required.",
       },
     },
     {
@@ -175,7 +175,7 @@ export const CRICKET_QUICK_PAY_FAQ_SCHEMA = JSON.stringify({
       name: "How long does a Cricket quick pay payment take?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "It can take up to 30 min for a refill to reflect on your account, and Cricket sends an SMS confirmation to the refilled line as soon as the new plan is active.",
+        text: "It can take up to 30 min for a payment to reflect on your account, and Cricket sends an SMS confirmation to the line as soon as the new plan is active.",
       },
     },
     {
@@ -191,7 +191,7 @@ export const CRICKET_QUICK_PAY_FAQ_SCHEMA = JSON.stringify({
       name: "Can I pay someone else's Cricket bill?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes. You don't have to own the Cricket line. Enter the recipient's 10-digit Cricket phone number and the refill applies to their account.",
+        text: "Yes. You don't have to own the Cricket line. Enter the recipient's 10-digit Cricket phone number and the payment applies to their account.",
       },
     },
     {
@@ -199,7 +199,7 @@ export const CRICKET_QUICK_PAY_FAQ_SCHEMA = JSON.stringify({
       name: "What Cricket Wireless plans can I pay for here?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "All current Cricket prepaid plans, including $30 Unlimited Talk & Text + 5GB, $40 Unlimited 10GB, $55 Unlimited Smartphone, and $60 Unlimited + 15GB hotspot. Custom top-ups from $5 to $250 are also supported.",
+        text: "All current Cricket prepaid plans, including $30 Unlimited Talk & Text + 5GB, $40 Unlimited 10GB, $55 Unlimited Smartphone, and $60 Unlimited + 15GB hotspot. Custom amounts from $5 to $250 are also supported.",
       },
     },
     {
