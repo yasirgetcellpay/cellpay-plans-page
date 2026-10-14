@@ -659,8 +659,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "topup-crc.html":            { title: "Cricket Quick Pay — Pay Your Cricket Bill Online | CellPay", description: "Cricket Quick Pay on CellPay: pay any Cricket Wireless bill online. No login needed. All major cards & wallets. Service fee shown before you pay." }, // SEO-CONTENT-1014
       "h2o.html":                  { title: "H2O Wireless Refill — Online Top-Up | CellPay",        description: "Recharge H2O Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "lyca.html":                 { title: "Lycamobile Refill — Online Top-Up | CellPay",          description: "Recharge Lycamobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
-      "metropcs.html":             { title: "Metro PCS Refill — Pay Metro by T-Mobile | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." },
-      "metro-pcs.html":            { title: "Metro PCS Refill — Pay Metro by T-Mobile | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." },
+      "metropcs.html":             { title: "Pay Metro by T-Mobile Bill Online – Metro PCS | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." }, // GSC-MAULIK-1014
+      "metro-pcs.html":            { title: "Pay Metro by T-Mobile Bill Online – Metro PCS | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." }, // GSC-MAULIK-1014
       "guest-metro-pcs.html":      { title: "Metro PCS Guest Refill — Online Top-Up | CellPay",     description: "Recharge Metro PCS as a guest. No login needed. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "guest-h2o.html":            { title: "H2O Wireless Guest Refill — Online Top-Up | CellPay",  description: "Make an H2O Wireless guest payment online. No login needed — pick a 30-day plan, pay securely, and your refill is sent to your line after payment." },
       "guest-pageplus.html":       { title: "Page Plus Guest Refill — Online Top-Up | CellPay",     description: "Pay your Page Plus Cellular bill as a guest. No login needed — pick a 30-day plan, check out securely, and your refill is sent to your line after payment." },
@@ -1441,14 +1441,15 @@ const htmlAliasPlugin = (): Plugin => ({
         : "No login needed. Enter your phone number, choose your plan, and you're recharged.";
       const info = isEs // SEO-CONTENT-1014: bill pages use pay wording in the first sentence
         ? (bill ? bill.autoPayInfoLead : "Opcional: Auto Pago para no olvidar su recarga.") + " Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PAYCOPY-1008: shared payment list
-        : (bill ? bill.autoPayInfoLead : "Optional: Auto Pay so you never miss a refill.") + " You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en");
+        : (bill ? bill.autoPayInfoLead : slug === "metropcs" ? "Optional: Auto Pay so you never miss a payment." /* GSC-MAULIK-1014 */ : "Optional: Auto Pay so you never miss a refill.") + " You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en");
+      const metroEnGuide = !isEs && slug === "metropcs" && !bill; // GSC-MAULIK-1014: guide link in raw HTML
       return (
         `<div id="root" data-go-prerender="1">` +
         `<div class="min-h-screen bg-background font-sans antialiased">` +
         `<nav class="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style="border-color:${look.color}">` +
         `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="relative flex justify-center h-14 sm:h-20 items-center">` +
         (logo
-          ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)}${bill ? "" : " prepaid refill"} logo"${logoDims(look.logo)} class="h-[32px] sm:h-[44px] w-auto object-contain">`
+          ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)}${bill || slug === "metropcs" /* GSC-MAULIK-1014 */ ? "" : " prepaid refill"} logo"${logoDims(look.logo)} class="h-[32px] sm:h-[44px] w-auto object-contain">`
           : `<span class="text-xl sm:text-2xl font-extrabold" style="color:${look.color}">${escAttr(look.name)}</span>`) +
         `</div></div>` +
         navMenu +
@@ -1468,6 +1469,7 @@ const htmlAliasPlugin = (): Plugin => ({
         // SIMPLE-SPEC-1-1009: Simple Mobile: answer, plan list, FAQ and links in the raw HTML, below the first screen.
         (slug === "s1" ? simpleStaticBlock(isEs ? "es" : "en") : "") +
         (bill ? billStaticBlock(bill) : "") + // SEO-CONTENT-1014
+        (metroEnGuide ? `<p class="max-w-3xl mx-auto px-4 py-4 text-sm text-center"><a href="/how-to-pay/metro-pcs" class="underline">How to pay Metro by T-Mobile</a></p>` : "") + // GSC-MAULIK-1014
         `</div></div>`
       );
     };
@@ -1698,6 +1700,12 @@ const htmlAliasPlugin = (): Plugin => ({
         } catch {
           /* keep plain shell */
         }
+      }
+      // GSC-MAULIK-1014: /metropcs.html never says "refill": drop the sitewide keywords tag and use the page title as image alt.
+      if (route === "metropcs.html" || route === "metro-pcs.html") {
+        const mt = "Pay Metro by T-Mobile Bill Online – Metro PCS | CellPay";
+        out = out.replace(/\s*<meta name="keywords"[^>]*>/i, "");
+        out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${mt}"`);
       }
       // ES-FIRST-1014: bill-pay hub: static first screen + WebPage/BreadcrumbList/FAQPage/Organization JSON-LD.
       const hubPg = HUB_BY_ROUTE[route];
