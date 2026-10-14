@@ -2988,10 +2988,14 @@ const Checkout = () => {
               // Nothing is submitted until the customer taps PLACE ORDER again. Non-card methods stay after the card cap and on blocked.
               const dc = DECLINE_COPY[lang === "es" ? "es" : "en"];
               const capped = declineInfo.n > MAX_CARD_RETRIES || declineInfo.cls === "blocked";
+              // DECLINE-RECOVERY-1014: card-testing guard (3+ declines this tab, or blocked) -> only PayPal + support + close.
+              const sessCap = declineInfo.sess >= 3 || declineInfo.cls === "blocked";
               const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); };
+              const rec = () => { try { trackFunnel("recovery_retry", funnelDataRef.current); } catch { /* ignore */ } }; // DECLINE-RECOVERY-1014
               // DECLINE-DIALOG-1008: after the switch, bring PLACE ORDER NOW into view and outline it for 1.5 s so the customer sees
               // where to tap next. Only scrolls; it never submits and never opens a wallet sheet by itself.
               const toMethod = (m: PaymentMethod) => {
+                rec(); // DECLINE-RECOVERY-1014
                 close(); setPaymentMethod(m);
                 window.setTimeout(() => {
                   const el = inlinePayRef.current;
@@ -3001,33 +3005,47 @@ const Checkout = () => {
                   window.setTimeout(() => el.classList.remove("ring-4", "ring-offset-2"), 1500);
                 }, 120);
               };
+              const focusCard = () => { rec(); close(); setTimeout(() => { const el = cardFormRef.current?.querySelector<HTMLInputElement>("input"); cardFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); el?.focus(); }, 50); }; // DECLINE-RECOVERY-1014
+              const focusCardNumber = () => { rec(); close(); setTimeout(() => { const el = cardFormRef.current?.querySelector<HTMLInputElement>(`input[aria-label="${tr.cardNumber}"]`) || cardFormRef.current?.querySelector<HTMLInputElement>("input"); cardFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); el?.focus(); }, 50); }; // DECLINE-RECOVERY-1014
               const offered = new Set<PaymentMethod>(paymentMethods.map((pm) => pm.key));
               const btn = "w-full px-4 py-2.5 rounded-lg font-bold text-sm";
+              const isCard = declineInfo.method === "card";
+              const hint = sessCap ? dc.capSession : capped && declineInfo.cls !== "blocked" ? dc.capReached : dc[declineInfo.cls]; // DECLINE-RECOVERY-1014
               return (
                 <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls}>
-                  <p className="text-sm text-foreground mb-2" data-testid="decline-hint">{capped && declineInfo.cls !== "blocked" ? dc.capReached : dc[declineInfo.cls]}</p>
-                  {/* DECLINE-DIALOG-1008: wallets first and filled (Apple Pay, Google Pay), then Cash App; card retry is an outline. */}
-                  {applePayAvailable && offered.has("applepay") && (
-                    <button type="button" data-testid="decline-applepay" onClick={() => toMethod("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
-                  )}
-                  {offered.has("googlepay") && (
-                    <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " bg-black text-white"}>{dc.useGooglePay}</button>
-                  )}
-                  {offered.has("cashapp") && (
-                    <button type="button" data-testid="decline-cashapp" onClick={() => toMethod("cashapp")} className={btn + " text-black"} style={{ backgroundColor: "#00D632" }}>{dc.useCashApp}</button>
-                  )}
-                  {!capped && (
+                  <p className="text-sm text-foreground mb-2" data-testid="decline-hint">{hint}</p>
+                  {/* DECLINE-RECOVERY-1014: a) Try again, b) Use another card, c) PayPal, d) existing wallets / Cash App / Pay by Bank */}
+                  {!sessCap && !(isCard && capped) && (
                     <button type="button" data-testid="decline-retry-card"
-                      onClick={() => { close(); setTimeout(() => { const el = cardFormRef.current?.querySelector<HTMLInputElement>("input"); cardFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); el?.focus(); }, 50); }}
+                      onClick={() => { if (isCard) focusCard(); else toMethod(declineInfo.method); }}
                       className={btn + " border-2 border-border text-foreground bg-background"}>
-                      {declineInfo.cls === "details" ? dc.checkDetails : dc.retryCard}
+                      {isCard && declineInfo.cls === "details" ? dc.checkDetails : dc.tryAgain}
                     </button>
                   )}
-                  {offered.has("plaid") && plaidOn === true && (
+                  {!sessCap && !(isCard && capped) && (
+                    <button type="button" data-testid="decline-another-card"
+                      onClick={() => { if (isCard) focusCardNumber(); else toMethod("card"); }}
+                      className={btn + " border-2 border-border text-foreground bg-background"}>
+                      {dc.useAnotherCard}
+                    </button>
+                  )}
+                  {offered.has("paypal") && (
+                    <button type="button" data-testid="decline-paypal" onClick={() => toMethod("paypal")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayPal}</button>
+                  )}
+                  {!sessCap && applePayAvailable && offered.has("applepay") && (
+                    <button type="button" data-testid="decline-applepay" onClick={() => toMethod("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
+                  )}
+                  {!sessCap && offered.has("googlepay") && (
+                    <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " bg-black text-white"}>{dc.useGooglePay}</button>
+                  )}
+                  {!sessCap && offered.has("cashapp") && (
+                    <button type="button" data-testid="decline-cashapp" onClick={() => toMethod("cashapp")} className={btn + " text-black"} style={{ backgroundColor: "#00D632" }}>{dc.useCashApp}</button>
+                  )}
+                  {!sessCap && offered.has("plaid") && plaidOn === true && (
                     <button type="button" data-testid="decline-paybybank" onClick={() => toMethod("plaid")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayByBank}</button>
                   )}
-                  <button type="button" data-testid="decline-other" onClick={close} className="w-full text-xs underline text-muted-foreground pt-1">{dc.otherMethod}</button>
-                  {declineInfo.n >= 2 && <p className="text-xs text-muted-foreground text-center pt-1">{dc.help}</p>}
+                  <button type="button" data-testid="decline-other" onClick={close} className="w-full text-xs underline text-muted-foreground pt-1">{sessCap ? dc.close : dc.otherMethod}</button>
+                  {(sessCap || declineInfo.n >= 2) && <p className="text-xs text-muted-foreground text-center pt-1">{dc.help}</p>}
                 </div>
               );
             })() : (
