@@ -2847,7 +2847,12 @@ export type Database = {
       purchase_tag_cliff_sweep: { Args: never; Returns: number }
       receipt_secret: { Args: { p_name: string }; Returns: string }
       record_marketing_opt_in: {
-        Args: { p_hashid: string; p_opt_in: boolean }
+        Args: {
+          p_browser_language?: string
+          p_hashid: string
+          p_lang?: string
+          p_opt_in: boolean
+        }
         Returns: undefined
       }
       record_presence: {

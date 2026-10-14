@@ -43,6 +43,7 @@ const termsMain = (): string =>
   MAIN + H1("Terms & Conditions") + `<div class="space-y-5 text-muted-foreground leading-relaxed text-sm">` +
   `<p><strong class="text-foreground">Effective Date:</strong> January 1, 2026</p>` +
   TERMS.map(([h, p]) => `<h2 class="text-lg font-bold text-foreground pt-3">${esc(h)}</h2><p>${esc(p)}</p>`).join("") +
+  `<h2 class="text-lg font-bold text-foreground pt-3">Email Communications</h2><p>By placing an order, you agree to receive payment reminders, account updates and offers from CellPay by email. You can unsubscribe at any time using the link in any email. This consent does not cover SMS or text messages.</p>` + // CONSENT-TERMS-1014
   `<h2 class="text-lg font-bold text-foreground pt-3">10. Contact</h2><p>Questions about these terms? Email us at <strong>support@getcellpay.com</strong>.</p></div></main>`;
 
 const howToUseMain = (lang: "en" | "es"): string => {
