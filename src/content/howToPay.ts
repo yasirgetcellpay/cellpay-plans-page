@@ -10,7 +10,7 @@ import { refundFaq, searchFaqs } from "./carrierHero";
 export type HtpLang = "en" | "es";
 export type HtpFaq = { q: string; a: string };
 export type HtpPage = {
-  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid" | "lyca-mobile" | "metro-pcs"; // AEO-07-METRO-1012: + Metro by T-Mobile; AEO-06-LYCA-1011: + Lyca Mobile; AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid
+  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid" | "lyca-mobile" | "metro-pcs" | "boost-mobile"; // SEO-CONTENT-1014: + Boost Mobile; AEO-07-METRO-1012: + Metro by T-Mobile; AEO-06-LYCA-1011: + Lyca Mobile; AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid
   lang: HtpLang;
   path: string; // www path of this page
   enPath: string;
@@ -60,6 +60,7 @@ const en = (o: {
   step3: string; faq2?: HtpFaq; autoPayA: string; autoPayBody: string; related: Array<[string, string]>; an: string;
   updatedIso?: string; updatedText?: string; // AEO-03-04-1008: faq2 optional (SPEC-03/04 have 7 FAQs); per-page last-updated
   moreFaqs?: HtpFaq[]; // AEO-06-LYCA-1011: extra FAQs after the standard ones (before any refund FAQ)
+  postA?: string; // SEO-CONTENT-1014: optional "how fast" answer (pay-wording carriers)
 }): HtpPage => ({
   key: o.key, lang: "en", path: `/how-to-pay/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
@@ -88,7 +89,7 @@ const en = (o: {
   faqs: [
     sfFirst(o.slug, "en", { q: `Can I pay ${o.name} online without logging in?`, a: `Yes. On CellPay you enter the ${o.name} phone number, choose the amount or plan, and pay. You don't need ${o.an} ${o.name} login or a CellPay account. CellPay is an independent payment service, not ${o.name}.` }), // TOP4-T4-1009
     ...(o.faq2 ? [o.faq2] : []),
-    { q: `How fast does ${o.key === "att-prepaid" ? "an" : "a"} ${o.name} payment through CellPay post?`, a: "Most payments post within a few minutes, but it can take up to 30 minutes for a refill to show on the account. If it hasn't posted after 30 minutes, email support@getcellpay.com with your phone number and transaction details. You see a confirmation with your transaction details once the payment goes through." },
+    { q: `How fast does ${o.key === "att-prepaid" ? "an" : "a"} ${o.name} payment through CellPay post?`, a: o.postA ?? "Most payments post within a few minutes, but it can take up to 30 minutes for a refill to show on the account. If it hasn't posted after 30 minutes, email support@getcellpay.com with your phone number and transaction details. You see a confirmation with your transaction details once the payment goes through." },
     { q: `Is there a fee to pay ${o.name} on CellPay?`, a: "Yes, a service fee applies. The service fee is shown in the order summary before you pay, so you see the full total first. Taxes and fees can vary by location." },
     { q: "What payment methods can I use?", a: METHODS_EN },
     { q: `Can I pay someone else's ${o.name} phone?`, a: `Yes. You only need their ${o.name} phone number. The charge goes on your payment method, not their account. Double-check the number, because all CellPay payments are final: a payment sent to a wrong number can't be refunded or cancelled.` },
@@ -111,6 +112,7 @@ const es = (o: {
   updatedIso?: string; updatedText?: string;
   introLead?: string; // TOP4-T4-1009: optional first clause of the intro
   moreFaqs?: HtpFaq[]; // AEO-06-LYCA-1011
+  postA?: string; // SEO-CONTENT-1014
 }): HtpPage => ({
   key: o.key, lang: "es", path: `/es/como-pagar/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
@@ -139,7 +141,7 @@ const es = (o: {
   faqs: [
     sfFirst(o.slug, "es", { q: `¿Puedo pagar ${o.name} en línea sin iniciar sesión?`, a: `Sí. En CellPay ingresa el número de teléfono de ${o.name}, elige el monto o el plan y paga. No necesita una cuenta de ${o.name} ni una cuenta de CellPay. CellPay es un servicio de pago independiente, no ${o.name}.` }), // TOP4-T4-1009
     ...(o.faq2 ? [o.faq2] : []),
-    { q: `¿Cuánto tarda en acreditarse un pago de ${o.name} hecho en CellPay?`, a: "La mayoría de los pagos se acreditan en pocos minutos, pero la recarga puede tardar hasta 30 minutos en aparecer en la cuenta. Si no se ha acreditado después de 30 minutos, escriba a support@getcellpay.com con su número de teléfono y los datos de la transacción. Cuando el pago se completa, verá una confirmación con los datos de su transacción." },
+    { q: `¿Cuánto tarda en acreditarse un pago de ${o.name} hecho en CellPay?`, a: o.postA ?? "La mayoría de los pagos se acreditan en pocos minutos, pero la recarga puede tardar hasta 30 minutos en aparecer en la cuenta. Si no se ha acreditado después de 30 minutos, escriba a support@getcellpay.com con su número de teléfono y los datos de la transacción. Cuando el pago se completa, verá una confirmación con los datos de su transacción." },
     { q: `¿Hay un cargo por pagar ${o.name} en CellPay?`, a: "Sí, se aplica un cargo por servicio. El cargo por servicio se muestra en el resumen del pedido antes de pagar, así que ve el total completo primero. Los impuestos y cargos pueden variar según la ubicación." },
     { q: "¿Qué métodos de pago puedo usar?", a: METHODS_ES },
     { q: `¿Puedo pagar el teléfono ${o.name} de otra persona?`, a: `Sí. Solo necesita su número de teléfono de ${o.name}. El cargo se hace a su método de pago, no a la cuenta de esa persona. Verifique bien el número, porque todos los pagos en CellPay son definitivos: un pago enviado a un número equivocado no se puede reembolsar ni cancelar.` },
@@ -334,6 +336,43 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     related: [["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/lyca-mobile", "Cómo pagar Lyca Mobile"], ["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], ["/guest-metro-pcs.html", "Pagar Metro by T-Mobile como invitado"], ["/es/metropcs.html", "Pagar Metro by T-Mobile ahora"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
     updatedIso: "2026-10-12", updatedText: "Última actualización: 12 de octubre de 2026",
   }),
+  // SEO-CONTENT-1014 (AEO-08-BOOST-1014): Boost Mobile pay-bill guide pair (SPEC-09 + Oct 14 overrides). "Pay now" goes to /boost.html
+  // (ES: /es/boost.html). Built like the Metro/Lyca pairs; pay wording only (no "refill"/"recarga"), no fee amounts or plan prices.
+  en({
+    key: "boost-mobile", name: "Boost Mobile", slug: "boost", checkout: "/boost.html", an: "a",
+    title: "How to Pay a Boost Mobile Bill as a Guest (No Login) | CellPay",
+    description: "Boost Mobile pay bill as guest: enter the Boost number, pick an amount and pay online. No login. Service fee shown before you pay.",
+    h1: "How to Pay a Boost Mobile Bill as a Guest (No Login)",
+    step3: "Enter the amount you want to pay.",
+    faq2: { q: "Does Boost Mobile have online guest pay?", a: "Boost Mobile offers its own payment options on its official website and app. On CellPay you can pay online with only the Boost number." },
+    postA: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. If it hasn't posted after 30 minutes, email support@getcellpay.com with your phone number and transaction details. You see a confirmation with your transaction details once the payment goes through.",
+    autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
+    autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
+    moreFaqs: [
+      { q: "What if I don't know how much I owe?", a: "CellPay doesn't show your Boost Mobile balance. Check the amount due in your Boost Mobile app, account or text messages, then choose that plan or amount here. The total with the service fee is shown before you pay." },
+      { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." },
+    ],
+    related: [["/how-to-pay/metro-pcs", "How to pay Metro by T-Mobile"], ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/guest-boost.html", "Pay Boost Mobile as a guest"], ["/boost.html", "Pay Boost Mobile now"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
+    updatedIso: "2026-10-14", updatedText: "Last updated: October 14, 2026",
+  }),
+  es({
+    key: "boost-mobile", name: "Boost Mobile", slug: "boost", checkout: "/es/boost.html",
+    title: "Cómo Pagar su Factura de Boost Mobile como Invitado (Sin Iniciar Sesión) | CellPay",
+    description: "Pagar Boost Mobile como invitado: ingrese el número de Boost, elija el monto y pague en línea. Sin iniciar sesión. El cargo se muestra antes de pagar.",
+    h1: "Cómo pagar su factura de Boost Mobile como invitado (sin iniciar sesión)",
+    introLead: "Para pagar su factura de Boost Mobile en línea como invitado, sin iniciar sesión",
+    step3: "Ingrese el monto que desea pagar.",
+    faq2: { q: "¿Boost Mobile tiene pago en línea como invitado?", a: "Boost Mobile ofrece sus propias formas de pago en su sitio web oficial y en su aplicación. En CellPay puede pagar en línea solo con el número de Boost." },
+    postA: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Si no se ha acreditado después de 30 minutos, escriba a support@getcellpay.com con su número de teléfono y los datos de la transacción. Cuando el pago se completa, verá una confirmación con los datos de su transacción.",
+    autoPayA: "S\u00ed. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca est\u00e1 marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
+    autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca est\u00e1 marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
+    moreFaqs: [
+      { q: "¿Qué hago si no sé cuánto debo?", a: "CellPay no muestra el saldo de Boost Mobile. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de Boost Mobile, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar." },
+      { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." },
+    ],
+    related: [["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"], ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/guest-boost.html", "Pagar Boost Mobile como invitado"], ["/es/boost.html", "Pagar Boost Mobile ahora"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
+    updatedIso: "2026-10-14", updatedText: "Última actualización: 14 de octubre de 2026",
+  }),
 ];
 
 export const howToPayByPath = (pathname: string): HtpPage | undefined => {
@@ -390,6 +429,10 @@ const PLAN_NAMES: Record<HtpPage["key"], Record<HtpLang, string[]>> = {
   "metro-pcs": { // AEO-07-METRO-1012 (no plan names or prices: the live list loads from the CellPay catalog)
     en: ["Metro by T-Mobile payment: choose one of the fixed amounts shown on the CellPay page, or a custom amount where offered"],
     es: ["Pago de Metro by T-Mobile: elija uno de los montos fijos que aparecen en la página de CellPay, o un monto personalizado cuando esté disponible"],
+  },
+  "boost-mobile": { // SEO-CONTENT-1014 (no plan names or prices: the live list loads from the CellPay catalog)
+    en: ["Boost Mobile payment: enter the amount you want to pay on the CellPay page, or choose a plan where offered"],
+    es: ["Pago de Boost Mobile: ingrese el monto que desea pagar en la página de CellPay, o elija un plan cuando esté disponible"],
   },
   "verizon-prepaid": {
     en: ["Verizon Prepaid refill: choose one of the fixed amounts shown on the CellPay page, or a custom amount where offered"],
