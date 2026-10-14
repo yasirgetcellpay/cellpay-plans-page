@@ -1371,7 +1371,11 @@ const Checkout = () => {
   const cardDigits = cardNumber.replace(/\D/g, "");
   const expiryDigits = cardExpiry.replace(/\D/g, "");
   const regionCode = normalizeRegionCode(country, regionId);
+  // NAME-DIGITS-1014: a name with 6+ digits is most likely a card number typed in the name field -> reject.
+  const nameDigitsBad = (firstName + lastName).replace(/\D/g, "").length >= 6 || firstName.replace(/\D/g, "").length >= 6 || lastName.replace(/\D/g, "").length >= 6;
+  const nameDigitsMsg = lang === "es" ? "Ingrese el nombre que aparece en su tarjeta" : "Please enter the name on your card";
   const isCardValid =
+    !nameDigitsBad && // NAME-DIGITS-1014
     isValidLuhn(cardDigits) &&
     expiryDigits.length === 4 &&
     Number(expiryDigits.slice(0, 2)) >= 1 &&
@@ -2223,6 +2227,7 @@ const Checkout = () => {
 
   const validateBeforeSubmit = (): string | null => {
     if (!isEmailValid) return "Please enter a valid email address.";
+    if (nameDigitsBad) return nameDigitsMsg; // NAME-DIGITS-1014
     if (!agreedTerms) return "Please accept the terms and conditions.";
     if (autoPay && !autoPayTerms) return "Please accept the auto-pay terms.";
     if (paymentMethod === "card") {
@@ -2423,6 +2428,7 @@ const Checkout = () => {
                   className="h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
+              {nameDigitsBad && <p className="text-xs text-destructive" role="alert">{nameDigitsMsg}</p>}{/* NAME-DIGITS-1014 */}
               <select aria-label={tr.country} value={country} onChange={(e) => { setCountry(e.target.value); setRegionId(""); setRegionOther(false); }}
                 className="w-full h-11 px-4 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:border-transparent"
                 style={{ "--tw-ring-color": brandColor } as React.CSSProperties}>
