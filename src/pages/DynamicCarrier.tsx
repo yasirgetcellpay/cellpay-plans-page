@@ -9,7 +9,7 @@ import { PaymentBar } from "@/components/PaymentBar";
 // PAYCOPY-1008: shared payment list (same text as the vite.config.ts carrier first screen)
 import { weAcceptLine } from "@/content/paymentMethods";
 // TOP4-T1-1009: first screen in the searcher's words + customer-facing carrier names (display only)
-import { top4Hero, displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq, top4Name, esCarrierFaqs, searchFaqs } from "@/content/carrierHero";
+import { top4Hero, displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq, top4Name, esCarrierFaqs, searchFaqs, usCellularNote } from "@/content/carrierHero"; // BATCH3-1014
 import { PlanGrid } from "@/components/PlanGrid";
 // SIMPLE-SPEC-1-1009: Simple Mobile answer page text (same source as the raw HTML in vite.config.ts)
 import { SIMPLE_META, SIMPLE_ANSWER, SIMPLE_FAQ_TITLE, SIMPLE_LINKS, simpleFaqs, simpleGridPlans } from "@/content/simplePage";
@@ -745,6 +745,7 @@ const DynamicCarrier = ({
           <p className="text-sm opacity-90 mt-1">
             {bill ? bill.sub /* SEO-CONTENT-1014 */ : top4 ? top4.sub : (lang === "es" || !subheading) ? tr.heroH2(carrierName) : subheading}
           </p>
+          {usCellularNote(carrierSlug, lang === "es" ? "es" : "en") && <p className="text-xs opacity-90 mt-1">{usCellularNote(carrierSlug, lang === "es" ? "es" : "en")}</p> /* BATCH3-1014 */}
         </div>
       </section>
 

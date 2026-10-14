@@ -170,7 +170,7 @@ const HOME_SEO = {
   en: {
     title: "CellPay — Mobile Recharge & Prepaid Phone Refills Online",
     description:
-      "Mobile recharge and prepaid refills for 15+ US carriers — AT&T, T-Mobile, Metro, Cricket, Verizon, Boost & more. No login needed. Low service fee shown before you pay.",
+      /* BATCH3-1014 */ "Pay your prepaid phone bill for 15+ US carriers — AT&T, T-Mobile, Metro, Cricket, Verizon, Boost & more. No login needed. Service fee shown before you pay.",
   },
   es: {
     title: "Recargas Móviles y Pagos Prepagados en Línea | CellPay",

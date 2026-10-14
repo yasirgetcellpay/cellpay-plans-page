@@ -163,3 +163,9 @@ export const verizonTrustLine = (lang: HeroLang): string =>
   lang === "es"
     ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Cargo por servicio mostrado antes de pagar. " + weAcceptLine("es")
     : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Service fee shown before you pay. " + weAcceptLine("en");
+
+// BATCH3-1014: short plain-text note on the T-Mobile Prepaid pages (/tmobile-flexi.html, /es/tmobile-flexi.html) for UScellular customers. Null elsewhere.
+export const usCellularNote = (slug: string, lang: HeroLang): string | null =>
+  (SLUG_ALIAS[slug] || slug) === "tmobile"
+    ? (lang === "es" ? "¿Clientes de UScellular que pasaron a T-Mobile? Pague aquí." : "UScellular customers moved to T-Mobile? Pay here.")
+    : null;

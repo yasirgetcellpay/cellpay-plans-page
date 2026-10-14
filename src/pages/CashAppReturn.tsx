@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { fetchPockytSessionStatus } from "@/services/apiWrapper";
+import { supabase } from "@/integrations/supabase/client"; // BATCH3-1014
 import { useLang, t } from "@/lib/i18n";
 import { cashAppRetryInfo, cashAppRetryTarget } from "@/lib/checkoutResume";
 
@@ -86,6 +87,15 @@ const CashAppReturn = () => {
     const goSuccess = (transactionId: string) => {
       // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1b: sessionStorage + cookie).
       setPurchasePending(transactionId);
+      // BATCH3-1014: consent parity with the other methods: same record_marketing_opt_in RPC and inputs as Checkout's recordMarketingOptIn. Fire-and-forget.
+      try {
+        const id = String(transactionId || "").trim();
+        if (/^[A-Za-z0-9_-]{4,64}$/.test(id)) {
+          let pLang = "en"; try { if (window.location.pathname.startsWith("/es") || lang === "es") pLang = "es"; } catch { /* ignore */ }
+          let pBrowser: string | null = null; try { pBrowser = typeof navigator !== "undefined" && typeof navigator.language === "string" ? navigator.language : null; } catch { /* ignore */ }
+          void Promise.resolve((supabase as unknown as { rpc: (fn: string, a: Record<string, unknown>) => PromiseLike<unknown> }).rpc("record_marketing_opt_in", { p_hashid: id, p_opt_in: true, p_lang: pLang, p_browser_language: pBrowser })).catch(() => {});
+        }
+      } catch { /* best-effort, never blocks */ }
       const params = new URLSearchParams({
         hashid: transactionId,
         color: ctx.brandColor || "",
