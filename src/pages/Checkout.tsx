@@ -152,6 +152,17 @@ const gpApiReady = async (): Promise<boolean> => {
   for (let i = 0; i < 60; i++) { if (window.google?.payments?.api?.PaymentsClient) return true; await new Promise((r) => setTimeout(r, 100)); }
   return false;
 };
+// GPAY-LAZY-1014: one shared load of pay.js for the whole page (module-level, so StrictMode double effects reuse it). Resolves when the API exists.
+// On failure the promise is cleared so a later tap can try once more.
+let gpayLoadP: Promise<void> | null = null;
+const loadGpay = (): Promise<void> => {
+  if (!gpayLoadP) {
+    gpayLoadP = loadScript("https://pay.google.com/gp/p/js/pay.js", "gpay-sdk")
+      .then(async () => { if (!(await gpApiReady())) throw new Error("Google Pay API unavailable"); })
+      .catch((e) => { gpayLoadP = null; throw e; });
+  }
+  return gpayLoadP;
+};
 
 // CARRIER-ASSIST-1011: carrier hint + "Not sure of your carrier?" help. Lazy and loaded only when the browser is idle, so it never
 // touches the checkout bundle, first paint or the Pay path. Fail-open: if the chunk never loads, nothing renders.
@@ -555,7 +566,7 @@ const Checkout = () => {
       const run = async () => {
         try {
           if (methodTappedRef.current || cardTypedRef.current || apGuardBlocks()) return;
-          await loadScript("https://pay.google.com/gp/p/js/pay.js", "gpay-sdk");
+          await loadGpay(); // GPAY-LAZY-1014
           const api = window.google?.payments?.api;
           if (!api?.PaymentsClient) return;
           const client = new api.PaymentsClient({ environment: (cfg?.environment as string) || "TEST" });
@@ -579,6 +590,28 @@ const Checkout = () => {
       if (document.readyState === "complete") go(); else window.addEventListener("load", go, { once: true });
     } catch { /* keep card */ }
   }, [state, checkoutConfig]);
+  // GPAY-LAZY-1014: pay.js is never loaded at first render. It starts on the FIRST of: any pointerdown/keydown/touchstart/focusin on the page,
+  // hover/focus on the method list, selecting Google Pay, or browser idle (requestIdleCallback timeout 3000, else setTimeout 2500). One shared
+  // promise (loadGpay) => loaded once, StrictMode-safe. Load failure => Google Pay tile hidden (and card selected if it was on Google Pay).
+  const [gpayFailed, setGpayFailed] = useState(false);
+  const kickGpay = useCallback(() => {
+    loadGpay().catch(() => { setGpayFailed(true); setPaymentMethod((cur) => (cur === "googlepay" ? "card" : cur)); });
+  }, []);
+  useEffect(() => {
+    const evs = ["pointerdown", "keydown", "touchstart", "focusin"] as const;
+    let idleId: number | undefined; let tId: ReturnType<typeof setTimeout> | undefined;
+    const w = window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
+    const stop = () => {
+      evs.forEach((e) => document.removeEventListener(e, fire, true));
+      if (idleId !== undefined) w.cancelIdleCallback?.(idleId);
+      if (tId !== undefined) clearTimeout(tId);
+    };
+    function fire() { stop(); kickGpay(); }
+    evs.forEach((e) => document.addEventListener(e, fire, { capture: true, passive: true }));
+    if (w.requestIdleCallback) idleId = w.requestIdleCallback(fire, { timeout: 3000 }); else tId = setTimeout(fire, 2500);
+    return stop;
+  }, [kickGpay]);
+  useEffect(() => { if (paymentMethod === "googlepay") kickGpay(); }, [paymentMethod, kickGpay]); // GPAY-LAZY-1014: selecting Google Pay
   // GPAY-CLICK-1011 (all devices): as soon as the Google Pay tile is selected, load pay.js and ask isReadyToPay, so PLACE ORDER goes straight to
   // loadPaymentData and Google opens its sheet inside the click (a popup opened late is what Chrome can turn into a new tab or block). If anything
   // here fails, the click path does the same steps itself (today's behaviour). No payload, proxy or Auto Pay code involved.
@@ -591,7 +624,7 @@ const Checkout = () => {
     const env = (cfg?.environment as string) || "TEST";
     void (async () => {
       try {
-        await loadScript("https://pay.google.com/gp/p/js/pay.js", "gpay-sdk");
+        await loadGpay(); // GPAY-LAZY-1014
         if (!(await gpApiReady())) return;
         const client = new window.google!.payments!.api!.PaymentsClient({ environment: env });
         const ready = await Promise.race([
@@ -1708,7 +1741,7 @@ const Checkout = () => {
     const gpWantAutoPay = autoPay && autoPayTerms && googlePayRecurringOk;
     const gpRun = ++gpRunRef.current; // GPAY-CLICK-1011
     try {
-      await loadScript("https://pay.google.com/gp/p/js/pay.js", "gpay-sdk");
+      await loadGpay(); // GPAY-LAZY-1014: shared promise; a tap before pay.js is ready waits here (button stays in its loading state)
     } catch {
       setErrorMsg("Failed to load Google Pay SDK");
       return;
@@ -2337,7 +2370,7 @@ const Checkout = () => {
     : typeof navigator !== "undefined" && /Android/.test(navigator.userAgent) // CM-WALLET-DEFAULT-1011: Google Pay first on Android (display order only; card stays selected)
       ? [baseMethods.find(m => m.key === "googlepay")!, ...baseMethods.filter(m => m.key !== "googlepay")]
       : baseMethods;
-  const paymentMethods: MethodEntry[] = paymentMethodsAll.filter((m) => !walletBlocked.includes(m.key)); // DECLINE-RECOVERY-1014C: hide declined wallets
+  const paymentMethods: MethodEntry[] = paymentMethodsAll.filter((m) => !walletBlocked.includes(m.key) && !(gpayFailed && m.key === "googlepay")); // DECLINE-RECOVERY-1014C: hide declined wallets // GPAY-LAZY-1014: hide Google Pay if pay.js failed
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -2391,7 +2424,7 @@ const Checkout = () => {
           </Suspense>
 
           {/* METHODS-VISIBILITY-1011: wallet/primary method + "or pay with" + other methods, directly under the order summary. Presentation only. */}
-          <div className={orsFailed ? "rounded-xl ring-2 ring-offset-2 ring-primary" : undefined} data-testid="ors-highlight">{/* [OURSIDE-RETRY-1012] */}
+          <div className={orsFailed ? "rounded-xl ring-2 ring-offset-2 ring-primary" : undefined} data-testid="ors-highlight" onMouseOver={kickGpay} onFocus={kickGpay}>{/* [OURSIDE-RETRY-1012] */}{/* GPAY-LAZY-1014: hover/focus on the method list starts pay.js */}
           <PaymentMethodPicker lang={lang === "es" ? "es" : "en"} methods={paymentMethods} selected={paymentMethod} brandColor={brandColor}
             onSelect={(key) => { if (key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); methodTappedRef.current = true; setPaymentMethod(key as PaymentMethod); }} />
           </div>
