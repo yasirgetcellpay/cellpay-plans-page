@@ -1662,6 +1662,9 @@ const App = () => (
         {/* AEO-07-METRO-1012 */}
         <Route path="/how-to-pay/metro-pcs" element={<HowToPay />} />
         <Route path="/es/como-pagar/metro-pcs" element={<HowToPay />} />
+        {/* SEO-CONTENT-1014: Boost Mobile how-to-pay pair */}
+        <Route path="/how-to-pay/boost-mobile" element={<HowToPay />} />
+        <Route path="/es/como-pagar/boost-mobile" element={<HowToPay />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/privacy-policy.html" element={<AliasRedirect to="/privacy-policy" />} />
         {/* PRIVACY-1007: Spanish privacy policy (same page; text in src/content/privacyPolicy.ts) */}

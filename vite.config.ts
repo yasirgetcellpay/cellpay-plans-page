@@ -7,6 +7,8 @@ import { componentTagger } from "lovable-tagger";
 import { HOW_TO_PAY_PAGES, howToPayJsonLd, howToPayStaticHtml } from "./src/content/howToPay";
 // SIMPLE-SPEC-1-1009: Simple Mobile answer page text (shared with DynamicCarrier.tsx) for /s1.html + /es/s1.html raw HTML.
 import { SIMPLE_META, simpleStaticBlock, simpleJsonLd } from "./src/content/simplePage";
+// SEO-CONTENT-1014: pay-wording head/H1 + 4-question FAQ and FAQPage/BreadcrumbList JSON-LD (es Metro, es Boost, en+es Cricket).
+import { billPageByPath, billJsonLd, billStaticBlock } from "./src/content/billCarrierSeo";
 // PAYCOPY-1008: payment methods named in raw HTML come from the shared list (follows src/config/paymentFlags.ts).
 import { weAcceptLine, payBrandsComma, PAYPAL_SHOWN } from "./src/content/paymentMethods";
 // LPX-1010: ad-lander H1 / title / subline per carrier (shared with GoLander.tsx).
@@ -252,6 +254,9 @@ const HTML_ROUTES = [
   // AEO-07-METRO-1012: Metro by T-Mobile how-to-pay pages
   "how-to-pay/metro-pcs/index.html",
   "es/como-pagar/metro-pcs/index.html",
+  // SEO-CONTENT-1014: Boost Mobile how-to-pay pages
+  "how-to-pay/boost-mobile/index.html",
+  "es/como-pagar/boost-mobile/index.html",
   // Admin SPA routes — emit as folder/index.html so self-hosted servers
   // (which don't do SPA fallback) serve the React app on direct refresh.
   "admin/index.html",
@@ -636,7 +641,7 @@ const htmlAliasPlugin = (): Plugin => ({
       // EN-META-1007: boost / topup-crc / metropcs (+ metro-pcs variant) use the same title/description that
       // src/pages/DynamicCarrier.tsx sets at runtime for these pages (lang en). Keep in sync.
       "boost.html":                { title: "Boost Mobile Bill Payment Online | CellPay", description: "Recharge Boost Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
-      "topup-crc.html":            { title: "Cricket Quick Pay — Pay Your Cricket Bill Online | CellPay", description: "Cricket Quick Pay on CellPay: refill any Cricket Wireless phone online. No login needed. All major cards & wallets. Pay your Cricket bill online now." },
+      "topup-crc.html":            { title: "Cricket Quick Pay — Pay Your Cricket Bill Online | CellPay", description: "Cricket Quick Pay on CellPay: pay any Cricket Wireless bill online. No login needed. All major cards & wallets. Service fee shown before you pay." }, // SEO-CONTENT-1014
       "h2o.html":                  { title: "H2O Wireless Refill — Online Top-Up | CellPay",        description: "Recharge H2O Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "lyca.html":                 { title: "Lycamobile Refill — Online Top-Up | CellPay",          description: "Recharge Lycamobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "metropcs.html":             { title: "Metro PCS Refill — Pay Metro by T-Mobile | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." },
@@ -1005,7 +1010,8 @@ const htmlAliasPlugin = (): Plugin => ({
         if (meta) {
           // GSC-DUP-1007: Spanish title (same text DynamicCarrier sets at runtime for lang="es").
           const esLook = CARRIER_LOOK[base.replace(/\.html$/, "")];
-          const esFixed = ES_RUNTIME_META[route]; // SEO-ES-META-1007
+          const esBill = billPageByPath("/" + route); // SEO-CONTENT-1014
+          const esFixed = esBill?.title ? { title: esBill.title, description: esBill.description } : ES_RUNTIME_META[route]; // SEO-ES-META-1007
           return {
             title: esFixed
               ? esFixed.title
@@ -1393,30 +1399,35 @@ const htmlAliasPlugin = (): Plugin => ({
       const esName = CARRIER_ES_NAME[slug] || look.name;
       // TOP4-T1-1009: T-Mobile / AT&T / Simple Mobile / Verizon use the shared searcher-words copy (same as DynamicCarrier.tsx).
       const top4 = top4Hero(slug, isEs ? "es" : "en");
-      const h1 = top4
+      const bill = billPageByPath("/" + route.replace(/\/index\.html$/, "")); // SEO-CONTENT-1014
+      const h1 = bill
+        ? bill.h1
+        : top4
         ? top4.h1
         : isEs
         ? `Soluciones Rápidas y Seguras para Recargas Prepagadas de ${esName}`
         : slug === "metropcs"
         ? "Metro PCS Pay Bill Online"
         : "Top Up Your Mobile Number—Online & Securely";
-      const h2 = top4
+      const h2 = bill
+        ? bill.sub
+        : top4
         ? top4.sub
         : isEs
         ? `Transacciones Sencillas y Seguras para Usuarios Prepagados de ${esName}`
         : slug === "metropcs"
         ? "Pay your Metro by T-Mobile prepaid bill online. No login needed."
         : "No login needed. Enter your phone number, choose your plan, and you're recharged.";
-      const info = isEs
-        ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PAYCOPY-1008: shared payment list
-        : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en");
+      const info = isEs // SEO-CONTENT-1014: bill pages use pay wording in the first sentence
+        ? (bill ? bill.autoPayInfoLead : "Opcional: Auto Pago para no olvidar su recarga.") + " Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PAYCOPY-1008: shared payment list
+        : (bill ? bill.autoPayInfoLead : "Optional: Auto Pay so you never miss a refill.") + " You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en");
       return (
         `<div id="root" data-go-prerender="1">` +
         `<div class="min-h-screen bg-background font-sans antialiased">` +
         `<nav class="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style="border-color:${look.color}">` +
         `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="relative flex justify-center h-14 sm:h-20 items-center">` +
         (logo
-          ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)} prepaid refill logo"${logoDims(look.logo)} class="h-[32px] sm:h-[44px] w-auto object-contain">`
+          ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)}${bill ? "" : " prepaid refill"} logo"${logoDims(look.logo)} class="h-[32px] sm:h-[44px] w-auto object-contain">`
           : `<span class="text-xl sm:text-2xl font-extrabold" style="color:${look.color}">${escAttr(look.name)}</span>`) +
         `</div></div>` +
         navMenu +
@@ -1434,6 +1445,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `</div>` +
         // SIMPLE-SPEC-1-1009: Simple Mobile: answer, plan list, FAQ and links in the raw HTML, below the first screen.
         (slug === "s1" ? simpleStaticBlock(isEs ? "es" : "en") : "") +
+        (bill ? billStaticBlock(bill) : "") + // SEO-CONTENT-1014
         `</div></div>`
       );
     };
@@ -1672,6 +1684,16 @@ const htmlAliasPlugin = (): Plugin => ({
           /* keep plain shell */
         }
       }
+      // SEO-CONTENT-1014: es Metro / es Boost / en+es Cricket: FAQPage + BreadcrumbList JSON-LD (same FAQ text as the page).
+      const billPg = billPageByPath("/" + route);
+      if (billPg) {
+        try {
+          const ld = `<script type="application/ld+json" data-bill="1">${billJsonLd(billPg)}</script>`;
+          out = out.replace(/<\/head>/i, () => `  ${ld}\n  </head>`);
+        } catch {
+          /* keep plain shell */
+        }
+      }
       // PRIVACY-1007: full privacy policy text in the raw HTML (EN + ES). Any problem keeps the plain shell.
       // SPA-SHELLS-1011: about-us / faq / how-to-use (EN+ES) / terms-and-conditions: the page's first screen in the raw HTML. Any problem keeps the plain shell.
       try {
@@ -1703,6 +1725,7 @@ const htmlAliasPlugin = (): Plugin => ({
           `<main role="main" style="font-family:'Open Sans',system-ui,Arial,sans-serif;max-width:760px;margin:48px auto;padding:0 20px;color:#0f172a;text-align:center">` +
           `<h1 style="font-size:28px;line-height:1.25;font-weight:800;margin:0 0 16px">${escAttr(guest.h1)}</h1>` +
           `<p style="font-size:16px;line-height:1.55;margin:0;color:#334155">${escAttr(GO_SHELLS.has(route) ? goFeeCopy(guest.intro) : guest.intro)}</p>` +
+          (route === "guest-boost.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/how-to-pay/boost-mobile" style="text-decoration:underline">How to pay Boost Mobile</a></p>` : "") + // SEO-CONTENT-1014
           `</main>` +
           `</div>`;
         out = out.replace(/<div id="root"><\/div>/i, prerender);
