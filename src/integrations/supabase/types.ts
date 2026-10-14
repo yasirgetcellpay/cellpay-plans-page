@@ -1706,6 +1706,63 @@ export type Database = {
         }
         Relationships: []
       }
+      receipt_config: {
+        Row: {
+          key: string
+          updated_at: string | null
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string | null
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
+      receipt_sends: {
+        Row: {
+          attempts: number
+          created_at: string | null
+          error: string | null
+          lang: string | null
+          mandrill_id: string | null
+          mode: string
+          recipient_kind: string | null
+          status: string
+          transaction_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string | null
+          error?: string | null
+          lang?: string | null
+          mandrill_id?: string | null
+          mode: string
+          recipient_kind?: string | null
+          status?: string
+          transaction_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string | null
+          error?: string | null
+          lang?: string | null
+          mandrill_id?: string | null
+          mode?: string
+          recipient_kind?: string | null
+          status?: string
+          transaction_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       refill_cooldown: {
         Row: {
           created_at: string
@@ -2757,6 +2814,7 @@ export type Database = {
       }
       purchase_fallback_sweep: { Args: never; Returns: undefined }
       purchase_tag_cliff_sweep: { Args: never; Returns: number }
+      receipt_secret: { Args: { p_name: string }; Returns: string }
       record_marketing_opt_in: {
         Args: { p_hashid: string; p_opt_in: boolean }
         Returns: undefined
