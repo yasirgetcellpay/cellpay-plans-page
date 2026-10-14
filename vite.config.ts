@@ -1690,6 +1690,7 @@ const htmlAliasPlugin = (): Plugin => ({
         try {
           const ld = `<script type="application/ld+json" data-hub="1">${hubJsonLd(hubPg)}</script>`;
           out = out.replace(/<\/head>/i, () => `  ${ld}\n  </head>`).replace(/<div id="root"><\/div>/i, () => hubStaticHtml(hubPg));
+          out = out.replace(/\s*<meta name="keywords"[^>]*>/i, ""); // ES-FIRST-1014: sitewide keywords say "refill"
         } catch {
           /* keep plain shell */
         }
