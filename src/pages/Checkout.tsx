@@ -7,7 +7,7 @@ import { PaymentMethodPicker } from "@/components/PaymentMethodPicker"; // METHO
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react"; // CARRIER-ASSIST-1011
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
-import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry
+import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry, markWalletDeclined, walletDeclined } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014C: + wallet block // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry
 import { AP_LAST_KEY } from "@/components/AutoPayReceiptCard";
 import { PLAID_ENABLED, PAYPAL_ENABLED } from "@/config/paymentFlags";
 // [PAYPAL-REBUILD-1009] QA only: ?pp_qa=1 shows the PayPal tile in this tab while PAYPAL_ENABLED is false (?pp_qa=0 clears it).
@@ -300,6 +300,8 @@ const Checkout = () => {
   }, []);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
+  const [walletBlocked, setWalletBlocked] = useState<string[]>(() => walletDeclined()); // DECLINE-RECOVERY-1014C
+  useEffect(() => { if (walletBlocked.includes(paymentMethod)) setPaymentMethod("card"); }, [paymentMethod, walletBlocked]); // DECLINE-RECOVERY-1014C: blocked wallet never stays selected
   // Plaid v2 kill switch: cellpay-proxy answered plaid_unavailable (fraud_controls.plaid_exchange_mode = 'off'), so Pay by Bank
   // is hidden for the rest of this visit.
   const [plaidOff, setPlaidOff] = useState(false);
@@ -1483,6 +1485,7 @@ const Checkout = () => {
       const dWallet = paymentMethod === "applepay" || paymentMethod === "googlepay";
       const dOk = (paymentMethod === "card" || dWallet) && !autoRefund && !txn && raw.code !== "DUP_CONFIRM" && raw.code !== "SESSION_PAID" && raw.code !== "IN_FLIGHT";
       setDeclineInfo(dOk ? { cls: classifyDecline(msg, state.carrierSlug), n: paymentMethod === "card" ? bumpCardDeclines(apTicksOrder) : 0, method: paymentMethod, sess: bumpSessionDeclines(), msg: String(msg || "") } : null); // DECLINE-RECOVERY-1014B: + msg
+      if (dOk && (paymentMethod === "applepay" || paymentMethod === "googlepay")) { markWalletDeclined(paymentMethod); setWalletBlocked(walletDeclined()); } // DECLINE-RECOVERY-1014C
       if (dOk && paymentMethod === "card") { setCardNumber(""); setCardExpiry(""); setCardCvv(""); } // DECLINE-RECOVERY-1014: card fields cleared, rest kept // DUPCHARGE-1008: not a decline
       setRefundCard(autoRefund); // TOP4-T2B-1009
       setErrorMsg(orsOnFail(msg)); // [OURSIDE-RETRY-1012]
@@ -2326,7 +2329,7 @@ const Checkout = () => {
     { key: "klarna", label: tr.methodKlarna, Brand: KlarnaMark }, // Klarna last — feedback #31
   ];
   // On iOS, push Apple Pay to first position (after Credit Card stays default but Apple Pay prominent)
-  const paymentMethods: MethodEntry[] = isIOS && applePayAvailable
+  const paymentMethodsAll: MethodEntry[] = isIOS && applePayAvailable // DECLINE-RECOVERY-1014C: renamed, filtered below
     ? [
         baseMethods.find(m => m.key === "applepay")!,
         ...baseMethods.filter(m => m.key !== "applepay"),
@@ -2334,6 +2337,7 @@ const Checkout = () => {
     : typeof navigator !== "undefined" && /Android/.test(navigator.userAgent) // CM-WALLET-DEFAULT-1011: Google Pay first on Android (display order only; card stays selected)
       ? [baseMethods.find(m => m.key === "googlepay")!, ...baseMethods.filter(m => m.key !== "googlepay")]
       : baseMethods;
+  const paymentMethods: MethodEntry[] = paymentMethodsAll.filter((m) => !walletBlocked.includes(m.key)); // DECLINE-RECOVERY-1014C: hide declined wallets
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -2964,7 +2968,7 @@ const Checkout = () => {
 
       {/* Error dialog */}
       {errorMsg && !refundCard && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); }}>
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => { if (declineInfo && (declineInfo.method === "applepay" || declineInfo.method === "googlepay")) setPaymentMethod("card"); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); }}> {/* DECLINE-RECOVERY-1014C: wallet decline -> card */}
           {/* DECLINE-DIALOG-1008: scrolls inside itself on short phones (iPhone SE + Safari bars clipped the top); on a card decline
               the raw processor message is hidden (the recovery hint below explains it); other errors still show errorMsg. */}
           <div className="bg-card rounded-2xl p-5 max-w-sm w-full max-h-[90vh] overflow-y-auto overscroll-contain text-center shadow-xl" style={{ maxHeight: "calc(100dvh - 2rem)" }} onClick={(e) => e.stopPropagation()}>
@@ -2990,7 +2994,7 @@ const Checkout = () => {
               const capped = declineInfo.n > MAX_CARD_RETRIES || declineInfo.cls === "blocked";
               // DECLINE-RECOVERY-1014: card-testing guard (3+ declines this tab, or blocked) -> only PayPal + support + close.
               const sessCap = declineInfo.sess >= 3 || declineInfo.cls === "blocked";
-              const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); };
+              const close = () => { if (declineInfo.method === "applepay" || declineInfo.method === "googlepay") setPaymentMethod("card"); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); }; // DECLINE-RECOVERY-1014C: wallet decline -> card (toMethod overrides after)
               const rec = () => { try { trackFunnel("recovery_retry", funnelDataRef.current); } catch { /* ignore */ } }; // DECLINE-RECOVERY-1014
               // DECLINE-DIALOG-1008: after the switch, bring PLACE ORDER NOW into view and outline it for 1.5 s so the customer sees
               // where to tap next. Only scrolls; it never submits and never opens a wallet sheet by itself.
@@ -3010,7 +3014,7 @@ const Checkout = () => {
               const offered = new Set<PaymentMethod>(paymentMethods.map((pm) => pm.key));
               const btn = "w-full px-4 py-2.5 rounded-lg font-bold text-sm";
               const isCard = declineInfo.method === "card";
-              const noRetry = noSameRetry(declineInfo.msg || "", declineInfo.method); // DECLINE-RECOVERY-1014B
+              const noRetry = noSameRetry(declineInfo.msg || "", declineInfo.method) || declineInfo.method === "applepay" || declineInfo.method === "googlepay"; // DECLINE-RECOVERY-1014B // DECLINE-RECOVERY-1014C: no same-wallet retry
               const hint = sessCap ? dc.capSession : capped && declineInfo.cls !== "blocked" ? dc.capReached : dc[declineInfo.cls]; // DECLINE-RECOVERY-1014
               return (
                 <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls}>
@@ -3033,10 +3037,10 @@ const Checkout = () => {
                   {offered.has("paypal") && (
                     <button type="button" data-testid="decline-paypal" onClick={() => toMethod("paypal")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayPal}</button>
                   )}
-                  {!sessCap && applePayAvailable && offered.has("applepay") && !(noRetry && declineInfo.method === "applepay") && ( // DECLINE-RECOVERY-1014B
+                  {!sessCap && applePayAvailable && offered.has("applepay") && !walletBlocked.includes("applepay") && /* DECLINE-RECOVERY-1014C */ !(noRetry && declineInfo.method === "applepay") && ( // DECLINE-RECOVERY-1014B
                     <button type="button" data-testid="decline-applepay" onClick={() => toMethod("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
                   )}
-                  {!sessCap && offered.has("googlepay") && !(noRetry && declineInfo.method === "googlepay") && ( // DECLINE-RECOVERY-1014B
+                  {!sessCap && offered.has("googlepay") && !walletBlocked.includes("googlepay") && /* DECLINE-RECOVERY-1014C */ !(noRetry && declineInfo.method === "googlepay") && ( // DECLINE-RECOVERY-1014B
                     <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " bg-black text-white"}>{dc.useGooglePay}</button>
                   )}
                   {!sessCap && offered.has("cashapp") && (
