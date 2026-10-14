@@ -10,6 +10,8 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 
 - [Home](https://www.cellpay.us/): Browse all supported prepaid carriers and start a refill.
 - [Pay your phone bill](https://www.cellpay.us/pay-your-phone-bill): Pay a Boost, Metro, Cricket, Simple, T-Mobile or AT&T bill with just the number.
+- [Switched to Boost Mobile?](https://www.cellpay.us/switched-to-boost): Came from another carrier? Pay your Boost bill with just the number.
+- [Switched to Metro PCS?](https://www.cellpay.us/switched-to-metro): Came from another carrier? Pay your Metro bill with just the number.
 - [About Us](https://www.cellpay.us/about-us): What CellPay is and the carriers it serves.
 - [How to Use](https://www.cellpay.us/how-to-use): Step-by-step guide to recharging a prepaid line.
 - [FAQ](https://www.cellpay.us/faq): Common questions about refills, payments, and delivery times.
@@ -58,6 +60,8 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 
 - [Inicio](https://www.cellpay.us/es): Todas las compañías prepagadas y recarga con solo el número de teléfono.
 - [Paga tu factura](https://www.cellpay.us/es/paga-tu-factura): Paga tu factura Boost, Metro, Cricket, Simple, T-Mobile o AT&T con solo el número. Sin cuenta.
+- [¿Te cambiaste a Boost Mobile?](https://www.cellpay.us/es/cambiaste-a-boost): Paga tu factura de Boost con solo el número.
+- [¿Te cambiaste a Metro PCS?](https://www.cellpay.us/es/cambiaste-a-metro): Paga tu factura de Metro con solo el número.
 - [Cómo usar CellPay](https://www.cellpay.us/es/how-to-use): Guía paso a paso.
 - [Política de privacidad](https://www.cellpay.us/es/privacy-policy)
 - [AT&T Prepaid (español)](https://www.cellpay.us/es/topup-at.html)
