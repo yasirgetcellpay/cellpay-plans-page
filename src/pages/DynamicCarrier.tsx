@@ -16,6 +16,7 @@ import { SIMPLE_META, SIMPLE_ANSWER, SIMPLE_FAQ_TITLE, SIMPLE_LINKS, simpleFaqs,
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
+import { billPageByPath, billJsonLd } from "@/content/billCarrierSeo"; // SEO-CONTENT-1014
 import { takeCheckoutPrefill, resolveEmailPrefill } from "@/lib/checkoutResume"; // EMAIL-PREFILL-1013
 import { trackFunnel } from "@/lib/funnelEvents"; // EMAIL-PREFILL-1013
 import { t, type Language } from "@/lib/i18n";
@@ -401,6 +402,21 @@ const DynamicCarrier = ({
           });
         }
 
+        // SEO-CONTENT-1014: /es/metropcs.html, /es/boost.html, /topup-crc.html, /es/topup-crc.html: pay-wording title/description and
+        // this page's FAQPage + BreadcrumbList JSON-LD (raw HTML carries it; added here only when it is missing). Drops the API schema
+        // and the Cricket long-form FAQ schema so the page has one FAQPage that matches its visible FAQ.
+        const billPg = billPageByPath(window.location.pathname);
+        if (billPg) {
+          const hasStatic = !!document.querySelector('script[type="application/ld+json"][data-bill]');
+          applySeoHead({
+            ...(billPg.title ? { title: billPg.title } : {}),
+            description: billPg.description,
+            ...(billPg.lang === "en" ? { keywords: "cricket quick pay, cricket wireless quick pay, pay cricket bill online, cricket bill pay, cricket wireless payment" } : {}),
+            schema: hasStatic ? "" : billJsonLd(billPg),
+            schemaSecondary: "",
+          });
+        }
+
         // SIMPLE-SPEC-1-1009: /s1.html + /es/s1.html keep the raw-HTML title/description (no runtime swap) and drop the API
         // schema: the raw HTML carries the FAQPage + BreadcrumbList JSON-LD with this page's FAQ text.
         if (carrierSlug === "s1") {
@@ -677,6 +693,7 @@ const DynamicCarrier = ({
   const faqName = esTop4 ? top4Name(carrierSlug, "es") || shownName : shownName;
   // SIMPLE-SPEC-1-1009 (display only): Simple Mobile plan names/order, answer, FAQ and links from src/content/simplePage.ts.
   const isSimple = carrierSlug === "s1";
+  const bill = billPageByPath(typeof window !== "undefined" ? window.location.pathname : ""); // SEO-CONTENT-1014
   const sl = lang === "es" ? "es" : "en";
   const gridPlans = plans.map((p) => ({ price: p.price, highlight: p.highlight }));
   const shownGrid = isSimple ? simpleGridPlans(gridPlans, sl) : { plans: gridPlans, popular: Math.min(plans.length - 1, Math.floor(plans.length / 2)) };
@@ -723,10 +740,10 @@ const DynamicCarrier = ({
       <section style={{ backgroundColor: bc }} className="text-primary-foreground">
         <div className="max-w-7xl mx-auto px-5 py-4 sm:py-5 sm:px-6 lg:px-8 text-center">
           <h1 className="text-xl md:text-2xl font-extrabold">
-            {top4 ? top4.h1 : (lang === "es" || !heading) ? tr.heroH1(carrierName) : heading}
+            {bill ? bill.h1 /* SEO-CONTENT-1014 */ : top4 ? top4.h1 : (lang === "es" || !heading) ? tr.heroH1(carrierName) : heading}
           </h1>
           <p className="text-sm opacity-90 mt-1">
-            {top4 ? top4.sub : (lang === "es" || !subheading) ? tr.heroH2(carrierName) : subheading}
+            {bill ? bill.sub /* SEO-CONTENT-1014 */ : top4 ? top4.sub : (lang === "es" || !subheading) ? tr.heroH2(carrierName) : subheading}
           </p>
         </div>
       </section>
@@ -735,7 +752,11 @@ const DynamicCarrier = ({
           vite.config.ts carrierFirstScreen). Information only: Auto Pay is chosen at checkout and is never pre-checked. */}
       <div className="max-w-[420px] mx-auto px-4 pt-3">
         <p className="bg-card rounded-xl border border-border px-3 py-2.5 text-xs text-foreground leading-relaxed text-center">
-          {lang === "es"
+          {bill /* SEO-CONTENT-1014 */
+            ? bill.autoPayInfoLead + (bill.lang === "es"
+              ? " Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es")
+              : " You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en"))
+            : lang === "es"
             ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es")
             : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en")}
         </p>
@@ -824,7 +845,7 @@ const DynamicCarrier = ({
                     </button>
                   )}
                   <p className="text-[10px] sm:text-xs text-muted-foreground">
-                    {showFixedPlans ? tr.orSelectPlanBelow : tr.enterAmount}
+                    {showFixedPlans ? tr.orSelectPlanBelow : bill ? bill.enterAmount /* SEO-CONTENT-1014 */ : tr.enterAmount}
                   </p>
                 </>
               )}
@@ -879,7 +900,7 @@ const DynamicCarrier = ({
               </button>
             </div>
             <p className="hidden sm:block text-center text-[10px] sm:text-xs text-muted-foreground mt-3">
-              {tr.securePayment}
+              {bill ? bill.securePayment /* SEO-CONTENT-1014 */ : tr.securePayment}
             </p>
           </div>
           )}
@@ -939,6 +960,17 @@ const DynamicCarrier = ({
                 </div>
               ))}
             </section>
+          ) : bill ? (
+            /* SEO-CONTENT-1014: 4-question FAQ (text = the FAQPage JSON-LD), shown instead of the API FAQ on these pages */
+            <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10" data-testid="bill-faq">
+              <h2 className="text-2xl font-extrabold text-foreground mb-4 text-left">{bill.faqTitle}</h2>
+              {bill.faqs.map((f) => (
+                <div key={f.q} className="mb-4 text-left">
+                  <h3 className="font-bold" style={{ color: bc }}>{f.q}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{f.a}</p>
+                </div>
+              ))}
+            </section>
           ) : shownFaqs.length > 0 && (
             <DynamicFAQ faqs={shownFaqs} carrierName={faqName} brandColor={bc} lang={lang} />
           )}
@@ -952,6 +984,8 @@ const DynamicCarrier = ({
               >
                 {isSimple
                   ? SIMPLE_LINKS[sl].guide[1]
+                  : carrierSlug === "boost" // SEO-CONTENT-1014
+                  ? (lang === "es" ? "Cómo pagar Boost Mobile" : "How to pay Boost Mobile")
                   : lang === "es"
                   ? `Cómo pagar su factura de ${HTP_GUIDE_BY_SLUG[carrierSlug].name} en línea`
                   : `How to pay your ${HTP_GUIDE_BY_SLUG[carrierSlug].name} bill online`}
@@ -982,6 +1016,7 @@ const HTP_GUIDE_BY_SLUG: Record<string, { key: string; name: string }> = {
   verizon: { key: "verizon-prepaid", name: "Verizon Prepaid" }, // TOP4-T4-1009: /verizon, /es/verizon
   lyca: { key: "lyca-mobile", name: "Lyca Mobile" }, // AEO-06-LYCA-1011: /lyca.html, /es/lyca.html
   metropcs: { key: "metro-pcs", name: "Metro by T-Mobile" }, // AEO-07-METRO-1012: /metropcs.html, /es/metropcs.html
+  boost: { key: "boost-mobile", name: "Boost Mobile" }, // SEO-CONTENT-1014: /boost.html, /es/boost.html, /guest-boost.html
 };
 
 /* ── FAQ sub-component ── */
