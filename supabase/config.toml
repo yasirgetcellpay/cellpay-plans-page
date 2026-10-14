@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.funnel-event]
 verify_jwt = false
+
+[functions.send-receipt]
+verify_jwt = false
