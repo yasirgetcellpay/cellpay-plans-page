@@ -69,6 +69,7 @@ export const BILL_PAGES: BillPage[] = [
     securePayment: "Secure payment. Your payment goes to the number you entered.",
     faqTitle: "Common questions",
     faqs: faqsEn("Cricket Wireless"),
+    guide: ["/how-to-pay/cricket", "How to pay Cricket Wireless"], // CRICKET-GUIDE-1014
   },
 ];
 
