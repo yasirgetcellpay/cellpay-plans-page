@@ -1015,7 +1015,7 @@ const Checkout = () => {
       // [PAYPAL-REBUILD-1009] No PayPal window until name, email and terms are filled in (CellPay requires them with the order).
       onClick: (_d: unknown, actions: { resolve: () => unknown; reject: () => unknown }) => {
         const ppMiss: string[] = [];
-        if (!ppFirstRef.current) ppMiss.push("first");
+        if (!ppFirstRef.current || ppFirstRef.current.replace(/\D/g, "").length + ppLastRef.current.replace(/\D/g, "").length >= 6) ppMiss.push("first"); // NAME-DIGITS-1014
         if (!ppLastRef.current) ppMiss.push("last");
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ppEmailRef.current)) ppMiss.push("email");
         if (!ppTermsRef.current) ppMiss.push("terms");
@@ -2517,7 +2517,7 @@ const Checkout = () => {
               {(() => {
                 const es = lang === "es";
                 const ppEmailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-                const bad = { first: !firstName.trim(), last: !lastName.trim(), email: !ppEmailOk, terms: !agreedTerms };
+                const bad = { first: !firstName.trim() || nameDigitsBad /* NAME-DIGITS-1014 */, last: !lastName.trim(), email: !ppEmailOk, terms: !agreedTerms };
                 const anyBad = bad.first || bad.last || bad.email || bad.terms;
                 const cls = (b: boolean) => `h-11 px-4 rounded-lg border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent ${b && ppTried ? "border-destructive" : "border-input"}`;
                 const fe = (b: boolean, text: string) => (b && ppTried ? <p role="alert" className="text-xs text-destructive mt-1">{text}</p> : null);
@@ -2532,7 +2532,7 @@ const Checkout = () => {
                       <div>
                         <input ref={ppFirstElRef} type="text" required autoComplete="given-name" placeholder={`${tr.firstName} *`} aria-label={tr.firstName} aria-invalid={bad.first && ppTried} value={firstName} onChange={(e) => setFirstName(e.target.value)}
                           className={`w-full ${cls(bad.first)}`} style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
-                        {fe(bad.first, es ? "Escriba su nombre" : "Enter your first name")}
+                        {fe(bad.first, nameDigitsBad ? nameDigitsMsg : es ? "Escriba su nombre" : "Enter your first name")}{/* NAME-DIGITS-1014 */}
                       </div>
                       <div>
                         <input ref={ppLastElRef} type="text" required autoComplete="family-name" placeholder={`${tr.lastName} *`} aria-label={tr.lastName} aria-invalid={bad.last && ppTried} value={lastName} onChange={(e) => setLastName(e.target.value)}
