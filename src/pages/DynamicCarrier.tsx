@@ -361,11 +361,11 @@ const DynamicCarrier = ({
         // (74K/mo, currently ranking #1) and reinforce variants to defend the spot.
         if (carrierSlug === "metropcs" && lang !== "es") {
           applySeoHead({
-            title: "Metro PCS Refill — Pay Metro by T-Mobile | CellPay",
+            title: "Pay Metro by T-Mobile Bill Online – Metro PCS | CellPay", // GSC-MAULIK-1014
             description:
               "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay.",
             keywords:
-              "metro pcs pay bill, metropcs pay bill, pay metro pcs bill, metro pcs payment, metro by t-mobile pay bill, metro pcs refill, metropcs bill pay online",
+              "metro pcs pay bill, metropcs pay bill, pay metro pcs bill, metro pcs payment, metro by t-mobile pay bill, metropcs bill pay online", // GSC-MAULIK-1014: "metro pcs refill" removed
           });
           setHeading("Metro PCS Pay Bill Online");
           setSubheading("Pay your Metro by T-Mobile prepaid bill online. No login needed.");
@@ -705,7 +705,7 @@ const DynamicCarrier = ({
           <div className="relative flex justify-center h-14 sm:h-20 items-center">
             <BackButton />
             {logo ? (
-              <img src={logo} alt={bill ? `${carrierName} logo` /* SEO-CONTENT-1014 */ : `${carrierName} prepaid refill logo`} width={LOGO_DIMS[carrierSlug]?.[0]} height={LOGO_DIMS[carrierSlug]?.[1]} className="h-[32px] sm:h-[44px] w-auto object-contain" />
+              <img src={logo} alt={bill || carrierSlug === "metropcs" /* GSC-MAULIK-1014 */ ? `${carrierName} logo` /* SEO-CONTENT-1014 */ : `${carrierName} prepaid refill logo`} width={LOGO_DIMS[carrierSlug]?.[0]} height={LOGO_DIMS[carrierSlug]?.[1]} className="h-[32px] sm:h-[44px] w-auto object-contain" />
             ) : (
               <span className="text-xl sm:text-2xl font-extrabold" style={{ color: bc }}>{carrierName}</span>
             )}
@@ -759,7 +759,7 @@ const DynamicCarrier = ({
               : " You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en"))
             : lang === "es"
             ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es")
-            : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en")}
+            : (carrierSlug === "metropcs" ? "Optional: Auto Pay so you never miss a payment." /* GSC-MAULIK-1014 */ : "Optional: Auto Pay so you never miss a refill.") + " You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en")}
         </p>
       </div>
 
@@ -987,6 +987,8 @@ const DynamicCarrier = ({
                   ? SIMPLE_LINKS[sl].guide[1]
                   : carrierSlug === "boost" // SEO-CONTENT-1014
                   ? (lang === "es" ? "Cómo pagar Boost Mobile" : "How to pay Boost Mobile")
+                  : carrierSlug === "metropcs" // GSC-MAULIK-1014
+                  ? (lang === "es" ? "Cómo pagar Metro by T-Mobile" : "How to pay Metro by T-Mobile")
                   : lang === "es"
                   ? `Cómo pagar su factura de ${HTP_GUIDE_BY_SLUG[carrierSlug].name} en línea`
                   : `How to pay your ${HTP_GUIDE_BY_SLUG[carrierSlug].name} bill online`}
