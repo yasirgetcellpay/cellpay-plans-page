@@ -264,6 +264,9 @@ const HTML_ROUTES = [
   // CRICKET-GUIDE-1014: Cricket Wireless how-to-pay pages
   "how-to-pay/cricket/index.html",
   "es/como-pagar/cricket/index.html",
+  // AEO-09-NET10-1015: Net10 Wireless how-to-pay pages
+  "how-to-pay/net10/index.html",
+  "es/como-pagar/net10/index.html",
   // AI-ANSWERS-1014: amount answer pages
   "how-to-pay/boost-mobile/25/index.html",
   "es/como-pagar/boost-mobile/25/index.html",
@@ -1808,6 +1811,7 @@ const htmlAliasPlugin = (): Plugin => ({
           `<h1 style="font-size:28px;line-height:1.25;font-weight:800;margin:0 0 16px">${escAttr(guest.h1)}</h1>` +
           `<p style="font-size:16px;line-height:1.55;margin:0;color:#334155">${escAttr(GO_SHELLS.has(route) ? goFeeCopy(guest.intro) : guest.intro)}</p>` +
           (route === "guest-boost.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/how-to-pay/boost-mobile" style="text-decoration:underline">How to pay Boost Mobile</a></p>` : "") + // SEO-CONTENT-1014
+          (route === "guest-net10.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/how-to-pay/net10" style="text-decoration:underline">How to pay Net10 Wireless</a></p>` : "") + // AEO-09-NET10-1015
           `</main>` +
           `</div>`;
         out = out.replace(/<div id="root"><\/div>/i, prerender);

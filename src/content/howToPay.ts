@@ -10,7 +10,7 @@ import { refundFaq, searchFaqs } from "./carrierHero";
 export type HtpLang = "en" | "es";
 export type HtpFaq = { q: string; a: string };
 export type HtpPage = {
-  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid" | "lyca-mobile" | "metro-pcs" | "boost-mobile" | "cricket"; // CRICKET-GUIDE-1014: + Cricket Wireless; SEO-CONTENT-1014: + Boost Mobile; AEO-07-METRO-1012: + Metro by T-Mobile; AEO-06-LYCA-1011: + Lyca Mobile; AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid
+  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid" | "lyca-mobile" | "metro-pcs" | "boost-mobile" | "cricket" | "net10"; // AEO-09-NET10-1015: + Net10 Wireless; // CRICKET-GUIDE-1014: + Cricket Wireless; SEO-CONTENT-1014: + Boost Mobile; AEO-07-METRO-1012: + Metro by T-Mobile; AEO-06-LYCA-1011: + Lyca Mobile; AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid
   lang: HtpLang;
   path: string; // www path of this page
   enPath: string;
@@ -69,11 +69,12 @@ const en = (o: {
   moreFaqs?: HtpFaq[]; // AEO-06-LYCA-1011: extra FAQs after the standard ones (before any refund FAQ)
   postA?: string; // SEO-CONTENT-1014: optional "how fast" answer (pay-wording carriers)
   intro?: string; // CRICKET-GUIDE-1014: optional answer-first intro override
+  steps?: Array<{ name: string; text: string }>; // AEO-09-NET10-1015: optional steps override
 }): HtpPage => ({
   key: o.key, lang: "en", path: `/how-to-pay/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
   intro: o.intro ?? /* CRICKET-GUIDE-1014 */ `To pay your ${o.name} bill online without logging in, go to CellPay's ${o.name} page, enter the 10-digit ${o.name} phone number, pick your amount or plan, and pay with ${PAY_EN}. The service fee is shown before you pay, and most payments post within a few minutes (up to 30 minutes). CellPay is an independent payment service, not ${o.name}; you can also pay ${o.name} directly on its official site.`,
-  steps: [
+  steps: o.steps ?? /* // AEO-09-NET10-1015 */ [
     { name: "Open the page", text: `Go to the CellPay ${o.name} page (${o.checkout}).` },
     { name: "Enter the number", text: `Type the 10-digit ${o.name} phone number and check it.` },
     { name: "Pick the amount", text: o.step3 },
@@ -122,11 +123,12 @@ const es = (o: {
   moreFaqs?: HtpFaq[]; // AEO-06-LYCA-1011
   postA?: string; // SEO-CONTENT-1014
   intro?: string; // CRICKET-GUIDE-1014: optional answer-first intro override
+  steps?: Array<{ name: string; text: string }>; // AEO-09-NET10-1015: optional steps override
 }): HtpPage => ({
   key: o.key, lang: "es", path: `/es/como-pagar/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
   intro: o.intro ?? /* CRICKET-GUIDE-1014 */ `${o.introLead ?? `Para pagar su factura de ${o.name} en línea sin iniciar sesión`}, vaya a la página de ${o.name} de CellPay, ingrese el número de teléfono de ${o.name} de 10 dígitos, elija el monto o el plan y pague con ${PAY_ES}. El cargo por servicio se muestra antes de pagar y la mayoría de los pagos se acreditan en pocos minutos (hasta 30 minutos). CellPay es un servicio de pago independiente, no ${o.name}; también puede pagar directamente en el sitio oficial de ${o.name}.`,
-  steps: [
+  steps: o.steps ?? /* // AEO-09-NET10-1015 */ [
     { name: "Abra la página", text: `Vaya a la página de ${o.name} de CellPay (${o.checkout}).` },
     { name: "Ingrese el número", text: `Escriba el número de teléfono de ${o.name} de 10 dígitos y verifíquelo.` },
     { name: "Elija el monto", text: o.step3 },
@@ -418,6 +420,58 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     related: [["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"], ["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"], ["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/topup-crc.html", "Pagar Cricket Wireless ahora"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
     updatedIso: "2026-10-14", updatedText: "Última actualización: 14 de octubre de 2026",
   }),
+  // AEO-09-NET10-1015: Net10 Wireless pay-bill guide pair, built like the Boost pair. "Pay now" goes to /net10.html (ES: /es/net10.html).
+  // Pay wording only; no fee amounts, plan prices, Net10 phone numbers or Net10 fees.
+  en({
+    key: "net10", name: "Net10 Wireless", slug: "net10", checkout: "/net10.html", an: "a",
+    title: "How to Pay Your Net10 Wireless Bill Online (No Login) | CellPay",
+    description: "Pay Net10 bill online in 2 minutes: enter the Net10 Wireless number, pick a plan, pay by card, Apple Pay, Google Pay or PayPal. No login needed.",
+    h1: "How to Pay Your Net10 Wireless Bill Online",
+    intro: "To pay your Net10 Wireless bill online without logging in, open CellPay's Net10 Wireless page, enter the 10-digit Net10 Wireless phone number, pick your plan, and pay. Service fee shown before you pay. Most payments post within a few minutes (up to 30 minutes). CellPay is an independent payment service, not Net10 Wireless.",
+    steps: [
+      { name: "Open the page", text: "Open the CellPay Net10 Wireless page (/net10.html)." },
+      { name: "Enter the number", text: "Enter the 10-digit Net10 Wireless number and check it." },
+      { name: "Pick a plan", text: "Pick a plan from the list." },
+      { name: "Review the total", text: "Review the total (service fee shown before you pay)." },
+      { name: "Pay", text: `Pay with ${PAY_EN} and keep your confirmation.` },
+    ],
+    step3: "Pick a plan from the list.",
+    faq2: { q: "Does Net10 Wireless have online guest pay?", a: "Net10 Wireless offers its own payment options on its official website and app. On CellPay you can pay online with only the Net10 Wireless number." },
+    postA: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. If it hasn't posted after 30 minutes, email support@getcellpay.com with your phone number and transaction details. You see a confirmation with your transaction details once the payment goes through.",
+    autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
+    autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
+    moreFaqs: [
+      { q: "What if I don't know how much I owe?", a: "CellPay doesn't show your Net10 Wireless balance. Check the amount due in your Net10 Wireless app, account or text messages, then choose that plan or amount here. The total with the service fee is shown before you pay." },
+      { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." },
+    ],
+    related: [["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/guest-net10.html", "Pay Net10 Wireless as a guest"], ["/net10.html", "Pay Net10 Wireless now"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
+    updatedIso: "2026-10-15", updatedText: "Last updated: October 15, 2026",
+  }),
+  es({
+    key: "net10", name: "Net10 Wireless", slug: "net10", checkout: "/es/net10.html",
+    title: "Cómo pagar su factura de Net10 Wireless en línea (sin cuenta) | CellPay",
+    description: "Pague su factura de Net10 Wireless en línea: ingrese el número, elija su plan y pague. Sin cuenta. El cargo por servicio se muestra antes de pagar.",
+    h1: "Cómo pagar su factura de Net10 Wireless en línea",
+    intro: "Para pagar su factura de Net10 Wireless en línea sin iniciar sesión, abra la página de Net10 Wireless en CellPay, escriba el número de 10 dígitos, elija su plan y pague. El cargo por servicio se muestra antes de pagar. La mayoría de los pagos se aplican en pocos minutos (hasta 30 minutos). CellPay es un servicio de pago independiente, no Net10 Wireless.",
+    steps: [
+      { name: "Abra la página", text: "Abra la página de Net10 Wireless en CellPay (/es/net10.html)." },
+      { name: "Ingrese el número", text: "Escriba el número de Net10 Wireless de 10 dígitos y verifíquelo." },
+      { name: "Elija un plan", text: "Elija un plan de la lista." },
+      { name: "Revise el total", text: "Revise el total (el cargo por servicio se muestra antes de pagar)." },
+      { name: "Pague", text: `Pague con ${PAY_ES} y guarde su confirmación.` },
+    ],
+    step3: "Elija un plan de la lista.",
+    faq2: { q: "¿Net10 Wireless tiene pago en línea como invitado?", a: "Net10 Wireless ofrece sus propias formas de pago en su sitio web oficial y en su aplicación. En CellPay puede pagar en línea solo con el número de Net10 Wireless." },
+    postA: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Si no se ha acreditado después de 30 minutos, escriba a support@getcellpay.com con su número de teléfono y los datos de la transacción. Cuando el pago se completa, verá una confirmación con los datos de su transacción.",
+    autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
+    autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
+    moreFaqs: [
+      { q: "¿Qué hago si no sé cuánto debo?", a: "CellPay no muestra el saldo de Net10 Wireless. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de Net10 Wireless, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar." },
+      { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." },
+    ],
+    related: [["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/simple-mobile", "Cómo pagar Simple Mobile"], ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/guest-net10.html", "Pagar Net10 Wireless como invitado"], ["/es/net10.html", "Pagar Net10 Wireless ahora"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
+    updatedIso: "2026-10-15", updatedText: "Última actualización: 15 de octubre de 2026",
+  }),
 ];
 
 // AI-ANSWERS-1014: 18 amount answer pages (Boost, Metro, Cricket x $25/$45/$50, EN + ES). Same template/renderers as the parent
@@ -589,6 +643,10 @@ const PLAN_NAMES: Record<HtpPage["key"], Record<HtpLang, string[]>> = {
   cricket: { // CRICKET-GUIDE-1014 (no plan names or prices: the live list loads from the CellPay catalog)
     en: ["Cricket Wireless payment: choose one of the amounts shown on the CellPay page, or enter the amount you want to pay where offered"],
     es: ["Pago de Cricket Wireless: elija uno de los montos que aparecen en la página de CellPay, o ingrese el monto que desea pagar cuando esté disponible"],
+  },
+  net10: { // AEO-09-NET10-1015 (no plan names or prices: the live list loads from the CellPay catalog)
+    en: ["Net10 Wireless payment: choose one of the plans shown on the CellPay page"],
+    es: ["Pago de Net10 Wireless: elija uno de los planes que aparecen en la página de CellPay"],
   },
   "verizon-prepaid": {
     en: ["Verizon Prepaid refill: choose one of the fixed amounts shown on the CellPay page, or a custom amount where offered"],
