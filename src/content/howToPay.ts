@@ -419,6 +419,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     ],
     related: [["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"], ["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"], ["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/topup-crc.html", "Pagar Cricket Wireless ahora"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
     updatedIso: "2026-10-14", updatedText: "Última actualización: 14 de octubre de 2026",
+  }),
   // AEO-09-NET10-1015: Net10 Wireless pay-bill guide pair, built like the Boost pair. "Pay now" goes to /net10.html (ES: /es/net10.html).
   // Pay wording only; no fee amounts, plan prices, Net10 phone numbers or Net10 fees.
   en({
