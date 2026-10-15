@@ -49,6 +49,7 @@ export const HOW_TO_USE: Record<HtuLang, HtuPage> = {
       ["/how-to-pay/metro-pcs", "How to pay Metro by T-Mobile"], // AEO-07-METRO-1012
       ["/how-to-pay/boost-mobile", "How to pay Boost Mobile"], // SEO-CONTENT-1014
       ["/how-to-pay/cricket", "How to pay Cricket Wireless"], // CRICKET-GUIDE-1014
+      ["/how-to-pay/net10", "How to pay Net10 Wireless"], // AEO-09-NET10-1015
     ],
   },
   es: {
@@ -82,6 +83,7 @@ export const HOW_TO_USE: Record<HtuLang, HtuPage> = {
       ["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"], // AEO-07-METRO-1012
       ["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"], // SEO-CONTENT-1014
       ["/es/como-pagar/cricket", "Cómo pagar Cricket Wireless"], // CRICKET-GUIDE-1014
+      ["/es/como-pagar/net10", "Cómo pagar Net10 Wireless"], // AEO-09-NET10-1015
     ],
   },
 };

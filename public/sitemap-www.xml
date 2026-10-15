@@ -809,4 +809,23 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/cambiaste-a-metro" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/switched-to-metro" />
   </url>
+  <!-- AEO-09-NET10-1015: Net10 Wireless how-to-pay pair -->
+  <url>
+    <loc>https://www.cellpay.us/how-to-pay/net10</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/net10" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/net10" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/net10" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/es/como-pagar/net10</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/net10" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/net10" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/net10" />
+  </url>
 </urlset>

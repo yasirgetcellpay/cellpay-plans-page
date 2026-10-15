@@ -987,6 +987,8 @@ const DynamicCarrier = ({
                   ? SIMPLE_LINKS[sl].guide[1]
                   : carrierSlug === "boost" // SEO-CONTENT-1014
                   ? (lang === "es" ? "Cómo pagar Boost Mobile" : "How to pay Boost Mobile")
+                  : carrierSlug === "net10" // AEO-09-NET10-1015
+                  ? (lang === "es" ? "Cómo pagar Net10 Wireless" : "How to pay Net10 Wireless")
                   : carrierSlug === "metropcs" // GSC-MAULIK-1014
                   ? (lang === "es" ? "Cómo pagar Metro by T-Mobile" : "How to pay Metro by T-Mobile")
                   : lang === "es"
@@ -1020,6 +1022,7 @@ const HTP_GUIDE_BY_SLUG: Record<string, { key: string; name: string }> = {
   lyca: { key: "lyca-mobile", name: "Lyca Mobile" }, // AEO-06-LYCA-1011: /lyca.html, /es/lyca.html
   metropcs: { key: "metro-pcs", name: "Metro by T-Mobile" }, // AEO-07-METRO-1012: /metropcs.html, /es/metropcs.html
   boost: { key: "boost-mobile", name: "Boost Mobile" }, // SEO-CONTENT-1014: /boost.html, /es/boost.html, /guest-boost.html
+  net10: { key: "net10", name: "Net10 Wireless" }, // AEO-09-NET10-1015: /net10.html, /es/net10.html, /guest-net10.html
 };
 
 /* ── FAQ sub-component ── */
