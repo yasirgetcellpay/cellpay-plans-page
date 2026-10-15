@@ -2105,7 +2105,7 @@ async function paypalAction(
   }
 
   // CellPay call: same request as before (pp_meta removed).
-  const response = await fetch(url, { method: "POST", headers, body: JSON.stringify(fwd) });
+  const response = await fetch(url, { method: "POST", headers, body: JSON.stringify(asciiNamesCopy(fwd)) }); // ACCENT-FOLD-1015
   const rawText = await response.text();
   let data: unknown;
   try { data = JSON.parse(rawText); } catch { data = { raw: rawText, parseError: true }; }
@@ -2227,6 +2227,29 @@ function logCarrierCheck(endpoint: unknown, status: number, wrapped: Record<stri
 // [EMOJI-STRIP-1012] CellPay's billing DB (MySQL utf8, not utf8mb4) rejects 4-byte chars. Clean free-text fields only.
 const FREE_TEXT_KEYS = new Set(["first_name","firstname","last_name","lastname","name","full_name","fullname","billing_name","cardholder_name","card_holder_name","holder_name","givenname","familyname","email","emailaddress","address","address1","address2","address_line1","address_line2","street","street_address","addresslines","city","locality","sublocality","state","administrativearea","subadministrativearea","country_name","note","notes","comment","comments","memo","company"]);
 const SKIP_RECURSE = /token|paymentdata|signature|cryptogram|cp_dev|^mf|^mf_|fraud|risk|kount|riskified|cbsys|turnstile|gclid|gbraid|wbraid|amount|total|fee|price|_id$|^id$|hash/i;
+// ACCENT-FOLD-1015: ASCII-fold name fields in the body sent to CellPay only (logs/metadata keep the original).
+const ASCII_NAME_KEY_RE = /^(first_?name|last_?name|given_?name|family_?name|full_?name|billing_?name|card_?holder_?name|holder_?name|name_?on_?card)$/i;
+const ASCII_MAP: Record<string,string> = { "ß":"ss","ẞ":"SS","æ":"ae","Æ":"AE","œ":"oe","Œ":"OE","ø":"o","Ø":"O","đ":"d","Đ":"D","ð":"d","Ð":"D","þ":"th","Þ":"TH","ł":"l","Ł":"L","ı":"i","ñ":"n","Ñ":"N","‘":"'","’":"'","ʼ":"'","´":"'","`":"'" };
+function toAsciiName(s: string): string {
+  const mapped = s.replace(/[ßẞæÆœŒøØđĐðÐþÞłŁıñÑ‘’ʼ´`]/g, (c) => ASCII_MAP[c] ?? "");
+  return mapped.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, "").replace(/ {2,}/g, " ").trim();
+}
+// Returns a deep COPY with name keys folded; never touches keys matching SKIP_RECURSE (tokens, signatures, amounts, ids).
+function asciiNamesCopy(v: unknown, depth = 0): unknown {
+  if (depth > 6 || v === null || typeof v !== "object") return v;
+  if (Array.isArray(v)) return v.map((x) => asciiNamesCopy(x, depth + 1));
+  const out: Record<string, unknown> = {};
+  for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+    if (typeof x === "string" && ASCII_NAME_KEY_RE.test(k)) { const a = toAsciiName(x); out[k] = a || x; }
+    else if (x && typeof x === "object" && !SKIP_RECURSE.test(k)) out[k] = asciiNamesCopy(x, depth + 1);
+    else out[k] = x;
+  }
+  return out;
+}
+function asciiNamesBody(body: unknown): unknown {
+  if (typeof body !== "string") return body;
+  try { return JSON.stringify(asciiNamesCopy(JSON.parse(body))); } catch { return body; }
+}
 function cleanFreeText(s: string): string {
   return s
     .replace(/[\u{10000}-\u{10FFFF}]/gu, "")            // emoji & other non-BMP
@@ -2602,6 +2625,8 @@ serve(async (req) => {
     let response: Response;
     let rawText: string;
     try {
+      // ACCENT-FOLD-1015: fold name fields to ASCII in the outbound body only; logs keep the original.
+      try { if (typeof fetchOptions.body === "string") fetchOptions.body = asciiNamesBody(fetchOptions.body) as string; } catch { /* fail-open: send unchanged */ }
       response = await fetch(url, isPockytCreate ? { ...fetchOptions, signal: AbortSignal.timeout(POCKYT_CREATE_TIMEOUT_MS) } : fetchOptions);
       rawText = await response.text();
     } catch (error) {
