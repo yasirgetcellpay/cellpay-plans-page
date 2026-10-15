@@ -3052,38 +3052,56 @@ const Checkout = () => {
               const isCard = declineInfo.method === "card";
               const noRetry = noSameRetry(declineInfo.msg || "", declineInfo.method) || declineInfo.method === "applepay" || declineInfo.method === "googlepay"; // DECLINE-RECOVERY-1014B // DECLINE-RECOVERY-1014C: no same-wallet retry
               const hint = sessCap ? dc.capSession : capped && declineInfo.cls !== "blocked" ? dc.capReached : dc[declineInfo.cls]; // DECLINE-RECOVERY-1014
+              const walletFirst = isCard && !sessCap; // DECLINE-LEVERS-1015-D1
+              const isAndroidUA = typeof navigator !== "undefined" && /Android/.test(navigator.userAgent); // DECLINE-LEVERS-1015-D1
+              const showAp = !sessCap && applePayAvailable && offered.has("applepay") && !walletBlocked.includes("applepay") && !(noRetry && declineInfo.method === "applepay"); // DECLINE-LEVERS-1015-D1
+              // DECLINE-LEVERS-1015-D1: Google Pay: offered, not failed/blocked, and not on an iPhone/iPad that has Apple Pay
+              const showGp = !sessCap && offered.has("googlepay") && !walletBlocked.includes("googlepay") && !(noRetry && declineInfo.method === "googlepay") && !(walletFirst && isIOS && applePayAvailable && !isAndroidUA);
+              const showPp = offered.has("paypal"); // DECLINE-LEVERS-1015-D1
+              const showRetry = !sessCap && !(isCard && capped) && !noRetry; // DECLINE-LEVERS-1015-D1
+              const showAnother = !sessCap && !(isCard && capped); // DECLINE-LEVERS-1015-D1
+              // DECLINE-LEVERS-1015-D1: render consts (same JSX as before)
+              const retryBtn = showRetry && ( // DECLINE-RECOVERY-1014B: no same-method retry on bank declines
+                <button type="button" data-testid="decline-retry-card"
+                  onClick={() => { if (isCard) focusCard(); else toMethod(declineInfo.method); }}
+                  className={btn + " border-2 border-border text-foreground bg-background"}>
+                  {isCard && declineInfo.cls === "details" ? dc.checkDetails : dc.tryAgain}
+                </button>
+              );
+              const anotherBtn = showAnother && (
+                <button type="button" data-testid="decline-another-card"
+                  onClick={() => { if (isCard) focusCardNumber(); else toMethod("card"); }}
+                  className={btn + " border-2 border-border text-foreground bg-background"}>
+                  {dc.useAnotherCard}
+                </button>
+              );
+              const ppBtn = showPp && (
+                <button type="button" data-testid="decline-paypal" onClick={() => toMethod("paypal")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayPal}</button>
+              );
+              const apBtn = showAp && (
+                <button type="button" data-testid="decline-applepay" onClick={() => toMethod("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
+              );
+              const gpBtn = showGp && (
+                <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " bg-black text-white"}>{dc.useGooglePay}</button>
+              );
+              const cashBtn = !sessCap && offered.has("cashapp") && (
+                <button type="button" data-testid="decline-cashapp" onClick={() => toMethod("cashapp")} className={btn + " text-black"} style={{ backgroundColor: "#00D632" }}>{dc.useCashApp}</button>
+              );
+              const bankBtn = !sessCap && offered.has("plaid") && plaidOn === true && (
+                <button type="button" data-testid="decline-paybybank" onClick={() => toMethod("plaid")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayByBank}</button>
+              );
               return (
-                <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls}>
+                <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls} data-wallet-first={walletFirst ? "1" : "0"}>
                   <p className="text-sm text-foreground mb-2" data-testid="decline-hint">{hint}</p>
-                  {/* DECLINE-RECOVERY-1014: a) Try again, b) Use another card, c) PayPal, d) existing wallets / Cash App / Pay by Bank */}
-                  {!sessCap && !(isCard && capped) && !noRetry && ( // DECLINE-RECOVERY-1014B: no same-method retry on bank declines
-                    <button type="button" data-testid="decline-retry-card"
-                      onClick={() => { if (isCard) focusCard(); else toMethod(declineInfo.method); }}
-                      className={btn + " border-2 border-border text-foreground bg-background"}>
-                      {isCard && declineInfo.cls === "details" ? dc.checkDetails : dc.tryAgain}
-                    </button>
-                  )}
-                  {!sessCap && !(isCard && capped) && (
-                    <button type="button" data-testid="decline-another-card"
-                      onClick={() => { if (isCard) focusCardNumber(); else toMethod("card"); }}
-                      className={btn + " border-2 border-border text-foreground bg-background"}>
-                      {dc.useAnotherCard}
-                    </button>
-                  )}
-                  {offered.has("paypal") && (
-                    <button type="button" data-testid="decline-paypal" onClick={() => toMethod("paypal")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayPal}</button>
-                  )}
-                  {!sessCap && applePayAvailable && offered.has("applepay") && !walletBlocked.includes("applepay") && /* DECLINE-RECOVERY-1014C */ !(noRetry && declineInfo.method === "applepay") && ( // DECLINE-RECOVERY-1014B
-                    <button type="button" data-testid="decline-applepay" onClick={() => toMethod("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
-                  )}
-                  {!sessCap && offered.has("googlepay") && !walletBlocked.includes("googlepay") && /* DECLINE-RECOVERY-1014C */ !(noRetry && declineInfo.method === "googlepay") && ( // DECLINE-RECOVERY-1014B
-                    <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " bg-black text-white"}>{dc.useGooglePay}</button>
-                  )}
-                  {!sessCap && offered.has("cashapp") && (
-                    <button type="button" data-testid="decline-cashapp" onClick={() => toMethod("cashapp")} className={btn + " text-black"} style={{ backgroundColor: "#00D632" }}>{dc.useCashApp}</button>
-                  )}
-                  {!sessCap && offered.has("plaid") && plaidOn === true && (
-                    <button type="button" data-testid="decline-paybybank" onClick={() => toMethod("plaid")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayByBank}</button>
+                  {walletFirst ? ( // DECLINE-LEVERS-1015-D1
+                    <>
+                      {(showAp || showGp || showPp) && <p className="text-xs font-semibold text-muted-foreground" data-testid="decline-wallet-first">{dc.walletFirst}</p>}
+                      {apBtn}{gpBtn}{ppBtn}
+                      {(showRetry || showAnother) && <p className="text-xs text-muted-foreground pt-1">{dc.orCard}</p>}
+                      {retryBtn}{anotherBtn}{cashBtn}{bankBtn}
+                    </>
+                  ) : (
+                    <>{retryBtn}{anotherBtn}{ppBtn}{apBtn}{gpBtn}{cashBtn}{bankBtn}</>
                   )}
                   <button type="button" data-testid="decline-other" onClick={close} className="w-full text-xs underline text-muted-foreground pt-1">{sessCap ? dc.close : dc.otherMethod}</button>
                   {(sessCap || declineInfo.n >= 2) && <p className="text-xs text-muted-foreground text-center pt-1">{dc.help}</p>}
