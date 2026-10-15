@@ -107,6 +107,8 @@ export const DECLINE_COPY = {
     capReached: "This card was declined more than once, so we've paused card tries for this order. Please use another method.",
     help: "Need help? support@getcellpay.com",
     close: "Close",
+    walletFirst: "Faster ways to pay:", // DECLINE-LEVERS-1015-D1
+    orCard: "Or use a card:", // DECLINE-LEVERS-1015-D1
   },
   es: {
     details: "Los datos de la tarjeta no coinciden con los de su banco. Revise el número, la fecha de vencimiento, el CVV (3 dígitos al reverso) y el código postal de facturación, y vuelva a intentar.", // DECLINE-RECOVERY-1014
@@ -129,5 +131,7 @@ export const DECLINE_COPY = {
     capReached: "Esta tarjeta fue rechazada más de una vez, así que pausamos los intentos con tarjeta para este pedido. Use otro método.",
     help: "¿Necesita ayuda? support@getcellpay.com",
     close: "Cerrar",
+    walletFirst: "Formas más rápidas de pagar:", // DECLINE-LEVERS-1015-D1
+    orCard: "O use una tarjeta:", // DECLINE-LEVERS-1015-D1
   },
 } as const;
