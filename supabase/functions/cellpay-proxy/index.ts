@@ -2295,6 +2295,40 @@ async function paypalAction(
   return reply(wrapped);
 }
 
+// Private redacted upstream replies: background-only, 1.5 s budget, never changes the reply or parsed response.
+function logRawCellPayReply(txLogId: string | null, endpoint: string, httpStatus: number, paymentMethod: string | null, data: unknown, rawText: string, parseFailed: boolean): void {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceKey) return;
+    // Also cover aliases that do not contain the requested sensitive-key terms; never retain card data or wallet cryptograms.
+    const sensitiveKey = /card|cvv|cvc|exp|token|nonce|secret|password|account_number|routing|plaid|approval|cc_?number|payment_?data|cryptogram|signature|security_?code/i;
+    const scrubText = (value: string): string => value
+      .replace(/\d{12,}/g, "[redacted]")
+      .replace(/\b(?:[\w.-]*(?:card|cvv|cvc|exp|token|nonce|secret|password|account_number|routing|plaid|approval|cc_?number|payment_?data|cryptogram|signature|security_?code)[\w.-]*)\s*[=:]\s*(?:"[^"\r\n]*"|'[^'\r\n]*'|[^\s,;&<>]+)/gi, "[redacted]");
+    const scrubCopy = (value: unknown): unknown => {
+      if (Array.isArray(value)) return value.map(scrubCopy);
+      if (value && typeof value === "object") {
+        return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sensitiveKey.test(key) ? "[redacted]" : scrubCopy(item)]));
+      }
+      return typeof value === "string" ? scrubText(value) : typeof value === "number" && Math.abs(value) >= 1e11 ? "[redacted]" : value;
+    };
+    const write = (async () => {
+      try {
+        await fetch(`${supabaseUrl}/rest/v1/cellpay_raw_replies`, {
+          method: "POST",
+          headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json", prefer: "return=minimal" },
+          body: JSON.stringify({ transaction_log_id: txLogId, endpoint, http_status: httpStatus, payment_method: paymentMethod,
+            body: parseFailed ? null : scrubCopy(data), raw_text: parseFailed ? scrubText(rawText).slice(0, 4000) : null }),
+          signal: AbortSignal.timeout(1500),
+        });
+      } catch { /* logging must never affect checkout */ }
+    })();
+    const runtime = (globalThis as any).EdgeRuntime;
+    if (runtime && typeof runtime.waitUntil === "function") runtime.waitUntil(write);
+  } catch { /* logging must never affect checkout */ }
+}
+
 // [CARRIER-CHECK-LOG-1011] Fire-and-forget log of carriers/verify-phone/<slug> and carriers/validate/<slug> results. Never awaited by the reply path, never throws, 1.5 s cap, stores only carrier, kind, http status, CellPay message, last 4 of the phone and host.
 function logCarrierCheck(endpoint: unknown, status: number, wrapped: Record<string, unknown>, payload: unknown, callerHost: unknown): void {
   try {
@@ -2829,11 +2863,13 @@ serve(async (req) => {
     }
 
     let data: unknown;
+    let rawReplyParseFailed = false;
     const contentType = response.headers.get("content-type") || "";
 
     try {
       data = JSON.parse(rawText);
     } catch {
+      rawReplyParseFailed = true;
       data = { raw: rawText, parseError: true };
     }
 
@@ -2864,6 +2900,7 @@ serve(async (req) => {
     }
 
     if (isPayPalTx) ppScrub(wrapped); // [PAYPAL-REBUILD-1009] never log or return PayPal approval secrets
+    if (shouldLogTransaction) logRawCellPayReply(txLogId, endpoint, response.status, paymentMethod, data, rawText, rawReplyParseFailed);
     if (shouldLogTransaction) {
       await finishTransactionLog(txLogId, wrapped, paymentMethod);
       await logDataErr(txLogId, payloadRecord, wrapped, paymentMethod); // [OURSIDE-RETRY-1012] masked, failed data-error rows only
