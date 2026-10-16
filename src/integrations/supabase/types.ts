@@ -278,6 +278,39 @@ export type Database = {
         }
         Relationships: []
       }
+      cellpay_raw_replies: {
+        Row: {
+          body: Json | null
+          created_at: string | null
+          endpoint: string | null
+          http_status: number | null
+          id: string
+          payment_method: string | null
+          raw_text: string | null
+          transaction_log_id: string | null
+        }
+        Insert: {
+          body?: Json | null
+          created_at?: string | null
+          endpoint?: string | null
+          http_status?: number | null
+          id?: string
+          payment_method?: string | null
+          raw_text?: string | null
+          transaction_log_id?: string | null
+        }
+        Update: {
+          body?: Json | null
+          created_at?: string | null
+          endpoint?: string | null
+          http_status?: number | null
+          id?: string
+          payment_method?: string | null
+          raw_text?: string | null
+          transaction_log_id?: string | null
+        }
+        Relationships: []
+      }
       checkout_blocklist: {
         Row: {
           active: boolean
