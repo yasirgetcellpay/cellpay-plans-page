@@ -1673,6 +1673,9 @@ const App = () => (
         {/* AEO-09-NET10-1015: Net10 Wireless how-to-pay pair */}
         <Route path="/how-to-pay/net10" element={<HowToPay />} />
         <Route path="/es/como-pagar/net10" element={<HowToPay />} />
+        {/* AEO-10-H2O-1016: H2O Wireless how-to-pay pair */}
+        <Route path="/how-to-pay/h2o" element={<HowToPay />} />
+        <Route path="/es/como-pagar/h2o" element={<HowToPay />} />
         {/* AI-ANSWERS-1014: amount answer pages */}
         <Route path="/how-to-pay/boost-mobile/25" element={<HowToPay />} />
         <Route path="/es/como-pagar/boost-mobile/25" element={<HowToPay />} />
