@@ -370,7 +370,7 @@ const GoLander = ({
   const rangeAmountValid = amountProblem === null;
   const amountMessage =
     amountProblem === "range"
-      ? (carrierSlug === "boost" && amountNum > 199 ? (isEs ? "Pagos de Boost: máximo $199" : "Boost payments max $199") : (prRangeMsg(carrierSlug, isEs ? "es" : "en") ?? tr.invalidAmount(rangeMin, rangeMax))) // PLAN-RANGES-1016
+      ? (carrierSlug === "boost" && amountNum > 199 ? (lang === "es" ? "Pagos de Boost: máximo $199" : "Boost payments max $199") : (prRangeMsg(carrierSlug, lang) ?? tr.invalidAmount(rangeMin, rangeMax))) // PLAN-RANGES-1016
       : amountProblem === "step"
       ? wholeDollarMessage(lang, amountNum)
       : null;
