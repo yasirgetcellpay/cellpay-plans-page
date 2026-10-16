@@ -592,12 +592,12 @@ const amtPage = (c: AmtCarrier, a: number, lang: HtpLang): HtpPage => {
     need: [], feeRows: [], feeNote: "", plansLabel: "", plansLoading: "", otherWays: "", someoneElseTitle: "", someoneElse: "", autoPayTitle: "", autoPay: "",
     faqs: isEs
       ? [
-          { q: `¿Puedo pagar exactamente $${a} a ${c.name}?`, a: `Sí. La página de ${c.short} de CellPay acepta montos desde $5 hasta ${c.slug === "boost" ? "$199" : "$250 o más"}, /* PLAN-RANGES-1016 */ así que puede ingresar $${a}. No necesita iniciar sesión en ${c.short} ni una cuenta de CellPay.` },
+          { q: `¿Puedo pagar exactamente $${a} a ${c.name}?`, a: `Sí. La página de ${c.short} de CellPay acepta montos desde $5 hasta ${c.slug === "boost" ? "$199" : "$250 o más"}, así que puede ingresar $${a}. No necesita iniciar sesión en ${c.short} ni una cuenta de CellPay.` }, // PLAN-RANGES-1016
           { q: "¿Qué métodos de pago puedo usar?", a: METHODS_ES },
           { q: `¿Hay un cargo por pagar $${a} a ${c.name}?`, a: "Sí, se aplica una tarifa de servicio. La tarifa de servicio se muestra antes de pagar, en el resumen del pedido, así que ve el total completo primero." },
         ]
       : [
-          { q: `Can I pay exactly $${a} to ${c.name}?`, a: `Yes. CellPay's ${c.short} page accepts amounts from $5 to ${c.slug === "boost" ? "$199" : "$250 or more"}, /* PLAN-RANGES-1016 */ so you can enter $${a}. You don't need a ${c.short} login or a CellPay account.` },
+          { q: `Can I pay exactly $${a} to ${c.name}?`, a: `Yes. CellPay's ${c.short} page accepts amounts from $5 to ${c.slug === "boost" ? "$199" : "$250 or more"}, so you can enter $${a}. You don't need a ${c.short} login or a CellPay account.` }, // PLAN-RANGES-1016
           { q: "What payment methods can I use?", a: METHODS_EN },
           { q: `Is there a fee to pay $${a} to ${c.name}?`, a: "Yes, a service fee applies. The service fee is shown before you pay, in the order summary, so you see the full total first." },
         ],
