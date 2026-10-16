@@ -320,23 +320,30 @@ function storedVisitSource(): { ref_host?: string; utm_source?: string; landing_
 // OURSIDE-RETRY-1012: retry context for this checkout session (sessionStorage "cp_ors:<kount_ssid>", written by Checkout after a
 // data-error / refill-error reply). Booleans + method word only; undefined when nothing was recorded. Never throws.
 function storedRetryMeta(payload: Record<string, unknown>): Record<string, unknown> | undefined {
+  const out: Record<string, unknown> = {};
   try {
     const sid = typeof payload.kount_ssid === "string" ? payload.kount_ssid : "";
-    if (!sid) return undefined;
-    const s = JSON.parse(sessionStorage.getItem(`cp_ors:${sid}`) || "null") as Record<string, unknown> | null;
-    if (!s || typeof s !== "object") return undefined;
-    const m = String(payload.payment_method || "").toLowerCase();
-    const now = m.startsWith("card") ? "card" : m === "pockyt" ? "cashapp" : m;
-    const prior = typeof s.failed_method === "string" ? s.failed_method : "";
-    const out: Record<string, unknown> = {};
-    if (s.fallback_shown === true) { out.retry_after_data_err = true; out.method_switched = !!prior && prior !== now; }
-    if (prior) out.prior_failed_method = prior;
-    if (s.retry_offered === true) out.retry_offered = true;
-    if (s.retry_clicked === true) out.retry_clicked = true;
-    return Object.keys(out).length ? out : undefined;
-  } catch {
-    return undefined;
-  }
+    const s = sid ? (JSON.parse(sessionStorage.getItem(`cp_ors:${sid}`) || "null") as Record<string, unknown> | null) : null;
+    if (s && typeof s === "object") {
+      const m = String(payload.payment_method || "").toLowerCase();
+      const now = m.startsWith("card") ? "card" : m === "pockyt" ? "cashapp" : m;
+      const prior = typeof s.failed_method === "string" ? s.failed_method : "";
+      if (s.fallback_shown === true) { out.retry_after_data_err = true; out.method_switched = !!prior && prior !== now; }
+      if (prior) out.prior_failed_method = prior;
+      if (s.retry_offered === true) out.retry_offered = true;
+      if (s.retry_clicked === true) out.retry_clicked = true;
+    }
+  } catch { /* ignore */ }
+  // DECLINE-AB-1016: decline dialog A/B arm (session first, then per-phone)
+  try {
+    let ab = sessionStorage.getItem("cp_decline_ab_v1");
+    if (ab !== "control" && ab !== "variant") {
+      const d = String(payload.phone_number || "").replace(/\D/g, "");
+      ab = d.length >= 10 ? localStorage.getItem(`cp_decline_ab_phone_v1:${d}`) : null;
+    }
+    if (ab === "control" || ab === "variant") out.decline_ab = ab;
+  } catch { /* ignore */ }
+  return Object.keys(out).length ? out : undefined;
 }
 
 export async function submitTransaction(
