@@ -343,6 +343,14 @@ function storedRetryMeta(payload: Record<string, unknown>): Record<string, unkno
     }
     if (ab === "control" || ab === "variant") out.decline_ab = ab;
   } catch { /* ignore */ }
+  // CONSENT-EVERY-ATTEMPT-1016: checkout consent flag (+ browser language) so cellpay-proxy can record consent on this attempt's log row
+  try {
+    if (sessionStorage.getItem("cp_mkt_consent_v1") === "1") {
+      out.mkt_consent = true;
+      const bl = typeof navigator !== "undefined" && typeof navigator.language === "string" ? navigator.language.slice(0, 35) : "";
+      if (/^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(bl)) out.browser_language = bl;
+    }
+  } catch { /* ignore */ }
   return Object.keys(out).length ? out : undefined;
 }
 

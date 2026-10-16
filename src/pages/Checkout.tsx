@@ -340,6 +340,7 @@ const Checkout = () => {
   const [autoPayTerms, setAutoPayTerms] = useState(false);
   const mktOptInRef = useRef(true); // MARKETING-OPTIN-1013
   mktOptInRef.current = true; // CONSENT-TERMS-1014: consent is given by placing the order (see terms line above PLACE ORDER NOW)
+  useEffect(() => { try { sessionStorage.setItem("cp_mkt_consent_v1", "1"); } catch { /* ignore */ } }, []); // CONSENT-EVERY-ATTEMPT-1016: the consent line is shown on this page, so attempts from here carry consent
   const checkoutConfigRef = useRef<Record<string, unknown> | null>(null); // APAP-1007: mirror of checkoutConfig (state is declared below)
   const [gpGate, setGpGate] = useState<{ ok: boolean; site: string } | null>(null); // GPAY-AUTOPAY-1008: gpay_autopay_check answer (offer stage)
   const gpRecurringRef = useRef(false); // GPAY-AUTOPAY-1008: true only when THIS Google Pay order sent the Auto Pay flags

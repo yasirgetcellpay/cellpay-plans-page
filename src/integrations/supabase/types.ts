@@ -2846,6 +2846,10 @@ export type Database = {
       purchase_fallback_sweep: { Args: never; Returns: undefined }
       purchase_tag_cliff_sweep: { Args: never; Returns: number }
       receipt_secret: { Args: { p_name: string }; Returns: string }
+      record_attempt_marketing_opt_in: {
+        Args: { _browser_language?: string; _id: string }
+        Returns: undefined
+      }
       record_marketing_opt_in: {
         Args: {
           p_browser_language?: string
