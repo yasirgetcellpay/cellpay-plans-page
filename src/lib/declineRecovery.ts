@@ -144,6 +144,38 @@ export const DECLINE_COPY = {
   },
 } as const;
 
+// DECLINE-MSGS-1016: specific hint text for security-code, billing-ZIP and bank-verification declines. Display only:
+// the decline class (and so every button, and both DECLINE-AB-1016 arms) stays exactly the same; only the hint sentence changes.
+export const DECLINE_HINTS = {
+  en: {
+    cvv: "The security code (CVV) didn't match. It's the 3 digits on the back of your card (4 on the front for Amex). Type it again, or use another way to pay.",
+    avs: "The billing ZIP code didn't match your bank's records. Use the ZIP code where your bank sends your card statements, then try again, or use another way to pay.",
+    verify: "Your bank couldn't confirm it's you, so this payment didn't go through. Try again and finish your bank's check (a text code or your bank app), or use another way to pay.",
+    hold: "If you see a pending amount, your bank removes it in 1-2 days.",
+  },
+  es: {
+    cvv: "El código de seguridad (CVV) no coincide. Son los 3 dígitos al reverso de su tarjeta (4 al frente en Amex). Escríbalo otra vez o use otra forma de pago.",
+    avs: "El código postal de facturación no coincide con el de su banco. Use el código postal donde su banco le envía los estados de cuenta y vuelva a intentar, o use otra forma de pago.",
+    verify: "Su banco no pudo confirmar que es usted, así que este pago no se completó. Intente de nuevo y complete la verificación de su banco (código por mensaje de texto o en la app de su banco), o use otra forma de pago.",
+    hold: "Si ve un cargo pendiente, su banco lo quita en 1 a 2 días.",
+  },
+} as const;
+const HINT_CVV = /(\bcvn\b|\bcvv2?\b|\bcvc2?\b|card verification|security code)/i;
+const HINT_AVS = /(\bavs\b|address verification)/i;
+const HINT_VERIFY = /(3-?d ?secure|\b3ds\b|payer authentication|cardholder authentication|authentication (failed|rejected|declined|unavailable|was not|could not)|verification (failed|was not completed))/i;
+export function declineHint(msg: string, lang: string): string | null {
+  try {
+    const m = String(msg || "");
+    const h = DECLINE_HINTS[lang === "es" ? "es" : "en"];
+    let t: string | null = null;
+    if (HINT_CVV.test(m)) t = h.cvv;
+    else if (HINT_AVS.test(m)) t = h.avs;
+    else if (HINT_VERIFY.test(m)) t = h.verify;
+    if (t && /soft decline/i.test(m)) t = `${t} ${h.hold}`;
+    return t;
+  } catch { return null; }
+}
+
 // DECLINE-AB-1016: sticky 50/50 decline-dialog assignment (session first, then per-phone localStorage). Never re-rolls in a session.
 export type DeclineAb = "control" | "variant";
 export const DECLINE_AB_SESSION_KEY = "cp_decline_ab_v1";
