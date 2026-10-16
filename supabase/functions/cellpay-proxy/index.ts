@@ -2467,6 +2467,15 @@ serve(async (req) => {
     // then the shape CellPay requires (paypal_authorization with orderID + payerID; payment firstName / lastName / email). A refusal is
     // a calm 200: nothing goes to CellPay, nothing is captured (the PayPal approval just expires). Then the normal card guards and the
     // normal order row (blocklist, refill cooldown, DUPCHARGE incl. IN_FLIGHT, BL-3 dedupe keyed on the PayPal order id, velocity).
+    // BOOST-CAP-199-1016: Boost (plan 66666 / slug boost) payments max $199 (amount before fees). Refused before any CellPay call.
+    if (shouldLogTransaction) {
+      const bPlan = String(payloadRecord.plan_id ?? payloadRecord.planId ?? "").trim();
+      const bSlug = String(payloadRecord.carrier_slug ?? "").trim().toLowerCase();
+      const bAmt = Number(payloadRecord.amount ?? payloadRecord.refill_amount ?? NaN);
+      if ((bPlan === "66666" || bSlug === "boost") && Number.isFinite(bAmt) && bAmt > 199) { // BOOST-CAP-199-1016
+        return new Response(JSON.stringify({ success: false, message: "Boost payments max $199" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
     const isPayPalTx = shouldLogTransaction && (paymentMethod || "").toLowerCase() === "paypal";
     let ppTxOrderId: string | null = null;
     if (isPayPalTx) {
