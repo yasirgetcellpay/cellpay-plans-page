@@ -7,7 +7,7 @@ import { PaymentMethodPicker } from "@/components/PaymentMethodPicker"; // METHO
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react"; // CARRIER-ASSIST-1011
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
-import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry, markWalletDeclined, walletDeclined } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014C: + wallet block // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry
+import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry, markWalletDeclined, walletDeclined, getDeclineAb } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014C: + wallet block // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry
 import { AP_LAST_KEY } from "@/components/AutoPayReceiptCard";
 import { PLAID_ENABLED, PAYPAL_ENABLED } from "@/config/paymentFlags";
 // [PAYPAL-REBUILD-1009] QA only: ?pp_qa=1 shows the PayPal tile in this tab while PAYPAL_ENABLED is false (?pp_qa=0 clears it).
@@ -2306,6 +2306,7 @@ const Checkout = () => {
 
   // ─── Main handler ───
   const handlePlaceOrder = async () => {
+    try { getDeclineAb(normalizePhone(String(state?.phone || ""))); } catch { /* ignore */ } // DECLINE-AB-1016: assignment in session before the first submit
     // DECLINE-RECOVERY-1014: clean the email first and use the cleaned value for this submit.
     { const ce = cleanEmail(email); emailCleanRef.current = ce; if (ce !== email) setEmail(ce); }
     const validationErr = validateBeforeSubmit();
@@ -3090,10 +3091,31 @@ const Checkout = () => {
               const bankBtn = !sessCap && offered.has("plaid") && plaidOn === true && (
                 <button type="button" data-testid="decline-paybybank" onClick={() => toMethod("plaid")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayByBank}</button>
               );
+              // DECLINE-AB-1016: sticky 50/50 assignment, written as soon as a card-decline dialog renders
+              const ab = walletFirst ? getDeclineAb(normalizePhone(String(state?.phone || ""))) : undefined; // DECLINE-AB-1016
+              const abVariant = walletFirst && ab === "variant" && (showAp || showGp); // DECLINE-AB-1016
+              const primaryWallet: PaymentMethod | null = abVariant ? (showAp ? "applepay" : "googlepay") : null; // DECLINE-AB-1016
+              const quiet = "w-full px-4 py-2 rounded-lg font-semibold text-sm border border-border text-foreground bg-background"; // DECLINE-AB-1016
               return (
-                <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls} data-wallet-first={walletFirst ? "1" : "0"}>
+                <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls} data-wallet-first={walletFirst ? "1" : "0"} data-decline-ab={ab}>
                   <p className="text-sm text-foreground mb-2" data-testid="decline-hint">{hint}</p>
-                  {walletFirst ? ( // DECLINE-LEVERS-1015-D1
+                  {abVariant && primaryWallet ? ( // DECLINE-AB-1016: variant layout
+                    <>
+                      <button type="button" data-testid="decline-ab-primary-wallet" data-decline-ab-wallet={primaryWallet}
+                        onClick={() => toMethod(primaryWallet)}
+                        className="w-full px-4 py-3.5 rounded-lg font-bold text-base bg-black text-white">
+                        {primaryWallet === "applepay" ? dc.abPrimaryAp : dc.abPrimaryGp}
+                      </button>
+                      {declineInfo.cls === "funds" && offered.has("klarna") && (
+                        <button type="button" data-testid="decline-klarna" onClick={() => toMethod("klarna")} className={btn + " border-2 text-foreground bg-background"} style={{ borderColor: "#FFA8CD" }}>{dc.abKlarna}</button>
+                      )}
+                      {ppBtn}{primaryWallet === "applepay" ? gpBtn : null}
+                      {(showRetry || showAnother) && <p className="text-xs text-muted-foreground pt-1">{dc.orCard}</p>}
+                      {showRetry && <button type="button" data-testid="decline-retry-card" onClick={() => { if (isCard) focusCard(); else toMethod(declineInfo.method); }} className={quiet}>{isCard && declineInfo.cls === "details" ? dc.checkDetails : dc.abTryCard}</button>}
+                      {showAnother && <button type="button" data-testid="decline-another-card" onClick={() => { if (isCard) focusCardNumber(); else toMethod("card"); }} className={quiet}>{dc.useAnotherCard}</button>}
+                      {cashBtn}{bankBtn}
+                    </>
+                  ) : walletFirst ? ( // DECLINE-LEVERS-1015-D1
                     <>
                       {(showAp || showGp || showPp) && <p className="text-xs font-semibold text-muted-foreground" data-testid="decline-wallet-first">{dc.walletFirst}</p>}
                       {apBtn}{gpBtn}{ppBtn}
