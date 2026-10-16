@@ -466,7 +466,7 @@ const DynamicCarrier = ({
           setRangeMin(cp.carrier?.rangeMin ?? 5);
           // CS-1: CellPay's checkout rejects AT&T (topup-at) range-plan amounts over $150 ("Invalid amout for the range plan."),
           // even when carriers/view says 300 (www.cellpay.us). refill.cellpay.us already gets 150 from the API.
-          setRangeMax(carrierSlug === "topup-at" ? Math.min(cp.carrier?.rangeMax ?? 300, 150) : (cp.carrier?.rangeMax ?? 300));
+          setRangeMax(carrierSlug === "topup-at" ? Math.min(cp.carrier?.rangeMax ?? 300, 150) : carrierSlug === "boost" ? Math.min(cp.carrier?.rangeMax ?? 300, 199) /* BOOST-CAP-199-1016 */ : (cp.carrier?.rangeMax ?? 300));
           if (typeof cp.rangePlan === "string" && cp.rangePlan !== "") {
             setRangePlanId(cp.rangePlan);
           } else if (cp.carrier?.rangePlan) {
@@ -583,7 +583,7 @@ const DynamicCarrier = ({
   const rangeAmountValid = amountProblem === null;
   const amountMessage =
     amountProblem === "range"
-      ? tr.invalidAmount(rangeMin, rangeMax)
+      ? (carrierSlug === "boost" && amountNum > 199 ? (lang === "es" ? "Pagos de Boost: máximo $199" : "Boost payments max $199") /* BOOST-CAP-199-1016 */ : tr.invalidAmount(rangeMin, rangeMax))
       : amountProblem === "step"
       ? wholeDollarMessage(lang, amountNum)
       : null;
