@@ -130,6 +130,17 @@ const normalizeHighlight = (raw: string, amount: number): string => {
   return cleaned;
 };
 
+// PLAN-RANGES-1016: per-carrier amount limits on top of the API range, hidden plans, and range messages.
+const PR_LIMITS: Record<string, { min?: number; max: number }> = { "topup-at": { min: 15, max: 100 }, verizon: { min: 15, max: 150 }, boost: { max: 199 } }; // PLAN-RANGES-1016
+const prMin = (slug: string, apiMin: number): number => Math.max(apiMin, PR_LIMITS[slug]?.min ?? apiMin); // PLAN-RANGES-1016
+const prMax = (slug: string, apiMax: number): number => Math.min(apiMax, PR_LIMITS[slug]?.max ?? apiMax); // PLAN-RANGES-1016
+const prRangeMsg = (slug: string, lang: string): string | null => // PLAN-RANGES-1016
+  slug === "topup-at" ? (lang === "es" ? "Pagos de AT&T: de $15 a $100" : "AT&T payments: $15 to $100")
+  : slug === "verizon" ? (lang === "es" ? "Pagos de Verizon: de $15 a $150" : "Verizon payments: $15 to $150")
+  : null;
+const dropHiddenPlans = <T extends { plan_id: string; amount: number }>(slug: string, list: T[]): T[] => // PLAN-RANGES-1016
+  list.filter((p) => p.plan_id !== "8282" && !(PR_LIMITS[slug] && slug !== "boost" && p.amount > PR_LIMITS[slug].max));
+
 function normalizePlans(plans: Array<Record<string, unknown>>): NormalizedPlan[] {
   return plans.map((p) => {
     const id = String(p.plan_id || p.planId || p.id || p.ID || "");
@@ -463,10 +474,10 @@ const DynamicCarrier = ({
         //    Capture carrier_plans.carrier.id (or .ID) as the carrier id used for range purchases.
         if (cpRange && cp && !Array.isArray(cp)) {
           setShowRange(true);
-          setRangeMin(cp.carrier?.rangeMin ?? 5);
+          setRangeMin(prMin(carrierSlug, cp.carrier?.rangeMin ?? 5)); // PLAN-RANGES-1016
           // CS-1: CellPay's checkout rejects AT&T (topup-at) range-plan amounts over $150 ("Invalid amout for the range plan."),
           // even when carriers/view says 300 (www.cellpay.us). refill.cellpay.us already gets 150 from the API.
-          setRangeMax(carrierSlug === "topup-at" ? Math.min(cp.carrier?.rangeMax ?? 300, 150) : carrierSlug === "boost" ? Math.min(cp.carrier?.rangeMax ?? 300, 199) /* BOOST-CAP-199-1016 */ : (cp.carrier?.rangeMax ?? 300));
+          setRangeMax(carrierSlug === "topup-at" || carrierSlug === "verizon" ? prMax(carrierSlug, cp.carrier?.rangeMax ?? 300) /* PLAN-RANGES-1016 */ : carrierSlug === "boost" ? Math.min(cp.carrier?.rangeMax ?? 300, 199) /* BOOST-CAP-199-1016 */ : (cp.carrier?.rangeMax ?? 300));
           if (typeof cp.rangePlan === "string" && cp.rangePlan !== "") {
             setRangePlanId(cp.rangePlan);
           } else if (cp.carrier?.rangePlan) {
@@ -485,18 +496,18 @@ const DynamicCarrier = ({
         //    Each entry's `carrier` field holds the carrier id to send for that plan.
         if (fpRange && fp && !Array.isArray(fp) && Array.isArray(fp.plans) && fp.plans.length > 0) {
           setShowFixedPlans(true);
-          setPlans(normalizePlans(fp.plans));
+          setPlans(dropHiddenPlans(carrierSlug, normalizePlans(fp.plans))); // PLAN-RANGES-1016
         } else if (Array.isArray(fp) && fp.length > 0) {
           setShowFixedPlans(true);
-          setPlans(normalizePlans(fp as Array<Record<string, unknown>>));
+          setPlans(dropHiddenPlans(carrierSlug, normalizePlans(fp as Array<Record<string, unknown>>))); // PLAN-RANGES-1016
         } else if (cp && !cpRange) {
           // Fallback to carrier_plans for fixed plan list when fixed_plans is absent
           if (Array.isArray(cp)) {
             setShowFixedPlans(true);
-            setPlans(normalizePlans(cp as Array<Record<string, unknown>>));
+            setPlans(dropHiddenPlans(carrierSlug, normalizePlans(cp as Array<Record<string, unknown>>))); // PLAN-RANGES-1016
           } else if (Array.isArray(cp.plans) && cp.plans.length > 0) {
             setShowFixedPlans(true);
-            setPlans(normalizePlans(cp.plans));
+            setPlans(dropHiddenPlans(carrierSlug, normalizePlans(cp.plans))); // PLAN-RANGES-1016
           }
         } else {
           setShowFixedPlans(false);
@@ -583,7 +594,7 @@ const DynamicCarrier = ({
   const rangeAmountValid = amountProblem === null;
   const amountMessage =
     amountProblem === "range"
-      ? (carrierSlug === "boost" && amountNum > 199 ? (lang === "es" ? "Pagos de Boost: máximo $199" : "Boost payments max $199") /* BOOST-CAP-199-1016 */ : tr.invalidAmount(rangeMin, rangeMax))
+      ? (carrierSlug === "boost" && amountNum > 199 ? (lang === "es" ? "Pagos de Boost: máximo $199" : "Boost payments max $199") /* BOOST-CAP-199-1016 */ : (prRangeMsg(carrierSlug, lang) ?? tr.invalidAmount(rangeMin, rangeMax)) /* PLAN-RANGES-1016 */)
       : amountProblem === "step"
       ? wholeDollarMessage(lang, amountNum)
       : null;

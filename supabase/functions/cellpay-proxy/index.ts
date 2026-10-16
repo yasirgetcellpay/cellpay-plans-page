@@ -1568,6 +1568,96 @@ async function dedupeClaim(p: Record<string, unknown>, method: string | null): P
 // Marks ONLY on that result: never on declines, throttles, validation errors, non-JSON/gateway pages (504) or timeouts.
 const REFILL_COOLDOWN_S = 600;
 const REFILL_ERROR_RE = /error during refill|auto[- ]?refunded/i;
+
+// PLAN-RANGES-1016: plan_guard. Server amount check against carriers/view hub data BEFORE anything is sent to CellPay. Fail-open on hub errors.
+type PlanGuardResult = { ok: boolean; reason?: string; message?: string; source: "hub" | "cache" | "failopen" | "none" }; // PLAN-RANGES-1016
+const PG_CACHE = new Map<string, { at: number; data: Record<string, unknown> }>(); // PLAN-RANGES-1016
+const PG_TTL_MS = 10 * 60 * 1000; // PLAN-RANGES-1016
+const PG_RANGE_OVERRIDES: Record<string, { min?: number; max?: number }> = { "66666": { max: 199 }, "23915": { min: 15, max: 100 }, "291945": { min: 15, max: 150 } }; // PLAN-RANGES-1016
+const PG_MSG_FIXED = { en: "This plan amount is not available. Please choose a plan from the list.", es: "Este monto no está disponible. Elija un plan de la lista." }; // PLAN-RANGES-1016
+async function pgHub(slug: string, headers: Record<string, string>): Promise<{ data: Record<string, unknown> | null; source: "hub" | "cache" }> { // PLAN-RANGES-1016
+  const c = PG_CACHE.get(slug);
+  if (c && Date.now() - c.at < PG_TTL_MS) return { data: c.data, source: "cache" };
+  const res = await fetch(`${API_BASE}/carriers/view/${encodeURIComponent(slug)}`, { method: "GET", headers, signal: AbortSignal.timeout(2000) });
+  if (!res.ok) { await res.body?.cancel(); return { data: null, source: "hub" }; }
+  const raw = await res.json() as Record<string, unknown>;
+  let d = (raw && typeof raw.data === "object" && raw.data ? raw.data : raw) as Record<string, unknown>;
+  if (d && d.data && typeof d.data === "object" && !Array.isArray(d.data)) d = d.data as Record<string, unknown>;
+  if (!d || typeof d !== "object" || d.carrier_plans == null) return { data: null, source: "hub" };
+  PG_CACHE.set(slug, { at: Date.now(), data: d });
+  return { data: d, source: "hub" };
+}
+async function planGuard(pr: Record<string, unknown>, headers: Record<string, string>, lang: unknown): Promise<PlanGuardResult> { // PLAN-RANGES-1016
+  const es = lang === "es";
+  const slug = String(pr.carrier_slug ?? "").trim().toLowerCase();
+  const plan = String(pr.plan_id ?? pr.planId ?? "").trim();
+  const amt = Number(pr.amount ?? pr.refill_amount ?? NaN);
+  if (plan === "8282") return { ok: false, reason: "h2o_8282", message: es ? "Este plan no está disponible ahora. Elija otro plan." : "This plan is not available right now. Please choose another plan.", source: "none" };
+  if (!slug || !plan || !Number.isFinite(amt)) return { ok: true, source: "none" };
+  let hub: { data: Record<string, unknown> | null; source: "hub" | "cache" };
+  try { hub = await pgHub(slug, headers); } catch { hub = { data: null, source: "hub" }; }
+  if (!hub.data) { recordGuardEvent({ code: "plan_guard_failopen", method: "POST", endpoint_shape: `checkout/transaction#${slug}:${plan}:${amt}` }); return { ok: true, source: "failopen" }; }
+  const cpAny = hub.data.carrier_plans as unknown;
+  const cp = (cpAny && typeof cpAny === "object" ? cpAny : {}) as Record<string, unknown>;
+  const cpCarrier = (!Array.isArray(cpAny) && cp.carrier && typeof cp.carrier === "object" ? cp.carrier : {}) as Record<string, unknown>;
+  let rangeId = "";
+  if (!Array.isArray(cpAny) && (cp.rangePlan === true || (typeof cp.rangePlan === "string" && cp.rangePlan !== ""))) {
+    rangeId = String(cpCarrier.rangePlan ?? (typeof cp.rangePlan === "string" ? cp.rangePlan : "") ?? "").trim();
+  }
+  const fixed = (Array.isArray(cpAny) ? cpAny : Array.isArray(cp.fixed_plans) ? cp.fixed_plans : Array.isArray(cp.plans) ? cp.plans : []) as Array<Record<string, unknown>>;
+  if (rangeId && plan === rangeId) {
+    let min = Number(cpCarrier.rangeMin ?? 5); let max = Number(cpCarrier.rangeMax ?? 300);
+    if (!Number.isFinite(min)) min = 5; if (!Number.isFinite(max)) max = 300;
+    const ov = PG_RANGE_OVERRIDES[plan];
+    if (ov?.min !== undefined) min = Math.max(min, ov.min);
+    if (ov?.max !== undefined) max = Math.min(max, ov.max);
+    const isBoost = plan === "66666" || slug === "boost" || slug === "bmobile";
+    if (isBoost) max = Math.min(max, 199);
+    if (amt < min || amt > max) {
+      const message = plan === "23915" || slug === "topup-at" ? (es ? "Pagos de AT&T: de $15 a $100" : "AT&T payments: $15 to $100")
+        : plan === "291945" || slug === "verizon" ? (es ? "Pagos de Verizon: de $15 a $150" : "Verizon payments: $15 to $150")
+        : isBoost ? (es ? "Pagos de Boost: máximo $199" : "Boost payments max $199")
+        : (es ? `Elija un monto de $${min} a $${max}.` : `Please choose an amount from $${min} to $${max}.`);
+      return { ok: false, reason: "range", message, source: hub.source };
+    }
+    return { ok: true, source: hub.source };
+  }
+  const item = fixed.find((f) => String(f.planId ?? f.plan_id ?? f.id ?? "").trim() === plan);
+  if (item) {
+    const pa = Number(item.amount ?? NaN);
+    if (Number.isFinite(pa) && Math.abs(amt - pa) > 0.01) return { ok: false, reason: "fixed_amount", message: es ? PG_MSG_FIXED.es : PG_MSG_FIXED.en, source: hub.source };
+    return { ok: true, source: hub.source };
+  }
+  if (rangeId || fixed.length > 0) return { ok: false, reason: "no_plan", message: es ? PG_MSG_FIXED.es : PG_MSG_FIXED.en, source: hub.source };
+  return { ok: true, source: hub.source };
+}
+function pgHeaders(apiKey: string, apiSecret: string, callerHost: string): Record<string, string> { // PLAN-RANGES-1016: same headers as the GET forward
+  return { "X-Api-Key": apiKey, "X-Api-Secret": apiSecret, "X-Cellpay-Domain": resolveCellpayDomain(callerHost), "Content-Type": "application/json", "Accept": "*/*" };
+}
+
+// PLAN-RANGES-1016: RETRY-BLOCK. Same phone + plan + amount got CellPay's refill-error result in the last 30 min -> refused. Fail-open (1 s).
+const RB_WINDOW_MS = 30 * 60 * 1000; // PLAN-RANGES-1016
+async function retryBlockCheck(pr: Record<string, unknown>): Promise<number | null> { // PLAN-RANGES-1016: seconds left, or null = allow
+  const rawPhone = String(pr.phone_number ?? "").trim();
+  let d = rawPhone.replace(/\D/g, ""); if (d.length === 11 && d.startsWith("1")) d = d.slice(1);
+  const plan = String(pr.plan_id ?? pr.planId ?? "").trim();
+  const amt = Number(pr.amount ?? pr.refill_amount ?? NaN);
+  if (!rawPhone || !d || !plan || !Number.isFinite(amt)) return null;
+  try {
+    const sk = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const phones = Array.from(new Set([rawPhone, d])).map((v) => `"${v.replace(/"/g, "")}"`).join(",");
+    const since = new Date(Date.now() - RB_WINDOW_MS).toISOString();
+    const q = `select=created_at,amount,status,error_message&phone_number=in.(${encodeURIComponent(phones)})&plan_id=eq.${encodeURIComponent(plan)}&status=eq.failed&created_at=gte.${encodeURIComponent(since)}&order=created_at.desc&limit=10`;
+    const r = await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/transaction_logs?${q}`, { headers: { apikey: sk, authorization: `Bearer ${sk}` }, signal: AbortSignal.timeout(1000) });
+    if (!r.ok) { await r.body?.cancel(); return null; }
+    const rows = await r.json();
+    if (!Array.isArray(rows)) return null;
+    const hit = rows.find((row: Record<string, unknown>) => Math.abs(Number(row.amount) - amt) <= 0.01 && REFILL_ERROR_RE.test(String(row.error_message ?? "")));
+    if (!hit) return null;
+    const left = Math.ceil((Date.parse(String(hit.created_at)) + RB_WINDOW_MS - Date.now()) / 1000);
+    return Number.isFinite(left) && left > 0 ? left : null;
+  } catch { return null; }
+}
 const REFILL_COOLDOWN_MSG = "This plan couldn't be refilled just now. Your earlier attempt didn't go through; any pending charge from it will drop off. Please try again in about 10 minutes or choose a different plan.";
 
 async function refillCooldownKey(p: Record<string, unknown>): Promise<string | null> {
@@ -2383,6 +2473,11 @@ serve(async (req) => {
     if (typeof endpoint !== "string" || typeof method !== "string" || !GUARD_METHODS.has(method.toUpperCase())) {
       return guardRefusal(corsHeaders, 400, "invalid_request", method, endpoint, guardOrigin);
     }
+    // PLAN-RANGES-1016: dry-run plan_guard check for our gates; never forwards, never writes a row.
+    if (endpoint === "plan-guard/check" && method.toUpperCase() === "POST") {
+      const pgr = await planGuard(asRecord(payload), pgHeaders(apiKey, apiSecret, callerHost), (body as Record<string, unknown>)?.lang);
+      return new Response(JSON.stringify({ ok: pgr.ok, reason: pgr.reason ?? null, message: pgr.message ?? null, source: pgr.source === "none" ? "hub" : pgr.source }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     // [autopay AP-1] The single restored route (exact endpoint + method). Anything else under autopay/*,
     // and transactions/last, still falls through to the 1a "retired" 403 below.
     if (AP1_ROUTE_ENABLED && endpoint === AP1_ENDPOINT && method === "POST") {
@@ -2475,6 +2570,17 @@ serve(async (req) => {
       const bAmt = Number(payloadRecord.amount ?? payloadRecord.refill_amount ?? NaN);
       if ((bPlan === "66666" || bSlug === "boost") && Number.isFinite(bAmt) && bAmt > 199) { // BOOST-CAP-199-1016
         return new Response(JSON.stringify({ success: false, message: "Boost payments max $199" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+    // PLAN-RANGES-1016: plan_guard before PayPal checks, guards, the log row and the CellPay fetch.
+    if (shouldLogTransaction) {
+      const pgr = await planGuard(payloadRecord, headers, (body as Record<string, unknown>)?.lang);
+      if (!pgr.ok) {
+        const pgSlug = String(payloadRecord.carrier_slug ?? "").trim().toLowerCase();
+        const pgPlan = String(payloadRecord.plan_id ?? payloadRecord.planId ?? "").trim();
+        const pgAmt = Number(payloadRecord.amount ?? payloadRecord.refill_amount ?? NaN);
+        recordGuardEvent({ code: `plan_guard:${pgr.reason}`, method: "POST", endpoint_shape: `checkout/transaction#${pgSlug}:${pgPlan}:${pgAmt}`, origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null });
+        return new Response(JSON.stringify({ success: false, blocked: true, code: "PLAN_GUARD", reason: pgr.reason, message: pgr.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
     const isPayPalTx = shouldLogTransaction && (paymentMethod || "").toLowerCase() === "paypal";
@@ -2594,6 +2700,22 @@ serve(async (req) => {
           }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       } catch { /* vel1 fails open */ }
+    }
+    // PLAN-RANGES-1016: RETRY-BLOCK (30 min, same phone + plan + amount after CellPay's refill-error result). Before Fix F. Fail-open.
+    if (shouldLogTransaction) {
+      const rbLeft = await retryBlockCheck(payloadRecord);
+      if (rbLeft !== null) {
+        const rbSlug = String(payloadRecord.carrier_slug ?? "").trim().toLowerCase();
+        const rbPlan = String(payloadRecord.plan_id ?? payloadRecord.planId ?? "").trim();
+        const rbAmt = Number(payloadRecord.amount ?? payloadRecord.refill_amount ?? NaN);
+        const rbEs = (body as Record<string, unknown>)?.lang === "es";
+        const rbPay = ["metropcs", "boost", "bmobile", "topup-crc"].includes(rbSlug);
+        const rbMsg = rbPay
+          ? (rbEs ? "No pudimos completar este pago ahora. Intente más tarde o elija otro monto." : "This payment couldn't be completed right now. Please try again later or choose a different amount.")
+          : (rbEs ? "No pudimos completar esta recarga ahora. Intente más tarde o elija otro monto." : "This refill couldn't be completed right now. Please try again later or choose a different amount.");
+        recordGuardEvent({ code: "retry_block", method: "POST", endpoint_shape: `checkout/transaction#${rbSlug}:${rbPlan}:${rbAmt}`, origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null });
+        return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_BLOCK", retry_after: rbLeft, message: rbMsg }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
     // [refill-cooldown Fix F] Same phone + plan got CellPay's refill error in the last 10 min (refill_cooldown). Fail-open.
     // Calm 200 before the log and CellPay. Sits before the BL-3 dedupe claim, so a refused retry never takes a claim.

@@ -76,7 +76,7 @@ const Boost = () => {
           <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">Recharge Amount</label>
           <div className="relative mb-1">
             <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-            <input type="text" inputMode="numeric" value={amount} onChange={handleAmountChange} placeholder="$5 - $250"
+            <input type="text" inputMode="numeric" value={amount} onChange={handleAmountChange} placeholder="$5 - $199" /* PLAN-RANGES-1016 */
               className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(27,100%,50%)] focus:border-transparent text-center" />
           </div>
           <p className="text-[10px] sm:text-xs text-muted-foreground">Enter the amount you want to recharge</p>
