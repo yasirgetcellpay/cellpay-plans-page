@@ -267,6 +267,9 @@ const HTML_ROUTES = [
   // AEO-09-NET10-1015: Net10 Wireless how-to-pay pages
   "how-to-pay/net10/index.html",
   "es/como-pagar/net10/index.html",
+  // AEO-10-H2O-1016: H2O Wireless how-to-pay pages
+  "how-to-pay/h2o/index.html",
+  "es/como-pagar/h2o/index.html",
   // AI-ANSWERS-1014: amount answer pages
   "how-to-pay/boost-mobile/25/index.html",
   "es/como-pagar/boost-mobile/25/index.html",
@@ -1812,6 +1815,7 @@ const htmlAliasPlugin = (): Plugin => ({
           `<p style="font-size:16px;line-height:1.55;margin:0;color:#334155">${escAttr(GO_SHELLS.has(route) ? goFeeCopy(guest.intro) : guest.intro)}</p>` +
           (route === "guest-boost.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/how-to-pay/boost-mobile" style="text-decoration:underline">How to pay Boost Mobile</a></p>` : "") + // SEO-CONTENT-1014
           (route === "guest-net10.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/how-to-pay/net10" style="text-decoration:underline">How to pay Net10 Wireless</a></p>` : "") + // AEO-09-NET10-1015
+          (route === "guest-h2o.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/how-to-pay/h2o" style="text-decoration:underline">How to pay H2O</a></p>` : "") + // AEO-10-H2O-1016
           `</main>` +
           `</div>`;
         out = out.replace(/<div id="root"><\/div>/i, prerender);
