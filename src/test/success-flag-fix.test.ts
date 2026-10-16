@@ -47,6 +47,43 @@ describe("SUCCESS-FLAG-FIX-1016", () => {
     expect(context.refundSuccessMarker({ success: true, data: { status: false, message: "Declined" } })).toBeNull();
   });
 
+  // SUCCESS-FLAG-FIX-1016: exercise the real post-fetch pipeline with in-memory logging doubles; no order/DB writes.
+  const pipeline = proxy.slice(proxy.indexOf("// Always return 200 so supabase.functions.invoke doesn't throw"), proxy.indexOf("// Pockyt Cash App session status polling"));
+  const runPipeline = async (upstream: unknown, pockyt = false) => {
+    const writes: Array<{ name: string; args: unknown[] }> = [];
+    const capture = (name: string) => (...args: unknown[]) => { writes.push({ name, args: structuredClone(args) }); };
+    const scope = { upstream, writes, structuredClone, response: { ok: true, status: 200 }, data: upstream, rawText: JSON.stringify(upstream), rawReplyParseFailed: false, shouldLogTransaction: true, isPockytCreate: pockyt, endpoint: "checkout/transaction", paymentMethod: pockyt ? "pockyt" : "cardpayment", txLogId: "new-order", refillKey: {}, payload: {}, payloadRecord: {}, callerHost: "", riskAction: "", isPlaidCheckout: false, isPayPalTx: false, req: { headers: { get: () => null } }, logRawCellPayReply: capture("raw"), logCarrierCheck: () => {}, refillCooldownRpc: capture("cooldown"), callDatabaseRpc: capture("finalize"), logDataErr: capture("dataFacts"), logCardFacts: capture("cardFacts"), finishTransactionLog: capture("ordinaryFinalize"), isRefillErrorResult: (wrapped: { data: { status?: boolean; message?: string } }) => wrapped.data.status === false && /error during refill/i.test(wrapped.data.message ?? "") };
+    const wrapped = await runInNewContext(compile(`
+      const asRecord = v => v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+      const text = v => typeof v === 'string' && v.trim() ? v.trim() : null;
+      ${helpers}
+      (async () => { ${pipeline} return wrapped; })();
+    `), scope);
+    return { wrapped, writes };
+  };
+  it("rewrites a new refund order, logs the original, marks failed and starts cooldown before failed card facts", async () => {
+    const upstream = { status: true, hashid: "must-not-reach-browser", nested: { message: "auto-refunded" } };
+    const { wrapped, writes } = await runPipeline(upstream);
+    expect(wrapped.data).toEqual({ status: false, message: "There was some error during refill. This transaction has been auto refunded.", refund_signal: true });
+    expect(writes.find(w => w.name === "raw")?.args[4]).toEqual(upstream);
+    expect(writes.find(w => w.name === "finalize")?.args[1]).toEqual({ _id: "new-order", _status: "failed", _hashid: null, _transaction_id: null, _error_message: wrapped.data.message, _raw_response: { ...upstream, refund_signal: true, refund_marker: "auto-refund" } });
+    expect(writes.find(w => w.name === "cooldown")?.args[0]).toBe("refill_cooldown_mark");
+    expect((writes.find(w => w.name === "cardFacts")?.args[2] as typeof wrapped).data.status).toBe(false);
+    expect(writes.some(w => w.name === "ordinaryFinalize")).toBe(false);
+  });
+  it("keeps normal success on its original finalization path", async () => {
+    const { wrapped, writes } = await runPipeline(normal);
+    expect(wrapped.data).toEqual(normal);
+    expect(writes.some(w => w.name === "ordinaryFinalize")).toBe(true);
+    expect(writes.some(w => w.name === "cooldown" || w.name === "finalize")).toBe(false);
+  });
+  it("does not rewrite Cash App/Pockyt session-create replies", async () => {
+    const upstream = { status: true, HostedURL: "session", message: "refund status" };
+    const { wrapped, writes } = await runPipeline(upstream, true);
+    expect(wrapped.data).toEqual(upstream);
+    expect(writes.some(w => w.name === "finalize")).toBe(false);
+  });
+
   const signalHelper = checkout.slice(checkout.indexOf("const hasRefundSignal"), checkout.indexOf("const setPurchasePending"));
   const handler = checkout.slice(checkout.indexOf("const handleResult ="), checkout.indexOf("// ─── Credit Card ───"));
   const runHandler = (raw: unknown) => {
