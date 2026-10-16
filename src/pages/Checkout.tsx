@@ -1887,7 +1887,7 @@ const Checkout = () => {
     const apRequest: Record<string, unknown> = {
       countryCode: "US",
       currencyCode: "USD",
-      supportedNetworks: ["visa", "masterCard", "amex", "discover"],
+      supportedNetworks: ["visa", "masterCard", "amex"], // APPLEPAY-DISCOVER-1016: CellPay rejects Apple Pay Discover ("fields contain invalid data", 0 successes since Oct 1)
       merchantCapabilities: ["supports3DS"],
       total: { label: displayName, amount: String(total) },
       requiredBillingContactFields: ["postalAddress", "email", "phone"],

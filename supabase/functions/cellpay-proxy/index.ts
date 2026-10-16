@@ -152,13 +152,14 @@ async function logDataErr(id: string | null, payload: Record<string, unknown>, w
     const pay = asRecord(payload.payment);
     const bill = asRecord(payload.billing);
     const pick = (...vals: unknown[]): string => { for (const v of vals) if (typeof v === "string" && v.trim()) return v.trim(); return ""; };
-    const fn = pick(payload.first_name, pay.first_name, pay.firstname, bill.first_name);
-    const ln = pick(payload.last_name, pay.last_name, pay.lastname, bill.last_name);
+    const fn = pick(pay.firstName, payload.first_name, pay.first_name, pay.firstname, bill.first_name);
+    const ln = pick(pay.lastName, payload.last_name, pay.last_name, pay.lastname, bill.last_name);
     const em = pick(payload.email, pay.email);
     const ad = pick(pay.address, payload.address, bill.street, bill.address, bill.street_address);
     const zp = pick(pay.zip, payload.zip, bill.zip, bill.postal_code);
     const ci = pick(pay.city, payload.city, bill.city);
     const st = pick(pay.state, payload.state, bill.state);
+    const apc = cardFactJson(payload.apple_pay_billing_contact); const apt = asRecord(cardFactJson(payload.apple_pay_token).paymentMethod); // APPLEPAY-DISCOVER-1016 (display fields only, never paymentData)
     const num = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
     const patch = {
       data_err_payload: {
@@ -167,6 +168,9 @@ async function logDataErr(id: string | null, payload: Record<string, unknown>, w
         first_name_len: fn.length, last_name_len: ln.length, name_has_non_ascii: /[^\x20-\x7E]/.test(fn + ln),
         email_len: em.length, address_len: ad.length, address_present: ad.length > 0, zip_present: zp.length > 0, zip_len: zp.length,
         city_len: ci.length, state: /^[A-Za-z]{2}$/.test(st) ? st.toUpperCase() : null,
+        amount_raw_type: typeof payload.amount, amount_str: String(payload.amount ?? "").slice(0, 12),
+        ap_network: text(apt.network), ap_funding: text(apt.type),
+        ap_contact_has_lines: Array.isArray(apc.addressLines) && apc.addressLines.length > 0, ap_contact_zip_len: String(apc.postalCode ?? "").length, ap_contact_country: text(apc.countryCode), ap_contact_name_len: (String(apc.givenName ?? "") + String(apc.familyName ?? "")).length, // APPLEPAY-DISCOVER-1016
       },
       data_err_msg_shown: true,
     };
