@@ -2907,6 +2907,9 @@ serve(async (req) => {
       data = { raw: rawText, parseError: true };
     }
 
+    if (isPayPalTx) ppScrub(data); // SUCCESS-FLAG-FIX-1016
+    if (isPlaidCheckout) scrubPlaidSecrets(data); // SUCCESS-FLAG-FIX-1016
+
     // Always return 200 so supabase.functions.invoke doesn't throw
     let wrapped: Record<string, unknown> = response.ok
       ? { success: true, data }
