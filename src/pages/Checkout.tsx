@@ -7,7 +7,7 @@ import { PaymentMethodPicker } from "@/components/PaymentMethodPicker"; // METHO
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react"; // CARRIER-ASSIST-1011
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
-import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry, markWalletDeclined, walletDeclined, getDeclineAb } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014C: + wallet block // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry
+import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry, markWalletDeclined, walletDeclined, getDeclineAb, declineHint } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014C: + wallet block // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry // DECLINE-MSGS-1016
 import { AP_LAST_KEY } from "@/components/AutoPayReceiptCard";
 import { PLAID_ENABLED, PAYPAL_ENABLED } from "@/config/paymentFlags";
 // [PAYPAL-REBUILD-1009] QA only: ?pp_qa=1 shows the PayPal tile in this tab while PAYPAL_ENABLED is false (?pp_qa=0 clears it).
@@ -3053,7 +3053,7 @@ const Checkout = () => {
               const btn = "w-full px-4 py-2.5 rounded-lg font-bold text-sm";
               const isCard = declineInfo.method === "card";
               const noRetry = noSameRetry(declineInfo.msg || "", declineInfo.method) || declineInfo.method === "applepay" || declineInfo.method === "googlepay"; // DECLINE-RECOVERY-1014B // DECLINE-RECOVERY-1014C: no same-wallet retry
-              const hint = sessCap ? dc.capSession : capped && declineInfo.cls !== "blocked" ? dc.capReached : dc[declineInfo.cls]; // DECLINE-RECOVERY-1014
+              const hint = sessCap ? dc.capSession : capped && declineInfo.cls !== "blocked" ? dc.capReached : (declineHint(declineInfo.msg || "", lang) ?? dc[declineInfo.cls]); // DECLINE-RECOVERY-1014 // DECLINE-MSGS-1016
               const walletFirst = isCard && !sessCap; // DECLINE-LEVERS-1015-D1
               const isAndroidUA = typeof navigator !== "undefined" && /Android/.test(navigator.userAgent); // DECLINE-LEVERS-1015-D1
               const showAp = !sessCap && applePayAvailable && offered.has("applepay") && !walletBlocked.includes("applepay") && !(noRetry && declineInfo.method === "applepay"); // DECLINE-LEVERS-1015-D1
