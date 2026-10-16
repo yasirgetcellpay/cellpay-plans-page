@@ -265,7 +265,9 @@ function refundSignal(body: unknown): string | null {
     }
     return null;
   };
-  return visit(body) ?? (asRecord(asRecord(asRecord(body).data).data).status === false || asRecord(asRecord(body).data).status === false && asRecord(body).status !== undefined ? "data.data.status:false" : null);
+  const root = asRecord(body); // SUCCESS-FLAG-FIX-1016: support both direct and success/data-wrapped upstream replies.
+  const data = asRecord(root.data);
+  return visit(body) ?? (asRecord(data.data).status === false || (root.status !== undefined && data.status === false) ? "data.data.status:false" : null);
 }
 
 // SUCCESS-FLAG-FIX-1016: preserve ordinary failures and successful replies exactly; only override apparent success.
