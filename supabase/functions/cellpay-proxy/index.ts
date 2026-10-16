@@ -2302,10 +2302,10 @@ function logRawCellPayReply(txLogId: string | null, endpoint: string, httpStatus
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!supabaseUrl || !serviceKey) return;
     // Also cover aliases that do not contain the requested sensitive-key terms; never retain card data or wallet cryptograms.
-    const sensitiveKey = /card|cvv|cvc|exp|token|nonce|secret|password|account_number|routing|plaid|approval|cc_?number|payment_?data|cryptogram|signature|security_?code/i;
+    const sensitiveKey = /card|cvv|cvc|exp|token|nonce|secret|password|account_number|routing|plaid|approval|profile|cc_?number|payment_?data|cryptogram|signature|security_?code/i;
     const scrubText = (value: string): string => value
       .replace(/\d{12,}/g, "[redacted]")
-      .replace(/\b(?:[\w.-]*(?:card|cvv|cvc|exp|token|nonce|secret|password|account_number|routing|plaid|approval|cc_?number|payment_?data|cryptogram|signature|security_?code)[\w.-]*)\s*[=:]\s*(?:"[^"\r\n]*"|'[^'\r\n]*'|[^\s,;&<>]+)/gi, "[redacted]");
+      .replace(/\b(?:[\w.-]*(?:card|cvv|cvc|exp|token|nonce|secret|password|account_number|routing|plaid|approval|profile|cc_?number|payment_?data|cryptogram|signature|security_?code)[\w.-]*)\s*[=:]\s*(?:"[^"\r\n]*"|'[^'\r\n]*'|[^\s,;&<>]+)/gi, "[redacted]");
     const scrubCopy = (value: unknown): unknown => {
       if (Array.isArray(value)) return value.map(scrubCopy);
       if (value && typeof value === "object") {
