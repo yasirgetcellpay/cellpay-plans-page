@@ -1,3 +1,4 @@
+/// <reference types="node" />
 // SUCCESS-FLAG-FIX-1016: regression rules use actual helper/handler code without starting the payment function.
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
