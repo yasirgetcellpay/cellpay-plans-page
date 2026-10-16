@@ -141,6 +141,20 @@ function retryMetaFrom(v: unknown): Record<string, unknown> {
   }
 }
 
+// CONSENT-EVERY-ATTEMPT-1016: record checkout consent on the attempt's log row in the background. Never blocks, never throws, never sent to CellPay.
+function consentPatchLater(id: string | null, v: unknown): void {
+  try {
+    if (!id) return;
+    const r = asRecord(v);
+    if (r.mkt_consent !== true) return;
+    const bl = typeof r.browser_language === "string" && /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(r.browser_language.slice(0, 35)) ? r.browser_language.slice(0, 35) : null;
+    void Promise.race([
+      callDatabaseRpc("record_attempt_marketing_opt_in", { _id: id, _browser_language: bl }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("db timeout")), 3000)),
+    ]).catch((e) => console.error("[tx-log] consent patch failed:", e instanceof Error ? e.message : e));
+  } catch { /* ignore */ }
+}
+
 // [OURSIDE-RETRY-1012] CellPay "data error" replies: masked outgoing details on the failed log row (lengths / flags only;
 // no card data, no tokens, no names, no address text). Merged atomically into metadata; never throws.
 const DATA_ERR_RE = /Validation failed|One or more fields in the request contains invalid data/i;
@@ -2780,6 +2794,7 @@ serve(async (req) => {
           mf ? await mfLogMeta(mf, null) : {})
       : null;
     if (mf && txLogId) mfIpPatchLater(txLogId, mfIpP); // [FRAUD-MULTIBLOCK-1012 FIX] mf_ip added in the background only
+    if (shouldLogTransaction && txLogId) consentPatchLater(txLogId, body.retry_meta); // CONSENT-EVERY-ATTEMPT-1016 (not awaited)
     if (shouldLogTransaction) velocityShadow(txLogId, payloadRecord, paymentMethod); // [VEL1-1007] log-only, not awaited
 
     // [plaid v2] Plaid checkout: claim the bound plaid_ref (single use, same order values) and send CellPay's v2 body only.
