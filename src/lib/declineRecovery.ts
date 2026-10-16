@@ -109,6 +109,10 @@ export const DECLINE_COPY = {
     close: "Close",
     walletFirst: "Faster ways to pay:", // DECLINE-LEVERS-1015-D1
     orCard: "Or use a card:", // DECLINE-LEVERS-1015-D1
+    abPrimaryAp: "Card declined? Pay with Apple Pay in one tap.", // DECLINE-AB-1016
+    abPrimaryGp: "Card declined? Pay with Google Pay in one tap.", // DECLINE-AB-1016
+    abKlarna: "Or pay with Klarna — no minimum.", // DECLINE-AB-1016
+    abTryCard: "Try card again", // DECLINE-AB-1016
   },
   es: {
     details: "Los datos de la tarjeta no coinciden con los de su banco. Revise el número, la fecha de vencimiento, el CVV (3 dígitos al reverso) y el código postal de facturación, y vuelva a intentar.", // DECLINE-RECOVERY-1014
@@ -133,5 +137,36 @@ export const DECLINE_COPY = {
     close: "Cerrar",
     walletFirst: "Formas más rápidas de pagar:", // DECLINE-LEVERS-1015-D1
     orCard: "O use una tarjeta:", // DECLINE-LEVERS-1015-D1
+    abPrimaryAp: "¿Tarjeta rechazada? Pague con Apple Pay en un toque.", // DECLINE-AB-1016
+    abPrimaryGp: "¿Tarjeta rechazada? Pague con Google Pay en un toque.", // DECLINE-AB-1016
+    abKlarna: "O pague con Klarna — sin mínimo.", // DECLINE-AB-1016
+    abTryCard: "Intentar con la tarjeta otra vez", // DECLINE-AB-1016
   },
 } as const;
+
+// DECLINE-AB-1016: sticky 50/50 decline-dialog assignment (session first, then per-phone localStorage). Never re-rolls in a session.
+export type DeclineAb = "control" | "variant";
+export const DECLINE_AB_SESSION_KEY = "cp_decline_ab_v1";
+export const DECLINE_AB_PHONE_PREFIX = "cp_decline_ab_phone_v1:";
+const isAb = (v: unknown): v is DeclineAb => v === "control" || v === "variant";
+export function declineAbPhoneKey(phone?: string): string | null {
+  const d = String(phone || "").replace(/\D/g, "");
+  return d.length >= 10 ? DECLINE_AB_PHONE_PREFIX + d : null;
+}
+export function readDeclineAb(phone?: string): DeclineAb | null {
+  try { const s = sessionStorage.getItem(DECLINE_AB_SESSION_KEY); if (isAb(s)) return s; } catch { /* ignore */ }
+  try { const k = declineAbPhoneKey(phone); if (k) { const p = localStorage.getItem(k); if (isAb(p)) return p; } } catch { /* ignore */ }
+  return null;
+}
+export function getDeclineAb(phoneDigits?: string): DeclineAb {
+  const k = declineAbPhoneKey(phoneDigits);
+  let s: string | null = null;
+  try { s = sessionStorage.getItem(DECLINE_AB_SESSION_KEY); } catch { /* ignore */ }
+  if (isAb(s)) { try { if (k && localStorage.getItem(k) !== s) localStorage.setItem(k, s); } catch { /* ignore */ } return s; }
+  let p: string | null = null;
+  try { p = k ? localStorage.getItem(k) : null; } catch { /* ignore */ }
+  const v: DeclineAb = isAb(p) ? p : Math.random() < 0.5 ? "control" : "variant";
+  try { sessionStorage.setItem(DECLINE_AB_SESSION_KEY, v); } catch { /* ignore */ }
+  try { if (k && !isAb(p)) localStorage.setItem(k, v); } catch { /* ignore */ }
+  return v;
+}

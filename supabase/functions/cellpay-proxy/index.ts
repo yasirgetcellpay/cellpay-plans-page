@@ -134,6 +134,7 @@ function retryMetaFrom(v: unknown): Record<string, unknown> {
     for (const k of ["retry_after_data_err", "method_switched", "retry_offered", "retry_clicked"]) if (r[k] === true) out[k] = true;
     if (r.retry_after_data_err === true && r.method_switched === false) out.method_switched = false;
     if (typeof r.prior_failed_method === "string" && ORS_METHOD_RE.test(r.prior_failed_method)) out.prior_failed_method = r.prior_failed_method;
+    if (typeof r.decline_ab === "string" && (r.decline_ab === "control" || r.decline_ab === "variant")) out.decline_ab = r.decline_ab; // DECLINE-AB-1016
     return out;
   } catch {
     return {};
