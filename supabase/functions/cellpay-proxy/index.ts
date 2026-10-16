@@ -2640,7 +2640,7 @@ serve(async (req) => {
       } catch { /* dedupe fails open */ }
     }
     const txLogId = shouldLogTransaction
-      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...retryMetaFrom(body.retry_meta), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}) }, clickIdsFrom(body.click_ids),
+      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...retryMetaFrom(body.retry_meta), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}), ...namesSentMeta(payloadRecord) /* ACCENT-FOLD-1015C */ }, clickIdsFrom(body.click_ids),
           mf ? await mfLogMeta(mf, null) : {})
       : null;
     if (mf && txLogId) mfIpPatchLater(txLogId, mfIpP); // [FRAUD-MULTIBLOCK-1012 FIX] mf_ip added in the background only
