@@ -249,6 +249,37 @@ async function createTransactionLog(
   }
 }
 
+// SUCCESS-FLAG-FIX-1016: inspect the full parsed upstream body; markers contain no customer/payment values.
+const REFUND_FAILURE_MESSAGE = "There was some error during refill. This transaction has been auto refunded.";
+function refundSignal(body: unknown): string | null {
+  if (asRecord(body).parseError === true || asRecord(asRecord(body).data).parseError === true) return null;
+  const failureText = /auto[\s-]?refund|refunded|refund status|error during refill|invalid (phone )?number|invalid plan|invalid amount|plan does not match|prepaid_number|not qualify/i;
+  const visit = (value: unknown): string | null => {
+    if (typeof value === "string") return value.match(failureText)?.[0].toLowerCase() ?? null;
+    if (!value || typeof value !== "object") return null;
+    for (const [key, item] of Object.entries(value)) {
+      if (/^Result$/i.test(key) && String(item).trim().toLowerCase() !== "success") return "Result:not_success";
+      if (/^TransResult$/i.test(key) && String(item).trim().toLowerCase() !== "ok") return "TransResult:not_ok";
+      const marker = visit(item);
+      if (marker) return marker;
+    }
+    return null;
+  };
+  const root = asRecord(body); // SUCCESS-FLAG-FIX-1016: support both direct and success/data-wrapped upstream replies.
+  const data = asRecord(root.data);
+  return visit(body) ?? (asRecord(data.data).status === false || (root.status !== undefined && data.status === false) ? "data.data.status:false" : null);
+}
+
+// SUCCESS-FLAG-FIX-1016: preserve ordinary failures and successful replies exactly; only override apparent success.
+function refundSuccessMarker(wrapped: Record<string, unknown>): string | null {
+  if (wrapped.success !== true) return null;
+  const upstream = asRecord(wrapped.data);
+  const result = unwrapTransactionResult(wrapped);
+  const successStatus = (status: unknown) => status === true || ["true", "success", "completed"].includes(String(status ?? "").toLowerCase());
+  if (!successStatus(upstream.status) && !successStatus(result.status) && !(upstream.success === true && text(result.transactionId ?? result.transaction_id))) return null;
+  return refundSignal(upstream);
+}
+
 function unwrapTransactionResult(wrapped: Record<string, unknown>): Record<string, unknown> {
   let result = asRecord(wrapped.data) || wrapped;
   if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
@@ -2218,9 +2249,12 @@ async function paypalAction(
   const rawText = await response.text();
   let data: unknown;
   try { data = JSON.parse(rawText); } catch { data = { raw: rawText, parseError: true }; }
-  const wrapped: Record<string, unknown> = response.ok
+  let wrapped: Record<string, unknown> = response.ok
     ? { success: true, data }
     : { success: false, error: (data as Record<string, unknown>)?.message || (data as Record<string, unknown>)?.error || "Request failed", data };
+  // SUCCESS-FLAG-FIX-1016: capture only; never change PayPal create-order or its retired-route guard.
+  const refundMarker = !isCreate ? refundSuccessMarker(wrapped) : null;
+  if (refundMarker) wrapped = { success: true, data: { status: false, message: REFUND_FAILURE_MESSAGE, refund_signal: true } };
   const r = unwrapTransactionResult(wrapped);
   const arb = (): Record<string, unknown> => arbLogMeta(lr, body.bearerToken, body.lang);
 
@@ -2265,7 +2299,7 @@ async function paypalAction(
       _hashid: ppDeep(wrapped, ["hashid"]),
       _transaction_id: ppDeep(wrapped, ["transactionId", "transaction_id"]),
       _error_message: paid ? null : (text(r.msg ?? r.message ?? wrapped.error) ?? (st ? `status:${st}` : "paypal_capture_failed")),
-      _raw_response: r,
+      _raw_response: refundMarker ? { ...asRecord(data), refund_signal: true, refund_marker: refundMarker } : r, // SUCCESS-FLAG-FIX-1016: original upstream audit
     };
     let res: Record<string, unknown> = {};
     const pendingId = text(meta.pending_log_id);
@@ -2874,9 +2908,15 @@ serve(async (req) => {
     }
 
     // Always return 200 so supabase.functions.invoke doesn't throw
-    const wrapped: Record<string, unknown> = response.ok
+    let wrapped: Record<string, unknown> = response.ok
       ? { success: true, data }
       : { success: false, error: (data as Record<string, unknown>)?.message || (data as Record<string, unknown>)?.error || "Request failed", data };
+
+    // SUCCESS-FLAG-FIX-1016: raw logger receives the original upstream body before any rewriting/scrubbing.
+    if (shouldLogTransaction) logRawCellPayReply(txLogId, endpoint, response.status, paymentMethod, data, rawText, rawReplyParseFailed);
+    const refundMarker = shouldLogTransaction && !isPockytCreate ? refundSuccessMarker(wrapped) : null;
+    const refundAudit = refundMarker ? { ...asRecord(data), refund_signal: true, refund_marker: refundMarker } : null;
+    if (refundMarker) wrapped = { success: true, data: { status: false, message: REFUND_FAILURE_MESSAGE, refund_signal: true } };
 
     logCarrierCheck(endpoint, response.status, wrapped, payload, callerHost); // [CARRIER-CHECK-LOG-1011] not awaited
     // [refill-cooldown Fix F] Start the 10-min cooldown ONLY on CellPay's refill-error result. Fail-open (1 s), response unchanged.
@@ -2900,9 +2940,12 @@ serve(async (req) => {
     }
 
     if (isPayPalTx) ppScrub(wrapped); // [PAYPAL-REBUILD-1009] never log or return PayPal approval secrets
-    if (shouldLogTransaction) logRawCellPayReply(txLogId, endpoint, response.status, paymentMethod, data, rawText, rawReplyParseFailed);
     if (shouldLogTransaction) {
-      await finishTransactionLog(txLogId, wrapped, paymentMethod);
+      // SUCCESS-FLAG-FIX-1016: finalize only this new failed order, retaining the full original reply for audit.
+      if (refundAudit && txLogId) {
+        try { await callDatabaseRpc("finalize_transaction_log", { _id: txLogId, _status: "failed", _hashid: null, _transaction_id: null, _error_message: REFUND_FAILURE_MESSAGE, _raw_response: refundAudit }); }
+        catch (error) { console.error("[tx-log] refund finalize failed:", error instanceof Error ? error.message : error); }
+      } else await finishTransactionLog(txLogId, wrapped, paymentMethod);
       await logDataErr(txLogId, payloadRecord, wrapped, paymentMethod); // [OURSIDE-RETRY-1012] masked, failed data-error rows only
       if (!isPlaidCheckout && /^(card|applepay|googlepay|klarna)/i.test(String(paymentMethod || ""))) await logCardFacts(txLogId, payloadRecord, wrapped, paymentMethod); // [CARDLOG-1007 v3] never throws
       if (txLogId) wrapped.pending_log_id = txLogId;

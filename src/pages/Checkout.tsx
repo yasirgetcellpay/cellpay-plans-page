@@ -172,6 +172,12 @@ const CarrierAssist = lazy(() => new Promise<{ default: React.ComponentType<impo
   else setTimeout(go, 1500);
 }));
 // CV-1b: write pending to sessionStorage AND a SameSite=Lax Secure cookie so Apple Pay / Cash App / redirect returns still match.
+// SUCCESS-FLAG-FIX-1016: explicit refund flags override every success status before any success side effect.
+const hasRefundSignal = (value: unknown): boolean => {
+  if (!value || typeof value !== "object") return false;
+  const obj = value as Record<string, unknown>;
+  return obj.refund_signal === true || Object.values(obj).some(hasRefundSignal);
+};
 const setPurchasePending = (hid: string) => {
   if (!hid) return;
   try { sessionStorage.setItem("cp_purchase_pending", String(hid)); } catch { /* storage unavailable */ }
@@ -1001,6 +1007,8 @@ const Checkout = () => {
           r = inner.data && typeof inner.data === "object" && !Array.isArray(inner.data) ? inner.data as Record<string, unknown> : inner;
         }
         const st = String(r.status ?? "").toLowerCase();
+        // SUCCESS-FLAG-FIX-1016: confirmed refunds use the shared refund card, never the PayPal paid/checking panel.
+        if (hasRefundSignal(raw) || /error during refill|auto[\s-]?refund/i.test(String(r.msg || r.message || ""))) { handleResult(raw); return; }
         const ok = raw.success !== false && (r.status === true || st === "true" || st === "success" || st === "completed");
         const deepId = (v: unknown, d = 0): string => {
           if (!v || typeof v !== "object" || Array.isArray(v) || d > 5) return "";
@@ -1492,7 +1500,8 @@ const Checkout = () => {
       }
     }
     const status = result.status;
-    const isSuccess = status === true || status === "true" || String(status || "").toLowerCase() === "success" || String(status || "").toLowerCase() === "completed";
+    const failedRefill = hasRefundSignal(raw) || /error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")); // SUCCESS-FLAG-FIX-1016
+    const isSuccess = !failedRefill && (status === true || status === "true" || String(status || "").toLowerCase() === "success" || String(status || "").toLowerCase() === "completed"); // SUCCESS-FLAG-FIX-1016
     if (isSuccess) {
       const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
       // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1b: sessionStorage + cookie).
@@ -1511,7 +1520,7 @@ const Checkout = () => {
     } else {
       // DUPCHARGE-FOLLOWUPS-1008: DUP_CONFIRM / IN_FLIGHT already opened our own dialog (submitTransaction wrapper): no error box, not a decline.
       if (raw.code === "DUP_CONFIRM" || raw.code === "IN_FLIGHT") { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); return; }
-      const msg = (result.msg as string) || (result.message as string) || "Transaction failed";
+      const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Transaction failed"; // SUCCESS-FLAG-FIX-1016
       const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
       const autoRefund = /auto[\s-]?refund/i.test(msg);
       setShowNotChargedNote(!autoRefund && !txn);
@@ -2034,7 +2043,8 @@ const Checkout = () => {
           }
         }
 
-        const isSuccess = result.status === true || result.status === "true" || String(result.status || "").toLowerCase() === "success" || String(result.status || "").toLowerCase() === "completed";
+        const failedRefill = hasRefundSignal(raw) || /error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")); // SUCCESS-FLAG-FIX-1016
+        const isSuccess = !failedRefill && (result.status === true || result.status === "true" || String(result.status || "").toLowerCase() === "success" || String(result.status || "").toLowerCase() === "completed"); // SUCCESS-FLAG-FIX-1016
         if (isSuccess) {
           console.log("[ApplePay] transaction success");
           // DUPCHARGE-1008: if the sheet already closed (Apple's ~30 s limit), this throws; the order is paid, so still show it.
@@ -2053,7 +2063,7 @@ const Checkout = () => {
           try { session.completePayment({ status: session.STATUS_FAILURE }); } catch (e) { console.warn("[ApplePay] completePayment(failure) after the sheet closed", e); } // DUPCHARGE-1008
           // DUPCHARGE-FOLLOWUPS-1008: DUP_CONFIRM / IN_FLIGHT already opened our own dialog (submitTransaction wrapper): no error box.
           if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") {
-            const msg = (result.msg as string) || (result.message as string) || "Apple Pay transaction failed";
+            const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Apple Pay transaction failed"; // SUCCESS-FLAG-FIX-1016
             const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
             const autoRefund = /auto[\s-]?refund/i.test(msg);
             setShowNotChargedNote(!autoRefund && !txn);
@@ -3158,11 +3168,12 @@ const Checkout = () => {
         return (
           <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={close}>
             <div className="bg-card rounded-2xl p-5 max-w-sm w-full overflow-y-auto overscroll-contain text-center shadow-xl" style={{ maxHeight: "calc(100dvh - 2rem)" }} onClick={(e) => e.stopPropagation()} data-testid="refund-card">
-              <h3 className="text-xl font-bold text-foreground mb-2">{es ? "Le devolvimos su pago" : "Your payment was refunded"}</h3>
+              {/* SUCCESS-FLAG-FIX-1016: owner-approved refund-card title and text only. */}
+              <h3 className="text-xl font-bold text-foreground mb-2">{es ? "Recarga no completada" : "Refill not completed"}</h3>
               <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">
                 {es
-                  ? `No pudimos agregar esta recarga al número •••${last4} de ${carrier}, por eso su pago se devolvió automáticamente. Revise que sea una línea activa de ${carrier} y que eligió la compañía correcta.`
-                  : `We couldn't add this refill to ${carrier} number •••${last4}, so your payment was refunded automatically. Please check that this is an active ${carrier} line and that you picked the right carrier.`}
+                  ? `No pudimos agregar esta recarga al número de ${carrier} •••${last4}, así que no se le cobró. Si ve un cargo pendiente, su banco lo quita en 1 a 2 días. Revise el número y la compañía, y vuelva a intentar.`
+                  : `We couldn't add this refill to ${carrier} number •••${last4}, so you were not charged. If you see a pending amount, your bank removes it in 1-2 days. Please check the number and carrier, then try again.`}
               </p>
               <div className="space-y-2">
                 <button type="button" data-testid="refund-try-again" onClick={() => toCarrier(state.phone)} className={btn + " text-primary-foreground"} style={{ backgroundColor: brandColor }}>{es ? "Intentar de nuevo" : "Try again"}</button>
