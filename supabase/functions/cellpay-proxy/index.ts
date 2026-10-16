@@ -2227,24 +2227,67 @@ function logCarrierCheck(endpoint: unknown, status: number, wrapped: Record<stri
 // [EMOJI-STRIP-1012] CellPay's billing DB (MySQL utf8, not utf8mb4) rejects 4-byte chars. Clean free-text fields only.
 const FREE_TEXT_KEYS = new Set(["first_name","firstname","last_name","lastname","name","full_name","fullname","billing_name","cardholder_name","card_holder_name","holder_name","givenname","familyname","email","emailaddress","address","address1","address2","address_line1","address_line2","street","street_address","addresslines","city","locality","sublocality","state","administrativearea","subadministrativearea","country_name","note","notes","comment","comments","memo","company"]);
 const SKIP_RECURSE = /token|paymentdata|signature|cryptogram|cp_dev|^mf|^mf_|fraud|risk|kount|riskified|cbsys|turnstile|gclid|gbraid|wbraid|amount|total|fee|price|_id$|^id$|hash/i;
-// ACCENT-FOLD-1015: ASCII-fold name fields in the body sent to CellPay only (logs/metadata keep the original).
+// ACCENT-FOLD-1015B
 const ASCII_NAME_KEY_RE = /^(first_?name|last_?name|given_?name|family_?name|full_?name|billing_?name|card_?holder_?name|holder_?name|name_?on_?card)$/i;
-const ASCII_MAP: Record<string,string> = { "ß":"ss","ẞ":"SS","æ":"ae","Æ":"AE","œ":"oe","Œ":"OE","ø":"o","Ø":"O","đ":"d","Đ":"D","ð":"d","Ð":"D","þ":"th","Þ":"TH","ł":"l","Ł":"L","ı":"i","ñ":"n","Ñ":"N","‘":"'","’":"'","ʼ":"'","´":"'","`":"'" };
+const ASCII_MAP: Record<string, string> = {
+  "ı": "i", "İ": "I", "ł": "l", "Ł": "L", "ø": "o", "Ø": "O", "đ": "d", "Đ": "D", "ð": "d", "Ð": "D",
+  "æ": "ae", "Æ": "AE", "œ": "oe", "Œ": "OE", "ß": "ss", "ẞ": "SS", "þ": "th", "Þ": "TH", "ħ": "h", "Ħ": "H",
+  "ŀ": "l", "Ŀ": "L", "ŧ": "t", "Ŧ": "T", "ŋ": "n", "Ŋ": "N", "ĸ": "k", "ſ": "s", "ƒ": "f", "ñ": "n", "Ñ": "N",
+  "‘": "'", "’": "'", "ʼ": "'", "´": "'", "`": "'", "‐": "-", "‑": "-", "–": "-", "—": "-",
+};
+const ASCII_MAP_RE = new RegExp("[" + Object.keys(ASCII_MAP).join("") + "]", "g");
 function toAsciiName(s: string): string {
-  const mapped = s.replace(/[ßẞæÆœŒøØđĐðÐþÞłŁıñÑ‘’ʼ´`]/g, (c) => ASCII_MAP[c] ?? "");
-  return mapped.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, "").replace(/ {2,}/g, " ").trim();
+  return String(s ?? "")
+    .replace(/[\p{Cf}\uFFFC\uFFFD\uFE00-\uFE0F\u20E3\u034F\u115F\u1160\u3164]/gu, "") // invisible chars removed outright
+    .replace(ASCII_MAP_RE, (c) => ASCII_MAP[c] ?? "")
+    .normalize("NFKD")                       // general fallback: compatibility + diacritic split (e.g. ﬁ -> fi, ｊ -> j)
+    .replace(/\p{M}/gu, "")                  // all combining marks
+    .replace(/[^A-Za-z0-9 .'\-]/g, " ")      // symbols, emoji, U+FFFC, zero-width, non-Latin scripts -> removed
+    .replace(/\s+/g, " ")
+    .replace(/^[\s.'\-]+|[\s.'\-]+$/g, "")   // no leading/trailing punctuation
+    .trim();
 }
-// Returns a deep COPY with name keys folded; never touches keys matching SKIP_RECURSE (tokens, signatures, amounts, ids).
+const hasLatin = (s: string) => /[A-Za-z]/.test(s);
+const FIRST_RE = /^(first_?name|given_?name)$/i, LAST_RE = /^(last_?name|family_?name)$/i;
+function foldNameFields(o: Record<string, unknown>): Record<string, string> {
+  const folded: Record<string, string> = {};
+  for (const [k, x] of Object.entries(o)) if (typeof x === "string" && ASCII_NAME_KEY_RE.test(k)) folded[k] = toAsciiName(x);
+  const keys = Object.keys(folded);
+  const fk = keys.find((k) => FIRST_RE.test(k)), lk = keys.find((k) => LAST_RE.test(k));
+  for (const k of keys) {
+    if (hasLatin(folded[k])) continue;
+    const other = k === fk && lk ? folded[lk] : k === lk && fk ? folded[fk] : "";
+    folded[k] = hasLatin(other) ? other : "Customer"; // never send an empty name
+  }
+  return folded;
+}
 function asciiNamesCopy(v: unknown, depth = 0): unknown {
   if (depth > 6 || v === null || typeof v !== "object") return v;
   if (Array.isArray(v)) return v.map((x) => asciiNamesCopy(x, depth + 1));
+  const src = v as Record<string, unknown>;
+  const folded = foldNameFields(src);
   const out: Record<string, unknown> = {};
-  for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
-    if (typeof x === "string" && ASCII_NAME_KEY_RE.test(k)) { const a = toAsciiName(x); out[k] = a || x; }
+  for (const [k, x] of Object.entries(src)) {
+    if (k in folded) out[k] = folded[k];
     else if (x && typeof x === "object" && !SKIP_RECURSE.test(k)) out[k] = asciiNamesCopy(x, depth + 1);
     else out[k] = x;
   }
   return out;
+}
+// ACCENT-FOLD-1015B: names as typed vs as sent to CellPay (same fold as the outbound body).
+function namesSentMeta(p: unknown): Record<string, unknown> {
+  try {
+    const rec = (p && typeof p === "object" ? p : {}) as Record<string, unknown>;
+    const pickNames = (r: Record<string, unknown>) => {
+      const pay = (r.payment && typeof r.payment === "object" ? r.payment : {}) as Record<string, unknown>;
+      const f = pay.firstName ?? pay.first_name ?? r.first_name; const l = pay.lastName ?? pay.last_name ?? r.last_name;
+      return { first: typeof f === "string" ? f : null, last: typeof l === "string" ? l : null };
+    };
+    const orig = pickNames(rec);
+    if (orig.first === null && orig.last === null) return {};
+    const sent = pickNames(asciiNamesCopy(rec) as Record<string, unknown>);
+    return { name_original: orig, name_sent_to_cellpay: sent, name_folded: orig.first !== sent.first || orig.last !== sent.last };
+  } catch { return {}; }
 }
 function asciiNamesBody(body: unknown): unknown {
   if (typeof body !== "string") return body;
