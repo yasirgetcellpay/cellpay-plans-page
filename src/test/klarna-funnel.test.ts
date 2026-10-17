@@ -10,7 +10,7 @@ const compile = (code: string) => ts.transpile(code, { target: ts.ScriptTarget.E
 const wrapper = readFileSync("src/services/apiWrapper.ts", "utf8");
 const storedRetryMeta = runInNewContext(compile(`${wrapper.slice(wrapper.indexOf("function storedRetryMeta("), wrapper.indexOf("export async function submitTransaction("))}; storedRetryMeta;`), { sessionStorage, localStorage, navigator, Date, readFunds, readKlarnaSrc });
 const phone = "2025550100";
-const beacon = vi.fn(() => true);
+const beacon = vi.fn((..._args: unknown[]) => true); // KLARNA-FUNNEL-1017
 Object.defineProperty(navigator, "sendBeacon", { configurable: true, writable: true, value: beacon }); // KLARNA-FUNNEL-1017: jsdom has no native beacon.
 beforeEach(() => {
   sessionStorage.clear(); localStorage.clear(); resetFunnel(); beacon.mockClear();
