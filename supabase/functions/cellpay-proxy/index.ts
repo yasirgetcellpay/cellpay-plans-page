@@ -1709,7 +1709,7 @@ async function planGuard(pr: Record<string, unknown>, headers: Record<string, st
   const slug = String(pr.carrier_slug ?? "").trim().toLowerCase();
   const plan = String(pr.plan_id ?? pr.planId ?? "").trim();
   const amt = Number(pr.amount ?? pr.refill_amount ?? NaN);
-  if (plan === "8282") return { ok: false, reason: "h2o_8282", message: es ? "Este plan no está disponible ahora. Elija otro plan." : "This plan is not available right now. Please choose another plan.", source: "none" };
+  if (plan === "8282" || plan === "325635") return { ok: false, reason: `h2o_${plan}`, message: es ? "Este plan no está disponible ahora. Elija otro plan." : "This plan is not available right now. Please choose another plan.", source: "none" }; // H2O-HIDE-325635-1017
   if (!slug || !plan || !Number.isFinite(amt)) return { ok: true, source: "none" };
   let hub: { data: Record<string, unknown> | null; source: "hub" | "cache" };
   try { hub = await pgHub(slug, headers); } catch { hub = { data: null, source: "hub" }; }
