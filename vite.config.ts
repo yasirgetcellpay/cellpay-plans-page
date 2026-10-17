@@ -363,6 +363,115 @@ const lcpFloor1010 = (src: string, outDir: string): string => {
   }
 };
 
+// CSS-CRIT-1017: /go landing shells (GO_SHELLS) inline only the CSS they can use: rules whose class selectors are all in the static
+// markup or in the app's JS chunks (page-only chunks like Admin/FAQ/HowToPay skipped), plus every rule with no class (base, :root,
+// @font-face, @keyframes). The full stylesheet (the same text LCP-FLOOR-1010 inlines, Open Sans face removed) loads non-blocking from
+// /assets/<name>.go.css (preload + onload swap, noscript fallback). Same rules in the same order, so once it loads the page is styled
+// exactly as before. Any problem keeps the page unchanged (full inline CSS). No JS, markup or checkout change.
+const CRIT_SKIP_CHUNK_1017 =
+  /^(Admin|AboutUs|ContactUs|DMCA|FAQ|HowToPay|HowToUse|PrivacyPolicy|ReturnsPolicy|TermsAndConditions|Switcher|PayHub|Orders|Profile|Login|ForgotPassword|EmailLinks)/;
+type GoCrit1017 = { full: string; href: string; jsTokens: Set<string> };
+const critCss1017 = (css: string, keep: Set<string>): string => {
+  const unesc = (s: string) => s.replace(/\\([0-9a-fA-F]{1,6})\s?|\\(.)/g, (_m, h, c) => (h ? String.fromCodePoint(parseInt(h, 16)) : c));
+  const splitTop = (sel: string): string[] => {
+    const parts: string[] = []; let d = 0, st = 0;
+    for (let k = 0; k < sel.length; k++) {
+      const c = sel[k];
+      if (c === "\\") { k++; continue; }
+      if (c === "(" || c === "[") d++;
+      else if (c === ")" || c === "]") d--;
+      else if (c === "," && d === 0) { parts.push(sel.slice(st, k)); st = k + 1; }
+    }
+    parts.push(sel.slice(st));
+    return parts;
+  };
+  const stripNot = (s: string): string => {
+    let r = "", k = 0;
+    while (k < s.length) {
+      if (s.startsWith(":not(", k)) {
+        let d = 1; k += 5;
+        while (k < s.length && d) { if (s[k] === "\\") k++; else if (s[k] === "(") d++; else if (s[k] === ")") d--; k++; }
+      } else { if (s[k] === "\\") { r += s[k]; k++; } r += s[k] || ""; k++; }
+    }
+    return r;
+  };
+  const selOk = (one: string): boolean => {
+    const s = stripNot(one); const re = /\.((?:\\[0-9a-fA-F]{1,6}\s?|\\.|[\w-])+)/g; let m: RegExpExecArray | null;
+    while ((m = re.exec(s))) if (!keep.has(unesc(m[1]))) return false;
+    return true;
+  };
+  const walk = (s: string): string => {
+    let res = "", i = 0;
+    while (i < s.length) {
+      const b = s.indexOf("{", i);
+      if (b < 0) { res += s.slice(i); break; }
+      const semi = s.indexOf(";", i);
+      if (s.slice(i, b).trimStart().startsWith("@") && semi >= 0 && semi < b) { res += s.slice(i, semi + 1); i = semi + 1; continue; }
+      let d = 1, j = b + 1;
+      while (j < s.length && d) {
+        const c = s[j];
+        if (c === '"' || c === "'") { j++; while (j < s.length && s[j] !== c) { if (s[j] === "\\") j++; j++; } }
+        else if (c === "{") d++;
+        else if (c === "}") d--;
+        j++;
+      }
+      const pre = s.slice(i, b), body = s.slice(b + 1, j - 1), p = pre.trim();
+      if (p.startsWith("@")) {
+        if (/^@(media|supports|layer|container)\b/.test(p)) { const inner = walk(body); if (inner.trim()) res += pre + "{" + inner + "}"; }
+        else res += pre + "{" + body + "}";
+      } else if (splitTop(pre).some(selOk)) res += pre + "{" + body + "}";
+      i = j;
+    }
+    return res;
+  };
+  return walk(css);
+};
+const goCritSetup1017 = (rawIndex: string, outDir: string): GoCrit1017 | null => {
+  try {
+    const link = /<link rel="stylesheet"[^>]*href="(\/assets\/index-[^"]+\.css)"[^>]*>/.exec(rawIndex);
+    if (!link) return null;
+    const cssFile = path.join(outDir, link[1]);
+    if (!fs.existsSync(cssFile)) return null;
+    const css = fs.readFileSync(cssFile, "utf-8");
+    const face = /@font-face\{font-family:Open Sans;[^}]*\}/;
+    if (!face.test(css) || /<\/style/i.test(css)) return null;
+    const full = css.replace(face, "");
+    const href = link[1].replace(/\.css$/, ".go.css");
+    fs.writeFileSync(path.join(outDir, href), full);
+    const jsTokens = new Set<string>();
+    const dir = path.join(outDir, "assets");
+    for (const f of fs.readdirSync(dir)) {
+      if (!f.endsWith(".js") || CRIT_SKIP_CHUNK_1017.test(f)) continue;
+      const txt = fs.readFileSync(path.join(dir, f), "utf-8").replace(/\\[nrt]/g, " ");
+      for (const t of txt.split(/[\s"'`]+/)) if (t) jsTokens.add(t);
+    }
+    return { full, href, jsTokens };
+  } catch {
+    return null;
+  }
+};
+const goCrit1017 = (out: string, setup: GoCrit1017 | null): string => {
+  try {
+    if (!setup) return out;
+    const tag = `<style>${setup.full}</style>`;
+    const at = out.indexOf(tag);
+    if (at < 0) return out;
+    const keep = new Set(setup.jsTokens);
+    const body = out.slice(out.indexOf("<body"));
+    const re = /\sclass="([^"]*)"/g; let m: RegExpExecArray | null;
+    while ((m = re.exec(body))) for (const c of m[1].split(/\s+/)) if (c) keep.add(c);
+    const crit = critCss1017(setup.full, keep);
+    if (!crit || crit.length >= setup.full.length || /<\/style/i.test(crit)) return out;
+    const head =
+      `<style>${crit}</style>` +
+      `<link rel="preload" href="${setup.href}" as="style" onload="this.onload=null;this.rel='stylesheet'">` +
+      `<noscript><link rel="stylesheet" href="${setup.href}"></noscript>`;
+    return out.slice(0, at) + head + out.slice(at + tag.length);
+  } catch {
+    return out;
+  }
+};
+
 const htmlAliasPlugin = (): Plugin => ({
   name: "lovable-html-route-aliases",
   apply: "build",
@@ -375,6 +484,7 @@ const htmlAliasPlugin = (): Plugin => ({
       );
     }
     const html = lcpFloor1010(fs.readFileSync(indexPath, "utf-8"), outDir); // LCP-FLOOR-1010
+    const goCritSetup = goCritSetup1017(fs.readFileSync(indexPath, "utf-8"), outDir); // CSS-CRIT-1017
     // Guest landing pages: H1 + intro paragraph injected into the static
     // shell body so crawlers (Google AdsBot, etc.) see real above-the-fold
     // content in raw HTML, not just after React hydration.
@@ -1828,6 +1938,7 @@ const htmlAliasPlugin = (): Plugin => ({
         out = out.replace(/<div id="root"><\/div>/i, prerender);
       }
 
+      if (goScreen && GO_SHELLS.has(route)) out = goCrit1017(out, goCritSetup); // CSS-CRIT-1017
       return out;
     };
 
