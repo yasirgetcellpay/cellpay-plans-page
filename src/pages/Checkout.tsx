@@ -38,6 +38,8 @@ import {
 } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
 import { loadTextFrom, loadReasonKind, loadReasonText, type LoadReasonKind } from "@/lib/loadTextReason"; // LOADTEXT-REASON-1017 // REFUNDED-STATE-1017
+import { isVerizonSlug, VZ_NOTE, VZ_NOTICE_MIN, vzBlockText } from "@/lib/vzPrepaid"; // VZ-PREPAID-GUARD-1017
+import { Button } from "@/components/ui/button"; // VZ-PREPAID-GUARD-1017
 import { applySeoHead } from "@/lib/seo";
 import { getGclid } from "@/lib/tracking";
 import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib/subdivisions";
@@ -724,6 +726,12 @@ const Checkout = () => {
   const [refundCard, setRefundCard] = useState(false);
   const [loadReason, setLoadReason] = useState<LoadReasonKind | null>(null); // LOADTEXT-REASON-1017
   const [unconfirmedCard, setUnconfirmedCard] = useState(false); // REFUNDED-STATE-1017
+  // VZ-PREPAID-GUARD-1017: an upstream call was prevented, not a payment decline.
+  const [vzBlock, setVzBlock] = useState<{ method: string } | null>(null);
+  const showVzBlock = (method: string) => {
+    setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setUnconfirmedCard(false);
+    setVzBlock({ method });
+  };
   const cardFormRef = useRef<HTMLDivElement>(null);
 
   // Klarna
@@ -1027,6 +1035,7 @@ const Checkout = () => {
       setSubmitting(true); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setUnconfirmedCard(false); // REFUNDED-STATE-1017
       try {
         const raw = (await submitTransaction(body) || {}) as Record<string, unknown>;
+        if (raw.code === "VZ_NOT_PREPAID") { showVzBlock("paypal"); return; } // VZ-PREPAID-GUARD-1017
         let r = raw;
         if (r.data && typeof r.data === "object" && !Array.isArray(r.data)) {
           const inner = r.data as Record<string, unknown>;
@@ -1133,6 +1142,7 @@ const Checkout = () => {
         ppConfirmedRef.current = ppDupOkRef.current; // [PAYPAL-REBUILD-1009] carried to checkout/transaction as dup_confirm
         ppDupOkRef.current = false;
         if (orderRaw.code === "BAD_PHONE") { badPhoneGo(); throw new Error("__PP_BLOCKED__"); } // REFUNDED-STATE-1017
+        if (orderRaw.code === "VZ_NOT_PREPAID") { showVzBlock("paypal"); throw new Error("__PP_BLOCKED__"); } // VZ-PREPAID-GUARD-1017
         if (orderRaw.blocked === true) {
           // Proxy guard (blocklist / refill cooldown): calm message, no PayPal order was created, nothing was charged.
           const code = String(orderRaw.code || "");
@@ -1518,6 +1528,7 @@ const Checkout = () => {
     return msg;
   };
   const handleResult = (raw: Record<string, unknown>) => {
+    if (raw.code === "VZ_NOT_PREPAID") { showVzBlock(paymentMethod); return; } // VZ-PREPAID-GUARD-1017: before success/decline side effects.
     // Unwrap double-nested { data: { data: { status, message, transactionId } } }
     let result = raw;
     if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
@@ -2064,6 +2075,11 @@ const Checkout = () => {
           source: visitorIpRef.current,
         }) as Record<string, unknown>;
         console.log("[ApplePay] transaction response", raw);
+        // VZ-PREPAID-GUARD-1017: close the sheet as for existing blocked replies; preserve all card fields and counters.
+        if (raw.code === "VZ_NOT_PREPAID") {
+          try { session.completePayment({ status: session.STATUS_FAILURE }); } catch { /* sheet may already be closed */ }
+          showVzBlock("applepay"); setSubmitting(false); return;
+        }
 
         // Unwrap
         let result = raw;
@@ -2281,6 +2297,8 @@ const Checkout = () => {
       source: visitorIpRef.current,
     }) as Record<string, unknown>;
 
+    if (raw.code === "VZ_NOT_PREPAID") { showVzBlock("cashapp"); return; } // VZ-PREPAID-GUARD-1017
+
     // Unwrap double-nested response
     let result = raw;
     if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
@@ -2468,6 +2486,8 @@ const Checkout = () => {
             <h2 className="font-bold text-foreground mb-3 text-sm">{tr.orderSummary}</h2>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between items-center"><span className="text-muted-foreground">{tr.phone}</span><span className="font-medium text-foreground inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-cellpay-green" />{state.phone}</span></div>
+              {/* VZ-PREPAID-GUARD-1017: note threshold uses refill amount, never changes totals. */}
+              {isVerizonSlug(state.carrierSlug) && Number(state.amount) <= VZ_NOTICE_MIN && <p data-testid="vz-prepaid-note" className="text-xs text-muted-foreground text-right">{VZ_NOTE[lang === "es" ? "es" : "en"]}</p>}
               <div className="flex justify-between"><span className="text-muted-foreground">{tr.amount}</span><span className="font-medium text-foreground">${state.amount}</span></div>
               {fee > 0 && <div className="flex justify-between"><span className="text-muted-foreground">{tr.serviceFee}</span><span className="font-medium text-foreground">${Number(fee).toFixed(2)}</span></div>}
               {tax > 0 && <div className="flex justify-between"><span className="text-muted-foreground">{tr.tax}</span><span className="font-medium text-foreground">${Number(tax).toFixed(2)}</span></div>}
@@ -2484,6 +2504,8 @@ const Checkout = () => {
           </Suspense>
 
           {/* METHODS-VISIBILITY-1011: wallet/primary method + "or pay with" + other methods, directly under the order summary. Presentation only. */}
+          {/* VZ-PREPAID-GUARD-1017: larger amounts receive the same note above the payment choices. */}
+          {isVerizonSlug(state.carrierSlug) && Number(state.amount) > VZ_NOTICE_MIN && <p data-testid="vz-prepaid-notice" role="note" className="rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-900 text-xs p-3">{VZ_NOTE[lang === "es" ? "es" : "en"]}</p>}
           <div className={orsFailed ? "rounded-xl ring-2 ring-offset-2 ring-primary" : undefined} data-testid="ors-highlight" onMouseOver={kickGpay} onFocus={kickGpay}>{/* [OURSIDE-RETRY-1012] */}{/* GPAY-LAZY-1014: hover/focus on the method list starts pay.js */}
           <PaymentMethodPicker lang={lang === "es" ? "es" : "en"} methods={paymentMethods} selected={paymentMethod} brandColor={brandColor}
             onSelect={(key) => { if (key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); methodTappedRef.current = true; setPaymentMethod(key as PaymentMethod); }} />
@@ -3220,6 +3242,19 @@ const Checkout = () => {
               {tr.tryAgain}
             </button>
             )}
+          </div>
+        </div>
+      )}
+      {/* VZ-PREPAID-GUARD-1017: number/carrier navigation only, never automatically retries. */}
+      {vzBlock && (
+        <div className="fixed inset-0 z-[100] bg-background/80 flex items-center justify-center p-4" onClick={() => setVzBlock(null)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="vz-block-title" data-testid="vz-not-prepaid" className="bg-card rounded-2xl p-5 max-w-sm w-full max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 id="vz-block-title" className="text-xl font-bold text-foreground mb-2">{lang === "es" ? "Revise este número" : "Check this number"}</h3>
+            <p data-testid="vz-not-prepaid-text" className="text-sm text-muted-foreground mb-4">{vzBlockText(lang, vzBlock.method)}</p>
+            <div className="space-y-2">
+              <Button data-testid="vz-change-number" className="w-full" onClick={() => { setVzBlock(null); navigate(carrierPageTarget(lang, state.carrierSlug, "", state.amount, location.search, location.hash), { state: { focusPhone: true } }); }}>{lang === "es" ? "Cambiar número" : "Change number"}</Button>
+              <Button data-testid="vz-other-carrier" variant="outline" className="w-full" onClick={() => { setVzBlock(null); navigate(lang === "es" ? "/es" : "/"); }}>{lang === "es" ? "Elegir otra compañía" : "Choose another carrier"}</Button>
+            </div>
           </div>
         </div>
       )}
