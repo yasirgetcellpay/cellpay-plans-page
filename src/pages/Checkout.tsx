@@ -7,7 +7,7 @@ import { PaymentMethodPicker } from "@/components/PaymentMethodPicker"; // METHO
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react"; // CARRIER-ASSIST-1011
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
-import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry, markWalletDeclined, walletDeclined, getDeclineAb, declineHint } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014C: + wallet block // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry // DECLINE-MSGS-1016
+import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry, markWalletDeclined, walletDeclined, getDeclineAb, declineHint, isNsfDecline, FUNDS_COPY, KLARNA_MIN_TOTAL, klarnaQuarter } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014C: + wallet block // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry // DECLINE-MSGS-1016 // FUNDS-DECLINE-1016
 import { AP_LAST_KEY } from "@/components/AutoPayReceiptCard";
 import { PLAID_ENABLED, PAYPAL_ENABLED } from "@/config/paymentFlags";
 // [PAYPAL-REBUILD-1009] QA only: ?pp_qa=1 shows the PayPal tile in this tab while PAYPAL_ENABLED is false (?pp_qa=0 clears it).
@@ -695,6 +695,14 @@ const Checkout = () => {
   useEffect(() => {
     if (!declineInfo) return;
     try { trackFunnel("recovery_prompt_shown", funnelDataRef.current); sessionStorage.setItem("cp_recovery_shown", "1"); } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [declineInfo]);
+  // FUNDS-DECLINE-1016: initialize once per visible NSF decline, not on other re-renders or tab changes.
+  useEffect(() => {
+    if (!declineInfo || !isNsfDecline(declineInfo.msg || "") || declineInfo.sess >= 3 || declineInfo.cls === "blocked") return;
+    try {
+      sessionStorage.setItem("cp_funds_v1", JSON.stringify({ decline_cls: "nsf", klarna_offered: paymentMethods.some((pm) => pm.key === "klarna") && total >= KLARNA_MIN_TOTAL, klarna_clicked: false, klarna_auth_declined: false, ts: Date.now() }));
+    } catch { /* ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [declineInfo]);
   // TOP4-T2B-1009: the provider auto-refunded this payment -> show the refund card instead of the raw provider sentence.
@@ -1503,6 +1511,7 @@ const Checkout = () => {
     const failedRefill = hasRefundSignal(raw) || /error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")); // SUCCESS-FLAG-FIX-1016
     const isSuccess = !failedRefill && (status === true || status === "true" || String(status || "").toLowerCase() === "success" || String(status || "").toLowerCase() === "completed"); // SUCCESS-FLAG-FIX-1016
     if (isSuccess) {
+      try { sessionStorage.removeItem("cp_funds_v1"); } catch { /* ignore */ } // FUNDS-DECLINE-1016
       const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
       // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1b: sessionStorage + cookie).
       setPurchasePending(hid);
@@ -2046,6 +2055,7 @@ const Checkout = () => {
         const failedRefill = hasRefundSignal(raw) || /error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")); // SUCCESS-FLAG-FIX-1016
         const isSuccess = !failedRefill && (result.status === true || result.status === "true" || String(result.status || "").toLowerCase() === "success" || String(result.status || "").toLowerCase() === "completed"); // SUCCESS-FLAG-FIX-1016
         if (isSuccess) {
+          try { sessionStorage.removeItem("cp_funds_v1"); } catch { /* ignore */ } // FUNDS-DECLINE-1016
           console.log("[ApplePay] transaction success");
           // DUPCHARGE-1008: if the sheet already closed (Apple's ~30 s limit), this throws; the order is paid, so still show it.
           try { session.completePayment({ status: session.STATUS_SUCCESS }); } catch (e) { console.warn("[ApplePay] completePayment(success) after the sheet closed", e); }
@@ -2187,6 +2197,13 @@ const Checkout = () => {
               setErrorMsg("Klarna payment failed");
             }
           } else {
+            // FUNDS-DECLINE-1016: logging only; keep authorization and submission behavior unchanged.
+            if (!res.approved) {
+              try {
+                const f = JSON.parse(sessionStorage.getItem("cp_funds_v1") || "null");
+                if (f && typeof f === "object" && !Array.isArray(f)) sessionStorage.setItem("cp_funds_v1", JSON.stringify({ ...f, klarna_auth_declined: true }));
+              } catch { /* ignore */ }
+            }
             setErrorMsg("Klarna authorization was declined or cancelled");
           }
           setSubmitting(false);
@@ -2383,6 +2400,9 @@ const Checkout = () => {
       ? [baseMethods.find(m => m.key === "googlepay")!, ...baseMethods.filter(m => m.key !== "googlepay")]
       : baseMethods;
   const paymentMethods: MethodEntry[] = paymentMethodsAll.filter((m) => !walletBlocked.includes(m.key) && !(gpayFailed && m.key === "googlepay")); // DECLINE-RECOVERY-1014C: hide declined wallets // GPAY-LAZY-1014: hide Google Pay if pay.js failed
+  // FUNDS-DECLINE-1016: the same low-funds view in both arms; existing caps retain priority.
+  const nsfView = !!declineInfo && isNsfDecline(declineInfo.msg || "") && !(declineInfo.sess >= 3) && declineInfo.cls !== "blocked";
+  const fc = FUNDS_COPY[lang === "es" ? "es" : "en"];
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -3020,8 +3040,9 @@ const Checkout = () => {
           {/* DECLINE-DIALOG-1008: scrolls inside itself on short phones (iPhone SE + Safari bars clipped the top); on a card decline
               the raw processor message is hidden (the recovery hint below explains it); other errors still show errorMsg. */}
           <div className="bg-card rounded-2xl p-5 max-w-sm w-full max-h-[90vh] overflow-y-auto overscroll-contain text-center shadow-xl" style={{ maxHeight: "calc(100dvh - 2rem)" }} onClick={(e) => e.stopPropagation()}>
-            <div className="text-3xl mb-2">❌</div>
-            <h3 className="text-xl font-bold text-foreground mb-2">{tr.paymentFailed}</h3>
+            {nsfView ? ( // FUNDS-DECLINE-1016
+              <h3 className="text-lg font-bold text-foreground mb-2" data-testid="funds-title">{fc.title}</h3>
+            ) : <><div className="text-3xl mb-2">❌</div><h3 className="text-xl font-bold text-foreground mb-2">{tr.paymentFailed}</h3></>}
             {!declineInfo && <p className="text-sm text-muted-foreground mb-2">{errorMsg}</p>}
             {orsRetry && oursideRetryOn && paymentMethod === orsFailed && (
               <button type="button" data-testid="ors-retry" className="w-full mb-2 rounded-lg py-2.5 font-bold text-primary-foreground" style={{ backgroundColor: brandColor }}
@@ -3108,16 +3129,41 @@ const Checkout = () => {
               const primaryWallet: PaymentMethod | null = abVariant ? (showAp ? "applepay" : "googlepay") : null; // DECLINE-AB-1016
               const quiet = "w-full px-4 py-2 rounded-lg font-semibold text-sm border border-border text-foreground bg-background"; // DECLINE-AB-1016
               return (
-                <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls} data-wallet-first={walletFirst ? "1" : "0"} data-decline-ab={ab}>
-                  <p className="text-sm text-foreground mb-2" data-testid="decline-hint">{hint}</p>
-                  {abVariant && primaryWallet ? ( // DECLINE-AB-1016: variant layout
+                <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls} data-wallet-first={walletFirst ? "1" : "0"} data-decline-ab={ab} data-funds={nsfView ? "1" : undefined}>
+                  {!nsfView && <p className="text-sm text-foreground mb-2" data-testid="decline-hint">{hint}</p>}
+                  {nsfView ? ( // FUNDS-DECLINE-1016: recovery switches tabs only, never submits.
+                    <>
+                      {offered.has("klarna") && total >= KLARNA_MIN_TOTAL && <>
+                        <button type="button" data-testid="funds-klarna" className="w-full px-4 py-3.5 rounded-lg font-bold text-base text-black" style={{ backgroundColor: "#FFA8CD" }}
+                          onClick={() => {
+                            try {
+                              const f = JSON.parse(sessionStorage.getItem("cp_funds_v1") || "null");
+                              if (f && typeof f === "object" && !Array.isArray(f)) sessionStorage.setItem("cp_funds_v1", JSON.stringify({ ...f, klarna_clicked: true }));
+                            } catch { /* ignore */ }
+                            if (!klarnaFirstName.trim()) setKlarnaFirstName(firstName);
+                            if (!klarnaLastName.trim()) setKlarnaLastName(lastName);
+                            if (!klarnaPhone.trim()) setKlarnaPhone(state.phone);
+                            toMethod("klarna");
+                          }}>{fc.klarna.replace("{x}", klarnaQuarter(total))}</button>
+                        <p className="text-xs text-muted-foreground" data-testid="funds-klarna-approval">{fc.approval}</p>
+                        <p className="text-[11px] leading-snug text-muted-foreground" data-testid="funds-klarna-disclosure">{fc.disclosure} <a href="https://www.klarna.com/us/terms-and-conditions/" target="_blank" rel="noopener" className="underline">{fc.terms}</a></p>
+                      </>}
+                      <p className="text-xs font-semibold text-muted-foreground pt-1">{fc.otherWays}</p>
+                      {ab === "variant" && primaryWallet ? <>
+                        <button type="button" data-testid="decline-ab-primary-wallet" data-decline-ab-wallet={primaryWallet} onClick={() => toMethod(primaryWallet)} className="w-full px-4 py-3.5 rounded-lg font-bold text-base bg-black text-white">{primaryWallet === "applepay" ? dc.abPrimaryAp : dc.abPrimaryGp}</button>
+                        {ppBtn}{primaryWallet === "applepay" ? gpBtn : apBtn}{cashBtn}{bankBtn}
+                      </> : <>{apBtn}{gpBtn}{ppBtn}{cashBtn}{bankBtn}</>}
+                      {showAnother && <button type="button" data-testid="decline-another-card" onClick={() => { if (isCard) focusCardNumber(); else toMethod("card"); }} className={quiet}>{dc.useAnotherCard}</button>}
+                      {isCard && !(isCard && capped) && <button type="button" data-testid="funds-same-card" onClick={focusCard} className="w-full text-xs underline text-muted-foreground pt-1">{fc.sameCard}</button>}
+                    </>
+                  ) : abVariant && primaryWallet ? ( // DECLINE-AB-1016: variant layout
                     <>
                       <button type="button" data-testid="decline-ab-primary-wallet" data-decline-ab-wallet={primaryWallet}
                         onClick={() => toMethod(primaryWallet)}
                         className="w-full px-4 py-3.5 rounded-lg font-bold text-base bg-black text-white">
                         {primaryWallet === "applepay" ? dc.abPrimaryAp : dc.abPrimaryGp}
                       </button>
-                      {declineInfo.cls === "funds" && offered.has("klarna") && (
+                      {!nsfView && declineInfo.cls === "funds" && offered.has("klarna") && total >= KLARNA_MIN_TOTAL && ( // FUNDS-DECLINE-1016
                         <button type="button" data-testid="decline-klarna" onClick={() => toMethod("klarna")} className={btn + " border-2 text-foreground bg-background"} style={{ borderColor: "#FFA8CD" }}>{dc.abKlarna}</button>
                       )}
                       {ppBtn}{primaryWallet === "applepay" ? gpBtn : null}
@@ -3153,8 +3199,8 @@ const Checkout = () => {
           no "not charged" note, no decline dialog, no automatic retry; nothing is charged until the customer taps Pay again. */}
       {errorMsg && refundCard && (() => {
         const es = lang === "es";
-        const carrier = top4Name(state.carrierSlug, es ? "es" : "en") || displayCarrierName(state.carrierName, es ? "es" : "en");
-        const last4 = String(state.phone || "").replace(/\D/g, "").slice(-4);
+        const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`); // REFUND-WORDING-1016
+        const amt = `$${Number(validation?.total ?? state.amount ?? 0).toFixed(2)}`; // REFUND-WORDING-1016
         const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); };
         const toCarrier = (ph: string) => { close(); navigate(carrierPageTarget(lang, state.carrierSlug, ph, undefined, location.search, location.hash)); };
         const openHelp = () => {
@@ -3169,11 +3215,12 @@ const Checkout = () => {
           <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={close}>
             <div className="bg-card rounded-2xl p-5 max-w-sm w-full overflow-y-auto overscroll-contain text-center shadow-xl" style={{ maxHeight: "calc(100dvh - 2rem)" }} onClick={(e) => e.stopPropagation()} data-testid="refund-card">
               {/* SUCCESS-FLAG-FIX-1016: owner-approved refund-card title and text only. */}
-              <h3 className="text-xl font-bold text-foreground mb-2">{es ? "Recarga no completada" : "Refill not completed"}</h3>
+              {/* REFUND-WORDING-1016: wording only; refund behavior and buttons unchanged. */}
+              <h3 className="text-xl font-bold text-foreground mb-2">{es ? (payWord ? "Pago no completado" : "Recarga no completada") : (payWord ? "Payment not completed" : "Refill not completed")}</h3>
               <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">
                 {es
-                  ? `No pudimos agregar esta recarga al número de ${carrier} •••${last4}, así que no se le cobró. Si ve un cargo pendiente, su banco lo quita en 1 a 2 días. Revise el número y la compañía, y vuelva a intentar.`
-                  : `We couldn't add this refill to ${carrier} number •••${last4}, so you were not charged. If you see a pending amount, your bank removes it in 1-2 days. Please check the number and carrier, then try again.`}
+                  ? (payWord ? `Su pago no se completó, así que le reembolsamos sus ${amt}. Según su banco, puede tardar unos días hábiles en reflejarse. Revise el número y el plan e inténtelo de nuevo.` : `Su recarga no se completó, así que le reembolsamos su pago de ${amt}. Según su banco, puede tardar unos días hábiles en reflejarse. Revise el número y el plan e inténtelo de nuevo.`)
+                  : (payWord ? `Your payment didn't go through, so we refunded your ${amt}. Depending on your bank, it can take a few business days to show. Please check the number and plan and try again.` : `Your refill didn't go through, so we refunded your payment of ${amt}. Depending on your bank, it can take a few business days to show. Please check the number and plan and try again.`)}
               </p>
               <div className="space-y-2">
                 <button type="button" data-testid="refund-try-again" onClick={() => toCarrier(state.phone)} className={btn + " text-primary-foreground"} style={{ backgroundColor: brandColor }}>{es ? "Intentar de nuevo" : "Try again"}</button>

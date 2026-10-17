@@ -111,7 +111,7 @@ export const DECLINE_COPY = {
     orCard: "Or use a card:", // DECLINE-LEVERS-1015-D1
     abPrimaryAp: "Card declined? Pay with Apple Pay in one tap.", // DECLINE-AB-1016
     abPrimaryGp: "Card declined? Pay with Google Pay in one tap.", // DECLINE-AB-1016
-    abKlarna: "Or pay with Klarna — no minimum.", // DECLINE-AB-1016
+    abKlarna: "Or pay with Klarna.", // DECLINE-AB-1016 // FUNDS-DECLINE-1016
     abTryCard: "Try card again", // DECLINE-AB-1016
   },
   es: {
@@ -139,9 +139,18 @@ export const DECLINE_COPY = {
     orCard: "O use una tarjeta:", // DECLINE-LEVERS-1015-D1
     abPrimaryAp: "¿Tarjeta rechazada? Pague con Apple Pay en un toque.", // DECLINE-AB-1016
     abPrimaryGp: "¿Tarjeta rechazada? Pague con Google Pay en un toque.", // DECLINE-AB-1016
-    abKlarna: "O pague con Klarna — sin mínimo.", // DECLINE-AB-1016
+    abKlarna: "O pague con Klarna.", // DECLINE-AB-1016 // FUNDS-DECLINE-1016
     abTryCard: "Intentar con la tarjeta otra vez", // DECLINE-AB-1016
   },
+} as const;
+
+// FUNDS-DECLINE-1016: display-only low-funds recovery, shared by both A/B arms.
+export function isNsfDecline(msg: string): boolean { return /insufficient|not sufficient|\bnsf\b/i.test(String(msg || "")); }
+export const KLARNA_MIN_TOTAL = 25;
+export function klarnaQuarter(total: number): string { return (Math.ceil(Math.round(total * 100) / 4) / 100).toFixed(2); }
+export const FUNDS_COPY = {
+  en: { title: "Your card was declined for low funds. You can still pay today.", klarna: "Pay in 4 with Klarna: about ${x} today*", approval: "Subject to approval.", disclosure: "*See payment terms. A higher initial payment may be required for some consumers. CA resident loans made or arranged pursuant to a California Financing Law license. NMLS # 1353190.", terms: "See payment terms", otherWays: "Other ways to pay:", sameCard: "Try the same card again" },
+  es: { title: "Su tarjeta fue rechazada por fondos insuficientes. Aún puede pagar hoy.", klarna: "Pague en 4 con Klarna: unos ${x} hoy*", approval: "Sujeto a aprobación.", disclosure: "*Vea los términos de pago. Es posible que a algunos clientes se les pida un primer pago más alto. Préstamos a residentes de CA hechos o gestionados conforme a una licencia de la California Financing Law. NMLS # 1353190.", terms: "Ver términos de pago", otherWays: "Otras formas de pagar:", sameCard: "Intentar con la misma tarjeta" },
 } as const;
 
 // DECLINE-MSGS-1016: specific hint text for security-code, billing-ZIP and bank-verification declines. Display only:
