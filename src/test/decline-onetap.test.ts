@@ -28,7 +28,7 @@ describe("DECLINE-ONETAP-1017", () => {
     expect(src).not.toMatch(/toMethod\("applepay"\)|toMethod\("googlepay"\)|toMethod\(primaryWallet\)/);
   });
   it("wallet handlers keep their sheet calls", () => {
-    expect(src).toMatch(/ApplePaySession\(/);
+    expect(src).toMatch(/new window\.ApplePaySession!\(/);
     expect(src).toMatch(/loadPaymentData\(/);
   });
 });
