@@ -6,7 +6,7 @@ import { PaymentBar } from "@/components/PaymentBar";
 // PAYCOPY-1008: shared payment list (follows src/config/paymentFlags.ts)
 import { payBrandsComma, PAYPAL_SHOWN } from "@/content/paymentMethods";
 // LPX-1010 (SPEC-LPX-3): FAQ text moved to src/content/goPage.ts (shared with the static shell), carrier sentence, plan names.
-import { GO_AD_NAMES, goFaqsEn, goFaqsEs, goCarrierSentence, goTileName } from "@/content/goPage";
+import { GO_AD_NAMES, goFaqsEn, goFaqsEs, goCarrierSentence, goTileName, goUsesPayWording, goAutoPayLine, goKeywordsFor } from "@/content/goPage"; // LPX-1017
 // TOP4-T1-1009: customer-facing carrier names in labels (display only)
 import { displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq } from "@/content/carrierHero";
 // LPX-1010: guest/phone wording for the H1, title and subline (same table the static shell uses).
@@ -223,7 +223,7 @@ const GoLander = ({
 
   // noindex + ads SEO (static shells also ship noindex)
   useEffect(() => {
-    applySeoHead({ title: lpx?.title ?? title, description: goFeeCopy(description), path: typeof window !== "undefined" ? window.location.pathname : "/" });
+    applySeoHead({ title: lpx?.title ?? title, description: goFeeCopy(description), keywords: goKeywordsFor(carrierSlug, lang === "es" ? "es" : "en"), path: typeof window !== "undefined" ? window.location.pathname : "/" }); // LPX-1017
     let tag = document.querySelector('meta[name="robots"]');
     if (!tag) {
       tag = document.createElement("meta");
@@ -482,9 +482,8 @@ const GoLander = ({
   // GO-COPY-1008: visible "En español" switch on English /go pages (every /go page has an /es/go twin).
   const esHref = !isEs && typeof window !== "undefined" ? `/es${window.location.pathname}` : null;
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
-  const autoPayLine = isEs
-    ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático."
-    : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link.";
+  const autoPayLine = goAutoPayLine(carrierSlug, isEs ? "es" : "en"); // LPX-1017
+  const amountHelp = goUsesPayWording(carrierSlug) ? (isEs ? "Ingrese el monto que desea pagar" : "Enter the amount you want to pay") : tr.enterAmount; // LPX-1017
   const feeLine = isEs
     ? "Cargo por servicio mostrado antes de pagar"
     : "Service fee shown before you pay";
@@ -492,7 +491,7 @@ const GoLander = ({
   const faqName = GO_AD_NAMES[carrierSlug] ?? initialName; // ADS-FOLLOWUPS-1008: ad-style name in the FAQs only
   // TOP4-T2A-1009: + "Why was my payment refunded?" (T-Mobile, AT&T, Simple Mobile, Verizon only); also in the FAQPage JSON-LD below.
   const goRefundFaq = refundFaq(carrierSlug, isEs ? "es" : "en");
-  const faqs = [...(isEs ? goFaqsEs(faqName) : goFaqsEn(faqName)), ...(goRefundFaq ? [goRefundFaq] : [])];
+  const faqs = [...(isEs ? goFaqsEs(faqName, goUsesPayWording(carrierSlug)) : goFaqsEn(faqName, goUsesPayWording(carrierSlug))), ...(goRefundFaq ? [goRefundFaq] : [])]; // LPX-1017
   // TOP4-T2A-1009: "active line" note under the number field (same in the loading and loaded layouts, so nothing moves).
   const lineNote = activeLineNote(carrierSlug, isEs ? "es" : "en");
   // SPEED-WWW-1008: while the carrier view loads, Cricket (amount range, no plan grid) shows its loaded layout (same form, pay bar
@@ -626,7 +625,7 @@ const GoLander = ({
                   className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
                 />
               </div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">{tr.enterAmount}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">{amountHelp}</p>
             </div>
           </div>
           <div className="max-w-[420px] mx-auto px-4 pb-24 sm:pb-8">
@@ -697,7 +696,7 @@ const GoLander = ({
               {lineNote && <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 -mt-2">{lineNote}</p>}
               {phoneDigits.length === 10 && (
                 <p className="text-[10px] sm:text-xs text-cellpay-green font-semibold mb-2 -mt-1">
-                  ✓ {tr.refilling}: {phone}
+                  ✓ {goUsesPayWording(carrierSlug) ? (isEs ? "Pagando" : "Paying") : tr.refilling}: {phone}
                 </p>
               )}
               {phoneDigits.length > 0 && phoneDigits.length < 10 && (
@@ -753,7 +752,7 @@ const GoLander = ({
                     </button>
                   )}
                   <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">
-                    {showFixedPlans ? tr.orSelectPlanBelow : tr.enterAmount}
+                    {showFixedPlans ? tr.orSelectPlanBelow : amountHelp}
                   </p>
                 </>
               )}
