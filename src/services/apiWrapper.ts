@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { readFunds, readKlarnaSrc } from "@/lib/declineRecovery"; // KLARNA-FUNNEL-1017
 
 const TIMEOUT_MS = 15000;
 
@@ -353,13 +354,14 @@ function storedRetryMeta(payload: Record<string, unknown>): Record<string, unkno
   } catch { /* ignore */ }
   // FUNDS-DECLINE-1016: recovery metadata only, never added to the CellPay payload.
   try {
-    const f = JSON.parse(sessionStorage.getItem("cp_funds_v1") || "null");
+    const f = readFunds(String(payload.phone_number || "").replace(/\D/g, "")); // KLARNA-FUNNEL-1017
     if (f && typeof f === "object" && !Array.isArray(f) && typeof f.ts === "number" && Date.now() - f.ts >= 0 && Date.now() - f.ts < 30 * 60_000) {
       out.decline_cls = "nsf";
       out.funds_ui = "v1";
       for (const k of ["klarna_offered", "klarna_clicked", "klarna_auth_declined"]) out[k] = f[k] === true;
     }
   } catch { /* ignore */ }
+  try { if (String(payload.payment_method).toLowerCase() === "klarna") out.klarna_src = readKlarnaSrc(String(payload.phone_number || "").replace(/\D/g, "")); } catch { /* ignore */ } // KLARNA-FUNNEL-1017
   return Object.keys(out).length ? out : undefined;
 }
 

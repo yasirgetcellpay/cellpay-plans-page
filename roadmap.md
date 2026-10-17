@@ -1,4 +1,5 @@
 # VZ-PREPAID-GUARD-1017
+<!-- KLARNA-FUNNEL-1017 work is tracked below. -->
 - [x] Add pure guard and shared bilingual wording; carrier number focus.
 - [x] Apply prepared migration `vz_prepaid_guard_1017` (authorized by the owner).
 - [x] Integrate transaction and PayPal pre-create guard; dedicated checkout dialog and notes.
@@ -13,3 +14,8 @@
 # AEO-11-ULTRA-1017 <!-- // AEO-11-ULTRA-1017 -->
 - [x] Add Ultra Mobile EN/ES guides and requested routes, shells, inbound links, sitemap and AI index entries. <!-- // AEO-11-ULTRA-1017 -->
 - [x] Verified both guides, shared static FAQ data, canonical/CTA links and Spanish mobile view; build OK. Existing SEO tests retain 28 failures; 20 checks passed. Not published. <!-- // AEO-11-ULTRA-1017 -->
+
+# KLARNA-FUNNEL-1017
+- [x] Preserve existing funnel records and apply additive analytics migration.
+- [ ] Add isolated Klarna events, mirrored flags, and retry metadata without UI/payment changes.
+- [ ] Run regression tests and verify analytics flow; deploy only the two changed functions. Do not publish.

@@ -2,6 +2,8 @@
 // Accepts JSON or text/plain (sendBeacon), one object or an array of up to 10. Only whitelisted fields are stored.
 const ALLOWED = new Set(["https://refill.cellpay.us", "https://www.cellpay.us"]);
 const EVENTS = new Set(["checkout_view", "total_shown", "payment_started", "submitted", "left_at_total", "prefill_used", "autopay_postpurchase_offer_shown", "autopay_postpurchase_offer_accepted", "recovery_prompt_shown", "recovery_retry", "recovery_success"]); // DECLINE-RECOVERY-1014: recovery_*; // EMAIL-PREFILL-1013: prefill_used; AUTOPAY-POSTPURCHASE-1013: autopay_postpurchase_*
+const KLARNA_EVENTS = new Set(["klarna_offer_shown", "klarna_clicked", "klarna_session_created", "klarna_auth_result"]); // KLARNA-FUNNEL-1017
+for (const event of KLARNA_EVENTS) EVENTS.add(event); // KLARNA-FUNNEL-1017
 
 function cors(origin: string | null): Record<string, string> {
   const h: Record<string, string> = {
@@ -44,7 +46,15 @@ function clean(o: unknown, host: string | null): Record<string, unknown> | null 
     const d = new Date(r.client_ts);
     if (!isNaN(d.getTime())) client_ts = d.toISOString();
   }
-  return { event, carrier, amount: num(r.amount), fee: num(r.fee), total: num(r.total), session_id: sid, lang, host, client_ts };
+  return { event, carrier, amount: num(r.amount), fee: num(r.fee), total: num(r.total), session_id: sid, lang, host, client_ts,
+    ...(KLARNA_EVENTS.has(event) ? { // KLARNA-FUNNEL-1017
+      screen: r.screen === "decline_nsf" || r.screen === "decline_other" || r.screen === "method_list" ? r.screen : null,
+      decline_ab: r.decline_ab === "control" || r.decline_ab === "variant" ? r.decline_ab : null,
+      checkout_session_id: typeof r.checkout_session_id === "string" && /^[A-Za-z0-9_-]{1,100}$/.test(r.checkout_session_id) ? r.checkout_session_id : null,
+      klarna_result: r.klarna_result === "approved" || r.klarna_result === "declined" || r.klarna_result === "cancelled" ? r.klarna_result : null,
+      shown: typeof r.shown === "boolean" ? r.shown : null, cap: typeof r.cap === "boolean" ? r.cap : null,
+    } : {}),
+  }; // KLARNA-FUNNEL-1017
 }
 
 Deno.serve(async (req) => {
@@ -63,25 +73,31 @@ Deno.serve(async (req) => {
     let host: string | null = null;
     try { host = origin ? new URL(origin).host.slice(0, 80) : null; } catch { host = null; }
     const rows: Record<string, unknown>[] = [];
+    const klarnaRows: Record<string, unknown>[] = []; // KLARNA-FUNNEL-1017
     for (const item of list) {
       const row = clean(item, host);
       if (!row) continue;
       if (!allow(ipHits, ip, 60, 60_000)) break;
       if (row.session_id && !allow(sidHits, String(row.session_id), 40, 600_000)) continue;
-      rows.push(row);
+      (KLARNA_EVENTS.has(String(row.event)) ? klarnaRows : rows).push(row); // KLARNA-FUNNEL-1017
     }
-    if (rows.length === 0) return done;
+    if (rows.length === 0 && klarnaRows.length === 0) return done; // KLARNA-FUNNEL-1017
     const url = Deno.env.get("SUPABASE_URL"), key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!url || !key) return done;
-    const write = fetch(`${url}/rest/v1/checkout_funnel_events`, {
+    const postRows = (batch: Record<string, unknown>[]) => { // KLARNA-FUNNEL-1017: independent requests, including synchronous failures.
+      try { return fetch(`${url}/rest/v1/checkout_funnel_events`, {
       method: "POST",
       headers: { apikey: key, authorization: `Bearer ${key}`, "content-type": "application/json", prefer: "return=minimal" },
-      body: JSON.stringify(rows),
+      body: JSON.stringify(batch), // KLARNA-FUNNEL-1017
       signal: AbortSignal.timeout(3000),
-    }).then((r) => r.body?.cancel()).catch(() => {});
+    }).then((r) => r.body?.cancel()).catch(() => {}); } catch { return Promise.resolve(); }
+    }; // KLARNA-FUNNEL-1017
+    const write = rows.length ? postRows(rows) : Promise.resolve(); // KLARNA-FUNNEL-1017
+    const klarnaWrite = klarnaRows.length ? postRows(klarnaRows) : Promise.resolve(); // KLARNA-FUNNEL-1017
     // deno-lint-ignore no-explicit-any
     const rt = (globalThis as any).EdgeRuntime;
     if (rt && typeof rt.waitUntil === "function") rt.waitUntil(write); else await write;
+    if (rt && typeof rt.waitUntil === "function") rt.waitUntil(klarnaWrite); else await klarnaWrite; // KLARNA-FUNNEL-1017
   } catch { /* never error to client */ }
   return done;
 });
