@@ -4,13 +4,13 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import { beforeEach, describe, expect, it } from "vitest";
-import { isNsfDecline, KLARNA_MIN_TOTAL, klarnaQuarter } from "@/lib/declineRecovery";
+import { isNsfDecline, KLARNA_MIN_TOTAL, klarnaQuarter, readFunds, readKlarnaSrc, writeFunds, patchFunds, setKlarnaSrc } from "@/lib/declineRecovery"; // KLARNA-FUNNEL-1017
 
 const compile = (s: string) => ts.transpile(s, { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS });
 const checkout = readFileSync("src/pages/Checkout.tsx", "utf8");
 const wrapper = readFileSync("src/services/apiWrapper.ts", "utf8");
 const proxy = readFileSync("supabase/functions/cellpay-proxy/index.ts", "utf8");
-const metadata = runInNewContext(compile(`${wrapper.slice(wrapper.indexOf("function storedRetryMeta("), wrapper.indexOf("export async function submitTransaction("))}; storedRetryMeta;`), { sessionStorage, localStorage, navigator, Date });
+const metadata = runInNewContext(compile(`${wrapper.slice(wrapper.indexOf("function storedRetryMeta("), wrapper.indexOf("export async function submitTransaction("))}; storedRetryMeta;`), { sessionStorage, localStorage, navigator, Date, readFunds, readKlarnaSrc }); // KLARNA-FUNNEL-1017
 const allow = runInNewContext(compile(`const asRecord = v => v && typeof v === 'object' && !Array.isArray(v) ? v : {}; const ORS_METHOD_RE = /^[a-z]{2,20}$/; ${proxy.slice(proxy.indexOf("function retryMetaFrom("), proxy.indexOf("// CONSENT-EVERY-ATTEMPT-1016: record checkout consent"))}; retryMetaFrom;`));
 
 describe("FUNDS-DECLINE-1016", () => {
@@ -43,7 +43,7 @@ describe("FUNDS-DECLINE-1016", () => {
   const effectStart = checkout.indexOf("if (!declineInfo || !isNsfDecline");
   const effect = checkout.slice(effectStart, checkout.indexOf("// eslint-disable-next-line", effectStart));
   it("logs offers only at $25+ and does not initialize for capped or blocked declines", () => {
-    const run = (total: number, sess = 1, cls = "funds") => runInNewContext(compile(`(() => { ${effect} })();`), { declineInfo: { msg: "insufficient funds", sess, cls }, isNsfDecline, paymentMethods: [{ key: "klarna" }], total, KLARNA_MIN_TOTAL, sessionStorage, Date });
+    const run = (total: number, sess = 1, cls = "funds") => runInNewContext(compile(`(() => { ${effect} })();`), { declineInfo: { msg: "insufficient funds", sess, cls }, isNsfDecline, paymentMethods: [{ key: "klarna" }], total, KLARNA_MIN_TOTAL, sessionStorage, Date, writeFunds, phone10: "2025550100" }); // KLARNA-FUNNEL-1017
     run(24.99);
     expect(JSON.parse(sessionStorage.getItem("cp_funds_v1") || "null").klarna_offered).toBe(false);
     run(25);
@@ -53,11 +53,11 @@ describe("FUNDS-DECLINE-1016", () => {
     expect(sessionStorage.getItem("cp_funds_v1")).toBe(saved);
   });
   it("prefills empty Klarna fields without overwriting existing values or submitting", () => {
-    const start = checkout.indexOf('const f = JSON.parse(sessionStorage.getItem("cp_funds_v1")', checkout.indexOf('data-testid="funds-klarna"'));
+    const start = checkout.indexOf('patchFunds(phone10, { klarna_clicked: true })', checkout.indexOf('data-testid="funds-klarna"')); // KLARNA-FUNNEL-1017
     const code = checkout.slice(checkout.lastIndexOf("try {", start), checkout.indexOf('toMethod("klarna");', start) + 'toMethod("klarna");'.length);
     const values: Record<string, string> = {};
     sessionStorage.setItem("cp_funds_v1", JSON.stringify({ ts: Date.now(), klarna_clicked: false }));
-    runInNewContext(compile(code), { sessionStorage, klarnaFirstName: "Saved", klarnaLastName: "", klarnaPhone: "", firstName: "New", lastName: "Name", state: { phone: "2025550100" }, setKlarnaFirstName: (v: string) => { values.first = v; }, setKlarnaLastName: (v: string) => { values.last = v; }, setKlarnaPhone: (v: string) => { values.phone = v; }, toMethod: (v: string) => { values.method = v; } });
+    runInNewContext(compile(code), { sessionStorage, klarnaFirstName: "Saved", klarnaLastName: "", klarnaPhone: "", firstName: "New", lastName: "Name", state: { phone: "2025550100" }, setKlarnaFirstName: (v: string) => { values.first = v; }, setKlarnaLastName: (v: string) => { values.last = v; }, setKlarnaPhone: (v: string) => { values.phone = v; }, toMethod: (v: string) => { values.method = v; }, patchFunds, setKlarnaSrc, phone10: "2025550100", declineSeqRef: { current: 1 }, trackKlarna: () => {} }); // KLARNA-FUNNEL-1017
     expect(values).toEqual({ last: "Name", phone: "2025550100", method: "klarna" });
     expect(JSON.parse(sessionStorage.getItem("cp_funds_v1") || "null").klarna_clicked).toBe(true);
   });

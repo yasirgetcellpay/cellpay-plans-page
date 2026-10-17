@@ -117,7 +117,7 @@ declare global {
         authorize: (
           opts: { payment_method_category: string },
           data: Record<string, unknown>,
-          cb: (res: { approved: boolean; authorization_token?: string }) => void
+          cb: (res: { approved: boolean; authorization_token?: string; show_form?: boolean }) => void // KLARNA-FUNNEL-1017
         ) => void;
       };
     };
@@ -2538,7 +2538,7 @@ const Checkout = () => {
           {isVerizonSlug(state.carrierSlug) && Number(state.amount) > VZ_NOTICE_MIN && <p data-testid="vz-prepaid-notice" role="note" className="rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-900 text-xs p-3">{VZ_NOTE[lang === "es" ? "es" : "en"]}</p>}
           <div className={orsFailed ? "rounded-xl ring-2 ring-offset-2 ring-primary" : undefined} data-testid="ors-highlight" onMouseOver={kickGpay} onFocus={kickGpay}>{/* [OURSIDE-RETRY-1012] */}{/* GPAY-LAZY-1014: hover/focus on the method list starts pay.js */}
           <PaymentMethodPicker lang={lang === "es" ? "es" : "en"} methods={paymentMethods} selected={paymentMethod} brandColor={brandColor}
-            onSelect={(key) => { try { if (key === "klarna" && paymentMethod !== "klarna") trackKlarna("klarna_clicked", "method_list", `method_list|${declineSeqRef.current}`); } catch { /* ignore */ } if (key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); methodTappedRef.current = true; setPaymentMethod(key as PaymentMethod); }} /> // KLARNA-FUNNEL-1017
+            onSelect={(key) => { try { if (key === "klarna" && paymentMethod !== "klarna") trackKlarna("klarna_clicked", "method_list", `method_list|${declineSeqRef.current}`); } catch { /* ignore */ } if (key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); methodTappedRef.current = true; setPaymentMethod(key as PaymentMethod); }} /* KLARNA-FUNNEL-1017 */ />
           </div>
 
           <div className="bg-card rounded-xl border border-border p-5">
@@ -3256,7 +3256,7 @@ const Checkout = () => {
                         {primaryWallet === "applepay" ? dc.abPrimaryAp : dc.abPrimaryGp}
                       </button>
                       {!nsfView && declineInfo.cls === "funds" && offered.has("klarna") && total >= KLARNA_MIN_TOTAL && ( // FUNDS-DECLINE-1016
-                        <button type="button" data-testid="decline-klarna" onClick={() => { try { setKlarnaSrc(phone10, "decline_other"); trackKlarna("klarna_clicked", "decline_other", `decline_other|${declineSeqRef.current}`); } catch { /* ignore */ } toMethod("klarna"); }} className={btn + " border-2 text-foreground bg-background"} style={{ borderColor: "#FFA8CD" }}>{dc.abKlarna}</button> // KLARNA-FUNNEL-1017
+                        <button type="button" data-testid="decline-klarna" onClick={() => { try { setKlarnaSrc(phone10, "decline_other"); trackKlarna("klarna_clicked", "decline_other", `decline_other|${declineSeqRef.current}`); } catch { /* ignore */ } toMethod("klarna"); }} /* KLARNA-FUNNEL-1017 */ className={btn + " border-2 text-foreground bg-background"} style={{ borderColor: "#FFA8CD" }}>{dc.abKlarna}</button>
                       )}
                       {ppBtn}{primaryWallet === "applepay" ? gpBtn : null}
                       {(showRetry || showAnother) && <p className="text-xs text-muted-foreground pt-1">{dc.orCard}</p>}
