@@ -4,6 +4,7 @@
 // plan IDs, the DB, receipts or the checkout payload.
 // Relative imports only (vite.config.ts loads this file; the "@/" alias is not available there).
 import { weAcceptLine, payWith, CARD_BRANDS } from "./paymentMethods";
+import { isVerizonSlug, VZ_NOTE } from "../lib/vzPrepaid"; // VZ-PREPAID-GUARD-1017
 
 export type HeroLang = "en" | "es";
 
@@ -59,6 +60,7 @@ export const top4Name = (slug: string, lang: HeroLang): string | null => {
 
 /** Small grey line under the phone-number field (4 carriers only). */
 export const activeLineNote = (slug: string, lang: HeroLang): string | null => {
+  if (isVerizonSlug(slug)) return VZ_NOTE[lang]; // VZ-PREPAID-GUARD-1017
   const c = top4Name(slug, lang);
   if (!c) return null;
   return lang === "es" ? `Use el número de 10 dígitos de una línea activa de ${c}.` : `Use the 10-digit number of an active ${c} line.`;

@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react"; // VZ-PREPAID-GUARD-1017
 import { Phone, DollarSign, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom"; // VZ-PREPAID-GUARD-1017
 import { PaymentBar } from "@/components/PaymentBar";
 // PAYCOPY-1008: shared payment list (follows src/config/paymentFlags.ts)
 import { payBrandsComma, PAYPAL_SHOWN } from "@/content/paymentMethods";
@@ -192,6 +192,8 @@ const GoLander = ({
   lang = "en",
 }: GoLanderProps) => {
   const navigate = useNavigate();
+  const location = useLocation(); // VZ-PREPAID-GUARD-1017
+  const focusedPhone = useRef<string | null>(null); // VZ-PREPAID-GUARD-1017
   const [searchParams] = useSearchParams();
   const tr = t(lang);
   const lpx = goLpxForCarrier(carrierSlug, lang === "es" ? "es" : "en"); // LPX-1010
@@ -346,6 +348,13 @@ const GoLander = ({
       cancelled = true;
     };
   }, [carrierSlug]);
+
+  // VZ-PREPAID-GUARD-1017: focus once after the visible field renders, without changing its value.
+  useEffect(() => {
+    if (loading || location.state?.focusPhone !== true || focusedPhone.current === location.key) return;
+    const input = document.getElementById("go-phone-input");
+    if (input instanceof HTMLInputElement) { input.focus(); focusedPhone.current = location.key; }
+  }, [loading, location.key, location.state]);
 
   useEffect(() => {
     if (loading) return;
