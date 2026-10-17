@@ -12,4 +12,4 @@
 
 # AEO-11-ULTRA-1017 <!-- // AEO-11-ULTRA-1017 -->
 - [x] Add Ultra Mobile EN/ES guides and requested routes, shells, inbound links, sitemap and AI index entries. <!-- // AEO-11-ULTRA-1017 -->
-- [ ] Verify guide pair and current build; do not publish. <!-- // AEO-11-ULTRA-1017 -->
+- [x] Verified both guides, shared static FAQ data, canonical/CTA links and Spanish mobile view; build OK. Existing SEO tests retain 28 failures; 20 checks passed. Not published. <!-- // AEO-11-ULTRA-1017 -->
