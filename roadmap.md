@@ -1,5 +1,4 @@
 # VZ-PREPAID-GUARD-1017
-<!-- KLARNA-FUNNEL-1017 work is tracked below. -->
 - [x] Add pure guard and shared bilingual wording; carrier number focus.
 - [x] Apply prepared migration `vz_prepaid_guard_1017` (authorized by the owner).
 - [x] Integrate transaction and PayPal pre-create guard; dedicated checkout dialog and notes.
@@ -17,5 +16,5 @@
 
 # KLARNA-FUNNEL-1017
 - [x] Preserve existing funnel records and apply additive analytics migration.
-- [ ] Add isolated Klarna events, mirrored flags, and retry metadata without UI/payment changes.
-- [ ] Run regression tests and verify analytics flow; deploy only the two changed functions. Do not publish.
+- [x] Add isolated Klarna events, mirrored flags, and retry metadata without UI/payment changes.
+- [x] 59 regression tests passed; preview offer/click events read back from analytics, with no payment calls or runtime errors. Deploy only funnel-event and cellpay-proxy; not published. Real Klarna authorization was not exercised.
