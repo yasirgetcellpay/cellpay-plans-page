@@ -1,8 +1,8 @@
 // SPA-SHELLS-1011: static first screen (the page's <main>) in the raw HTML of the info pages that were an empty #root:
-// /about-us, /faq, /how-to-use, /es/how-to-use, /terms-and-conditions, /contact-us, /returns-policy (same pattern as the privacy policy, PRIVACY-1007).
+// /about-us, /faq, /how-to-use, /es/how-to-use, /terms-and-conditions (same pattern as the privacy policy, PRIVACY-1007).
 // vite.config.ts puts it under the same Navbar look as the privacy shell; React replaces it with the real page (same <main> markup, same
 // classes), so nothing above the fold moves. Used ONLY by vite.config.ts; the pages themselves are unchanged.
-// KEEP IN SYNC with src/pages/AboutUs.tsx, FAQ.tsx (questions), TermsAndConditions.tsx, ContactUs.tsx, ReturnsPolicy.tsx. /how-to-use renders from src/content/howToUse.ts, so it cannot drift.
+// KEEP IN SYNC with src/pages/AboutUs.tsx, FAQ.tsx (questions), TermsAndConditions.tsx. /how-to-use renders from src/content/howToUse.ts, so it cannot drift.
 // Relative imports only (vite.config.ts loads this file).
 import { HOW_TO_USE } from "./howToUse";
 
@@ -69,37 +69,6 @@ const faqMain = (): string =>
   FAQ_QS.map((q) => `<div data-state="closed" data-orientation="vertical" class="border-b"><h3 data-orientation="vertical" data-state="closed" class="flex"><button type="button" aria-expanded="false" data-state="closed" data-orientation="vertical" class="flex flex-1 items-center justify-between py-4 transition-all hover:underline text-left font-bold text-foreground">${esc(q)}${CHEVRON}</button></h3></div>`).join("") +
   `</div></main>`;
 
-// INFO-SHELLS-1017: /contact-us (same <main> markup and text as src/pages/ContactUs.tsx).
-const contactMain = (): string =>
-  MAIN + H1("Contact Us") + `<div class="space-y-5 text-muted-foreground leading-relaxed">` +
-  `<p>${esc("Have a question, concern, or need assistance with your refill? We're here to help!")}</p>` +
-  `<div class="bg-card border border-border rounded-lg p-6 space-y-4">` +
-  `<div><h2 class="text-base font-bold text-foreground">Email Support</h2><p>support@getcellpay.com</p></div>` +
-  `<div><h2 class="text-base font-bold text-foreground">Business Hours</h2><p>${esc("Monday – Friday: 9:00 AM – 6:00 PM (EST)")}</p><p>${esc("Saturday – Sunday: 10:00 AM – 4:00 PM (EST)")}</p></div>` +
-  `<div><h2 class="text-base font-bold text-foreground">Response Time</h2><p>We typically respond within 24 hours on business days.</p></div>` +
-  `</div>` +
-  `<h2 class="text-xl font-bold text-foreground pt-4">Before You Contact Us</h2>` +
-  `<p>Check our <a href="/faq" class="text-primary underline font-semibold">FAQ page</a> — your question may already be answered there.</p>` +
-  `<p>${esc("When reaching out, please include your phone number, carrier name, and transaction details (if applicable) so we can assist you faster.")}</p>` +
-  `</div></main>`;
-
-// INFO-SHELLS-1017: /returns-policy (same <main> markup and text as src/pages/ReturnsPolicy.tsx).
-const returnsMain = (): string =>
-  MAIN + H1("Returns & Refunds Policy") + `<div class="space-y-5 text-muted-foreground leading-relaxed text-sm">` +
-  `<p><strong class="text-foreground">Effective Date:</strong> January 1, 2026</p>` +
-  `<h2 class="text-lg font-bold text-foreground pt-3">General Policy</h2>` +
-  `<p>${esc("All payments made through CellPay are final. Once a payment is completed, it can't be refunded or cancelled. Please double-check the phone number, carrier, and plan or amount before you pay.")}</p>` +
-  `<p>${esc("This includes a refill sent to an incorrect phone number provided by the user, selecting the wrong carrier or plan amount, a change of mind after a successful refill, and carrier-side issues (account suspension, porting, etc.).")}</p>` +
-  `<h2 class="text-lg font-bold text-foreground pt-3">Auto Pay</h2>` +
-  `<p>Auto Pay can be cancelled at <a href="/faq" class="underline font-semibold text-foreground">cellpay.us/faq</a> with <strong class="text-foreground">Unsubscribe From Autopay</strong>; completed payments can't be refunded.</p>` +
-  `<h2 class="text-lg font-bold text-foreground pt-3">Problems With a Payment</h2>` +
-  `<p>${esc("If something went wrong with a payment, for example you were charged more than once for the same order or your refill didn't arrive on the phone number, email ")}<strong>support@getcellpay.com</strong>${esc(" and CellPay's support team will review it.")}</p>` +
-  `<p>Please include the following information in your email:</p>` +
-  `<ul class="list-disc list-inside space-y-1">${["Your phone number", "Carrier name", "Transaction ID or order number", "Date of purchase", "Description of the issue"].map((l) => `<li>${esc(l)}</li>`).join("")}</ul>` +
-  `<h2 class="text-lg font-bold text-foreground pt-3">Contact</h2>` +
-  `<p>For questions about a payment, email <strong>support@getcellpay.com</strong>.</p>` +
-  `</div></main>`;
-
 /** route (dist file) -> the page's <main> HTML, or null when the route has no shell. */
 export const infoMainHtml = (route: string): string | null => {
   switch (route) {
@@ -108,8 +77,6 @@ export const infoMainHtml = (route: string): string | null => {
     case "how-to-use/index.html": return howToUseMain("en");
     case "es/how-to-use/index.html": return howToUseMain("es");
     case "terms-and-conditions/index.html": return termsMain();
-    case "contact-us/index.html": return contactMain();
-    case "returns-policy/index.html": return returnsMain();
     default: return null;
   }
 };
