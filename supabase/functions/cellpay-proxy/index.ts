@@ -2499,6 +2499,27 @@ function sanitizeFreeText(v: unknown, depth = 0): void {
   }
 }
 
+// WALLET-NAME-1016
+const WALLET_JSON_KEYS = ["apple_pay_billing_contact", "gpay_billing_details"];
+function cleanAllStrings(v: unknown, depth = 0): unknown {
+  if (depth > 6) return v;
+  if (typeof v === "string") return cleanFreeText(v);
+  if (Array.isArray(v)) return v.map((x) => cleanAllStrings(x, depth + 1));
+  if (v && typeof v === "object") { const o: Record<string, unknown> = {}; for (const [k, x] of Object.entries(v as Record<string, unknown>)) o[k] = cleanAllStrings(x, depth + 1); return o; }
+  return v;
+}
+function sanitizeWalletJson(payload: unknown): void {
+  if (!payload || typeof payload !== "object") return;
+  const p = payload as Record<string, unknown>;
+  for (const k of WALLET_JSON_KEYS) {
+    const val = p[k];
+    try {
+      if (typeof val === "string" && val.trim().startsWith("{")) p[k] = JSON.stringify(cleanAllStrings(JSON.parse(val)));
+      else if (val && typeof val === "object") p[k] = cleanAllStrings(val);
+    } catch { /* fail-open: leave unchanged */ }
+  }
+}
+
 // NAME-DIGITS-1014: name keys checked for 6+ digits (per field, and first+last together in the same object). Nothing is logged.
 const NAME_KEY_RE = /^(first_?name|last_?name|given_?name|family_?name|full_?name|billing_?name|card_?holder_?name|holder_?name|name_?on_?card)$/i;
 function nameHasCardDigits(v: unknown, depth = 0): boolean {
@@ -2534,6 +2555,7 @@ serve(async (req) => {
     const { endpoint, method = "GET", payload, bearerToken, callerHost } = body;
     // [EMOJI-STRIP-1012] clean free-text fields in place before any guard/log/forward (covers every route incl. PayPal + checkout/transaction).
     try { if (typeof method === "string" && method.toUpperCase() !== "GET") sanitizeFreeText(payload); } catch { /* fail-open */ }
+    try { if (typeof method === "string" && method.toUpperCase() !== "GET") sanitizeWalletJson(payload); } catch { /* fail-open */ } // WALLET-NAME-1016
     // NAME-DIGITS-1014: a cardholder name with 6+ digits is likely a card number in the name field -> 400 before any log/store/forward.
     try {
       if (typeof method === "string" && method.toUpperCase() !== "GET" && nameHasCardDigits(payload)) {
