@@ -351,6 +351,7 @@ const Checkout = () => {
   // PL-0: a hidden Pay by Bank can never stay selected (falls back to the default, card).
   useEffect(() => { if ((!PLAID_ENABLED || plaidOff) && paymentMethod === "plaid") setPaymentMethod("card"); }, [paymentMethod, plaidOff]);
   useEffect(() => { if (!ppShow() && paymentMethod === "paypal") setPaymentMethod("card"); }, [paymentMethod]); // PAYPAL-HIDE-1154 (+ REBUILD-1009 QA)
+  useEffect(() => { try { const vt = validation?.total; if (paymentMethod === "klarna" && typeof vt === "number" && Number.isFinite(vt) && vt < KLARNA_MIN_TOTAL) setPaymentMethod("card"); } catch { /* ignore */ } }, [paymentMethod, validation]); // KLARNA-MIN25-1017: Klarna never stays selected under $25 // PAYPAL-HIDE-1154 (+ REBUILD-1009 QA)
   // GROWTH-1007-W: read the Pay by Bank kill switch (fraud_controls.plaid_exchange_mode) once per visit through the boolean-only
   // RPC pay_by_bank_available(). false -> hide Pay by Bank now (same as a plaid_unavailable answer). The decline dialog offers
   // Pay by Bank ONLY after this read said true (fail closed); if the read fails the tab keeps its old behaviour (server refuses anyway).
@@ -2478,7 +2479,8 @@ const Checkout = () => {
     : typeof navigator !== "undefined" && /Android/.test(navigator.userAgent) // CM-WALLET-DEFAULT-1011: Google Pay first on Android (display order only; card stays selected)
       ? [baseMethods.find(m => m.key === "googlepay")!, ...baseMethods.filter(m => m.key !== "googlepay")]
       : baseMethods;
-  const paymentMethods: MethodEntry[] = paymentMethodsAll.filter((m) => !walletBlocked.includes(m.key) && !(gpayFailed && m.key === "googlepay")); // DECLINE-RECOVERY-1014C: hide declined wallets // GPAY-LAZY-1014: hide Google Pay if pay.js failed
+  const klarnaListTotal = validation?.total ?? Number(state.amount); // KLARNA-MIN25-1017: same total as the decline screens
+  const paymentMethods: MethodEntry[] = paymentMethodsAll.filter((m) => !walletBlocked.includes(m.key) && !(gpayFailed && m.key === "googlepay") && !(m.key === "klarna" && klarnaListTotal < KLARNA_MIN_TOTAL)); // KLARNA-MIN25-1017: hide Klarna under $25 // // DECLINE-RECOVERY-1014C: hide declined wallets // GPAY-LAZY-1014: hide Google Pay if pay.js failed
   // FUNDS-DECLINE-1016: the same low-funds view in both arms; existing caps retain priority.
   const nsfView = !!declineInfo && isNsfDecline(declineInfo.msg || "") && !(declineInfo.sess >= 3) && declineInfo.cls !== "blocked";
   const fc = FUNDS_COPY[lang === "es" ? "es" : "en"];
