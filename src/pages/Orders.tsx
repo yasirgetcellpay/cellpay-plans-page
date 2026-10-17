@@ -8,6 +8,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { ShoppingBag, Loader2 } from "lucide-react";
 import { callProxy } from "@/services/apiWrapper";
+import { fetchRefundedHashids } from "@/lib/orderRefundState"; // REFUNDED-STATE-1017
+import { useLang } from "@/lib/i18n"; // REFUNDED-STATE-1017
 
 interface Order {
   id: number | string;
@@ -33,6 +35,8 @@ const Orders = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refundedSet, setRefundedSet] = useState<Set<string>>(new Set()); // REFUNDED-STATE-1017
+  const lang = useLang(); // REFUNDED-STATE-1017
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -60,6 +64,7 @@ const Orders = () => {
       }
       const list = Array.isArray(result) ? result : [];
       setOrders(list as Order[]);
+      fetchRefundedHashids((list as Order[]).map((o) => String(o?.hashid || ""))).then(setRefundedSet).catch(() => {}); // REFUNDED-STATE-1017
     } catch {
       setOrders([]);
     } finally {
@@ -107,7 +112,9 @@ const Orders = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold text-foreground">${Number(order.amount || 0).toFixed(2)}</p>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                  {order.hashid && refundedSet.has(order.hashid) ? ( // REFUNDED-STATE-1017
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{lang === "es" ? "Reembolsado" : "Refunded"}</span>
+                  ) : <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                     order.status === "failed"
                       ? "bg-red-100 text-red-700"
                       : order.status === "pending"
@@ -115,7 +122,7 @@ const Orders = () => {
                       : "bg-green-100 text-green-700"
                   }`}>
                     {order.status === "failed" ? "Failed" : order.status === "pending" ? "Pending" : "Completed"}
-                  </span>
+                  </span>}
                 </div>
               </div>
             ))}

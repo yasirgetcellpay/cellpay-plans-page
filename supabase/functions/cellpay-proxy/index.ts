@@ -284,6 +284,62 @@ function refundSuccessMarker(wrapped: Record<string, unknown>): string | null {
   return refundSignal(upstream);
 }
 
+// LOADTEXT-REASON-1017 (REFUNDED-STATE-1017): CellPay's load-failure reason from the ORIGINAL parsed body (top level, then
+// body.data). Keys LoadText / load_text / LoadMessage in any case. First non-empty string (trimmed, max 500) or null. Never throws.
+function extractLoadText(body: unknown): string | null {
+  try {
+    const root = asRecord(body);
+    if (root.parseError === true) return null;
+    for (const obj of [root, asRecord(root.data)]) {
+      for (const [k, v] of Object.entries(obj)) {
+        if (/^(loadtext|load_text|loadmessage)$/i.test(k) && typeof v === "string" && v.trim()) return v.trim().slice(0, 500);
+      }
+    }
+  } catch { /* never throws */ }
+  return null;
+}
+
+// REFUNDED-STATE-1017: crash / timeout reply where the charge outcome is unknown. Never the HTTP 200 "Backend exception" replies.
+function chargeUnconfirmedKind(status: number, data: unknown, wrapped: Record<string, unknown>): "http5xx" | "html" | "sqlstate" | null {
+  const d = asRecord(data);
+  const inner = asRecord(d.data);
+  const texts = [d.message, d.error, d.msg, wrapped.error, inner.message, inner.error, inner.msg].filter((t): t is string => typeof t === "string");
+  if (status < 500 && texts.some((t) => /backend exception/i.test(t))) return null;
+  if (status >= 500) return "http5xx";
+  if (d.parseError === true) return "html";
+  if (texts.some((t) => /SQLSTATE/i.test(t))) return "sqlstate";
+  return null;
+}
+
+// REFUNDED-STATE-1017: the original upstream reply is a failure whose message says it was auto-refunded.
+function autoRefundFailure(wrapped: Record<string, unknown>): boolean {
+  const data = asRecord(wrapped.data);
+  if (data.parseError === true) return false;
+  const result = unwrapTransactionResult(wrapped);
+  const st = String(result.status ?? "").toLowerCase();
+  if (wrapped.success === true && (result.status === true || st === "true" || st === "success" || st === "completed")) return false;
+  const msg = text(result.message ?? result.msg ?? data.message ?? data.msg ?? wrapped.error);
+  return msg !== null && /auto[\s-]?refund/i.test(msg);
+}
+
+// REFUNDED-STATE-1017: post-finalize RPC, 1500 ms cap, fail-open (console.error only); never changes the reply.
+async function rpcSoon(name: string, args: Record<string, unknown>): Promise<void> {
+  try {
+    await Promise.race([
+      callDatabaseRpc(name, args),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("db timeout")), 1500)),
+    ]);
+  } catch (e) {
+    console.error(`[tx-log] ${name} failed:`, e instanceof Error ? e.message : e);
+  }
+}
+
+// REFUNDED-STATE-1017: BAD_PHONE guard (digits must be a 10-digit US number).
+function phoneOk10(p: Record<string, unknown>): boolean {
+  const d = String(p.phone_number ?? p.phoneNumber ?? "").replace(/\D/g, "");
+  return /^[2-9][0-9]{9}$/.test(d);
+}
+
 function unwrapTransactionResult(wrapped: Record<string, unknown>): Record<string, unknown> {
   let result = asRecord(wrapped.data) || wrapped;
   if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
@@ -953,6 +1009,17 @@ function recordGuardEvent(event: Record<string, unknown>): void {
   } catch {
     // never let refusal logging affect the response
   }
+}
+
+// REFUNDED-STATE-1017: BAD_PHONE refusal. Failed order row ("Blocked: invalid phone number"), proxy_guard_events "bad_phone" (no phone).
+const BAD_PHONE_LOG = "Blocked: invalid phone number";
+async function badPhoneReply(p: Record<string, unknown>, callerHost: string | undefined, ua: string | null, cors: Record<string, string>, origin: string | null, shape: string): Promise<Response> {
+  try {
+    const id = await Promise.race([createTransactionLog(p, callerHost, ua), new Promise<null>((r) => setTimeout(() => r(null), 3000))]);
+    if (id) await finishTransactionLog(id, { success: false, error: BAD_PHONE_LOG, data: { status: false, message: BAD_PHONE_LOG } }, text(p.payment_method ?? p.paymentMethod));
+  } catch (e) { console.error("[tx-log] bad_phone log failed:", e instanceof Error ? e.message : e); }
+  try { recordGuardEvent({ code: "bad_phone", method: "POST", endpoint_shape: shape, origin_host: originHost(origin), has_origin: origin !== null }); } catch { /* ignore */ }
+  return new Response(JSON.stringify({ success: false, code: "BAD_PHONE", error: "Please enter the full 10-digit phone number." }), { status: 200, headers: { ...cors, "Content-Type": "application/json" } });
 }
 
 function guardRefusal(
@@ -2138,6 +2205,8 @@ async function paypalAction(
     return reply({ success: false, blocked: true, code: "PAYPAL_CAPTURE_RETIRED", message: "Please refresh the page and tap PayPal again. You were not charged." });
   }
   const payload = asRecord(body.payload);
+  // REFUNDED-STATE-1017: BAD_PHONE guard on PayPal create-order (nothing sent to CellPay or PayPal).
+  if (isCreate && !phoneOk10(payload)) return await badPhoneReply(payload, callerHost, userAgent, cors, origin, PP_CREATE);
   const meta = asRecord(payload.pp_meta);
   const fwd: Record<string, unknown> = { ...payload };
   delete fwd.pp_meta;
@@ -2671,6 +2740,10 @@ serve(async (req) => {
     // then the shape CellPay requires (paypal_authorization with orderID + payerID; payment firstName / lastName / email). A refusal is
     // a calm 200: nothing goes to CellPay, nothing is captured (the PayPal approval just expires). Then the normal card guards and the
     // normal order row (blocklist, refill cooldown, DUPCHARGE incl. IN_FLIGHT, BL-3 dedupe keyed on the PayPal order id, velocity).
+    // REFUNDED-STATE-1017: BAD_PHONE guard (every method incl. Pockyt create). Never calls CellPay; failed log row + PII-free event.
+    if (shouldLogTransaction && !phoneOk10(payloadRecord)) {
+      return await badPhoneReply(payloadRecord, callerHost, req.headers.get("user-agent"), corsHeaders, guardOrigin, "checkout/transaction");
+    }
     // BOOST-CAP-199-1016: Boost (plan 66666 / slug boost) payments max $199 (amount before fees). Refused before any CellPay call.
     if (shouldLogTransaction) {
       const bPlan = String(payloadRecord.plan_id ?? payloadRecord.planId ?? "").trim();
@@ -2937,6 +3010,8 @@ serve(async (req) => {
     if (isPlaidCheckout) scrubPlaidSecrets(data); // SUCCESS-FLAG-FIX-1016
 
     // Always return 200 so supabase.functions.invoke doesn't throw
+    // LOADTEXT-REASON-1017: read from the parsed upstream body (the PayPal/Plaid scrubs above never touch LoadText keys).
+    const loadText = shouldLogTransaction && !isPockytCreate ? extractLoadText(data) : null;
     let wrapped: Record<string, unknown> = response.ok
       ? { success: true, data }
       : { success: false, error: (data as Record<string, unknown>)?.message || (data as Record<string, unknown>)?.error || "Request failed", data };
@@ -2944,6 +3019,7 @@ serve(async (req) => {
     // SUCCESS-FLAG-FIX-1016: raw logger receives the original upstream body before any rewriting/scrubbing.
     if (shouldLogTransaction) logRawCellPayReply(txLogId, endpoint, response.status, paymentMethod, data, rawText, rawReplyParseFailed);
     const refundMarker = shouldLogTransaction && !isPockytCreate ? refundSuccessMarker(wrapped) : null;
+    const unconfirmedKind = shouldLogTransaction && !isPockytCreate && !refundMarker ? chargeUnconfirmedKind(response.status, data, wrapped) : null; // REFUNDED-STATE-1017
     const refundAudit = refundMarker ? { ...asRecord(data), refund_signal: true, refund_marker: refundMarker } : null;
     if (refundMarker) wrapped = { success: true, data: { status: false, message: REFUND_FAILURE_MESSAGE, refund_signal: true } };
 
@@ -2979,6 +3055,22 @@ serve(async (req) => {
       if (!isPlaidCheckout && /^(card|applepay|googlepay|klarna)/i.test(String(paymentMethod || ""))) await logCardFacts(txLogId, payloadRecord, wrapped, paymentMethod); // [CARDLOG-1007 v3] never throws
       if (txLogId) wrapped.pending_log_id = txLogId;
       if (riskAction === "step_up") wrapped.risk_action = "step_up"; // [FRAUD-MULTIBLOCK-1012 5c] enforce mode only
+      // REFUNDED-STATE-1017: after the row is finalized (fail-open, 1500 ms each; the reply below is unchanged by these writes).
+      if (txLogId && !isPockytCreate) {
+        if (unconfirmedKind) await rpcSoon("tx_log_meta_merge", { _id: txLogId, _patch: { charge_unconfirmed: true, crash_kind: unconfirmedKind } });
+        if (refundAudit || (!unconfirmedKind && autoRefundFailure(wrapped))) {
+          await rpcSoon("mark_order_refunded", { _id: txLogId, _source: "reply", _reason: loadText ?? refundMarker ?? "reply_auto_refund" });
+        }
+        if (loadText) await rpcSoon("set_tx_load_text", { _id: txLogId, _text: loadText }); // LOADTEXT-REASON-1017
+      }
+      // REFUNDED-STATE-1017: crash/timeout = outcome unknown; never SQLSTATE text or HTML to the browser.
+      if (unconfirmedKind && !isPockytCreate) {
+        const keep: Record<string, unknown> = {};
+        if (wrapped.pending_log_id) keep.pending_log_id = wrapped.pending_log_id;
+        if (wrapped.risk_action) keep.risk_action = wrapped.risk_action;
+        wrapped = { success: false, code: "CHARGE_UNCONFIRMED", error: "charge_unconfirmed", data: { status: false, message: "charge_unconfirmed", charge_unconfirmed: true }, ...keep };
+      }
+      if (loadText && !isPockytCreate) wrapped.load_text = loadText; // LOADTEXT-REASON-1017 (display hint only; never decides success)
     }
 
     // Pockyt Cash App session status polling — finalize the pending log when

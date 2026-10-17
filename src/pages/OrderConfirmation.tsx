@@ -14,6 +14,7 @@ import { NotWorkingYet } from "@/components/NotWorkingYet";
 import { supabase } from "@/integrations/supabase/client"; // AUTOPAY-POSTPURCHASE-1013
 import { carrierPagePath } from "@/lib/checkoutResume"; // AUTOPAY-POSTPURCHASE-1013
 import { trackFunnel } from "@/lib/funnelEvents"; // AUTOPAY-POSTPURCHASE-1013
+import { fetchRefundState, refundedPanelText, isPayWord, type RefundState } from "@/lib/orderRefundState"; // REFUNDED-STATE-1017
 
 interface TransactionData {
   id?: number;
@@ -50,6 +51,7 @@ const OrderConfirmation = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const enhancedPushedRef = useRef(false);
+  const [refunded, setRefunded] = useState<RefundState | null>(null); // REFUNDED-STATE-1017
 
   const formatE164 = (phone?: string): string => {
     if (!phone) return "";
@@ -110,7 +112,10 @@ const OrderConfirmation = () => {
 
   const fetchTransaction = async () => {
     try {
+      const refundP = fetchRefundState(hashid); // REFUNDED-STATE-1017: in parallel, 1500 ms cap, error = not refunded
       const raw = await callProxy({ endpoint: `transactions/view/${hashid}`, method: "GET" });
+      const rs = await refundP; // REFUNDED-STATE-1017: refunded -> no receipt, no purchase beacon
+      if (rs) { setRefunded(rs); return; }
       const wrapper = raw as Record<string, unknown>;
       let result = (wrapper.data || wrapper) as Record<string, unknown>;
       if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
@@ -288,7 +293,20 @@ const OrderConfirmation = () => {
               {tr.backToHome}
             </button>
           </div>
-        ) : transaction ? (
+        ) : refunded ? (() => { // REFUNDED-STATE-1017
+          const slug = refunded.carrierSlug || "";
+          const pt = refundedPanelText(lang, isPayWord(`${slug} ${carrierName}`), refunded.total);
+          const target = (slug && carrierPagePath(slug)) || home;
+          return (
+            <div className="text-center py-16" role="status" data-testid="order-refunded">
+              <h1 className="text-lg font-bold text-foreground">{pt.title}</h1>
+              <p className="text-sm text-muted-foreground mt-2">{pt.text}</p>
+              <button onClick={() => navigate(target)} className="mt-4 px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
+                {lang === "es" ? "Intentar de nuevo" : "Try again"}
+              </button>
+            </div>
+          );
+        })() : transaction ? (
           <div className="space-y-6">
             {/* Order Details Card */}
             <div className="bg-card rounded-xl border border-border overflow-hidden">
