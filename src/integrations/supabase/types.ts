@@ -2157,6 +2157,13 @@ export type Database = {
             foreignKeyName: "transaction_card_facts_transaction_log_id_fkey"
             columns: ["transaction_log_id"]
             isOneToOne: true
+            referencedRelation: "order_outcomes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_card_facts_transaction_log_id_fkey"
+            columns: ["transaction_log_id"]
+            isOneToOne: true
             referencedRelation: "transaction_logs"
             referencedColumns: ["id"]
           },
@@ -2178,6 +2185,7 @@ export type Database = {
           hashid: string | null
           id: string
           last_name: string | null
+          load_text: string | null
           marketing_opt_in: boolean | null
           marketing_opt_in_at: string | null
           metadata: Json | null
@@ -2185,6 +2193,11 @@ export type Database = {
           phone_number: string | null
           plan_id: string | null
           raw_response: Json | null
+          refund_amount: number | null
+          refund_confirmed_at: string | null
+          refund_reason: string | null
+          refund_source: string | null
+          refunded_at: string | null
           source_ip: string | null
           status: string
           total: number | null
@@ -2207,6 +2220,7 @@ export type Database = {
           hashid?: string | null
           id?: string
           last_name?: string | null
+          load_text?: string | null
           marketing_opt_in?: boolean | null
           marketing_opt_in_at?: string | null
           metadata?: Json | null
@@ -2214,6 +2228,11 @@ export type Database = {
           phone_number?: string | null
           plan_id?: string | null
           raw_response?: Json | null
+          refund_amount?: number | null
+          refund_confirmed_at?: string | null
+          refund_reason?: string | null
+          refund_source?: string | null
+          refunded_at?: string | null
           source_ip?: string | null
           status?: string
           total?: number | null
@@ -2236,6 +2255,7 @@ export type Database = {
           hashid?: string | null
           id?: string
           last_name?: string | null
+          load_text?: string | null
           marketing_opt_in?: boolean | null
           marketing_opt_in_at?: string | null
           metadata?: Json | null
@@ -2243,6 +2263,11 @@ export type Database = {
           phone_number?: string | null
           plan_id?: string | null
           raw_response?: Json | null
+          refund_amount?: number | null
+          refund_confirmed_at?: string | null
+          refund_reason?: string | null
+          refund_source?: string | null
+          refunded_at?: string | null
           source_ip?: string | null
           status?: string
           total?: number | null
@@ -2403,6 +2428,86 @@ export type Database = {
           ip_class?: never
           source_ip?: string | null
           tx?: string | null
+        }
+        Relationships: []
+      }
+      order_outcomes: {
+        Row: {
+          amount: number | null
+          autopay_ticked: boolean | null
+          carrier_slug: string | null
+          created_at: string | null
+          day_ct: string | null
+          hashid: string | null
+          host: string | null
+          id: string | null
+          load_text: string | null
+          order_state: string | null
+          payment_method: string | null
+          plan_id: string | null
+          refund_amount: number | null
+          refund_confirmed_at: string | null
+          refund_reason: string | null
+          refund_source: string | null
+          refunded_at: string | null
+          status: string | null
+          total: number | null
+        }
+        Insert: {
+          amount?: number | null
+          autopay_ticked?: never
+          carrier_slug?: string | null
+          created_at?: string | null
+          day_ct?: never
+          hashid?: string | null
+          host?: never
+          id?: string | null
+          load_text?: string | null
+          order_state?: never
+          payment_method?: string | null
+          plan_id?: string | null
+          refund_amount?: number | null
+          refund_confirmed_at?: string | null
+          refund_reason?: string | null
+          refund_source?: string | null
+          refunded_at?: string | null
+          status?: string | null
+          total?: number | null
+        }
+        Update: {
+          amount?: number | null
+          autopay_ticked?: never
+          carrier_slug?: string | null
+          created_at?: string | null
+          day_ct?: never
+          hashid?: string | null
+          host?: never
+          id?: string | null
+          load_text?: string | null
+          order_state?: never
+          payment_method?: string | null
+          plan_id?: string | null
+          refund_amount?: number | null
+          refund_confirmed_at?: string | null
+          refund_reason?: string | null
+          refund_source?: string | null
+          refunded_at?: string | null
+          status?: string | null
+          total?: number | null
+        }
+        Relationships: []
+      }
+      refunds_by_carrier_plan_daily: {
+        Row: {
+          autopay_ticked: number | null
+          carrier_slug: string | null
+          confirmed: number | null
+          day_ct: string | null
+          plan_id: string | null
+          refund_source: string | null
+          refunded_face_usd: number | null
+          refunded_orders: number | null
+          refunded_usd: number | null
         }
         Relationships: []
       }
@@ -2778,6 +2883,10 @@ export type Database = {
         Returns: undefined
       }
       log_transaction_attempt: { Args: { _data: Json }; Returns: string }
+      mark_order_refunded: {
+        Args: { _id: string; _reason: string; _source: string }
+        Returns: boolean
+      }
       ops_alarm_push_key_ok: { Args: { _k: string }; Returns: boolean }
       ops_alarm_raise: {
         Args: {
@@ -2789,6 +2898,14 @@ export type Database = {
           _text: string
         }
         Returns: number
+      }
+      order_refund_state: { Args: { _hashid: string }; Returns: Json }
+      order_refund_states: {
+        Args: { _hashids: string[] }
+        Returns: {
+          hashid: string
+          total: number
+        }[]
       }
       ourside_retry_enabled: { Args: never; Returns: boolean }
       pay_by_bank_available: { Args: never; Returns: boolean }
@@ -2976,6 +3093,10 @@ export type Database = {
           _phone: string
         }
         Returns: Json
+      }
+      set_tx_load_text: {
+        Args: { _id: string; _text: string }
+        Returns: boolean
       }
       tx_log_meta_merge: {
         Args: { _id: string; _patch: Json }
