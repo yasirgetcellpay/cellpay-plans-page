@@ -14,7 +14,7 @@ const beacon = vi.fn(() => true);
 Object.defineProperty(navigator, "sendBeacon", { configurable: true, writable: true, value: beacon }); // KLARNA-FUNNEL-1017: jsdom has no native beacon.
 beforeEach(() => {
   sessionStorage.clear(); localStorage.clear(); resetFunnel(); beacon.mockClear();
-  vi.spyOn(navigator, "sendBeacon").mockImplementation(beacon);
+  Object.defineProperty(navigator, "sendBeacon", { configurable: true, writable: true, value: (...args: unknown[]) => beacon(...args) }); // KLARNA-FUNNEL-1017
 });
 afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); });
 
