@@ -314,6 +314,11 @@ const Checkout = () => {
     toast({ title: lang === "es" ? "Ingrese el número de teléfono completo de 10 dígitos." : "Please enter the full 10-digit phone number.", variant: "destructive" });
     if (state) navigate(carrierPageTarget(lang, state.carrierSlug, "", state.amount, location.search, location.hash));
   };
+  useEffect(() => { // H2O-HIDE-325635-1017
+    if (!state || String(state.planId ?? "") !== "325635") return; // H2O-HIDE-325635-1017
+    toast({ title: lang === "es" ? "Este plan no está disponible ahora. Elija otro plan." : "This plan isn't available right now. Please choose another plan.", variant: "destructive" }); // H2O-HIDE-325635-1017
+    navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, "", location.search, location.hash), { replace: true }); // H2O-HIDE-325635-1017
+  }, [state?.planId]); // H2O-HIDE-325635-1017
   // WORDING-1013: Metro, Boost and Cricket are bill payments -> "payment" wording in the Auto Pay offer (text only).
   const apBill = ["metropcs", "boost", "topup-crc"].includes(String(state?.carrierSlug || ""));
   const apCopy = apBill
