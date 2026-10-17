@@ -43,7 +43,18 @@ export async function callProxy(req: ProxyRequest): Promise<unknown> {
       body: { ...req, callerHost },
     });
 
-    if (error) throw new Error(error.message || "Proxy call failed");
+    if (error) { // PLAN-BLOCK-CLEANUP-1017
+      let politeMsg = ""; // PLAN-BLOCK-CLEANUP-1017
+      try { // PLAN-BLOCK-CLEANUP-1017
+        const ctx = (error as { context?: unknown }).context; // PLAN-BLOCK-CLEANUP-1017
+        if (ctx && typeof (ctx as Response).clone === "function") { // PLAN-BLOCK-CLEANUP-1017
+          const b = (await (ctx as Response).clone().json()) as Record<string, unknown>; // PLAN-BLOCK-CLEANUP-1017
+          if (b && b.code === "PLAN_GUARD" && typeof b.message === "string") politeMsg = b.message.trim(); // PLAN-BLOCK-CLEANUP-1017
+        } // PLAN-BLOCK-CLEANUP-1017
+      } catch { /* keep the original message */ } // PLAN-BLOCK-CLEANUP-1017
+      if (politeMsg) { const pe = new Error(politeMsg); pe.name = "PlanGuardError"; throw pe; } // PLAN-BLOCK-CLEANUP-1017
+      throw new Error(error.message || "Proxy call failed"); // PLAN-BLOCK-CLEANUP-1017
+    } // PLAN-BLOCK-CLEANUP-1017
     return data;
   } finally {
     clearTimeout(timer);

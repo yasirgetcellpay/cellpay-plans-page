@@ -139,7 +139,7 @@ const prRangeMsg = (slug: string, lang: string): string | null => // PLAN-RANGES
   : slug === "verizon" ? (lang === "es" ? "Pagos de Verizon: de $15 a $150" : "Verizon payments: $15 to $150")
   : null;
 const dropHiddenPlans = <T extends { plan_id: string; amount: number }>(slug: string, list: T[]): T[] => // PLAN-RANGES-1016
-  list.filter((p) => p.plan_id !== "8282" && p.plan_id !== "325635" && !(PR_LIMITS[slug] && slug !== "boost" && p.amount > PR_LIMITS[slug].max)); // H2O-HIDE-325635-1017
+  list.filter((p) => p.plan_id !== "8282" && p.plan_id !== "325635" && p.plan_id !== "547871" && !(PR_LIMITS[slug] && slug !== "boost" && p.amount > PR_LIMITS[slug].max)); // H2O-HIDE-325635-1017 // PLAN-BLOCK-CLEANUP-1017
 
 function normalizePlans(plans: Array<Record<string, unknown>>): NormalizedPlan[] {
   return plans.map((p) => {
@@ -775,10 +775,10 @@ const DynamicCarrier = ({
         <p className="bg-card rounded-xl border border-border px-3 py-2.5 text-xs text-foreground leading-relaxed text-center">
           {bill /* SEO-CONTENT-1014 */
             ? bill.autoPayInfoLead + (bill.lang === "es"
-              ? " Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es")
+              ? " Lo puede activar al pagar. El Pago Automático está desactivado a menos que usted lo marque o llegue desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PLAN-BLOCK-CLEANUP-1017
               : " You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en"))
             : lang === "es"
-            ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es")
+            ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que usted lo marque o llegue desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PLAN-BLOCK-CLEANUP-1017
             : (carrierSlug === "metropcs" ? "Optional: Auto Pay so you never miss a payment." /* GSC-MAULIK-1014 */ : "Optional: Auto Pay so you never miss a refill.") + " You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en")}
         </p>
       </div>

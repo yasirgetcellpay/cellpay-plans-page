@@ -20,7 +20,7 @@ function extractPlans(data: unknown, slug: string, es: boolean): LivePlan[] {
     if (!Array.isArray(l)) continue;
     for (const p of l) {
       const o = (p ?? {}) as Record<string, unknown>;
-      if (String(o.planId ?? o.plan_id ?? "").trim() === "325635") continue; // H2O-HIDE-325635-1017
+      if (["325635", "8282", "547871"].includes(String(o.planId ?? o.plan_id ?? "").trim())) continue; // H2O-HIDE-325635-1017 // PLAN-BLOCK-CLEANUP-1017
       const amount = Number(o.amount ?? o.price ?? 0);
       if (!(amount > 0)) continue;
       const desc = String(o.description ?? o.name ?? "").split(",")[0].trim();

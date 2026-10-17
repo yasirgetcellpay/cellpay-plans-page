@@ -1465,7 +1465,7 @@ const htmlAliasPlugin = (): Plugin => ({
         ? "Pay your Metro by T-Mobile prepaid bill online. No login needed."
         : "No login needed. Enter your phone number, choose your plan, and you're recharged.";
       const info = isEs // SEO-CONTENT-1014: bill pages use pay wording in the first sentence
-        ? (bill ? bill.autoPayInfoLead : "Opcional: Auto Pago para no olvidar su recarga.") + " Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PAYCOPY-1008: shared payment list
+        ? (bill ? bill.autoPayInfoLead : "Opcional: Auto Pago para no olvidar su recarga.") + " Lo puede activar al pagar. El Pago Automático está desactivado a menos que usted lo marque o llegue desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PAYCOPY-1008: shared payment list // PLAN-BLOCK-CLEANUP-1017
         : (bill ? bill.autoPayInfoLead : slug === "metropcs" ? "Optional: Auto Pay so you never miss a payment." /* GSC-MAULIK-1014 */ : "Optional: Auto Pay so you never miss a refill.") + " You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en");
       const metroEnGuide = !isEs && slug === "metropcs" && !bill; // GSC-MAULIK-1014: guide link in raw HTML
       return (
