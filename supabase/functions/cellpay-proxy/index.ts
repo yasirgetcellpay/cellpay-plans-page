@@ -140,6 +140,7 @@ function retryMetaFrom(v: unknown): Record<string, unknown> {
     if (r.decline_cls === "nsf") out.decline_cls = "nsf";
     if (r.funds_ui === "v1") out.funds_ui = "v1";
     for (const k of ["klarna_offered", "klarna_clicked", "klarna_auth_declined"]) if (typeof r[k] === "boolean") out[k] = r[k];
+    if (r.klarna_src === "decline_nsf" || r.klarna_src === "decline_other" || r.klarna_src === "method_list") out.klarna_src = r.klarna_src; // KLARNA-FUNNEL-1017
     return out;
   } catch {
     return {};

@@ -120,6 +120,13 @@
       "when": 1792255296807,
       "tag": "0016_vz_prepaid_guard_1017",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792264138033,
+      "tag": "0017_klarna_funnel_1017",
+      "breakpoints": true
     }
   ]
 }

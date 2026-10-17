@@ -49,6 +49,8 @@ import { useLang, t } from "@/lib/i18n";
 import { top4Name, displayCarrierName } from "@/content/carrierHero";
 import { readCheckoutCtx, writeCheckoutCtx, clearCheckoutCtx, resolveCheckoutFromUrl, carrierPageTarget, cashAppReturnTarget, stripResumeParams, readCheckoutMethod, writeCheckoutMethod } from "@/lib/checkoutResume";
 import { trackFunnel, resetFunnel, funnelFired } from "@/lib/funnelEvents"; // CHECKOUT-FUNNEL
+import { readDeclineAb, writeFunds, patchFunds, clearFunds, setKlarnaSrc, readKlarnaSrc, clearKlarnaSrc, type KlarnaSrc } from "@/lib/declineRecovery"; // KLARNA-FUNNEL-1017
+import type { KlarnaFunnelEvent, FunnelData } from "@/lib/funnelEvents"; // KLARNA-FUNNEL-1017
 
 interface LocationState {
   phone: string;
@@ -115,7 +117,7 @@ declare global {
         authorize: (
           opts: { payment_method_category: string },
           data: Record<string, unknown>,
-          cb: (res: { approved: boolean; authorization_token?: string }) => void
+          cb: (res: { approved: boolean; authorization_token?: string; show_form?: boolean }) => void // KLARNA-FUNNEL-1017
         ) => void;
       };
     };
@@ -646,6 +648,8 @@ const Checkout = () => {
   // loadPaymentData and Google opens its sheet inside the click (a popup opened late is what Chrome can turn into a new tab or block). If anything
   // here fails, the click path does the same steps itself (today's behaviour). No payload, proxy or Auto Pay code involved.
   const [declineInfo, setDeclineInfo] = useState<{ cls: DeclineClass; n: number; method: PaymentMethod; sess: number; msg?: string } | null>(null); // DECLINE-RECOVERY-1014: + method, sess // DECLINE-RECOVERY-1014B: + msg // DECLINE-ONETAP-1017: declared before the GPAY-CLICK-1011 effect that now reads it
+  const declineSeqRef = useRef(0); // KLARNA-FUNNEL-1017
+  const klarnaAttemptRef = useRef(0); // KLARNA-FUNNEL-1017
   const gpPreRef = useRef<{ env: string; client: GpClient } | null>(null);
   const gpRunRef = useRef(0);
   useEffect(() => {
@@ -724,7 +728,7 @@ const Checkout = () => {
   useEffect(() => {
     if (!declineInfo || !isNsfDecline(declineInfo.msg || "") || declineInfo.sess >= 3 || declineInfo.cls === "blocked") return;
     try {
-      sessionStorage.setItem("cp_funds_v1", JSON.stringify({ decline_cls: "nsf", klarna_offered: paymentMethods.some((pm) => pm.key === "klarna") && total >= KLARNA_MIN_TOTAL, klarna_clicked: false, klarna_auth_declined: false, ts: Date.now() }));
+      writeFunds(phone10, { decline_cls: "nsf", klarna_offered: paymentMethods.some((pm) => pm.key === "klarna") && total >= KLARNA_MIN_TOTAL, klarna_clicked: false, klarna_auth_declined: false, ts: Date.now() }); // KLARNA-FUNNEL-1017
     } catch { /* ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [declineInfo]);
@@ -1338,6 +1342,9 @@ const Checkout = () => {
 
   // CHECKOUT-FUNNEL: invisible funnel analytics (no UI). Hooks sit above the "if (!state)" return. All fire-and-forget.
   const funnelDataRef = useRef<{ carrier: string | null; amount: number | null; fee: number | null; total: number | null }>({ carrier: null, amount: null, fee: null, total: null });
+  const trackKlarna = (event: KlarnaFunnelEvent, screen: KlarnaSrc, onceKey: string, extra: Pick<FunnelData, "shown" | "cap" | "klarna_result"> = {}) => { // KLARNA-FUNNEL-1017
+    try { trackFunnel(event, { ...funnelDataRef.current, screen, decline_ab: readDeclineAb(phone10), checkout_session_id: sessionIdRef.current, ...extra }, onceKey); } catch { /* ignore */ } // KLARNA-FUNNEL-1017
+  }; // KLARNA-FUNNEL-1017
   useEffect(() => { resetFunnel(); }, []);
   // [OURSIDE-RETRY-1012] state (above the "if (!state)" return). Flag ourside_retry: default off on any error.
   const [oursideRetryOn, setOursideRetryOn] = useState(false);
@@ -1371,6 +1378,18 @@ const Checkout = () => {
       if (validation && !loading) trackFunnel("total_shown", funnelDataRef.current);
     } catch { /* ignore */ }
   }, [state?.carrierSlug, state?.amount, validation, loading]);
+  useEffect(() => { // KLARNA-FUNNEL-1017: inspect committed existing elements, without changing rendering or A/B assignment.
+    try { // KLARNA-FUNNEL-1017
+      if (!state || loading) return; // KLARNA-FUNNEL-1017
+      const seq = declineSeqRef.current; // KLARNA-FUNNEL-1017
+      const tile = document.querySelector('[data-testid="method-picker"] [data-method="klarna"]'); // KLARNA-FUNNEL-1017
+      if (tile) trackKlarna("klarna_offer_shown", "method_list", "method_list", { shown: true }); // KLARNA-FUNNEL-1017
+      if (declineInfo && document.querySelector('[data-testid="funds-klarna"]')) trackKlarna("klarna_offer_shown", "decline_nsf", `decline_nsf|${seq}`, { shown: true }); // KLARNA-FUNNEL-1017
+      if (declineInfo && document.querySelector('[data-testid="decline-klarna"]')) trackKlarna("klarna_offer_shown", "decline_other", `decline_other|${seq}`, { shown: true }); // KLARNA-FUNNEL-1017
+      if (declineInfo && isNsfDecline(declineInfo.msg || "") && declineInfo.sess >= 3 && declineInfo.cls !== "blocked" && tile && (validation?.total ?? Number(state.amount)) >= KLARNA_MIN_TOTAL) trackKlarna("klarna_offer_shown", "decline_nsf", `cap|${seq}`, { shown: false, cap: true }); // KLARNA-FUNNEL-1017
+    } catch { /* ignore */ } // KLARNA-FUNNEL-1017
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [declineInfo, loading, validation, state, applePayAvailable, walletBlocked, gpayFailed, paymentMethod, errorMsg]); // KLARNA-FUNNEL-1017
   useEffect(() => {
     const started = () => { try { trackFunnel("payment_started", funnelDataRef.current); } catch { /* ignore */ } };
     const onFocus = (e: Event) => {
@@ -1550,7 +1569,7 @@ const Checkout = () => {
     const failedRefill = hasRefundSignal(raw) || /error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")); // SUCCESS-FLAG-FIX-1016
     const isSuccess = !failedRefill && (status === true || status === "true" || String(status || "").toLowerCase() === "success" || String(status || "").toLowerCase() === "completed"); // SUCCESS-FLAG-FIX-1016
     if (isSuccess) {
-      try { sessionStorage.removeItem("cp_funds_v1"); } catch { /* ignore */ } // FUNDS-DECLINE-1016
+      try { clearFunds(phone10); clearKlarnaSrc(phone10); } catch { /* ignore */ } // FUNDS-DECLINE-1016 // KLARNA-FUNNEL-1017
       const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
       // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1b: sessionStorage + cookie).
       setPurchasePending(hid);
@@ -1578,6 +1597,7 @@ const Checkout = () => {
       // DECLINE-RECOVERY-1014: card, Apple Pay and Google Pay; card keeps its per-card counter, every method bumps the session counter.
       const dWallet = paymentMethod === "applepay" || paymentMethod === "googlepay";
       const dOk = (paymentMethod === "card" || dWallet) && !autoRefund && !txn && raw.code !== "DUP_CONFIRM" && raw.code !== "SESSION_PAID" && raw.code !== "IN_FLIGHT";
+      try { if (dOk) declineSeqRef.current += 1; } catch { /* ignore */ } // KLARNA-FUNNEL-1017
       setDeclineInfo(dOk ? { cls: classifyDecline(msg, state.carrierSlug), n: paymentMethod === "card" ? bumpCardDeclines(apTicksOrder) : 0, method: paymentMethod, sess: bumpSessionDeclines(), msg: String(msg || "") } : null); // DECLINE-RECOVERY-1014B: + msg
       if (dOk && (paymentMethod === "applepay" || paymentMethod === "googlepay")) { markWalletDeclined(paymentMethod); setWalletBlocked(walletDeclined()); } // DECLINE-RECOVERY-1014C
       if (dOk && paymentMethod === "card") { setCardNumber(""); setCardExpiry(""); setCardCvv(""); } // DECLINE-RECOVERY-1014: card fields cleared, rest kept // DUPCHARGE-1008: not a decline
@@ -2102,7 +2122,7 @@ const Checkout = () => {
         const failedRefill = hasRefundSignal(raw) || /error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")); // SUCCESS-FLAG-FIX-1016
         const isSuccess = !failedRefill && (result.status === true || result.status === "true" || String(result.status || "").toLowerCase() === "success" || String(result.status || "").toLowerCase() === "completed"); // SUCCESS-FLAG-FIX-1016
         if (isSuccess) {
-          try { sessionStorage.removeItem("cp_funds_v1"); } catch { /* ignore */ } // FUNDS-DECLINE-1016
+          try { clearFunds(phone10); clearKlarnaSrc(phone10); } catch { /* ignore */ } // FUNDS-DECLINE-1016 // KLARNA-FUNNEL-1017
           console.log("[ApplePay] transaction success");
           // DUPCHARGE-1008: if the sheet already closed (Apple's ~30 s limit), this throws; the order is paid, so still show it.
           try { session.completePayment({ status: session.STATUS_SUCCESS }); } catch (e) { console.warn("[ApplePay] completePayment(success) after the sheet closed", e); }
@@ -2214,6 +2234,8 @@ const Checkout = () => {
     }
     const clientToken = sessionData.client_token as string;
     if (!clientToken) { setErrorMsg("Could not create Klarna session"); return; }
+    const klarnaAttempt = String(++klarnaAttemptRef.current); // KLARNA-FUNNEL-1017
+    try { trackKlarna("klarna_session_created", readKlarnaSrc(phone10), klarnaAttempt); } catch { /* ignore */ } // KLARNA-FUNNEL-1017
 
     if (!window.Klarna) { setErrorMsg("Klarna SDK not available"); return; }
 
@@ -2237,6 +2259,7 @@ const Checkout = () => {
           },
         },
         async (res) => {
+          try { trackKlarna("klarna_auth_result", readKlarnaSrc(phone10), klarnaAttempt, { klarna_result: (res.approved && res.authorization_token) ? "approved" : (res.show_form === false ? "declined" : "cancelled") }); } catch { /* ignore */ } // KLARNA-FUNNEL-1017
           if (res.approved && res.authorization_token) {
             setKlarnaToken(res.authorization_token);
             try {
@@ -2250,8 +2273,7 @@ const Checkout = () => {
             // FUNDS-DECLINE-1016: logging only; keep authorization and submission behavior unchanged.
             if (!res.approved) {
               try {
-                const f = JSON.parse(sessionStorage.getItem("cp_funds_v1") || "null");
-                if (f && typeof f === "object" && !Array.isArray(f)) sessionStorage.setItem("cp_funds_v1", JSON.stringify({ ...f, klarna_auth_declined: true }));
+                patchFunds(phone10, { klarna_auth_declined: true }); // KLARNA-FUNNEL-1017
               } catch { /* ignore */ }
             }
             setErrorMsg("Klarna authorization was declined or cancelled");
@@ -2516,7 +2538,7 @@ const Checkout = () => {
           {isVerizonSlug(state.carrierSlug) && Number(state.amount) > VZ_NOTICE_MIN && <p data-testid="vz-prepaid-notice" role="note" className="rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-900 text-xs p-3">{VZ_NOTE[lang === "es" ? "es" : "en"]}</p>}
           <div className={orsFailed ? "rounded-xl ring-2 ring-offset-2 ring-primary" : undefined} data-testid="ors-highlight" onMouseOver={kickGpay} onFocus={kickGpay}>{/* [OURSIDE-RETRY-1012] */}{/* GPAY-LAZY-1014: hover/focus on the method list starts pay.js */}
           <PaymentMethodPicker lang={lang === "es" ? "es" : "en"} methods={paymentMethods} selected={paymentMethod} brandColor={brandColor}
-            onSelect={(key) => { if (key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); methodTappedRef.current = true; setPaymentMethod(key as PaymentMethod); }} />
+            onSelect={(key) => { try { if (key === "klarna" && paymentMethod !== "klarna") trackKlarna("klarna_clicked", "method_list", `method_list|${declineSeqRef.current}`); } catch { /* ignore */ } if (key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); methodTappedRef.current = true; setPaymentMethod(key as PaymentMethod); }} /* KLARNA-FUNNEL-1017 */ />
           </div>
 
           <div className="bg-card rounded-xl border border-border p-5">
@@ -3206,8 +3228,9 @@ const Checkout = () => {
                         <button type="button" data-testid="funds-klarna" className="w-full px-4 py-3.5 rounded-lg font-bold text-base text-black" style={{ backgroundColor: "#FFA8CD" }}
                           onClick={() => {
                             try {
-                              const f = JSON.parse(sessionStorage.getItem("cp_funds_v1") || "null");
-                              if (f && typeof f === "object" && !Array.isArray(f)) sessionStorage.setItem("cp_funds_v1", JSON.stringify({ ...f, klarna_clicked: true }));
+                              patchFunds(phone10, { klarna_clicked: true }); // KLARNA-FUNNEL-1017
+                              setKlarnaSrc(phone10, "decline_nsf"); // KLARNA-FUNNEL-1017
+                              trackKlarna("klarna_clicked", "decline_nsf", `decline_nsf|${declineSeqRef.current}`); // KLARNA-FUNNEL-1017
                             } catch { /* ignore */ }
                             if (!klarnaFirstName.trim()) setKlarnaFirstName(firstName);
                             if (!klarnaLastName.trim()) setKlarnaLastName(lastName);
@@ -3233,7 +3256,7 @@ const Checkout = () => {
                         {primaryWallet === "applepay" ? dc.abPrimaryAp : dc.abPrimaryGp}
                       </button>
                       {!nsfView && declineInfo.cls === "funds" && offered.has("klarna") && total >= KLARNA_MIN_TOTAL && ( // FUNDS-DECLINE-1016
-                        <button type="button" data-testid="decline-klarna" onClick={() => toMethod("klarna")} className={btn + " border-2 text-foreground bg-background"} style={{ borderColor: "#FFA8CD" }}>{dc.abKlarna}</button>
+                        <button type="button" data-testid="decline-klarna" onClick={() => { try { setKlarnaSrc(phone10, "decline_other"); trackKlarna("klarna_clicked", "decline_other", `decline_other|${declineSeqRef.current}`); } catch { /* ignore */ } toMethod("klarna"); }} /* KLARNA-FUNNEL-1017 */ className={btn + " border-2 text-foreground bg-background"} style={{ borderColor: "#FFA8CD" }}>{dc.abKlarna}</button>
                       )}
                       {ppBtn}{primaryWallet === "applepay" ? gpBtn : null}
                       {(showRetry || showAnother) && <p className="text-xs text-muted-foreground pt-1">{dc.orCard}</p>}

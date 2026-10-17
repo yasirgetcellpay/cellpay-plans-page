@@ -211,3 +211,44 @@ export function getDeclineAb(phoneDigits?: string): DeclineAb {
   try { if (k && !isAb(p)) localStorage.setItem(k, v); } catch { /* ignore */ }
   return v;
 }
+
+// KLARNA-FUNNEL-1017: logging-only flags, session primary with a per-phone mirror; never included in events.
+export type KlarnaSrc = "decline_nsf" | "decline_other" | "method_list";
+export type FundsFlags = { ts: number; decline_cls?: string; klarna_offered?: boolean; klarna_clicked?: boolean; klarna_auth_declined?: boolean };
+const FLAGS_TTL = 30 * 60_000;
+const flagsPhoneKey = (prefix: string, phone: string) => {
+  const digits = String(phone || "").replace(/\D/g, "");
+  return digits.length >= 10 ? prefix + digits : null;
+};
+function readFreshFlags(sessionKey: string, prefix: string, phone: string): Record<string, unknown> | null {
+  const fresh = (raw: string | null): Record<string, unknown> | null => {
+    try {
+      const v = JSON.parse(raw || "null");
+      return v && typeof v === "object" && !Array.isArray(v) && typeof v.ts === "number" && Date.now() - v.ts >= 0 && Date.now() - v.ts < FLAGS_TTL ? v : null;
+    } catch { return null; }
+  };
+  try { const v = fresh(sessionStorage.getItem(sessionKey)); if (v) return v; } catch { /* ignore */ }
+  try { const key = flagsPhoneKey(prefix, phone); return key ? fresh(localStorage.getItem(key)) : null; } catch { return null; }
+}
+function writeFlags(sessionKey: string, prefix: string, phone: string, obj: unknown): void {
+  try { sessionStorage.setItem(sessionKey, JSON.stringify(obj)); } catch { /* ignore */ }
+  try { const key = flagsPhoneKey(prefix, phone); if (key) localStorage.setItem(key, JSON.stringify(obj)); } catch { /* ignore */ }
+}
+function clearFlags(sessionKey: string, prefix: string, phone: string): void {
+  try { sessionStorage.removeItem(sessionKey); } catch { /* ignore */ }
+  try { const key = flagsPhoneKey(prefix, phone); if (key) localStorage.removeItem(key); } catch { /* ignore */ }
+}
+export function writeFunds(phone: string, obj: FundsFlags): void { writeFlags("cp_funds_v1", "cp_funds_phone_v1:", phone, obj); }
+export function readFunds(phone: string): FundsFlags | null { return readFreshFlags("cp_funds_v1", "cp_funds_phone_v1:", phone) as FundsFlags | null; }
+export function patchFunds(phone: string, patch: Partial<FundsFlags>): void {
+  try { const v = readFunds(phone); if (v) writeFunds(phone, { ...v, ...patch }); } catch { /* ignore */ }
+}
+export function clearFunds(phone: string): void { clearFlags("cp_funds_v1", "cp_funds_phone_v1:", phone); }
+export function setKlarnaSrc(phone: string, src: KlarnaSrc): void { writeFlags("cp_klarna_src_v1", "cp_klarna_src_phone_v1:", phone, { src, ts: Date.now() }); }
+export function readKlarnaSrc(phone: string): KlarnaSrc {
+  try {
+    const v = readFreshFlags("cp_klarna_src_v1", "cp_klarna_src_phone_v1:", phone);
+    return v?.src === "decline_nsf" || v?.src === "decline_other" ? v.src : "method_list";
+  } catch { return "method_list"; }
+}
+export function clearKlarnaSrc(phone: string): void { clearFlags("cp_klarna_src_v1", "cp_klarna_src_phone_v1:", phone); }

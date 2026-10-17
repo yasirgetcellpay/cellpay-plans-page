@@ -1,7 +1,8 @@
 // CHECKOUT-FUNNEL: invisible, fire-and-forget checkout funnel analytics. Never throws, never awaited.
 // Sends only event name, carrier, amount, fee, total, a random tab session id, lang and client time. No personal data.
-export type FunnelEvent = "checkout_view" | "total_shown" | "payment_started" | "submitted" | "left_at_total" | "prefill_used" | "autopay_postpurchase_offer_shown" | "autopay_postpurchase_offer_accepted" | "recovery_prompt_shown" | "recovery_retry" | "recovery_success"; // DECLINE-RECOVERY-1014: recovery_*; // EMAIL-PREFILL-1013: prefill_used; AUTOPAY-POSTPURCHASE-1013: autopay_postpurchase_*
-export type FunnelData = { carrier?: string | null; amount?: number | null; fee?: number | null; total?: number | null };
+export type FunnelEvent = "checkout_view" | "total_shown" | "payment_started" | "submitted" | "left_at_total" | "prefill_used" | "autopay_postpurchase_offer_shown" | "autopay_postpurchase_offer_accepted" | "recovery_prompt_shown" | "recovery_retry" | "recovery_success" | KlarnaFunnelEvent; // DECLINE-RECOVERY-1014: recovery_*; // EMAIL-PREFILL-1013: prefill_used; AUTOPAY-POSTPURCHASE-1013: autopay_postpurchase_* // KLARNA-FUNNEL-1017
+export type KlarnaFunnelEvent = "klarna_offer_shown" | "klarna_clicked" | "klarna_session_created" | "klarna_auth_result"; // KLARNA-FUNNEL-1017
+export type FunnelData = { carrier?: string | null; amount?: number | null; fee?: number | null; total?: number | null; screen?: "decline_nsf" | "decline_other" | "method_list"; decline_ab?: "control" | "variant" | null; checkout_session_id?: string; klarna_result?: "approved" | "declined" | "cancelled"; shown?: boolean; cap?: boolean }; // KLARNA-FUNNEL-1017
 
 const URL_ = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/funnel-event`;
 const sent = new Set<string>();
@@ -31,16 +32,18 @@ export function funnelFired(event: FunnelEvent): boolean {
   try { return sent.has(event); } catch { return false; }
 }
 
-export function trackFunnel(event: FunnelEvent, data: FunnelData = {}): void {
+export function trackFunnel(event: FunnelEvent | KlarnaFunnelEvent, data: FunnelData = {}, onceKey?: string): void { // KLARNA-FUNNEL-1017
   try {
-    if (event === "total_shown") {
+    const dedupeKey = onceKey === undefined ? event : `${event}|${onceKey}`; // KLARNA-FUNNEL-1017
+    if (onceKey !== undefined && sent.has(dedupeKey)) return; // KLARNA-FUNNEL-1017
+    if (onceKey === undefined && event === "total_shown") { // KLARNA-FUNNEL-1017
       const k = `${data.carrier ?? ""}|${data.amount ?? ""}|${data.fee ?? ""}`;
       if (k === totalKey) return;
       totalKey = k;
-    } else if (sent.has(event)) {
+    } else if (sent.has(dedupeKey)) { // KLARNA-FUNNEL-1017
       return;
     }
-    sent.add(event);
+    sent.add(dedupeKey); // KLARNA-FUNNEL-1017
     const body = JSON.stringify({
       event,
       carrier: typeof data.carrier === "string" ? data.carrier.slice(0, 40) : null,
@@ -48,6 +51,7 @@ export function trackFunnel(event: FunnelEvent, data: FunnelData = {}): void {
       session_id: sid(),
       lang: (document.documentElement.lang || "").slice(0, 8) || null,
       client_ts: new Date().toISOString(),
+      ...(event.startsWith("klarna_") ? { screen: data.screen, decline_ab: data.decline_ab, checkout_session_id: data.checkout_session_id, klarna_result: data.klarna_result, shown: data.shown, cap: data.cap } : {}), // KLARNA-FUNNEL-1017
     });
     if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function" &&
         navigator.sendBeacon(URL_, new Blob([body], { type: "text/plain" }))) return;

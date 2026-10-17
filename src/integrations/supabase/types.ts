@@ -389,41 +389,59 @@ export type Database = {
       checkout_funnel_events: {
         Row: {
           amount: number | null
+          cap: boolean | null
           carrier: string | null
+          checkout_session_id: string | null
           client_ts: string | null
           created_at: string
+          decline_ab: string | null
           event: string
           fee: number | null
           host: string | null
           id: number
+          klarna_result: string | null
           lang: string | null
+          screen: string | null
           session_id: string | null
+          shown: boolean | null
           total: number | null
         }
         Insert: {
           amount?: number | null
+          cap?: boolean | null
           carrier?: string | null
+          checkout_session_id?: string | null
           client_ts?: string | null
           created_at?: string
+          decline_ab?: string | null
           event: string
           fee?: number | null
           host?: string | null
           id?: number
+          klarna_result?: string | null
           lang?: string | null
+          screen?: string | null
           session_id?: string | null
+          shown?: boolean | null
           total?: number | null
         }
         Update: {
           amount?: number | null
+          cap?: boolean | null
           carrier?: string | null
+          checkout_session_id?: string | null
           client_ts?: string | null
           created_at?: string
+          decline_ab?: string | null
           event?: string
           fee?: number | null
           host?: string | null
           id?: number
+          klarna_result?: string | null
           lang?: string | null
+          screen?: string | null
           session_id?: string | null
+          shown?: boolean | null
           total?: number | null
         }
         Relationships: []

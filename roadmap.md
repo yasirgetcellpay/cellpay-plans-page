@@ -13,3 +13,8 @@
 # AEO-11-ULTRA-1017 <!-- // AEO-11-ULTRA-1017 -->
 - [x] Add Ultra Mobile EN/ES guides and requested routes, shells, inbound links, sitemap and AI index entries. <!-- // AEO-11-ULTRA-1017 -->
 - [x] Verified both guides, shared static FAQ data, canonical/CTA links and Spanish mobile view; build OK. Existing SEO tests retain 28 failures; 20 checks passed. Not published. <!-- // AEO-11-ULTRA-1017 -->
+
+# KLARNA-FUNNEL-1017
+- [x] Preserve existing funnel records and apply additive analytics migration.
+- [x] Add isolated Klarna events, mirrored flags, and retry metadata without UI/payment changes.
+- [x] 59 regression tests passed; preview offer/click events read back from analytics, with no payment calls or runtime errors. Deploy only funnel-event and cellpay-proxy; not published. Real Klarna authorization was not exercised.
