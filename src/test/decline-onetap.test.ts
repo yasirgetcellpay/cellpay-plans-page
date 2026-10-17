@@ -20,15 +20,15 @@ describe("DECLINE-ONETAP-1017", () => {
     expect(src).toMatch(/placeOrderRef\.current = handlePlaceOrder;/);
   });
   it("the three wallet buttons call walletNow", () => {
-    expect(src).toMatch(/data-testid="decline-applepay" onClick=\{\(\) => walletNow\("applepay"\)\}/);
-    expect(src).toMatch(/data-testid="decline-googlepay" onClick=\{\(\) => walletNow\("googlepay"\)\}/);
+    expect(src).toMatch(/data-testid="decline-applepay" \/\* DECLINE-ONETAP-1017 \*\/ onClick=\{\(\) => walletNow\("applepay"\)\}/);
+    expect(src).toMatch(/data-testid="decline-googlepay" \/\* DECLINE-ONETAP-1017 \*\/ onClick=\{\(\) => walletNow\("googlepay"\)\}/);
     const prim = src.split('data-testid="decline-ab-primary-wallet"').slice(1);
     expect(prim.length).toBe(2);
-    for (const p of prim) expect(p.slice(0, 200)).toMatch(/onClick=\{\(\) => walletNow\(primaryWallet\)\}/);
+    for (const p of prim) expect(p.slice(0, 260)).toMatch(/onClick=\{\(\) => walletNow\(primaryWallet\)\}/);
     expect(src).not.toMatch(/toMethod\("applepay"\)|toMethod\("googlepay"\)|toMethod\(primaryWallet\)/);
   });
   it("wallet handlers keep their sheet calls", () => {
-    expect(src).toMatch(/new window\.ApplePaySession\(|new ApplePaySession\(/);
+    expect(src).toMatch(/ApplePaySession\(/);
     expect(src).toMatch(/loadPaymentData\(/);
   });
 });

@@ -3176,10 +3176,10 @@ const Checkout = () => {
                 <button type="button" data-testid="decline-paypal" onClick={() => toMethod("paypal")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayPal}</button>
               );
               const apBtn = showAp && (
-                <button type="button" data-testid="decline-applepay" onClick={() => walletNow("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>{/* DECLINE-ONETAP-1017 */}
+                <button type="button" data-testid="decline-applepay" /* DECLINE-ONETAP-1017 */ onClick={() => walletNow("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
               );
               const gpBtn = showGp && (
-                <button type="button" data-testid="decline-googlepay" onClick={() => walletNow("googlepay")} className={btn + " bg-black text-white"}>{dc.useGooglePay}</button>{/* DECLINE-ONETAP-1017 */}
+                <button type="button" data-testid="decline-googlepay" /* DECLINE-ONETAP-1017 */ onClick={() => walletNow("googlepay")} className={btn + " bg-black text-white"}>{dc.useGooglePay}</button>
               );
               const cashBtn = !sessCap && offered.has("cashapp") && (
                 <button type="button" data-testid="decline-cashapp" onClick={() => toMethod("cashapp")} className={btn + " text-black"} style={{ backgroundColor: "#00D632" }}>{dc.useCashApp}</button>
@@ -3214,7 +3214,7 @@ const Checkout = () => {
                       </>}
                       <p className="text-xs font-semibold text-muted-foreground pt-1">{fc.otherWays}</p>
                       {ab === "variant" && primaryWallet ? <>
-                        <button type="button" data-testid="decline-ab-primary-wallet" data-decline-ab-wallet={primaryWallet} onClick={() => walletNow(primaryWallet)} className="w-full px-4 py-3.5 rounded-lg font-bold text-base bg-black text-white">{primaryWallet === "applepay" ? dc.abPrimaryAp : dc.abPrimaryGp}</button>{/* DECLINE-ONETAP-1017 */}
+                        <button type="button" data-testid="decline-ab-primary-wallet" data-decline-ab-wallet={primaryWallet} /* DECLINE-ONETAP-1017 */ onClick={() => walletNow(primaryWallet)} className="w-full px-4 py-3.5 rounded-lg font-bold text-base bg-black text-white">{primaryWallet === "applepay" ? dc.abPrimaryAp : dc.abPrimaryGp}</button>
                         {ppBtn}{primaryWallet === "applepay" ? gpBtn : apBtn}{cashBtn}{bankBtn}
                       </> : <>{apBtn}{gpBtn}{ppBtn}{cashBtn}{bankBtn}</>}
                       {showAnother && <button type="button" data-testid="decline-another-card" onClick={() => { if (isCard) focusCardNumber(); else toMethod("card"); }} className={quiet}>{dc.useAnotherCard}</button>}
