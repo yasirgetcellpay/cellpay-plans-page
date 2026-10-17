@@ -973,6 +973,17 @@ let guardEventMinute = 0;
 let guardEventsThisMinute = 0;
 let guardEventsDropped = 0;
 
+// KLARNA-MIN25-1017: mirrors KLARNA_MIN_TOTAL in src/lib/declineRecovery.ts (Klarna under $25 always fails upstream).
+const KLARNA_MIN_TOTAL = 25; // KLARNA-MIN25-1017
+export function klarnaMinRefusal(total: unknown, lang: unknown): Record<string, unknown> | null { // KLARNA-MIN25-1017
+  const t = Number(total);
+  if (!Number.isFinite(t) || t >= KLARNA_MIN_TOTAL) return null;
+  const message = lang === "es"
+    ? "Klarna está disponible para pedidos de $25 o más. Por favor, elija otra forma de pago. No se le cobró."
+    : "Klarna is available for orders of $25 or more. Please choose another way to pay. You were not charged.";
+  return { success: false, blocked: true, code: "KLARNA_MIN_TOTAL", message };
+}
+
 function recordGuardEvent(event: Record<string, unknown>): void {
   try {
     const minute = Math.floor(Date.now() / 60000);
@@ -2729,6 +2740,11 @@ serve(async (req) => {
       return await paypalAction(ppPath, asRecord(body), url, headers, corsHeaders, callerHost, req.headers.get("user-agent"), guardOrigin);
     }
 
+    if (method.toUpperCase() === "POST" && ppPath === "payments/klarna/session") { // KLARNA-MIN25-1017
+      const kp = asRecord(payload); // KLARNA-MIN25-1017
+      const kmr = klarnaMinRefusal(kp.amount ?? kp.total, body.lang); // KLARNA-MIN25-1017
+      if (kmr) { recordGuardEvent({ code: "klarna_min_session", method: "POST", endpoint_shape: "payments/klarna/session", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null }); return new Response(JSON.stringify(kmr), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); } // KLARNA-MIN25-1017
+    } // KLARNA-MIN25-1017
     const shouldLogTransaction = endpoint === "checkout/transaction" && method === "POST";
     const payloadRecord = asRecord(payload);
     // [FRAUD-MULTIBLOCK-1012] cp_dev is site-only: read and removed here so CellPay never sees it (body rebuilt).
@@ -2785,6 +2801,10 @@ serve(async (req) => {
       });
       if (vzReply) return new Response(JSON.stringify(vzReply), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    if (shouldLogTransaction && (paymentMethod || "").toLowerCase() === "klarna") { // KLARNA-MIN25-1017
+      const kmr = klarnaMinRefusal(payloadRecord.total, body.lang); // KLARNA-MIN25-1017
+      if (kmr) { recordGuardEvent({ code: "klarna_min_total", method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null }); return new Response(JSON.stringify(kmr), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); } // KLARNA-MIN25-1017
+    } // KLARNA-MIN25-1017
     const isPayPalTx = shouldLogTransaction && (paymentMethod || "").toLowerCase() === "paypal";
     let ppTxOrderId: string | null = null;
     if (isPayPalTx) {
