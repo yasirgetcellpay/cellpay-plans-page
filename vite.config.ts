@@ -14,7 +14,7 @@ import { weAcceptLine, payBrandsComma, PAYPAL_SHOWN } from "./src/content/paymen
 // LPX-1010: ad-lander H1 / title / subline per carrier (shared with GoLander.tsx).
 import { goLpxForRoute } from "./src/content/goCopy";
 // LPX-1010 (SPEC-LPX-3): carrier sentence + FAQ in the raw HTML of every /go page (shared with GoLander.tsx).
-import { goStaticSentence, goStaticFaqHtml } from "./src/content/goPage";
+import { goStaticSentence, goStaticFaqHtml, goAutoPayLine, goRouteInfo, goKeywordsFor } from "./src/content/goPage"; // LPX-1017
 // TOP4-T1-1009: carrier first-screen copy (H1/subline, Verizon trust row) shared with DynamicCarrier.tsx / Verizon.tsx.
 import { top4Hero, verizonTrustLine, usCellularNote } from "./src/content/carrierHero"; // BATCH3-1014
 // PRIVACY-1007: privacy policy text (shared with src/pages/PrivacyPolicy.tsx) for the static raw HTML (EN + ES).
@@ -418,7 +418,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
       "go/metro.html": {
-        h1: "Pay Your Metro Bill as a Guest — Just the Phone Number",
+        h1: "MetroPCS Bill Payment Online — Pay as a Guest",
         intro: "Pay Metro by T-Mobile as a guest. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/simple-mobile.html": {
@@ -430,7 +430,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
       "go/metro/index.html": {
-        h1: "Pay Your Metro Bill as a Guest — Just the Phone Number",
+        h1: "MetroPCS Bill Payment Online — Pay as a Guest",
         intro: "Pay Metro by T-Mobile as a guest. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/simple-mobile/index.html": {
@@ -438,7 +438,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "es/go/metro.html": {
-        h1: "Pague su factura de Metro como invitado — solo con el número de teléfono",
+        h1: "Pagar MetroPCS por teléfono — solo con su número",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/boost.html": {
@@ -446,11 +446,11 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/cricket.html": {
-        h1: "Pague Cricket en línea",
+        h1: "Pagar Cricket por teléfono — con tarjeta, sin iniciar sesión",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/metro/index.html": {
-        h1: "Pague su factura de Metro como invitado — solo con el número de teléfono",
+        h1: "Pagar MetroPCS por teléfono — solo con su número",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/boost/index.html": {
@@ -458,7 +458,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/cricket/index.html": {
-        h1: "Pague Cricket en línea",
+        h1: "Pagar Cricket por teléfono — con tarjeta, sin iniciar sesión",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "go/ultra.html": {
@@ -470,7 +470,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/cricket.html": {
-        h1: "Pay Your Cricket Bill as a Guest",
+        h1: "Pay Your Cricket Wireless Bill as a Guest — With Your Phone Number",
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/att.html": {
@@ -478,7 +478,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "Guest OK. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
       "go/cricket/index.html": {
-        h1: "Pay Your Cricket Bill as a Guest",
+        h1: "Pay Your Cricket Wireless Bill as a Guest — With Your Phone Number",
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/att/index.html": {
@@ -705,16 +705,16 @@ const htmlAliasPlugin = (): Plugin => ({
       "total-wireless.html":       { title: "Total Wireless Refill — Online Top-Up | CellPay",       description: "Recharge Total Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       // GO-1 / GO-2 titles (noindex applied via GO_SHELLS in buildMeta)
       "go/boost.html":             { title: "Pay Your Boost Bill Without Signing In | CellPay", description: "Pay your Boost Mobile bill without signing in. Enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
-      "go/metro.html":             { title: "Pay Your Metro Bill as a Guest | CellPay", description: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/metro.html":             { title: "Pay Your MetroPCS Bill as a Guest | CellPay", description: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
       "go/simple-mobile.html":     { title: "Pay Your Simple Mobile Bill Online | CellPay", description: "Pay your Simple Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       "go/boost/index.html":       { title: "Pay Your Boost Bill Without Signing In | CellPay", description: "Pay your Boost Mobile bill without signing in. Enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
-      "go/metro/index.html":       { title: "Pay Your Metro Bill as a Guest | CellPay", description: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/metro/index.html":       { title: "Pay Your MetroPCS Bill as a Guest | CellPay", description: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
       "go/simple-mobile/index.html": { title: "Pay Your Simple Mobile Bill Online | CellPay", description: "Pay your Simple Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       // GO-1b / GO-2 ES + Ultra + Cricket/ATT
-      "es/go/metro.html": { title: "Pague su factura de Metro como invitado | CellPay", description: "Pague su Metro by T-Mobile como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/metro.html": { title: "Pague su factura de MetroPCS como invitado | CellPay", description: "Pague su Metro by T-Mobile como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/boost.html": { title: "Pague Boost sin iniciar sesión | CellPay", description: "Pague su Boost Mobile sin iniciar sesión. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/cricket.html": { title: "Pague Cricket en línea | CellPay", description: "Pague su Cricket en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
-      "es/go/metro/index.html": { title: "Pague su factura de Metro como invitado | CellPay", description: "Pague su Metro by T-Mobile como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/metro/index.html": { title: "Pague su factura de MetroPCS como invitado | CellPay", description: "Pague su Metro by T-Mobile como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/boost/index.html": { title: "Pague Boost sin iniciar sesión | CellPay", description: "Pague su Boost Mobile sin iniciar sesión. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/cricket/index.html": { title: "Pague Cricket en línea | CellPay", description: "Pague su Cricket en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "go/ultra.html": { title: "Pay Your Ultra Mobile Bill Online | CellPay", description: "Pay your Ultra Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
@@ -1188,20 +1188,20 @@ const htmlAliasPlugin = (): Plugin => ({
       en: [
         "Can I pay my Cricket bill without signing in?", "Can I pay for someone else's Cricket line?",
         "Do I just need the Cricket phone number?", "Do I need to call Cricket to pay?", "How can I pay?",
-        "How long does a Cricket refill take?", "What if the payment fails?", "How do I get help?",
+        "How long does a Cricket payment take?", "What if the payment fails?", "How do I get help?",
       ],
       es: [
         "¿Puedo pagar mi factura de Cricket sin cuenta?", "¿Puedo pagar la línea de Cricket de otra persona?",
         "¿Solo necesito el número de teléfono de Cricket?", "¿Tengo que llamar a Cricket para pagar?", "¿Cómo puedo pagar?",
-        "¿Cuánto tarda la recarga de Cricket?", "¿Qué pasa si el pago falla?", "¿Cómo pido ayuda?",
+        "¿Cuánto tarda el pago de Cricket?", "¿Qué pasa si el pago falla?", "¿Cómo pido ayuda?",
       ],
     };
     const goCricketScreen = (isEs: boolean, color: string): string => {
       const s = isEs
         ? { steps: "3 pasos: número → monto → pagar", phone: "Ingrese su número de teléfono de Cricket Wireless", amount: "Seleccione el monto",
-            ph: "Ingrese un monto entre 5 - 250", help: "Ingrese el monto que desea recargar", pay: "PAGAR AHORA", faq: "Preguntas frecuentes" }
+            ph: "Ingrese un monto entre 5 - 250", help: "Ingrese el monto que desea pagar", pay: "PAGAR AHORA", faq: "Preguntas frecuentes" }
         : { steps: "3 steps: number → amount → pay", phone: "Enter Your Cricket Wireless Phone Number", amount: "Select Amount",
-            ph: "Enter an amount between 5 - 250", help: "Enter the amount you want to recharge", pay: "PAY NOW", faq: "Common questions" };
+            ph: "Enter an amount between 5 - 250", help: "Enter the amount you want to pay", pay: "PAY NOW", faq: "Common questions" };
       const inputCls = "w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center";
       const faqItems = GO_CRICKET_FAQ_Q[isEs ? "es" : "en"]
         .map(
@@ -1248,9 +1248,7 @@ const htmlAliasPlugin = (): Plugin => ({
         : route.startsWith("es/") ? "Sin cuenta. Pague por usted o por otra persona." : "No login. Pay for yourself or someone else.";
       // SPEED-LANDER-LCP2: Autopay benefit in the static shell (same classes/copy as GoLander) so LCP can paint with H1.
       const isEs = route.startsWith("es/");
-      const autoPayLine = isEs
-        ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático."
-        : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link.";
+      const autoPayLine = goAutoPayLine(goRouteInfo(route)?.slug ?? "", isEs ? "es" : "en"); // LPX-1017
       const feeLine = isEs
         ? "Cargo por servicio mostrado antes de pagar"
         : "Service fee shown before you pay";
@@ -1731,6 +1729,13 @@ const htmlAliasPlugin = (): Plugin => ({
         const mt = "Pay Metro by T-Mobile Bill Online – Metro PCS | CellPay";
         out = out.replace(/\s*<meta name="keywords"[^>]*>/i, "");
         out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${mt}"`);
+      }
+      // LPX-1017: only Metro/Boost/Cricket ad shells replace sitewide keywords and image-alt copy.
+      const goInfo = goRouteInfo(route);
+      const goKeywords = goInfo ? goKeywordsFor(goInfo.slug, goInfo.lang) : undefined;
+      if (goKeywords !== undefined) {
+        out = out.replace(/<meta name="keywords"[^>]*>/i, () => `<meta name="keywords" content="${escAttr(goKeywords)}" />`);
+        out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${escAttr(meta.title)}"`);
       }
       // AI-ANSWERS-1014: amount answer pages never say "refill": drop the sitewide keywords tag; image alt = page title.
       if (htpPage?.amount) {
