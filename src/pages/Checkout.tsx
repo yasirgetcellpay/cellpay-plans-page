@@ -5,6 +5,7 @@ import { PaymentBar } from "@/components/PaymentBar";
 import { AccountDropdown } from "@/components/AccountDropdown";
 import { PaymentMethodPicker } from "@/components/PaymentMethodPicker"; // METHODS-VISIBILITY-1011
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react"; // CARRIER-ASSIST-1011
+import { flushSync } from "react-dom"; // DECLINE-ONETAP-1017
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
 import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry, markWalletDeclined, walletDeclined, getDeclineAb, declineHint, isNsfDecline, FUNDS_COPY, KLARNA_MIN_TOTAL, klarnaQuarter } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014C: + wallet block // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry // DECLINE-MSGS-1016 // FUNDS-DECLINE-1016
@@ -639,10 +640,11 @@ const Checkout = () => {
   // GPAY-CLICK-1011 (all devices): as soon as the Google Pay tile is selected, load pay.js and ask isReadyToPay, so PLACE ORDER goes straight to
   // loadPaymentData and Google opens its sheet inside the click (a popup opened late is what Chrome can turn into a new tab or block). If anything
   // here fails, the click path does the same steps itself (today's behaviour). No payload, proxy or Auto Pay code involved.
+  const [declineInfo, setDeclineInfo] = useState<{ cls: DeclineClass; n: number; method: PaymentMethod; sess: number; msg?: string } | null>(null); // DECLINE-RECOVERY-1014: + method, sess // DECLINE-RECOVERY-1014B: + msg // DECLINE-ONETAP-1017: declared before the GPAY-CLICK-1011 effect that now reads it
   const gpPreRef = useRef<{ env: string; client: GpClient } | null>(null);
   const gpRunRef = useRef(0);
   useEffect(() => {
-    if (paymentMethod !== "googlepay" || !checkoutConfig || gpPreRef.current) return;
+    if (!(paymentMethod === "googlepay" || (!!declineInfo && declineInfo.method === "card")) || !checkoutConfig || gpPreRef.current) return; // DECLINE-ONETAP-1017
     let live = true;
     const cfg = checkoutConfig.googlePay as Record<string, unknown> | undefined;
     const env = (cfg?.environment as string) || "TEST";
@@ -664,7 +666,7 @@ const Checkout = () => {
       } catch { /* the click path loads everything itself */ }
     })();
     return () => { live = false; };
-  }, [paymentMethod, checkoutConfig]);
+  }, [paymentMethod, checkoutConfig, declineInfo]); // DECLINE-ONETAP-1017
   // GPAY-CLICK-1011: "Back to payment options" while Google Pay is processing. Bumping the run counter means a sheet that is finished after
   // this tap charges nothing; the customer is returned to the method list with everything unticked as they left it.
   const cancelGooglePay = () => {
@@ -706,7 +708,6 @@ const Checkout = () => {
   // CX-HOLD: show "card was NOT charged" on declines with no txn id (not on auto-refund).
   const [showNotChargedNote, setShowNotChargedNote] = useState(false);
   // GROWTH-1007-A: card-decline recovery. Set ONLY for a card decline with no txn id and no auto-refund (= not charged).
-  const [declineInfo, setDeclineInfo] = useState<{ cls: DeclineClass; n: number; method: PaymentMethod; sess: number; msg?: string } | null>(null); // DECLINE-RECOVERY-1014: + method, sess // DECLINE-RECOVERY-1014B: + msg
   const emailCleanRef = useRef(""); emailCleanRef.current = cleanEmail(email); // DECLINE-RECOVERY-1014: cleaned email sent on submit
   // DECLINE-RECOVERY-1014: recovery prompt shown -> funnel event + flag for recovery_success.
   useEffect(() => {
@@ -1276,6 +1277,7 @@ const Checkout = () => {
   // total is the display-only one from the summary). It reserves the Help launcher's slot (data-help-dock-slot, like the
   // carrier Pay bar), hides while a text field is focused (keypad up) and never shows for PayPal (SDK buttons) or on tablet/desktop.
   const inlinePayRef = useRef<HTMLButtonElement | null>(null);
+  const placeOrderRef = useRef<(() => Promise<void>) | null>(null); // DECLINE-ONETAP-1017
   const payBarRef = useRef<HTMLDivElement | null>(null);
   const [payBarShown, setPayBarShown] = useState(false);
   useEffect(() => {
@@ -2420,6 +2422,7 @@ const Checkout = () => {
       if (!keepProcessing) setSubmitting(false);
     }
   };
+  placeOrderRef.current = handlePlaceOrder; // DECLINE-ONETAP-1017
 
   // Detect iOS for Apple Pay priority — feedback #31
   const isIOS = typeof navigator !== "undefined" &&
@@ -3128,6 +3131,17 @@ const Checkout = () => {
                   window.setTimeout(() => el.classList.remove("ring-4", "ring-offset-2"), 1500);
                 }, 120);
               };
+              const walletNow = (m: PaymentMethod) => { // DECLINE-ONETAP-1017: one tap opens the wallet sheet; otherwise today's behavior
+                const avail = m === "applepay" ? (typeof window !== "undefined" && !!window.ApplePaySession && applePayAvailable) // DECLINE-ONETAP-1017
+                  : m === "googlepay" ? (!gpayFailed && typeof window !== "undefined" && !!(window as unknown as { google?: { payments?: { api?: { PaymentsClient?: unknown } } } }).google?.payments?.api?.PaymentsClient) : false; // DECLINE-ONETAP-1017
+                const ready = avail && phoneOk && !submitting && agreedTerms && isEmailValid && !nameDigitsBad && (!autoPay || autoPayTerms); // DECLINE-ONETAP-1017
+                if (!ready) { toMethod(m); return; } // DECLINE-ONETAP-1017: fallback: switch tab + scroll/outline PLACE ORDER NOW (unchanged)
+                rec(); // DECLINE-ONETAP-1017
+                try { flushSync(() => { close(); setPaymentMethod(m); }); } catch { toMethod(m); return; } // DECLINE-ONETAP-1017
+                const run = placeOrderRef.current; // DECLINE-ONETAP-1017: re-rendered handlePlaceOrder, sees paymentMethod === m
+                if (!run) { toMethod(m); return; } // DECLINE-ONETAP-1017
+                void run(); // DECLINE-ONETAP-1017: synchronous inside the click: new ApplePaySession / loadPaymentData stay in the same user gesture
+              }; // DECLINE-ONETAP-1017
               const focusCard = () => { rec(); close(); setTimeout(() => { const el = cardFormRef.current?.querySelector<HTMLInputElement>("input"); cardFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); el?.focus(); }, 50); }; // DECLINE-RECOVERY-1014
               const focusCardNumber = () => { rec(); close(); setTimeout(() => { const el = cardFormRef.current?.querySelector<HTMLInputElement>(`input[aria-label="${tr.cardNumber}"]`) || cardFormRef.current?.querySelector<HTMLInputElement>("input"); cardFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); el?.focus(); }, 50); }; // DECLINE-RECOVERY-1014
               const offered = new Set<PaymentMethod>(paymentMethods.map((pm) => pm.key));
@@ -3162,10 +3176,10 @@ const Checkout = () => {
                 <button type="button" data-testid="decline-paypal" onClick={() => toMethod("paypal")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayPal}</button>
               );
               const apBtn = showAp && (
-                <button type="button" data-testid="decline-applepay" onClick={() => toMethod("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
+                <button type="button" data-testid="decline-applepay" /* DECLINE-ONETAP-1017 */ onClick={() => walletNow("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button>
               );
               const gpBtn = showGp && (
-                <button type="button" data-testid="decline-googlepay" onClick={() => toMethod("googlepay")} className={btn + " bg-black text-white"}>{dc.useGooglePay}</button>
+                <button type="button" data-testid="decline-googlepay" /* DECLINE-ONETAP-1017 */ onClick={() => walletNow("googlepay")} className={btn + " bg-black text-white"}>{dc.useGooglePay}</button>
               );
               const cashBtn = !sessCap && offered.has("cashapp") && (
                 <button type="button" data-testid="decline-cashapp" onClick={() => toMethod("cashapp")} className={btn + " text-black"} style={{ backgroundColor: "#00D632" }}>{dc.useCashApp}</button>
@@ -3200,7 +3214,7 @@ const Checkout = () => {
                       </>}
                       <p className="text-xs font-semibold text-muted-foreground pt-1">{fc.otherWays}</p>
                       {ab === "variant" && primaryWallet ? <>
-                        <button type="button" data-testid="decline-ab-primary-wallet" data-decline-ab-wallet={primaryWallet} onClick={() => toMethod(primaryWallet)} className="w-full px-4 py-3.5 rounded-lg font-bold text-base bg-black text-white">{primaryWallet === "applepay" ? dc.abPrimaryAp : dc.abPrimaryGp}</button>
+                        <button type="button" data-testid="decline-ab-primary-wallet" data-decline-ab-wallet={primaryWallet} /* DECLINE-ONETAP-1017 */ onClick={() => walletNow(primaryWallet)} className="w-full px-4 py-3.5 rounded-lg font-bold text-base bg-black text-white">{primaryWallet === "applepay" ? dc.abPrimaryAp : dc.abPrimaryGp}</button>
                         {ppBtn}{primaryWallet === "applepay" ? gpBtn : apBtn}{cashBtn}{bankBtn}
                       </> : <>{apBtn}{gpBtn}{ppBtn}{cashBtn}{bankBtn}</>}
                       {showAnother && <button type="button" data-testid="decline-another-card" onClick={() => { if (isCard) focusCardNumber(); else toMethod("card"); }} className={quiet}>{dc.useAnotherCard}</button>}
@@ -3209,7 +3223,7 @@ const Checkout = () => {
                   ) : abVariant && primaryWallet ? ( // DECLINE-AB-1016: variant layout
                     <>
                       <button type="button" data-testid="decline-ab-primary-wallet" data-decline-ab-wallet={primaryWallet}
-                        onClick={() => toMethod(primaryWallet)}
+                        onClick={() => walletNow(primaryWallet)} // DECLINE-ONETAP-1017
                         className="w-full px-4 py-3.5 rounded-lg font-bold text-base bg-black text-white">
                         {primaryWallet === "applepay" ? dc.abPrimaryAp : dc.abPrimaryGp}
                       </button>
