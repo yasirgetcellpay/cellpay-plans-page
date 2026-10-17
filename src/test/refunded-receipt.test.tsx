@@ -1,6 +1,7 @@
 // REFUNDED-STATE-1017: receipt page with refunded:true fires no purchase and shows order-refunded; with null it behaves as today.
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { createRoot } from "react-dom/client";
+import { act } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { createElement } from "react";
 
@@ -23,25 +24,27 @@ vi.mock("@/components/PayAgainCard", () => ({ PayAgainCard: () => null }));
 import OrderConfirmation from "@/pages/OrderConfirmation";
 
 const purchases = () => ((window as unknown as { dataLayer?: Array<{ event?: string }> }).dataLayer || []).filter((e) => e.event === "purchase");
-const show = () => render(createElement(MemoryRouter, { initialEntries: ["/order-confirmation?hashid=HASH1234&carrier=T-Mobile"] }, createElement(OrderConfirmation)));
+const q = (id: string) => document.querySelector(`[data-testid="${id}"]`);
+const waitFor = async (fn: () => void) => { for (let i = 0; i < 60; i++) { try { fn(); return; } catch { await act(async () => { await new Promise((r) => setTimeout(r, 50)); }); } } fn(); };
+const show = async () => { document.body.innerHTML = '<div id="r"></div>'; const root = createRoot(document.getElementById("r")!); await act(async () => { root.render(createElement(MemoryRouter, { initialEntries: ["/order-confirmation?hashid=HASH1234&carrier=T-Mobile"] }, createElement(OrderConfirmation))); }); };
 
 describe("REFUNDED-STATE-1017 OrderConfirmation", () => {
   beforeEach(() => { (window as unknown as { dataLayer: unknown[] }).dataLayer = []; localStorage.clear(); rpcCalls.length = 0; });
   it("refunded:true renders order-refunded and fires no purchase", async () => {
     rpcState.refund = { refunded: true, total: 52.5, carrier_slug: "tmobile" };
-    show();
-    await waitFor(() => expect(screen.getByTestId("order-refunded")).toBeTruthy());
-    expect(screen.getByText("Refill not completed")).toBeTruthy();
-    expect(screen.getByTestId("order-refunded").textContent).toContain("$52.50");
+    await show();
+    await waitFor(() => expect(q("order-refunded")).toBeTruthy());
+    expect(document.body.textContent).toContain("Refill not completed");
+    expect(q("order-refunded")!.textContent).toContain("$52.50");
     expect(purchases().length).toBe(0);
     expect(rpcCalls).not.toContain("log_purchase_fire");
-    for (const id of ["nwy", "apc", "rem"]) expect(screen.queryByTestId(id)).toBeNull();
+    for (const id of ["nwy", "apc", "rem"]) expect(q(id)).toBeNull();
   });
   it("null behaves as today: receipt and purchase", async () => {
     rpcState.refund = null;
-    show();
-    await waitFor(() => expect(screen.getByTestId("nwy")).toBeTruthy());
-    expect(screen.queryByTestId("order-refunded")).toBeNull();
+    await show();
+    await waitFor(() => expect(q("nwy")).toBeTruthy());
+    expect(q("order-refunded")).toBeNull();
     await waitFor(() => expect(purchases().length).toBe(1));
   });
 });
