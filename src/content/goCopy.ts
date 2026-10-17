@@ -6,8 +6,9 @@ export type GoLpx = { h1?: string; title?: string; subline: string };
 
 type Row = { name: string; h1En?: string; h1Es?: string; sublineEn?: string; sublineEs?: string; titleEn?: string; titleEs?: string };
 
-/** Keyed by carrierSlug (as passed to GoLander). LPX-1017 updates guest-pay H1/subline/title copy; other rows keep SPEC-LPX-1 wording. */
+/** Keyed by carrierSlug (as passed to GoLander). LPX-1017 and BOOST-GUEST-LPX-1017 update guest-pay H1/subline/title copy; other rows keep SPEC-LPX-1 wording. */
 const ROWS: Record<string, Row> = {
+  boost: { name: "Boost Mobile", h1En: "Pay Your Boost Mobile Bill as a Guest", h1Es: "Pague su factura de Boost como invitado", sublineEn: "Just your phone number — no login. Pay with debit or credit card.", sublineEs: "Solo su número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito.", titleEn: "Pay Your Boost Mobile Bill as a Guest | CellPay", titleEs: "Pague su factura de Boost como invitado | CellPay" },
   "topup-at": { name: "AT&T", h1En: "Pay Your AT&T Prepaid Bill Without Signing In", h1Es: "Pague su factura de AT&T Prepago sin iniciar sesión", sublineEn: "AT&T Prepaid (ATT) guest pay: just the phone number, no login. Debit or credit card." },
   tmobile: { name: "T-Mobile", h1En: "Pay Your T-Mobile Bill Without Signing In", h1Es: "Pagar T-Mobile en línea, sin iniciar sesión", sublineEn: "Pay T-Mobile bill as guest by phone number. Pay for yourself or someone else. No account needed." },
   verizon: { name: "Verizon", h1En: "Pay Your Verizon Prepaid Bill Without Signing In", h1Es: "Pague su factura de Verizon sin iniciar sesión" },
@@ -19,6 +20,7 @@ const ROWS: Record<string, Row> = {
 
 /** Route slug (/go/<slug>) -> carrierSlug. */
 const ROUTE_TO_CARRIER: Record<string, string> = {
+  boost: "boost",
   att: "topup-at",
   tmobile: "tmobile",
   verizon: "verizon",
