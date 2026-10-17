@@ -284,6 +284,62 @@ function refundSuccessMarker(wrapped: Record<string, unknown>): string | null {
   return refundSignal(upstream);
 }
 
+// LOADTEXT-REASON-1017 (REFUNDED-STATE-1017): CellPay's load-failure reason from the ORIGINAL parsed body (top level, then
+// body.data). Keys LoadText / load_text / LoadMessage in any case. First non-empty string (trimmed, max 500) or null. Never throws.
+function extractLoadText(body: unknown): string | null {
+  try {
+    const root = asRecord(body);
+    if (root.parseError === true) return null;
+    for (const obj of [root, asRecord(root.data)]) {
+      for (const [k, v] of Object.entries(obj)) {
+        if (/^(loadtext|load_text|loadmessage)$/i.test(k) && typeof v === "string" && v.trim()) return v.trim().slice(0, 500);
+      }
+    }
+  } catch { /* never throws */ }
+  return null;
+}
+
+// REFUNDED-STATE-1017: crash / timeout reply where the charge outcome is unknown. Never the HTTP 200 "Backend exception" replies.
+function chargeUnconfirmedKind(status: number, data: unknown, wrapped: Record<string, unknown>): "http5xx" | "html" | "sqlstate" | null {
+  const d = asRecord(data);
+  const inner = asRecord(d.data);
+  const texts = [d.message, d.error, d.msg, wrapped.error, inner.message, inner.error, inner.msg].filter((t): t is string => typeof t === "string");
+  if (status < 500 && texts.some((t) => /backend exception/i.test(t))) return null;
+  if (status >= 500) return "http5xx";
+  if (d.parseError === true) return "html";
+  if (texts.some((t) => /SQLSTATE/i.test(t))) return "sqlstate";
+  return null;
+}
+
+// REFUNDED-STATE-1017: the original upstream reply is a failure whose message says it was auto-refunded.
+function autoRefundFailure(wrapped: Record<string, unknown>): boolean {
+  const data = asRecord(wrapped.data);
+  if (data.parseError === true) return false;
+  const result = unwrapTransactionResult(wrapped);
+  const st = String(result.status ?? "").toLowerCase();
+  if (wrapped.success === true && (result.status === true || st === "true" || st === "success" || st === "completed")) return false;
+  const msg = text(result.message ?? result.msg ?? data.message ?? data.msg ?? wrapped.error);
+  return msg !== null && /auto[\s-]?refund/i.test(msg);
+}
+
+// REFUNDED-STATE-1017: post-finalize RPC, 1500 ms cap, fail-open (console.error only); never changes the reply.
+async function rpcSoon(name: string, args: Record<string, unknown>): Promise<void> {
+  try {
+    await Promise.race([
+      callDatabaseRpc(name, args),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("db timeout")), 1500)),
+    ]);
+  } catch (e) {
+    console.error(`[tx-log] ${name} failed:`, e instanceof Error ? e.message : e);
+  }
+}
+
+// REFUNDED-STATE-1017: BAD_PHONE guard (digits must be a 10-digit US number).
+function phoneOk10(p: Record<string, unknown>): boolean {
+  const d = String(p.phone_number ?? p.phoneNumber ?? "").replace(/\D/g, "");
+  return /^[2-9][0-9]{9}$/.test(d);
+}
+
 function unwrapTransactionResult(wrapped: Record<string, unknown>): Record<string, unknown> {
   let result = asRecord(wrapped.data) || wrapped;
   if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
