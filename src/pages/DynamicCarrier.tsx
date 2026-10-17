@@ -1009,6 +1009,8 @@ const DynamicCarrier = ({
                   ? (lang === "es" ? "Cómo pagar Boost Mobile" : "How to pay Boost Mobile")
                   : carrierSlug === "net10" // AEO-09-NET10-1015
                   ? (lang === "es" ? "Cómo pagar Net10 Wireless" : "How to pay Net10 Wireless")
+                  : carrierSlug === "ultra-mobile" // AEO-11-ULTRA-1017
+                  ? (lang === "es" ? "Cómo pagar Ultra Mobile" : "How to pay Ultra Mobile") // AEO-11-ULTRA-1017
                   : carrierSlug === "h2o" // AEO-10-H2O-1016
                   ? (lang === "es" ? "Cómo pagar H2O Wireless" : "How to pay H2O")
                   : carrierSlug === "metropcs" // GSC-MAULIK-1014
@@ -1045,6 +1047,7 @@ const HTP_GUIDE_BY_SLUG: Record<string, { key: string; name: string }> = {
   metropcs: { key: "metro-pcs", name: "Metro by T-Mobile" }, // AEO-07-METRO-1012: /metropcs.html, /es/metropcs.html
   boost: { key: "boost-mobile", name: "Boost Mobile" }, // SEO-CONTENT-1014: /boost.html, /es/boost.html, /guest-boost.html
   net10: { key: "net10", name: "Net10 Wireless" }, // AEO-09-NET10-1015: /net10.html, /es/net10.html, /guest-net10.html
+  "ultra-mobile": { key: "ultra-mobile", name: "Ultra Mobile" }, // AEO-11-ULTRA-1017
   h2o: { key: "h2o", name: "H2O Wireless" }, // AEO-10-H2O-1016: /h2o.html, /es/h2o.html, /guest-h2o.html
 };
 

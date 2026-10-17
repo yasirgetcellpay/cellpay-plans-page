@@ -270,6 +270,8 @@ const HTML_ROUTES = [
   // AEO-10-H2O-1016: H2O Wireless how-to-pay pages
   "how-to-pay/h2o/index.html",
   "es/como-pagar/h2o/index.html",
+  "how-to-pay/ultra-mobile/index.html", // AEO-11-ULTRA-1017
+  "es/como-pagar/ultra-mobile/index.html", // AEO-11-ULTRA-1017
   // AI-ANSWERS-1014: amount answer pages
   "how-to-pay/boost-mobile/25/index.html",
   "es/como-pagar/boost-mobile/25/index.html",

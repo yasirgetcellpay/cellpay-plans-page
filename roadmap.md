@@ -9,3 +9,7 @@
 # LPX-1017
 - [x] Update only shared lander copy, GoLander display strings and static-shell text/meta.
 - [x] All 19 copy tests passed; all 29 Verizon regression tests passed; five lander previews and Spanish mobile view verified, build OK. No publish or backend changes.
+
+# AEO-11-ULTRA-1017 <!-- // AEO-11-ULTRA-1017 -->
+- [x] Add Ultra Mobile EN/ES guides and requested routes, shells, inbound links, sitemap and AI index entries. <!-- // AEO-11-ULTRA-1017 -->
+- [x] Verified both guides, shared static FAQ data, canonical/CTA links and Spanish mobile view; build OK. Existing SEO tests retain 28 failures; 20 checks passed. Not published. <!-- // AEO-11-ULTRA-1017 -->

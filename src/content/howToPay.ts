@@ -10,7 +10,7 @@ import { refundFaq, searchFaqs } from "./carrierHero";
 export type HtpLang = "en" | "es";
 export type HtpFaq = { q: string; a: string };
 export type HtpPage = {
-  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid" | "lyca-mobile" | "metro-pcs" | "boost-mobile" | "cricket" | "net10" | "h2o"; // AEO-10-H2O-1016: + H2O Wireless; // AEO-09-NET10-1015: + Net10 Wireless; // CRICKET-GUIDE-1014: + Cricket Wireless; SEO-CONTENT-1014: + Boost Mobile; AEO-07-METRO-1012: + Metro by T-Mobile; AEO-06-LYCA-1011: + Lyca Mobile; AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid
+  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid" | "lyca-mobile" | "metro-pcs" | "boost-mobile" | "cricket" | "net10" | "h2o" | "ultra-mobile"; // AEO-10-H2O-1016: + H2O Wireless; // AEO-09-NET10-1015: + Net10 Wireless; // CRICKET-GUIDE-1014: + Cricket Wireless; SEO-CONTENT-1014: + Boost Mobile; AEO-07-METRO-1012: + Metro by T-Mobile; AEO-06-LYCA-1011: + Lyca Mobile; AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid // AEO-11-ULTRA-1017
   lang: HtpLang;
   path: string; // www path of this page
   enPath: string;
@@ -526,6 +526,66 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
   }),
 ];
 
+HOW_TO_PAY_PAGES.push( // AEO-11-ULTRA-1017
+  en({ // AEO-11-ULTRA-1017
+    key: "ultra-mobile", name: "Ultra Mobile", slug: "ultra-mobile", checkout: "/ultra-mobile.html", an: "an", // AEO-11-ULTRA-1017
+    title: "How to Pay Your Ultra Mobile Bill Online (No Login) | CellPay", // AEO-11-ULTRA-1017
+    description: "Pay Ultra Mobile bill online in 2 minutes: enter the Ultra Mobile number, pick a plan, pay by card, Apple Pay, Google Pay or PayPal. No login needed.", // AEO-11-ULTRA-1017
+    h1: "How to Pay Your Ultra Mobile Bill Online", // AEO-11-ULTRA-1017
+    intro: "To pay your Ultra Mobile bill online without logging in, open CellPay's Ultra Mobile page, enter the 10-digit Ultra Mobile phone number, pick your plan, and pay. Service fee shown before you pay. Most payments post within a few minutes (up to 30 minutes). CellPay is an independent payment service, not Ultra Mobile.", // AEO-11-ULTRA-1017
+    steps: [ // AEO-11-ULTRA-1017
+      { name: "Open the page", text: "Open the CellPay Ultra Mobile page (/ultra-mobile.html)." }, // AEO-11-ULTRA-1017
+      { name: "Enter the number", text: "Enter the 10-digit Ultra Mobile number and check it." }, // AEO-11-ULTRA-1017
+      { name: "Pick a plan", text: "Pick a plan from the list." }, // AEO-11-ULTRA-1017
+      { name: "Review the total", text: "Review the total (service fee shown before you pay)." }, // AEO-11-ULTRA-1017
+      { name: "Pay", text: `Pay with ${PAY_EN} and keep your confirmation.` }, // AEO-11-ULTRA-1017
+    ], // AEO-11-ULTRA-1017
+    step3: "Pick a plan from the list.", // AEO-11-ULTRA-1017
+    faq2: { q: "Does Ultra Mobile have online guest pay?", a: "Ultra Mobile offers its own payment options on its official website and app. On CellPay you can pay online with only the Ultra Mobile number." }, // AEO-11-ULTRA-1017
+    postA: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. If it hasn't posted after 30 minutes, email support@getcellpay.com with your phone number and transaction details. You see a confirmation with your transaction details once the payment goes through.", // AEO-11-ULTRA-1017
+    autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.", // AEO-11-ULTRA-1017
+    autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.", // AEO-11-ULTRA-1017
+    moreFaqs: [ // AEO-11-ULTRA-1017
+      { q: "What if I don't know how much I owe?", a: "CellPay doesn't show your Ultra Mobile balance. Check the amount due in your Ultra Mobile app, account or text messages, then choose that plan or amount here. The total with the service fee is shown before you pay." }, // AEO-11-ULTRA-1017
+      { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." }, // AEO-11-ULTRA-1017
+    ], // AEO-11-ULTRA-1017
+    related: [["/how-to-pay/h2o", "How to pay H2O"], ["/how-to-pay/lyca-mobile", "How to pay Lyca Mobile"], ["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // AEO-11-ULTRA-1017
+    updatedIso: "2026-10-17", updatedText: "Last updated: October 17, 2026", // AEO-11-ULTRA-1017
+  }), // AEO-11-ULTRA-1017
+  es({ // AEO-11-ULTRA-1017
+    key: "ultra-mobile", name: "Ultra Mobile", slug: "ultra-mobile", checkout: "/es/ultra-mobile.html", // AEO-11-ULTRA-1017
+    title: "Cómo pagar Ultra Mobile en línea (sin cuenta) | CellPay", // AEO-11-ULTRA-1017
+    description: "Pague o recargue Ultra Mobile en línea: ingrese el número, elija su plan y pague. Sin cuenta. El cargo por servicio se muestra antes de pagar.", // AEO-11-ULTRA-1017
+    h1: "Cómo pagar Ultra Mobile en línea", // AEO-11-ULTRA-1017
+    intro: "Para pagar su factura de Ultra Mobile en línea sin iniciar sesión, abra la página de Ultra Mobile en CellPay, escriba el número de 10 dígitos, elija su plan y pague. El cargo por servicio se muestra antes de pagar. La mayoría de los pagos se aplican en pocos minutos (hasta 30 minutos). CellPay es un servicio de pago independiente, no Ultra Mobile.", // AEO-11-ULTRA-1017
+    steps: [ // AEO-11-ULTRA-1017
+      { name: "Abra la página", text: "Abra la página de Ultra Mobile en CellPay (/es/ultra-mobile.html)." }, // AEO-11-ULTRA-1017
+      { name: "Ingrese el número", text: "Escriba el número de Ultra Mobile de 10 dígitos y verifíquelo." }, // AEO-11-ULTRA-1017
+      { name: "Elija un plan", text: "Elija un plan de la lista." }, // AEO-11-ULTRA-1017
+      { name: "Revise el total", text: "Revise el total (el cargo por servicio se muestra antes de pagar)." }, // AEO-11-ULTRA-1017
+      { name: "Pague", text: `Pague con ${PAY_ES} y guarde su confirmación.` }, // AEO-11-ULTRA-1017
+    ], // AEO-11-ULTRA-1017
+    step3: "Elija un plan de la lista.", // AEO-11-ULTRA-1017
+    faq2: { q: "¿Ultra Mobile tiene pago en línea como invitado?", a: "Ultra Mobile ofrece sus propias formas de pago en su sitio web oficial y en su aplicación. En CellPay puede pagar en línea solo con el número de Ultra Mobile." }, // AEO-11-ULTRA-1017
+    postA: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Si no se ha acreditado después de 30 minutos, escriba a support@getcellpay.com con su número de teléfono y los datos de la transacción. Cuando el pago se completa, verá una confirmación con los datos de su transacción.", // AEO-11-ULTRA-1017
+    autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.", // AEO-11-ULTRA-1017
+    autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.", // AEO-11-ULTRA-1017
+    moreFaqs: [ // AEO-11-ULTRA-1017
+      { q: "¿Qué hago si no sé cuánto debo?", a: "CellPay no muestra el saldo de Ultra Mobile. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de Ultra Mobile, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar." }, // AEO-11-ULTRA-1017
+      { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." }, // AEO-11-ULTRA-1017
+    ], // AEO-11-ULTRA-1017
+    related: [["/es/como-pagar/h2o", "Cómo pagar H2O Wireless"], ["/es/como-pagar/lyca-mobile", "Cómo pagar Lyca Mobile"], ["/es/como-pagar/simple-mobile", "Cómo pagar Simple Mobile"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]], // AEO-11-ULTRA-1017
+    updatedIso: "2026-10-17", updatedText: "Última actualización: 17 de octubre de 2026", // AEO-11-ULTRA-1017
+  }), // AEO-11-ULTRA-1017
+); // AEO-11-ULTRA-1017
+for (const pg of HOW_TO_PAY_PAGES.filter((p) => p.key === "ultra-mobile")) { // AEO-11-ULTRA-1017
+  pg.labels.payNow = pg.lang === "es" ? "Pagar ahora" : "Pay now"; // AEO-11-ULTRA-1017
+  if (pg.lang === "es") { // AEO-11-ULTRA-1017
+    pg.faqs[0].a = pg.faqs[0].a.replace("ingresa el", "ingrese el").replace("elige el", "elija el").replace("y paga.", "y pague."); // AEO-11-ULTRA-1017
+    pg.faqs[2].a = pg.faqs[2].a.replace("así que ve el", "así que verá el"); // AEO-11-ULTRA-1017
+  } // AEO-11-ULTRA-1017
+} // AEO-11-ULTRA-1017
+
 // AI-ANSWERS-1014: 18 amount answer pages (Boost, Metro, Cricket x $25/$45/$50, EN + ES). Same template/renderers as the parent
 // guides; pay wording only, no fee amounts, no plan contents or prices. Payment methods come from the shared flag-driven list.
 type AmtCarrier = { key: HtpPage["key"]; name: string; short: string; slug: string; enPay: string; esPay: string };
@@ -700,6 +760,10 @@ const PLAN_NAMES: Record<HtpPage["key"], Record<HtpLang, string[]>> = {
     en: ["Net10 Wireless payment: choose one of the plans shown on the CellPay page"],
     es: ["Pago de Net10 Wireless: elija uno de los planes que aparecen en la página de CellPay"],
   },
+  "ultra-mobile": { // AEO-11-ULTRA-1017
+    en: ["Ultra Mobile payment: choose one of the plans shown on the CellPay page"], // AEO-11-ULTRA-1017
+    es: ["Pago de Ultra Mobile: elija uno de los planes que aparecen en la página de CellPay"], // AEO-11-ULTRA-1017
+  }, // AEO-11-ULTRA-1017
   h2o: { // AEO-10-H2O-1016 (no plan names or prices: the live list loads from the CellPay catalog)
     en: ["H2O Wireless payment: choose one of the plans shown on the CellPay page"],
     es: ["Pago de H2O Wireless: elija uno de los planes que aparecen en la página de CellPay"],
