@@ -1,10 +1,10 @@
 import { CarrierFooter } from "@/components/CarrierFooter";
 import { BackButton } from "@/components/BackButton";
 import { AccountDropdown } from "@/components/AccountDropdown";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react"; // VZ-PREPAID-GUARD-1017
 import { Phone, DollarSign, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom"; // VZ-PREPAID-GUARD-1017
 import { PaymentBar } from "@/components/PaymentBar";
 // PAYCOPY-1008: shared payment list (same text as the vite.config.ts carrier first screen)
 import { weAcceptLine } from "@/content/paymentMethods";
@@ -238,6 +238,8 @@ const DynamicCarrier = ({
   seoIntroOverride,
 }: DynamicCarrierProps) => {
   const navigate = useNavigate();
+  const location = useLocation(); // VZ-PREPAID-GUARD-1017
+  const focusedPhone = useRef<string | null>(null); // VZ-PREPAID-GUARD-1017
   const [searchParams] = useSearchParams();
   const tr = t(lang);
   // CK-0: number handed back by Checkout when a direct /checkout load can't be resumed (read once; never in the URL).
@@ -522,6 +524,13 @@ const DynamicCarrier = ({
   }, [carrierSlug]);
 
   // Prefill amount from URL (?amount=60) — used by legacy /{amount}-{slug}-prepaid-refill.html redirects.
+  // VZ-PREPAID-GUARD-1017: focus once after the visible field renders, without changing its value.
+  useEffect(() => {
+    if (loading || location.state?.focusPhone !== true || focusedPhone.current === location.key) return;
+    const input = document.getElementById("carrier-phone-input");
+    if (input instanceof HTMLInputElement) { input.focus(); focusedPhone.current = location.key; }
+  }, [loading, location.key, location.state]);
+
   // Runs after plans load so we can clamp to range or match an existing fixed plan.
   useEffect(() => {
     if (loading) return;

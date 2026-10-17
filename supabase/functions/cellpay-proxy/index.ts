@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { scoreRisk, riskEngineMode } from "../_shared/riskLogic.ts"; // FRAUD-MULTIBLOCK-1012 5b
+import { vzGuardGate } from "../_shared/vzPrepaidGuard.ts"; // VZ-PREPAID-GUARD-1017
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -2252,6 +2253,13 @@ async function paypalAction(
   try { refillKey = await refillCooldownKey(lr); } catch { refillKey = null; }
 
   if (isCreate) {
+    // VZ-PREPAID-GUARD-1017: no order row exists yet; only the PII-free guard event is written.
+    const vzReply = await vzGuardGate(lr, body.lang, "paypal", {
+      lookup: async (_phone) => await callDatabaseRpc("vz_prepaid_guard_check", { _phone }) as { refunded: boolean; success: boolean },
+      logFailedRow: async () => {},
+      event: (code) => recordGuardEvent({ code, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(origin), has_origin: origin !== null }),
+    });
+    if (vzReply) return reply(vzReply);
     // [BL-2] blocklist (1.2 s, fail-open)
     try {
       const bl = await blocklistCheck(lr, null);
@@ -2763,6 +2771,18 @@ serve(async (req) => {
         recordGuardEvent({ code: `plan_guard:${pgr.reason}`, method: "POST", endpoint_shape: `checkout/transaction#${pgSlug}:${pgPlan}:${pgAmt}`, origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null });
         return new Response(JSON.stringify({ success: false, blocked: true, code: "PLAN_GUARD", reason: pgr.reason, message: pgr.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+    }
+    // VZ-PREPAID-GUARD-1017: after planGuard, before all payment-specific checks, normal logging and the upstream call.
+    if (shouldLogTransaction) {
+      const vzReply = await vzGuardGate(payloadRecord, body.lang, paymentMethod || "", {
+        lookup: async (_phone) => await callDatabaseRpc("vz_prepaid_guard_check", { _phone }) as { refunded: boolean; success: boolean },
+        logFailedRow: async (meta, errorMessage) => {
+          const id = await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...meta });
+          if (id) await finishTransactionLog(id, { success: false, error: errorMessage, data: { status: false, message: errorMessage } }, paymentMethod);
+        },
+        event: (code) => recordGuardEvent({ code, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null }),
+      });
+      if (vzReply) return new Response(JSON.stringify(vzReply), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const isPayPalTx = shouldLogTransaction && (paymentMethod || "").toLowerCase() === "paypal";
     let ppTxOrderId: string | null = null;
