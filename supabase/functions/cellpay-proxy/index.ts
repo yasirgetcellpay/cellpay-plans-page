@@ -3019,6 +3019,7 @@ serve(async (req) => {
     // SUCCESS-FLAG-FIX-1016: raw logger receives the original upstream body before any rewriting/scrubbing.
     if (shouldLogTransaction) logRawCellPayReply(txLogId, endpoint, response.status, paymentMethod, data, rawText, rawReplyParseFailed);
     const refundMarker = shouldLogTransaction && !isPockytCreate ? refundSuccessMarker(wrapped) : null;
+    const unconfirmedKind = shouldLogTransaction && !isPockytCreate && !refundMarker ? chargeUnconfirmedKind(response.status, data, wrapped) : null; // REFUNDED-STATE-1017
     const refundAudit = refundMarker ? { ...asRecord(data), refund_signal: true, refund_marker: refundMarker } : null;
     if (refundMarker) wrapped = { success: true, data: { status: false, message: REFUND_FAILURE_MESSAGE, refund_signal: true } };
 
