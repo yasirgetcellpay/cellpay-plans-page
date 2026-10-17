@@ -2511,6 +2511,15 @@ export type Database = {
         }
         Relationships: []
       }
+      vz_guard_daily: {
+        Row: {
+          day: string | null
+          vz_guard_rows: number | null
+          vz_successes: number | null
+          vz291945_auto_refunds: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       ad1_prune_page_visitors: {
@@ -3136,6 +3145,7 @@ export type Database = {
         }
         Returns: Json
       }
+      vz_prepaid_guard_check: { Args: { _phone: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"
