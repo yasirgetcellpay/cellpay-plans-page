@@ -163,7 +163,7 @@ export const searchFaqs = (slug: string, lang: HeroLang): Array<{ q: string; a: 
 /** Trust row on the Verizon pay page (Verizon.tsx and its prerendered first screen). Methods from the shared list. */
 export const verizonTrustLine = (lang: HeroLang): string =>
   lang === "es"
-    ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marques o llegues desde un enlace de Pago Automático. Cargo por servicio mostrado antes de pagar. " + weAcceptLine("es")
+    ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que usted lo marque o llegue desde un enlace de Pago Automático. Cargo por servicio mostrado antes de pagar. " + weAcceptLine("es") // PLAN-BLOCK-CLEANUP-1017
     : "Optional: Auto Pay so you never miss a refill. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Service fee shown before you pay. " + weAcceptLine("en");
 
 // BATCH3-1014: short plain-text note on the T-Mobile Prepaid pages (/tmobile-flexi.html, /es/tmobile-flexi.html) for UScellular customers. Null elsewhere.

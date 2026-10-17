@@ -317,7 +317,7 @@ const Checkout = () => {
     if (state) navigate(carrierPageTarget(lang, state.carrierSlug, "", state.amount, location.search, location.hash));
   };
   useEffect(() => { // H2O-HIDE-325635-1017
-    if (!state || String(state.planId ?? "") !== "325635") return; // H2O-HIDE-325635-1017
+    if (!state || !["325635", "547871"].includes(String(state.planId ?? ""))) return; // H2O-HIDE-325635-1017 // PLAN-BLOCK-CLEANUP-1017
     toast({ title: lang === "es" ? "Este plan no está disponible ahora. Elija otro plan." : "This plan isn't available right now. Please choose another plan.", variant: "destructive" }); // H2O-HIDE-325635-1017
     navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, "", location.search, location.hash), { replace: true }); // H2O-HIDE-325635-1017
   }, [state?.planId]); // H2O-HIDE-325635-1017
@@ -2154,7 +2154,7 @@ const Checkout = () => {
       } catch (err) {
         console.error("[ApplePay] onpaymentauthorized error", err);
         try { session.completePayment({ status: session.STATUS_FAILURE }); } catch (e) { console.warn("[ApplePay] completePayment(failure) after the sheet closed", e); } // DUPCHARGE-1008
-        setErrorMsg("Apple Pay payment failed: " + (err instanceof Error ? err.message : String(err)));
+        setErrorMsg(err instanceof Error && err.name === "PlanGuardError" ? err.message : "Apple Pay payment failed: " + (err instanceof Error ? err.message : String(err))); // PLAN-BLOCK-CLEANUP-1017
       }
       setSubmitting(false);
     };
