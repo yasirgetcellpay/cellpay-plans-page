@@ -317,7 +317,7 @@ const Checkout = () => {
     if (state) navigate(carrierPageTarget(lang, state.carrierSlug, "", state.amount, location.search, location.hash));
   };
   useEffect(() => { // H2O-HIDE-325635-1017
-    if (!state || !["325635", "547871"].includes(String(state.planId ?? ""))) return; // H2O-HIDE-325635-1017 // PLAN-BLOCK-CLEANUP-1017
+    if (!state || !["325635", "547871", "32993000"].includes(String(state.planId ?? ""))) return; // H2O-HIDE-325635-1017 // PLAN-BLOCK-CLEANUP-1017 // ULTRA64-HIDE-1017
     toast({ title: lang === "es" ? "Este plan no está disponible ahora. Elija otro plan." : "This plan isn't available right now. Please choose another plan.", variant: "destructive" }); // H2O-HIDE-325635-1017
     navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, "", location.search, location.hash), { replace: true }); // H2O-HIDE-325635-1017
   }, [state?.planId]); // H2O-HIDE-325635-1017
