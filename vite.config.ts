@@ -591,11 +591,11 @@ const htmlAliasPlugin = (): Plugin => ({
       },
       // GO-LANDERS-1007 Batch A
       "es/go/tmobile.html": {
-        h1: "Pague T-Mobile en línea",
+        h1: "Pagar T-Mobile en línea, sin iniciar sesión",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/tmobile/index.html": {
-        h1: "Pague T-Mobile en línea",
+        h1: "Pagar T-Mobile en línea, sin iniciar sesión",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/verizon.html": {
