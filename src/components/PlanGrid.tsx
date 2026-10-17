@@ -1,4 +1,5 @@
 // TOP4-T3-1009: "MOST POPULAR" / "Tap to continue" follow the page language (i18n strings already exist).
+// POPULAR-BADGE-1017: centered white pill on top edge, carrier-colored outline (no theme ring), no white spacer.
 import { t, useLang } from "@/lib/i18n";
 
 interface Plan { price: string; highlight: string; popular?: boolean; }
@@ -24,10 +25,10 @@ export const PlanGrid = ({
     const handleClick = () => onSelect?.(plan);
     return (
       <div
-        className={`relative bg-card border rounded-lg sm:rounded-xl overflow-hidden flex flex-col transition-all ${
+        className={`relative bg-card border rounded-lg sm:rounded-xl flex flex-col transition-all ${
           onSelect ? "cursor-pointer hover:shadow-lg active:scale-[0.98]" : ""
-        } ${isPopular ? "ring-2 shadow-md" : "border-border"}`}
-        style={isPopular ? { borderColor: brandColor, boxShadow: `0 0 0 2px ${brandColor}33` } : undefined}
+        } ${isPopular ? "" : "border-border"}`}
+        style={isPopular ? { borderColor: brandColor, boxShadow: `0 0 0 1px ${brandColor}, 0 4px 12px rgba(0,0,0,0.08)` } : undefined}
         onClick={onSelect ? handleClick : undefined}
         role={onSelect ? "button" : undefined}
         tabIndex={onSelect ? 0 : undefined}
@@ -39,15 +40,14 @@ export const PlanGrid = ({
         }}
       >
         {isPopular && (
-          <div
-            className="absolute top-0 right-0 z-10 px-2 py-0.5 text-[9px] sm:text-[10px] font-extrabold text-primary-foreground rounded-bl-md"
-            style={{ backgroundColor: brandColor }}
+          <span
+            className="pointer-events-none absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full border bg-white px-2 py-[2px] text-[10px] leading-[10px] sm:text-[11px] sm:leading-[11px] font-extrabold uppercase tracking-[0.06em] text-neutral-900 shadow-sm"
+            style={{ borderColor: brandColor }}
           >
             {tr.mostPopular}
-          </div>
+          </span>
         )}
-        <div className="h-[14px] sm:h-[24px]" />
-        <div className={`px-2 py-1.5 sm:p-6 ${textOnBrand} text-center`} style={{ backgroundColor: brandColor }}>
+        <div className={`px-2 py-1.5 sm:p-6 ${textOnBrand} text-center rounded-t-[inherit]`} style={{ backgroundColor: brandColor }}>
           <span className="text-base sm:text-4xl font-extrabold">{plan.price}</span>
         </div>
         <div className="p-1.5 sm:p-6 flex-grow flex flex-col">
@@ -67,7 +67,7 @@ export const PlanGrid = ({
 
   return (
     <section className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pb-6">
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-2 gap-y-3 sm:gap-4 pt-2 sm:pt-3">
         {plans.map((plan, i) => {
           const isLast = i === plans.length - 1;
           // Orphan on 2-col (mobile/tablet) only when length is odd
