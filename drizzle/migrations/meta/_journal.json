@@ -127,6 +127,13 @@
       "when": 1792264138033,
       "tag": "0017_klarna_funnel_1017",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792269791371,
+      "tag": "0018_klarna_funnel_fix_1017",
+      "breakpoints": true
     }
   ]
 }
