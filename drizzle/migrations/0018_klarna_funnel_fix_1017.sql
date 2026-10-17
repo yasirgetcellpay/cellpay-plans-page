@@ -1,0 +1,3 @@
+-- KLARNA-FUNNEL-FIX-1017: widen the existing event check only; existing data and permissions remain unchanged.
+ALTER TABLE public.checkout_funnel_events DROP CONSTRAINT IF EXISTS checkout_funnel_events_event_check;
+ALTER TABLE public.checkout_funnel_events ADD CONSTRAINT checkout_funnel_events_event_check CHECK (event = ANY (ARRAY['checkout_view','total_shown','payment_started','submitted','left_at_total','prefill_used','autopay_postpurchase_offer_shown','autopay_postpurchase_offer_accepted','recovery_prompt_shown','recovery_retry','recovery_success','klarna_offer_shown','klarna_clicked','klarna_session_created','klarna_auth_result','klarna_ab_known']::text[]));
