@@ -37,6 +37,7 @@ import {
   type ValidationResult,
 } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
+import { loadTextFrom, loadReasonKind, loadReasonText, type LoadReasonKind } from "@/lib/loadTextReason"; // LOADTEXT-REASON-1017 // REFUNDED-STATE-1017
 import { applySeoHead } from "@/lib/seo";
 import { getGclid } from "@/lib/tracking";
 import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib/subdivisions";
@@ -66,7 +67,7 @@ function normalizePhone(input: string): string {
   let d = (input || "").replace(/\D/g, "");
   while (d.length > 10 && d.startsWith("1")) d = d.slice(1);
   if (d.length > 10) d = d.slice(-10);
-  if (d.length === 10 && d.startsWith("1")) d = d.slice(1);
+  // REFUNDED-STATE-1017: a 10-digit string starting with "1" is no longer cut to 9 digits (it fails phoneOk instead).
   return d;
 }
 
@@ -173,6 +174,11 @@ const CarrierAssist = lazy(() => new Promise<{ default: React.ComponentType<impo
 }));
 // CV-1b: write pending to sessionStorage AND a SameSite=Lax Secure cookie so Apple Pay / Cash App / redirect returns still match.
 // SUCCESS-FLAG-FIX-1016: explicit refund flags override every success status before any success side effect.
+// REFUNDED-STATE-1017: crash/timeout reply (outcome unknown).
+const isUnconfirmed = (raw: Record<string, unknown>): boolean => {
+  const d = raw && typeof raw.data === "object" && raw.data ? raw.data as Record<string, unknown> : {};
+  return raw?.code === "CHARGE_UNCONFIRMED" || raw?.charge_unconfirmed === true || d.charge_unconfirmed === true;
+};
 const hasRefundSignal = (value: unknown): boolean => {
   if (!value || typeof value !== "object") return false;
   const obj = value as Record<string, unknown>;
@@ -298,6 +304,13 @@ const Checkout = () => {
   const resumed = !routerState || !!routerState.resumed;
   const lang = useLang();
   const tr = t(lang);
+  // REFUNDED-STATE-1017: never charge a phone that isn't a valid 10-digit US number.
+  const phone10 = normalizePhone(String(state?.phone || ""));
+  const phoneOk = /^[2-9]\d{9}$/.test(phone10);
+  const badPhoneGo = () => {
+    toast({ title: lang === "es" ? "Ingrese el número de teléfono completo de 10 dígitos." : "Please enter the full 10-digit phone number.", variant: "destructive" });
+    if (state) navigate(carrierPageTarget(lang, state.carrierSlug, "", state.amount, location.search, location.hash));
+  };
   // WORDING-1013: Metro, Boost and Cricket are bill payments -> "payment" wording in the Auto Pay offer (text only).
   const apBill = ["metropcs", "boost", "topup-crc"].includes(String(state?.carrierSlug || ""));
   const apCopy = apBill
@@ -494,6 +507,7 @@ const Checkout = () => {
   // FRAUD-MULTIBLOCK-1012 5c: the proxy sets risk_action "step_up" only in enforce mode; in shadow this never turns on.
   const [stepUp, setStepUp] = useState(false);
   const submitTransaction = async (p: Record<string, unknown>): Promise<unknown> => {
+    if (!phoneOk) { badPhoneGo(); return { success: false, code: "BAD_PHONE", error: "Please enter the full 10-digit phone number." }; } // REFUNDED-STATE-1017
     const confirmed = dupConfirmRef.current;
     dupConfirmRef.current = false;
     // FRAUD-MULTIBLOCK-1012: cp_dev (proxy reads and removes it; never sent to CellPay). At most 300 ms wait, empty on timeout.
@@ -512,6 +526,7 @@ const Checkout = () => {
     if (r.risk_action === "step_up") setStepUp(true); // FRAUD-MULTIBLOCK-1012 5c (enforce only)
     if (r.code === "DUP_CONFIRM") setDupAsk({ amount: String(r.amount ?? "") });
     if (r.code === "IN_FLIGHT") setInFlightNote(true); // DUPCHARGE-FOLLOWUPS-1008
+    if (r.code === "BAD_PHONE" && phoneOk) badPhoneGo(); // REFUNDED-STATE-1017
     if (r.code === "SESSION_PAID" && typeof r.hashid === "string" && r.hashid) {
       return { success: true, data: { status: "success", hashid: r.hashid, message: r.message } };
     }
@@ -707,6 +722,8 @@ const Checkout = () => {
   }, [declineInfo]);
   // TOP4-T2B-1009: the provider auto-refunded this payment -> show the refund card instead of the raw provider sentence.
   const [refundCard, setRefundCard] = useState(false);
+  const [loadReason, setLoadReason] = useState<LoadReasonKind | null>(null); // LOADTEXT-REASON-1017
+  const [unconfirmedCard, setUnconfirmedCard] = useState(false); // REFUNDED-STATE-1017
   const cardFormRef = useRef<HTMLDivElement>(null);
 
   // Klarna
@@ -884,6 +901,7 @@ const Checkout = () => {
       clearCheckoutCtx();
       navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, state.amount, location.search, location.hash), { replace: true });
     };
+    if (!phoneOk) { badPhoneGo(); return; } // REFUNDED-STATE-1017: before validateRecharge
     (async () => {
       try {
         const [result, config] = await Promise.all([
@@ -1006,7 +1024,7 @@ const Checkout = () => {
       const es = lang === "es";
       let oid = "-";
       try { oid = String(asObj(JSON.parse(String(body.paypal_authorization))).orderID || "-"); } catch { /* keep "-" */ }
-      setSubmitting(true); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false);
+      setSubmitting(true); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setUnconfirmedCard(false); // REFUNDED-STATE-1017
       try {
         const raw = (await submitTransaction(body) || {}) as Record<string, unknown>;
         let r = raw;
@@ -1017,6 +1035,7 @@ const Checkout = () => {
         const st = String(r.status ?? "").toLowerCase();
         // SUCCESS-FLAG-FIX-1016: confirmed refunds use the shared refund card, never the PayPal paid/checking panel.
         if (hasRefundSignal(raw) || /error during refill|auto[\s-]?refund/i.test(String(r.msg || r.message || ""))) { handleResult(raw); return; }
+        if (raw.code === "BAD_PHONE" || isUnconfirmed(raw)) { handleResult(raw); return; } // REFUNDED-STATE-1017
         const ok = raw.success !== false && (r.status === true || st === "true" || st === "success" || st === "completed");
         const deepId = (v: unknown, d = 0): string => {
           if (!v || typeof v !== "object" || Array.isArray(v) || d > 5) return "";
@@ -1094,6 +1113,7 @@ const Checkout = () => {
         return actions.reject();
       },
       createOrder: async () => {
+        if (!phoneOk) { badPhoneGo(); throw new Error("__PP_BLOCKED__"); } // REFUNDED-STATE-1017
         ppFunnel("button_click");
         ppLogIdRef.current = null;
         const orderPayload = {
@@ -1112,6 +1132,7 @@ const Checkout = () => {
         } }) as Record<string, unknown>;
         ppConfirmedRef.current = ppDupOkRef.current; // [PAYPAL-REBUILD-1009] carried to checkout/transaction as dup_confirm
         ppDupOkRef.current = false;
+        if (orderRaw.code === "BAD_PHONE") { badPhoneGo(); throw new Error("__PP_BLOCKED__"); } // REFUNDED-STATE-1017
         if (orderRaw.blocked === true) {
           // Proxy guard (blocklist / refill cooldown): calm message, no PayPal order was created, nothing was charged.
           const code = String(orderRaw.code || "");
@@ -1529,6 +1550,9 @@ const Checkout = () => {
     } else {
       // DUPCHARGE-FOLLOWUPS-1008: DUP_CONFIRM / IN_FLIGHT already opened our own dialog (submitTransaction wrapper): no error box, not a decline.
       if (raw.code === "DUP_CONFIRM" || raw.code === "IN_FLIGHT") { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); return; }
+      if (raw.code === "BAD_PHONE") { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); return; } // REFUNDED-STATE-1017: wrapper already navigated
+      if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); return; } // REFUNDED-STATE-1017
+      setLoadReason(loadReasonKind(loadTextFrom(raw))); // LOADTEXT-REASON-1017
       const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Transaction failed"; // SUCCESS-FLAG-FIX-1016
       const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
       const autoRefund = /auto[\s-]?refund/i.test(msg);
@@ -2072,7 +2096,10 @@ const Checkout = () => {
           console.error("[ApplePay] transaction failed", result);
           try { session.completePayment({ status: session.STATUS_FAILURE }); } catch (e) { console.warn("[ApplePay] completePayment(failure) after the sheet closed", e); } // DUPCHARGE-1008
           // DUPCHARGE-FOLLOWUPS-1008: DUP_CONFIRM / IN_FLIGHT already opened our own dialog (submitTransaction wrapper): no error box.
-          if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") {
+          if (raw.code === "BAD_PHONE") { /* REFUNDED-STATE-1017: wrapper already navigated */ }
+          else if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); } // REFUNDED-STATE-1017
+          else if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") {
+            setLoadReason(loadReasonKind(loadTextFrom(raw))); // LOADTEXT-REASON-1017
             const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Apple Pay transaction failed"; // SUCCESS-FLAG-FIX-1016
             const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
             const autoRefund = /auto[\s-]?refund/i.test(msg);
@@ -2334,6 +2361,7 @@ const Checkout = () => {
 
   // ─── Main handler ───
   const handlePlaceOrder = async () => {
+    if (!phoneOk) { badPhoneGo(); return; } // REFUNDED-STATE-1017: submit nothing
     try { getDeclineAb(normalizePhone(String(state?.phone || ""))); } catch { /* ignore */ } // DECLINE-AB-1016: assignment in session before the first submit
     // DECLINE-RECOVERY-1014: clean the email first and use the cleaned value for this submit.
     { const ce = cleanEmail(email); emailCleanRef.current = ce; if (ce !== email) setEmail(ce); }
@@ -3036,14 +3064,14 @@ const Checkout = () => {
 
       {/* Error dialog */}
       {errorMsg && !refundCard && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => { if (declineInfo && (declineInfo.method === "applepay" || declineInfo.method === "googlepay")) setPaymentMethod("card"); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); }}> {/* DECLINE-RECOVERY-1014C: wallet decline -> card */}
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => { if (declineInfo && (declineInfo.method === "applepay" || declineInfo.method === "googlepay")) setPaymentMethod("card"); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setLoadReason(null); /* LOADTEXT-REASON-1017 */ }}> {/* DECLINE-RECOVERY-1014C: wallet decline -> card */}
           {/* DECLINE-DIALOG-1008: scrolls inside itself on short phones (iPhone SE + Safari bars clipped the top); on a card decline
               the raw processor message is hidden (the recovery hint below explains it); other errors still show errorMsg. */}
           <div className="bg-card rounded-2xl p-5 max-w-sm w-full max-h-[90vh] overflow-y-auto overscroll-contain text-center shadow-xl" style={{ maxHeight: "calc(100dvh - 2rem)" }} onClick={(e) => e.stopPropagation()}>
             {nsfView ? ( // FUNDS-DECLINE-1016
               <h3 className="text-lg font-bold text-foreground mb-2" data-testid="funds-title">{fc.title}</h3>
             ) : <><div className="text-3xl mb-2">❌</div><h3 className="text-xl font-bold text-foreground mb-2">{tr.paymentFailed}</h3></>}
-            {!declineInfo && <p className="text-sm text-muted-foreground mb-2">{errorMsg}</p>}
+            {!declineInfo && <p className="text-sm text-muted-foreground mb-2">{(loadReason && loadReasonText(loadReason, lang, state.carrierName)) || errorMsg}</p>} {/* LOADTEXT-REASON-1017 */}
             {orsRetry && oursideRetryOn && paymentMethod === orsFailed && (
               <button type="button" data-testid="ors-retry" className="w-full mb-2 rounded-lg py-2.5 font-bold text-primary-foreground" style={{ backgroundColor: brandColor }}
                 onClick={() => { orsWrite({ retry_clicked: true }); setOrsRetry(false); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); void handlePlaceOrder(); }}>
@@ -3201,7 +3229,7 @@ const Checkout = () => {
         const es = lang === "es";
         const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`); // REFUND-WORDING-1016
         const amt = `$${Number(validation?.total ?? state.amount ?? 0).toFixed(2)}`; // REFUND-WORDING-1016
-        const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); };
+        const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); }; // LOADTEXT-REASON-1017: + loadReason reset
         const toCarrier = (ph: string) => { close(); navigate(carrierPageTarget(lang, state.carrierSlug, ph, undefined, location.search, location.hash)); };
         const openHelp = () => {
           close();
@@ -3217,16 +3245,56 @@ const Checkout = () => {
               {/* SUCCESS-FLAG-FIX-1016: owner-approved refund-card title and text only. */}
               {/* REFUND-WORDING-1016: wording only; refund behavior and buttons unchanged. */}
               <h3 className="text-xl font-bold text-foreground mb-2">{es ? (payWord ? "Pago no completado" : "Recarga no completada") : (payWord ? "Payment not completed" : "Refill not completed")}</h3>
+              {loadReason ? (<> {/* LOADTEXT-REASON-1017: refund sentence ends after bank timing; reason paragraph added */}
+                <p className="text-sm text-muted-foreground mb-2" data-testid="refund-card-text">
+                  {es
+                    ? (payWord ? `Su pago no se completó, así que le reembolsamos sus ${amt}. Según su banco, puede tardar unos días hábiles en reflejarse.` : `Su recarga no se completó, así que le reembolsamos su pago de ${amt}. Según su banco, puede tardar unos días hábiles en reflejarse.`)
+                    : (payWord ? `Your payment didn't go through, so we refunded your ${amt}. Depending on your bank, it can take a few business days to show.` : `Your refill didn't go through, so we refunded your payment of ${amt}. Depending on your bank, it can take a few business days to show.`)}
+                </p>
+                <p className="text-sm text-muted-foreground mb-4" data-testid="refund-reason">{loadReasonText(loadReason, lang, state.carrierName)}</p>
+              </>) : (
               <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">
                 {es
                   ? (payWord ? `Su pago no se completó, así que le reembolsamos sus ${amt}. Según su banco, puede tardar unos días hábiles en reflejarse. Revise el número y el plan e inténtelo de nuevo.` : `Su recarga no se completó, así que le reembolsamos su pago de ${amt}. Según su banco, puede tardar unos días hábiles en reflejarse. Revise el número y el plan e inténtelo de nuevo.`)
                   : (payWord ? `Your payment didn't go through, so we refunded your ${amt}. Depending on your bank, it can take a few business days to show. Please check the number and plan and try again.` : `Your refill didn't go through, so we refunded your payment of ${amt}. Depending on your bank, it can take a few business days to show. Please check the number and plan and try again.`)}
               </p>
+              )}
               <div className="space-y-2">
                 <button type="button" data-testid="refund-try-again" onClick={() => toCarrier(state.phone)} className={btn + " text-primary-foreground"} style={{ backgroundColor: brandColor }}>{es ? "Intentar de nuevo" : "Try again"}</button>
                 <button type="button" data-testid="refund-change-number" onClick={() => toCarrier("")} className={btn + " border-2 border-border text-foreground bg-background"}>{es ? "Cambiar número" : "Change number"}</button>
                 <button type="button" data-testid="refund-carrier-help" onClick={() => { close(); window.setTimeout(() => window.dispatchEvent(new CustomEvent("cp-carrier-help")), 50); }} className="w-full text-sm underline text-muted-foreground pt-1">{es ? "¿No está seguro de su compañía?" : "Not sure of your carrier?"}</button>
                 <button type="button" data-testid="refund-help" onClick={openHelp} className="w-full text-sm underline text-muted-foreground pt-1">{es ? "Ayuda" : "Help"}</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+      {/* REFUNDED-STATE-1017: crash/timeout reply: neutral "we couldn't confirm" card, never "Your card was NOT charged". */}
+      {unconfirmedCard && (() => {
+        const es = lang === "es";
+        const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`);
+        const close = () => { setUnconfirmedCard(false); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); };
+        const openHelp = () => {
+          close();
+          window.setTimeout(() => {
+            const b = document.querySelector<HTMLElement>('[data-testid="help-launcher"]');
+            if (b) b.click(); else window.location.href = "mailto:support@getcellpay.com";
+          }, 50);
+        };
+        const btn = "w-full px-4 py-2.5 rounded-lg font-bold text-sm";
+        const word = es ? (payWord ? "pago" : "recarga") : (payWord ? "payment" : "refill");
+        return (
+          <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={close}>
+            <div className="bg-card rounded-2xl p-5 max-w-sm w-full overflow-y-auto overscroll-contain text-center shadow-xl" style={{ maxHeight: "calc(100dvh - 2rem)" }} onClick={(e) => e.stopPropagation()} data-testid="unconfirmed-card">
+              <h3 className="text-xl font-bold text-foreground mb-2">{es ? (payWord ? "No pudimos confirmar este pago" : "No pudimos confirmar esta recarga") : (payWord ? "We couldn't confirm this payment" : "We couldn't confirm this refill")}</h3>
+              <p className="text-sm text-muted-foreground mb-4" data-testid="unconfirmed-card-text">
+                {es
+                  ? `Algo salió mal al procesar su ${word}. Si se le hizo un cargo, normalmente se reembolsa de forma automática y, según su banco, puede tardar unos días hábiles en reflejarse. Revise el número y el plan, y espere unos minutos antes de volver a intentarlo.`
+                  : `Something went wrong while we processed your ${word}. If you were charged, the charge is normally refunded automatically, and depending on your bank it can take a few business days to show. Please check the number and plan, and wait a few minutes before trying again.`}
+              </p>
+              <div className="space-y-2">
+                <button type="button" data-testid="unconfirmed-try-again" onClick={() => { close(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, undefined, location.search, location.hash)); }} className={btn + " text-primary-foreground"} style={{ backgroundColor: brandColor }}>{es ? "Intentar de nuevo" : "Try again"}</button>
+                <button type="button" data-testid="unconfirmed-help" onClick={openHelp} className="w-full text-sm underline text-muted-foreground pt-1">{es ? "Ayuda" : "Help"}</button>
               </div>
             </div>
           </div>
