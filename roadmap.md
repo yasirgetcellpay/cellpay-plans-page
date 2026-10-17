@@ -8,5 +8,5 @@
 - [ ] Deploy only cellpay-proxy after migration is applied; deployment blocked by backup confirmation. Do not publish.
 
 # LPX-1017
-- [ ] Update only shared lander copy, GoLander display strings and static-shell text/meta.
-- [ ] Add and run requested copy tests; verify preview. No publish or backend changes.
+- [x] Update only shared lander copy, GoLander display strings and static-shell text/meta.
+- [x] All 19 copy tests passed; all 29 Verizon regression tests passed; five lander previews and Spanish mobile view verified, build OK. No publish or backend changes.
