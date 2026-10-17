@@ -416,7 +416,7 @@ const htmlAliasPlugin = (): Plugin => ({
     // GO-1 ad landers: H1 + intro in static shell for AdsBot; pages are noindex (see GO_SHELLS).
     const GO_CONTENT: Record<string, { h1: string; intro: string }> = {
       "go/boost.html": {
-        h1: "Pay Your Boost Bill Without Signing In",
+        h1: "Pay Your Boost Mobile Bill as a Guest",
         intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
       "go/metro.html": {
@@ -428,7 +428,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/boost/index.html": {
-        h1: "Pay Your Boost Bill Without Signing In",
+        h1: "Pay Your Boost Mobile Bill as a Guest",
         intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
       "go/metro/index.html": {
@@ -444,7 +444,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/boost.html": {
-        h1: "Pague Boost sin iniciar sesión",
+        h1: "Pague su factura de Boost como invitado",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/cricket.html": {
@@ -456,7 +456,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/boost/index.html": {
-        h1: "Pague Boost sin iniciar sesión",
+        h1: "Pague su factura de Boost como invitado",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/cricket/index.html": {
@@ -706,18 +706,18 @@ const htmlAliasPlugin = (): Plugin => ({
       "guest-boost.html":          { title: "Boost Mobile Guest Refill — Online Top-Up | CellPay",   description: "Recharge Boost Mobile as a guest. No login needed. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "total-wireless.html":       { title: "Total Wireless Refill — Online Top-Up | CellPay",       description: "Recharge Total Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       // GO-1 / GO-2 titles (noindex applied via GO_SHELLS in buildMeta)
-      "go/boost.html":             { title: "Pay Your Boost Bill Without Signing In | CellPay", description: "Pay your Boost Mobile bill without signing in. Enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
+      "go/boost.html":             { title: "Pay Your Boost Mobile Bill as a Guest | CellPay", description: "Pay your Boost Mobile bill as a guest. Just your phone number, no login. Pay with debit or credit card. Service fee shown before you pay." },
       "go/metro.html":             { title: "Pay Your MetroPCS Bill as a Guest | CellPay", description: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
       "go/simple-mobile.html":     { title: "Pay Your Simple Mobile Bill Online | CellPay", description: "Pay your Simple Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
-      "go/boost/index.html":       { title: "Pay Your Boost Bill Without Signing In | CellPay", description: "Pay your Boost Mobile bill without signing in. Enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
+      "go/boost/index.html":       { title: "Pay Your Boost Mobile Bill as a Guest | CellPay", description: "Pay your Boost Mobile bill as a guest. Just your phone number, no login. Pay with debit or credit card. Service fee shown before you pay." },
       "go/metro/index.html":       { title: "Pay Your MetroPCS Bill as a Guest | CellPay", description: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
       "go/simple-mobile/index.html": { title: "Pay Your Simple Mobile Bill Online | CellPay", description: "Pay your Simple Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       // GO-1b / GO-2 ES + Ultra + Cricket/ATT
       "es/go/metro.html": { title: "Pague su factura de MetroPCS como invitado | CellPay", description: "Pague su Metro by T-Mobile como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
-      "es/go/boost.html": { title: "Pague Boost sin iniciar sesión | CellPay", description: "Pague su Boost Mobile sin iniciar sesión. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/boost.html": { title: "Pague su factura de Boost como invitado | CellPay", description: "Pague su factura de Boost Mobile como invitado. Solo su número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar." },
       "es/go/cricket.html": { title: "Pague Cricket en línea | CellPay", description: "Pague su Cricket en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/metro/index.html": { title: "Pague su factura de MetroPCS como invitado | CellPay", description: "Pague su Metro by T-Mobile como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
-      "es/go/boost/index.html": { title: "Pague Boost sin iniciar sesión | CellPay", description: "Pague su Boost Mobile sin iniciar sesión. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/boost/index.html": { title: "Pague su factura de Boost como invitado | CellPay", description: "Pague su factura de Boost Mobile como invitado. Solo su número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar." },
       "es/go/cricket/index.html": { title: "Pague Cricket en línea | CellPay", description: "Pague su Cricket en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "go/ultra.html": { title: "Pay Your Ultra Mobile Bill Online | CellPay", description: "Pay your Ultra Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       "go/ultra/index.html": { title: "Pay Your Ultra Mobile Bill Online | CellPay", description: "Pay your Ultra Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },

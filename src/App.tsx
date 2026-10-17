@@ -641,9 +641,9 @@ const App = () => (
               carrierId={36}
               brandColor="hsl(27,100%,50%)"
               logo={boostLogo}
-              h1="Pay Your Boost Bill Without Signing In"
-              title="Pay Your Boost Bill Without Signing In | CellPay"
-              description="Pay your Boost Mobile bill without signing in. Enter the phone number, pick the amount, pay. Low service fee shown before you pay."
+              h1="Pay Your Boost Mobile Bill as a Guest"
+              title="Pay Your Boost Mobile Bill as a Guest | CellPay"
+              description="Pay your Boost Mobile bill as a guest. Just your phone number, no login. Pay with debit or credit card. Service fee shown before you pay."
             />
           }
         />
@@ -656,9 +656,9 @@ const App = () => (
               carrierId={36}
               brandColor="hsl(27,100%,50%)"
               logo={boostLogo}
-              h1="Pay Your Boost Bill Without Signing In"
-              title="Pay Your Boost Bill Without Signing In | CellPay"
-              description="Pay your Boost Mobile bill without signing in. Enter the phone number, pick the amount, pay. Low service fee shown before you pay."
+              h1="Pay Your Boost Mobile Bill as a Guest"
+              title="Pay Your Boost Mobile Bill as a Guest | CellPay"
+              description="Pay your Boost Mobile bill as a guest. Just your phone number, no login. Pay with debit or credit card. Service fee shown before you pay."
             />
           }
         />
@@ -856,9 +856,9 @@ const App = () => (
               carrierId={36}
               brandColor="hsl(27,100%,50%)"
               logo={boostLogo}
-              h1="Pague Boost sin iniciar sesión"
-              title="Pague Boost sin iniciar sesión | CellPay"
-              description="Pague su Boost Mobile sin iniciar sesión. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              h1="Pague su factura de Boost como invitado"
+              title="Pague su factura de Boost como invitado | CellPay"
+              description="Pague su factura de Boost Mobile como invitado. Solo su número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar."
             />
           }
         />
@@ -872,9 +872,9 @@ const App = () => (
               carrierId={36}
               brandColor="hsl(27,100%,50%)"
               logo={boostLogo}
-              h1="Pague Boost sin iniciar sesión"
-              title="Pague Boost sin iniciar sesión | CellPay"
-              description="Pague su Boost Mobile sin iniciar sesión. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              h1="Pague su factura de Boost como invitado"
+              title="Pague su factura de Boost como invitado | CellPay"
+              description="Pague su factura de Boost Mobile como invitado. Solo su número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar."
             />
           }
         />
