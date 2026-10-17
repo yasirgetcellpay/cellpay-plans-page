@@ -6,6 +6,34 @@ import { payWith, CARD_BRANDS } from "./paymentMethods";
 import { top4Name, refundFaq } from "./carrierHero";
 
 export type GoPageLang = "en" | "es";
+// LPX-1017: payment wording only; catalog/checkout values remain unchanged.
+export const GO_PAY_WORDING = new Set(["metropcs", "boost", "topup-crc"]);
+export const goUsesPayWording = (slug: string): boolean => GO_PAY_WORDING.has(slug);
+
+export const goKeywordsFor = (slug: string, lang: "en" | "es"): string | undefined => {
+  const keywords: Record<string, { en: string; es: string }> = {
+    metropcs: {
+      en: "MetroPCS pay bill, Metro PCS bill pay, Metro by T-Mobile bill payment, pay Metro bill as guest, pay Metro with phone number",
+      es: "pagar Metro PCS, pagar factura MetroPCS, pago Metro by T-Mobile, pagar Metro como invitado",
+    },
+    boost: {
+      en: "Boost Mobile pay bill, pay Boost bill as guest, Boost Mobile bill payment, pay Boost without signing in",
+      es: "pagar Boost Mobile, pagar factura de Boost, pago de Boost Mobile sin cuenta",
+    },
+    "topup-crc": {
+      en: "Cricket pay bill, pay Cricket bill with debit card, Cricket Wireless bill payment, pay Cricket bill as guest",
+      es: "pagar Cricket, pagar Cricket con tarjeta, pago de factura Cricket, pagar Cricket sin cuenta",
+    },
+  };
+  return keywords[slug]?.[lang];
+};
+
+export const goAutoPayLine = (slug: string, lang: "en" | "es"): string => {
+  const pay = goUsesPayWording(slug);
+  return lang === "es"
+    ? "Opcional: Auto Pago para no olvidar su " + (pay ? "pago" : "recarga") + ". Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marque o llegue desde un enlace de Pago Automático."
+    : "Optional: Auto Pay so you never miss a " + (pay ? "payment" : "refill") + ". You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link.";
+};
 
 /** ADS-FOLLOWUPS-1008: ad-style carrier names for the /go FAQs + FAQPage JSON-LD (same name as each lander's H1). Checkout keeps the catalog name. */
 export const GO_AD_NAMES: Record<string, string> = {
@@ -27,18 +55,18 @@ export const GO_AD_NAMES: Record<string, string> = {
 };
 
 /** GO-COPY-1008: carrier-specific FAQs (also sent as FAQPage JSON-LD). True claims only: no refunds, no email-receipt claim, no fee amounts. */
-export const goFaqsEn = (c: string) => [
+export const goFaqsEn = (c: string, pay = false) => [
   {
     q: `Can I pay my ${c} bill without signing in?`,
     a: `Yes. No account or login needed. Enter the ${c} phone number, pick the amount or plan, and pay as a guest.`,
   },
   {
     q: `Can I pay for someone else's ${c} line?`,
-    a: `Yes. Enter their ${c} phone number, choose the amount or plan, and pay. The refill goes to that line.`,
+    a: pay ? `Yes. Enter their ${c} phone number, choose the amount or plan, and pay. The payment goes to that line.` : `Yes. Enter their ${c} phone number, choose the amount or plan, and pay. The refill goes to that line.`,
   },
   {
     q: `Do I just need the ${c} phone number?`,
-    a: `Yes. Enter the 10-digit phone number of the ${c} line you want to refill. Then pick the amount or plan and pay.`,
+    a: pay ? `Yes. Enter the 10-digit phone number of the ${c} line you want to pay. Then pick the amount or plan and pay.` : `Yes. Enter the 10-digit phone number of the ${c} line you want to refill. Then pick the amount or plan and pay.`,
   },
   {
     q: `Do I need to call ${c} to pay?`,
@@ -49,8 +77,8 @@ export const goFaqsEn = (c: string) => [
     a: payWith("en", `Card (${CARD_BRANDS})`) + ". Apple Pay shows on supported Apple devices. The service fee is shown before you pay.",
   },
   {
-    q: `How long does a ${c} refill take?`,
-    a: "Most refills finish in a few minutes. Some can take up to 30 minutes.",
+    q: pay ? `How long does a ${c} payment take?` : `How long does a ${c} refill take?`,
+    a: pay ? "Most payments post in a few minutes. Some can take up to 30 minutes." : "Most refills finish in a few minutes. Some can take up to 30 minutes.",
   },
   {
     q: "What if the payment fails?",
@@ -63,18 +91,18 @@ export const goFaqsEn = (c: string) => [
 ];
 
 /** Very simple Spanish. Never "cualquier". No refunds / 24/7 / instant / authorized. */
-export const goFaqsEs = (c: string) => [
+export const goFaqsEs = (c: string, pay = false) => [
   {
     q: `¿Puedo pagar mi factura de ${c} sin cuenta?`,
     a: `Sí. No necesita cuenta ni iniciar sesión. Escriba el número de teléfono de ${c}, elija el monto o plan y pague como invitado.`,
   },
   {
     q: `¿Puedo pagar la línea de ${c} de otra persona?`,
-    a: `Sí. Escriba el número de ${c} de esa persona, elija el monto o plan y pague. La recarga llega a esa línea.`,
+    a: pay ? `Sí. Escriba el número de ${c} de esa persona, elija el monto o plan y pague. El pago llega a esa línea.` : `Sí. Escriba el número de ${c} de esa persona, elija el monto o plan y pague. La recarga llega a esa línea.`,
   },
   {
     q: `¿Solo necesito el número de teléfono de ${c}?`,
-    a: `Sí. Escriba el número de 10 dígitos de la línea de ${c} que quiere recargar. Luego elija el monto o plan y pague.`,
+    a: pay ? `Sí. Escriba el número de 10 dígitos de la línea de ${c} que quiere pagar. Luego elija el monto o plan y pague.` : `Sí. Escriba el número de 10 dígitos de la línea de ${c} que quiere recargar. Luego elija el monto o plan y pague.`,
   },
   {
     q: `¿Tengo que llamar a ${c} para pagar?`,
@@ -85,8 +113,8 @@ export const goFaqsEs = (c: string) => [
     a: payWith("es", `Con tarjeta (${CARD_BRANDS})`) + ". Apple Pay aparece en equipos Apple compatibles. El cargo por servicio se muestra antes de pagar.",
   },
   {
-    q: `¿Cuánto tarda la recarga de ${c}?`,
-    a: "La mayoría termina en unos minutos. Algunas pueden tardar hasta 30 minutos.",
+    q: pay ? `¿Cuánto tarda el pago de ${c}?` : `¿Cuánto tarda la recarga de ${c}?`,
+    a: pay ? "La mayoría de los pagos se acreditan en unos minutos. Algunos pueden tardar hasta 30 minutos." : "La mayoría termina en unos minutos. Algunas pueden tardar hasta 30 minutos.",
   },
   {
     q: "¿Qué pasa si el pago falla?",
@@ -102,7 +130,7 @@ export const goFaqsEs = (c: string) => [
 export const goFaqList = (slug: string, lang: GoPageLang, fallbackName = ""): Array<{ q: string; a: string }> => {
   const c = GO_AD_NAMES[slug] ?? fallbackName;
   const r = refundFaq(slug, lang);
-  return [...(lang === "es" ? goFaqsEs(c) : goFaqsEn(c)), ...(r ? [r] : [])];
+  return [...(lang === "es" ? goFaqsEs(c, goUsesPayWording(slug)) : goFaqsEn(c, goUsesPayWording(slug))), ...(r ? [r] : [])];
 };
 
 /** One sentence under the subline (same wording as the active-line note on the carrier pages, plus what happens next). */

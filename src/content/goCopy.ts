@@ -4,17 +4,17 @@
 export type GoLang = "en" | "es";
 export type GoLpx = { h1?: string; title?: string; subline: string };
 
-type Row = { name: string; h1En?: string; h1Es?: string };
+type Row = { name: string; h1En?: string; h1Es?: string; sublineEn?: string; sublineEs?: string; titleEn?: string; titleEs?: string };
 
-/** Keyed by carrierSlug (as passed to GoLander). H1 is only set where SPEC-LPX-1 asks for a new one; Simple/Metro EN and Metro ES keep theirs. */
+/** Keyed by carrierSlug (as passed to GoLander). LPX-1017 updates guest-pay H1/subline/title copy; other rows keep SPEC-LPX-1 wording. */
 const ROWS: Record<string, Row> = {
-  "topup-at": { name: "AT&T", h1En: "Pay Your AT&T Prepaid Bill Without Signing In", h1Es: "Pague su factura de AT&T Prepago sin iniciar sesión" },
-  tmobile: { name: "T-Mobile", h1En: "Pay Your T-Mobile Bill Without Signing In", h1Es: "Pague su factura de T-Mobile sin iniciar sesión" },
+  "topup-at": { name: "AT&T", h1En: "Pay Your AT&T Prepaid Bill Without Signing In", h1Es: "Pague su factura de AT&T Prepago sin iniciar sesión", sublineEn: "AT&T Prepaid (ATT) guest pay: just the phone number, no login. Debit or credit card." },
+  tmobile: { name: "T-Mobile", h1En: "Pay Your T-Mobile Bill Without Signing In", h1Es: "Pagar T-Mobile en línea, sin iniciar sesión", sublineEn: "Pay T-Mobile bill as guest by phone number. Pay for yourself or someone else. No account needed." },
   verizon: { name: "Verizon", h1En: "Pay Your Verizon Prepaid Bill Without Signing In", h1Es: "Pague su factura de Verizon sin iniciar sesión" },
-  "topup-crc": { name: "Cricket", h1En: "Pay Your Cricket Wireless Bill Without Signing In", h1Es: "Pague su factura de Cricket sin iniciar sesión" },
+  "topup-crc": { name: "Cricket", h1En: "Pay Your Cricket Wireless Bill as a Guest — With Your Phone Number", h1Es: "Pagar Cricket por teléfono — con tarjeta, sin iniciar sesión", sublineEn: "No login. Pay online with a debit or credit card.", sublineEs: "Solo con su número de teléfono de Cricket. Tarjeta de débito o crédito.", titleEn: "Pay Your Cricket Bill as a Guest | CellPay", titleEs: "Pague Cricket en línea | CellPay" },
   h2o: { name: "H2O", h1En: "Pay Your H2O Wireless Bill Without Signing In", h1Es: "Pague su factura de H2O sin iniciar sesión" },
   s1: { name: "Simple Mobile", h1Es: "Pague su factura de Simple Mobile sin iniciar sesión" },
-  metropcs: { name: "Metro" },
+  metropcs: { name: "Metro", h1En: "MetroPCS Bill Payment Online — Pay as a Guest", h1Es: "Pagar MetroPCS por teléfono — solo con su número", sublineEn: "No login or PIN. Enter the Metro by T-Mobile phone number and pay online with a debit or credit card.", sublineEs: "Sin cuenta ni PIN. Ingrese el número de Metro by T-Mobile y pague en línea con tarjeta de débito o crédito.", titleEn: "Pay Your MetroPCS Bill as a Guest | CellPay", titleEs: "Pague su factura de MetroPCS como invitado | CellPay" },
 };
 
 /** Route slug (/go/<slug>) -> carrierSlug. */
@@ -38,7 +38,9 @@ export const goLpxForCarrier = (carrierSlug: string, lang: GoLang): GoLpx | null
   const r = ROWS[carrierSlug];
   if (!r) return null;
   const h1 = lang === "es" ? r.h1Es : r.h1En;
-  return { h1, title: h1 ? `${h1} | CellPay` : undefined, subline: goSublineFor(r.name, lang) };
+  const subline = (lang === "es" ? r.sublineEs : r.sublineEn) ?? goSublineFor(r.name, lang);
+  const title = (lang === "es" ? r.titleEs : r.titleEn) ?? (h1 ? `${h1} | CellPay` : undefined);
+  return { h1, title, subline };
 };
 
 /** Static shell: by build route ("go/att.html", "es/go/att/index.html"). null = unchanged page. */
