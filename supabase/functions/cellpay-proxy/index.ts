@@ -135,6 +135,10 @@ function retryMetaFrom(v: unknown): Record<string, unknown> {
     if (r.retry_after_data_err === true && r.method_switched === false) out.method_switched = false;
     if (typeof r.prior_failed_method === "string" && ORS_METHOD_RE.test(r.prior_failed_method)) out.prior_failed_method = r.prior_failed_method;
     if (typeof r.decline_ab === "string" && (r.decline_ab === "control" || r.decline_ab === "variant")) out.decline_ab = r.decline_ab; // DECLINE-AB-1016
+    // FUNDS-DECLINE-1016: allow-listed recovery metadata only; never sent to CellPay.
+    if (r.decline_cls === "nsf") out.decline_cls = "nsf";
+    if (r.funds_ui === "v1") out.funds_ui = "v1";
+    for (const k of ["klarna_offered", "klarna_clicked", "klarna_auth_declined"]) if (typeof r[k] === "boolean") out[k] = r[k];
     return out;
   } catch {
     return {};

@@ -351,6 +351,15 @@ function storedRetryMeta(payload: Record<string, unknown>): Record<string, unkno
       if (/^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(bl)) out.browser_language = bl;
     }
   } catch { /* ignore */ }
+  // FUNDS-DECLINE-1016: recovery metadata only, never added to the CellPay payload.
+  try {
+    const f = JSON.parse(sessionStorage.getItem("cp_funds_v1") || "null");
+    if (f && typeof f === "object" && !Array.isArray(f) && typeof f.ts === "number" && Date.now() - f.ts >= 0 && Date.now() - f.ts < 30 * 60_000) {
+      out.decline_cls = "nsf";
+      out.funds_ui = "v1";
+      for (const k of ["klarna_offered", "klarna_clicked", "klarna_auth_declined"]) out[k] = f[k] === true;
+    }
+  } catch { /* ignore */ }
   return Object.keys(out).length ? out : undefined;
 }
 
