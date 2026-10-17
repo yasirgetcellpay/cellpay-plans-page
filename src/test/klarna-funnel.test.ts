@@ -61,6 +61,50 @@ describe("Klarna retry context", () => {
 });
 
 describe("Klarna funnel isolation", () => {
+  it("dedupes klarna_ab_known with method_list_ab independently of the offer", () => { // KLARNA-FUNNEL-FIX-1017
+    const data = { screen: "method_list" as const, decline_ab: "control" as const, checkout_session_id: "test_session" };
+    trackFunnel("klarna_offer_shown", {}, "method_list");
+    trackFunnel("klarna_ab_known", data, "method_list_ab");
+    trackFunnel("klarna_ab_known", data, "method_list_ab");
+    expect(beacon).toHaveBeenCalledTimes(2);
+  });
+  it("validates klarna_ab_known dimensions in the edge cleaner", () => { // KLARNA-FUNNEL-FIX-1017
+    const edge = readFileSync("supabase/functions/funnel-event/index.ts", "utf8");
+    const clean = runInNewContext(compile(`${edge.slice(0, edge.indexOf("Deno.serve("))}; clean;`));
+    const dimensions = { screen: "method_list", decline_ab: "variant", checkout_session_id: "test_session" };
+    expect(clean({ event: "klarna_ab_known", ...dimensions }, null)).toMatchObject({ event: "klarna_ab_known", ...dimensions });
+  });
+  it("puts klarna_ab_known in the separate Klarna batch", async () => { // KLARNA-FUNNEL-FIX-1017
+    const edge = readFileSync("supabase/functions/funnel-event/index.ts", "utf8");
+    let handler: (r: Request) => Promise<Response> = async () => new Response();
+    const batches: Record<string, unknown>[][] = []; const pending: Promise<unknown>[] = [];
+    runInNewContext(compile(edge), { Deno: { serve: (fn: typeof handler) => { handler = fn; }, env: { get: () => "test" } }, Response, AbortSignal, EdgeRuntime: { waitUntil: (p: Promise<unknown>) => pending.push(p) }, fetch: (_url: string, opts: RequestInit) => { batches.push(JSON.parse(String(opts.body))); return Promise.resolve(new Response()); } });
+    const response = await handler(new Request("https://example.test", { method: "POST", body: JSON.stringify([{ event: "submitted" }, { event: "klarna_ab_known", screen: "method_list", decline_ab: "control", checkout_session_id: "test_session" }]) }));
+    await Promise.all(pending);
+    expect(response.status).toBe(204);
+    expect(batches).toHaveLength(2);
+    expect(batches[0].map(r => r.event)).toEqual(["submitted"]);
+    expect(batches[1]).toEqual([expect.objectContaining({ event: "klarna_ab_known", screen: "method_list", decline_ab: "control", checkout_session_id: "test_session" })]);
+  });
+  it("waits for the assigned arm and reports it once from either logging path", () => { // KLARNA-FUNNEL-FIX-1017
+    const checkout = readFileSync("src/pages/Checkout.tsx", "utf8");
+    const checks = checkout.split("\n").filter(line => line.includes('trackKlarna("klarna_ab_known"'));
+    expect(checks).toHaveLength(2);
+    for (const code of checks) {
+      const mlOfferNoAbRef = { current: true };
+      const trackKlarna = vi.fn();
+      let arm: string | null = null;
+      const context = { mlOfferNoAbRef, trackKlarna, phone10: phone, readDeclineAb: () => arm };
+      runInNewContext(compile(code), context);
+      expect(trackKlarna).not.toHaveBeenCalled();
+      expect(mlOfferNoAbRef.current).toBe(true);
+      arm = "variant";
+      runInNewContext(compile(code), context);
+      runInNewContext(compile(code), context);
+      expect(trackKlarna).toHaveBeenCalledExactlyOnceWith("klarna_ab_known", "method_list", "method_list_ab", {});
+      expect(mlOfferNoAbRef.current).toBe(false);
+    }
+  });
   it("dedupes each event and onceKey pair, not distinct declines", () => {
     trackFunnel("klarna_clicked", {}, "decline_nsf|1"); trackFunnel("klarna_clicked", {}, "decline_nsf|1");
     trackFunnel("klarna_clicked", {}, "decline_nsf|2"); trackFunnel("klarna_offer_shown", {}, "decline_nsf|1");

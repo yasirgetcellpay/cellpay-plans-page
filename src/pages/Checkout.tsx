@@ -650,6 +650,7 @@ const Checkout = () => {
   const [declineInfo, setDeclineInfo] = useState<{ cls: DeclineClass; n: number; method: PaymentMethod; sess: number; msg?: string } | null>(null); // DECLINE-RECOVERY-1014: + method, sess // DECLINE-RECOVERY-1014B: + msg // DECLINE-ONETAP-1017: declared before the GPAY-CLICK-1011 effect that now reads it
   const declineSeqRef = useRef(0); // KLARNA-FUNNEL-1017
   const klarnaAttemptRef = useRef(0); // KLARNA-FUNNEL-1017
+  const mlOfferNoAbRef = useRef(false); // KLARNA-FUNNEL-FIX-1017
   const gpPreRef = useRef<{ env: string; client: GpClient } | null>(null);
   const gpRunRef = useRef(0);
   useEffect(() => {
@@ -1383,7 +1384,8 @@ const Checkout = () => {
       if (!state || loading) return; // KLARNA-FUNNEL-1017
       const seq = declineSeqRef.current; // KLARNA-FUNNEL-1017
       const tile = document.querySelector('[data-testid="method-picker"] [data-method="klarna"]'); // KLARNA-FUNNEL-1017
-      if (tile) trackKlarna("klarna_offer_shown", "method_list", "method_list", { shown: true }); // KLARNA-FUNNEL-1017
+      if (tile) { if (readDeclineAb(phone10) === null) mlOfferNoAbRef.current = true; trackKlarna("klarna_offer_shown", "method_list", "method_list", { shown: true }); } // KLARNA-FUNNEL-1017 // KLARNA-FUNNEL-FIX-1017
+      try { if (mlOfferNoAbRef.current) { const ab = readDeclineAb(phone10); if (ab) { trackKlarna("klarna_ab_known", "method_list", "method_list_ab", { }); mlOfferNoAbRef.current = false; } } } catch { /* ignore */ } // KLARNA-FUNNEL-FIX-1017
       if (declineInfo && document.querySelector('[data-testid="funds-klarna"]')) trackKlarna("klarna_offer_shown", "decline_nsf", `decline_nsf|${seq}`, { shown: true }); // KLARNA-FUNNEL-1017
       if (declineInfo && document.querySelector('[data-testid="decline-klarna"]')) trackKlarna("klarna_offer_shown", "decline_other", `decline_other|${seq}`, { shown: true }); // KLARNA-FUNNEL-1017
       if (declineInfo && isNsfDecline(declineInfo.msg || "") && declineInfo.sess >= 3 && declineInfo.cls !== "blocked" && tile && (validation?.total ?? Number(state.amount)) >= KLARNA_MIN_TOTAL) trackKlarna("klarna_offer_shown", "decline_nsf", `cap|${seq}`, { shown: false, cap: true }); // KLARNA-FUNNEL-1017
@@ -2410,6 +2412,7 @@ const Checkout = () => {
   const handlePlaceOrder = async () => {
     if (!phoneOk) { badPhoneGo(); return; } // REFUNDED-STATE-1017: submit nothing
     try { getDeclineAb(normalizePhone(String(state?.phone || ""))); } catch { /* ignore */ } // DECLINE-AB-1016: assignment in session before the first submit
+    try { if (mlOfferNoAbRef.current) { const ab = readDeclineAb(phone10); if (ab) { trackKlarna("klarna_ab_known", "method_list", "method_list_ab", { }); mlOfferNoAbRef.current = false; } } } catch { /* ignore */ } // KLARNA-FUNNEL-FIX-1017
     // DECLINE-RECOVERY-1014: clean the email first and use the cleaned value for this submit.
     { const ce = cleanEmail(email); emailCleanRef.current = ce; if (ce !== email) setEmail(ce); }
     const validationErr = validateBeforeSubmit();
