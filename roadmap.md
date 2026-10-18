@@ -1,4 +1,8 @@
 # VZ-PREPAID-GUARD-1017
+# AEO-12-TRACFONE-1018 <!-- // AEO-12-TRACFONE-1018 -->
+- [ ] Add Tracfone guide pair, requested links, routes, static shells and index entries. <!-- // AEO-12-TRACFONE-1018 -->
+- [ ] Verify guides, metadata, schemas and preview build; do not publish. <!-- // AEO-12-TRACFONE-1018 -->
+
 <!-- DB-OUTAGE-TRACK-1017 -->
 - [x] Add browser tracking retry queue and app/success-path wiring.
 - [x] Add background order logging and pure in-memory duplicate guard; preserve CellPay requests.
