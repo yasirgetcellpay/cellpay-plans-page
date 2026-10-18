@@ -318,12 +318,12 @@ const OrderConfirmation = () => {
           const target = (slug && carrierPagePath(slug)) || home;
           const cause = retryCauseFor(slug); // REFUND-RETRY-LATE-1018
           if (cause) { const ri = retryInfoRef.current; const short = refundedPanelText(lang, isPayWord(`${slug} ${carrierName}`), refunded.total, true); return ( // REFUND-RETRY-LATE-1018
-            <div className="text-center py-16" role="status" data-testid="order-refunded">
-              <h1 className="text-lg font-bold text-foreground">{short.title}</h1>
-              <p className="text-sm text-muted-foreground mt-2">{short.text}</p>
-              <p data-testid="retry-reason" className="text-sm text-foreground mt-3">{retryReasonText(cause, lang, ri.phone10)}</p>
-              <RefundRetryButtons lang={lang} slug={slug} phone10={ri.phone10} amount={ri.amount} total={refunded.total} email={ri.email} brandColor={brandColor} hashid={hashid} stage="late" />
-            </div>
+            <div className="text-center py-16" role="status" data-testid="order-refunded"> {/* REFUND-RETRY-LATE-1018 */}
+              <h1 className="text-lg font-bold text-foreground">{short.title}</h1> {/* REFUND-RETRY-LATE-1018 */}
+              <p className="text-sm text-muted-foreground mt-2">{short.text}</p> {/* REFUND-RETRY-LATE-1018 */}
+              <p data-testid="retry-reason" className="text-sm text-foreground mt-3">{retryReasonText(cause, lang, ri.phone10)}</p> {/* REFUND-RETRY-LATE-1018 */}
+              <RefundRetryButtons lang={lang} slug={slug} phone10={ri.phone10} amount={ri.amount} total={refunded.total} email={ri.email} brandColor={brandColor} hashid={hashid} stage="late" /> {/* REFUND-RETRY-LATE-1018 */}
+            </div> // REFUND-RETRY-LATE-1018
           ); } // REFUND-RETRY-LATE-1018
           return (
             <div className="text-center py-16" role="status" data-testid="order-refunded">
