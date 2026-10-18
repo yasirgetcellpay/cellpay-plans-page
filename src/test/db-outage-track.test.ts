@@ -77,6 +77,13 @@ describe("tracking queue", () => {
       flushTrackQueue(); await flushMicro(); expect(queue()[0].n).toBe(n + 1); expect(queue()[0].next - Date.now()).toBe(TRACK_BACKOFF[n]);
     }
   });
+  it("renews the lease before each slow retry so sequential batches remain protected", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise((resolve) => setTimeout(() => resolve({ ok: true, status: 200 }), 4000))));
+    localStorage.setItem("cp_track_q_v1", JSON.stringify(Array.from({ length: 5 }, (_, i) => ({ k: "log_purchase_fire", id: `ORDER000${i}`, b: body(`ORDER000${i}`), n: 1, next: 0, t0: Date.now() }))));
+    (await tracked()).flushTrackQueue(); await vi.advanceTimersByTimeAsync(16000);
+    expect(Number(localStorage.getItem("cp_track_q_lock"))).toBeGreaterThan(Date.now());
+    await vi.advanceTimersByTimeAsync(4000); expect(queue()).toEqual([]); expect(localStorage.getItem("cp_track_q_lock")).toBeNull();
+  });
   it("whitelists fields for both kinds and refuses invalid identifiers", async () => {
     const fetch = vi.fn().mockResolvedValue({ ok: true, status: 200 }); vi.stubGlobal("fetch", fetch); const { sendTracked } = await tracked();
     sendTracked("log_purchase_fire", { ...body(), email: "discard", phone_number: "discard" });
