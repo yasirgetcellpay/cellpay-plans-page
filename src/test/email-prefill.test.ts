@@ -1,11 +1,19 @@
-import { createElement, StrictMode } from "react"; // ST-PREFILL-1018
-import { act, cleanup, renderHook } from "@testing-library/react"; // ST-PREFILL-1018
+import { act, createElement, StrictMode, type ReactNode } from "react"; // ST-PREFILL-1018
+import { createRoot, type Root } from "react-dom/client"; // ST-PREFILL-1018
 import { afterEach, beforeEach, expect, it, vi } from "vitest"; // ST-PREFILL-1018
 import { useEmailPrefill } from "@/hooks/useEmailPrefill"; // ST-PREFILL-1018
 const mocks = vi.hoisted(() => ({ resolve: vi.fn(), track: vi.fn() })); // ST-PREFILL-1018
 vi.mock("@/lib/checkoutResume", () => ({ resolveEmailPrefill: mocks.resolve })); // ST-PREFILL-1018
 vi.mock("@/lib/funnelEvents", () => ({ trackFunnel: mocks.track })); // ST-PREFILL-1018
 const token = "12345678-1234-4234-8234-123456789abc"; // ST-PREFILL-1018
+const roots: { root: Root; container: HTMLElement }[] = []; // ST-PREFILL-1018
+function cleanup() { for (const { root, container } of roots.splice(0)) { act(() => root.unmount()); container.remove(); } } // ST-PREFILL-1018
+function renderHook<P>(hook: (props: P) => void, options?: { initialProps: P; wrapper?: (props: { children: ReactNode }) => ReactNode }) { // ST-PREFILL-1018
+  const container = document.createElement("div"); document.body.appendChild(container); const root = createRoot(container); roots.push({ root, container }); // ST-PREFILL-1018
+  const Component = ({ value }: { value: P }) => { hook(value); return null; }; // ST-PREFILL-1018
+  const rerender = (value: P) => act(() => { const child = createElement(Component, { value }); root.render(options?.wrapper ? options.wrapper({ children: child }) : child); }); // ST-PREFILL-1018
+  rerender(options?.initialProps as P); return { rerender }; // ST-PREFILL-1018
+} // ST-PREFILL-1018
 beforeEach(() => { vi.clearAllMocks(); sessionStorage.clear(); window.history.replaceState({}, "", `/straight-talk.html?t=${token}&ap=1&keep=yes#plans`); }); // ST-PREFILL-1018
 afterEach(() => { cleanup(); }); // ST-PREFILL-1018
 it("waits until ready, resolves once under StrictMode, and uses the latest callback", async () => { // ST-PREFILL-1018
