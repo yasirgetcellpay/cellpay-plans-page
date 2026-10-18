@@ -1,7 +1,7 @@
 # VZ-PREPAID-GUARD-1017
 # AEO-12-TRACFONE-1018 <!-- // AEO-12-TRACFONE-1018 -->
-- [ ] Add Tracfone guide pair, requested links, routes, static shells and index entries. <!-- // AEO-12-TRACFONE-1018 -->
-- [ ] Verify guides, metadata, schemas and preview build; do not publish. <!-- // AEO-12-TRACFONE-1018 -->
+- [x] Add Tracfone guide pair, requested links, routes, static shells and index entries. <!-- // AEO-12-TRACFONE-1018 -->
+- [x] Verify EN/ES guides and inbound navigation, mobile layout, static renderers, matching Ultra FAQs, schemas, sitemap dates and unchanged refill title; build OK, not published. Existing SEO tests retain 28 failures from their older expected origin. <!-- // AEO-12-TRACFONE-1018 -->
 
 <!-- DB-OUTAGE-TRACK-1017 -->
 - [x] Add browser tracking retry queue and app/success-path wiring.
