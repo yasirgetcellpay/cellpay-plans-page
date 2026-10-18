@@ -6,11 +6,11 @@ export type GoLpx = { h1?: string; title?: string; subline: string };
 
 type Row = { name: string; h1En?: string; h1Es?: string; sublineEn?: string; sublineEs?: string; titleEn?: string; titleEs?: string };
 
-/** Keyed by carrierSlug (as passed to GoLander). LPX-1017 and BOOST-GUEST-LPX-1017 update guest-pay H1/subline/title copy; other rows keep SPEC-LPX-1 wording. */
+/** Keyed by carrierSlug (as passed to GoLander). LPX-1017, BOOST-GUEST-LPX-1017 and TMO-ATT-LPX-1018 update guest-pay H1/subline/title copy; other rows keep SPEC-LPX-1 wording. */
 const ROWS: Record<string, Row> = {
   boost: { name: "Boost Mobile", h1En: "Pay Your Boost Mobile Bill as a Guest", h1Es: "Pague su factura de Boost como invitado", sublineEn: "Just your phone number — no login. Pay with debit or credit card.", sublineEs: "Solo su número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito.", titleEn: "Pay Your Boost Mobile Bill as a Guest | CellPay", titleEs: "Pague su factura de Boost como invitado | CellPay" },
   "topup-at": { name: "AT&T", h1En: "Pay Your AT&T Prepaid Bill Without Signing In", h1Es: "Pague su factura de AT&T Prepago sin iniciar sesión", sublineEn: "AT&T Prepaid (ATT) guest pay: just the phone number, no login. Debit or credit card." },
-  tmobile: { name: "T-Mobile", h1En: "Pay Your T-Mobile Bill Without Signing In", h1Es: "Pagar T-Mobile en línea, sin iniciar sesión", sublineEn: "Pay T-Mobile bill as guest by phone number. Pay for yourself or someone else. No account needed." },
+  tmobile: { name: "T-Mobile", h1En: "Pay Your T-Mobile Bill as a Guest", h1Es: "Pague su factura de T-Mobile sin iniciar sesión", sublineEn: "Just the phone number, without signing in. Pay for yourself or someone else with a debit or credit card.", sublineEs: "Pague el teléfono T-Mobile como invitado: solo su número, sin cuenta. Tarjeta de débito o crédito.", titleEn: "Pay My T-Mobile Bill as a Guest by Phone Number | CellPay", titleEs: "Pagar factura de T-Mobile en línea | CellPay" }, // TMO-ATT-LPX-1018
   verizon: { name: "Verizon", h1En: "Pay Your Verizon Prepaid Bill Without Signing In", h1Es: "Pague su factura de Verizon sin iniciar sesión" },
   "topup-crc": { name: "Cricket", h1En: "Pay Your Cricket Wireless Bill as a Guest — With Your Phone Number", h1Es: "Pagar Cricket por teléfono — con tarjeta, sin iniciar sesión", sublineEn: "No login. Pay online with a debit or credit card.", sublineEs: "Solo con su número de teléfono de Cricket. Tarjeta de débito o crédito.", titleEn: "Pay Your Cricket Bill as a Guest | CellPay", titleEs: "Pague Cricket en línea | CellPay" },
   h2o: { name: "H2O", h1En: "Pay Your H2O Wireless Bill Without Signing In", h1Es: "Pague su factura de H2O sin iniciar sesión" },

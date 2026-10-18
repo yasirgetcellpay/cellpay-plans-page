@@ -687,12 +687,12 @@ const htmlAliasPlugin = (): Plugin => ({
         h1: "Pay Your Lyca Mobile Bill Online",
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
-      "go/tmobile.html": {
-        h1: "Pay Your T-Mobile Bill Online",
+      "go/tmobile.html": { // TMO-ATT-LPX-1018
+        h1: "Pay Your T-Mobile Bill as a Guest",
         intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
-      "go/tmobile/index.html": {
-        h1: "Pay Your T-Mobile Bill Online",
+      "go/tmobile/index.html": { // TMO-ATT-LPX-1018
+        h1: "Pay Your T-Mobile Bill as a Guest",
         intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
       "go/verizon.html": {
@@ -704,12 +704,12 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
       // GO-LANDERS-1007 Batch A
-      "es/go/tmobile.html": {
-        h1: "Pagar T-Mobile en línea, sin iniciar sesión",
+      "es/go/tmobile.html": { // TMO-ATT-LPX-1018
+        h1: "Pague su factura de T-Mobile sin iniciar sesión",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
-      "es/go/tmobile/index.html": {
-        h1: "Pagar T-Mobile en línea, sin iniciar sesión",
+      "es/go/tmobile/index.html": { // TMO-ATT-LPX-1018
+        h1: "Pague su factura de T-Mobile sin iniciar sesión",
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/verizon.html": {
@@ -834,9 +834,9 @@ const htmlAliasPlugin = (): Plugin => ({
       "go/ultra.html": { title: "Pay Your Ultra Mobile Bill Online | CellPay", description: "Pay your Ultra Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       "go/ultra/index.html": { title: "Pay Your Ultra Mobile Bill Online | CellPay", description: "Pay your Ultra Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       "go/cricket.html": { title: "Pay Your Cricket Bill as a Guest | CellPay", description: "Pay your Cricket Wireless bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
-      "go/att.html": { title: "Pay Your AT&T Prepaid Bill Online | CellPay", description: "Pay or refill your AT&T Prepaid bill online. Guest OK. Low service fee shown before you pay." },
+      "go/att.html": { title: "Pay Your AT&T Prepaid Bill Online | CellPay", description: "Pay your AT&T Prepaid bill online as a guest. Just the phone number, pick the amount, pay. Service fee shown before you pay." }, // TMO-ATT-LPX-1018
       "go/cricket/index.html": { title: "Pay Your Cricket Bill as a Guest | CellPay", description: "Pay your Cricket Wireless bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
-      "go/att/index.html": { title: "Pay Your AT&T Prepaid Bill Online | CellPay", description: "Pay or refill your AT&T Prepaid bill online. Guest OK. Low service fee shown before you pay." },
+      "go/att/index.html": { title: "Pay Your AT&T Prepaid Bill Online | CellPay", description: "Pay your AT&T Prepaid bill online as a guest. Just the phone number, pick the amount, pay. Service fee shown before you pay." }, // TMO-ATT-LPX-1018
       // GO-ES-ST Batch A
       "go/straight-talk.html": { title: "Pay Your Straight Talk Bill Online | CellPay", description: "Pay your Straight Talk bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       "go/straight-talk/index.html": { title: "Pay Your Straight Talk Bill Online | CellPay", description: "Pay your Straight Talk bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
@@ -866,13 +866,13 @@ const htmlAliasPlugin = (): Plugin => ({
       "go/h2o/index.html": { title: "Pay Your H2O Wireless Bill Online | CellPay", description: "Pay your H2O Wireless bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
       "go/lyca.html": { title: "Pay Your Lyca Mobile Bill Online | CellPay", description: "Pay your Lyca Mobile bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
       "go/lyca/index.html": { title: "Pay Your Lyca Mobile Bill Online | CellPay", description: "Pay your Lyca Mobile bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
-      "go/tmobile.html": { title: "Pay Your T-Mobile Bill Online | CellPay", description: "Pay your T-Mobile bill online. No login. Pay for anyone. Enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
-      "go/tmobile/index.html": { title: "Pay Your T-Mobile Bill Online | CellPay", description: "Pay your T-Mobile bill online. No login. Pay for anyone. Enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
+      "go/tmobile.html": { title: "Pay My T-Mobile Bill as a Guest by Phone Number | CellPay", description: "Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay." }, // TMO-ATT-LPX-1018
+      "go/tmobile/index.html": { title: "Pay My T-Mobile Bill as a Guest by Phone Number | CellPay", description: "Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay." }, // TMO-ATT-LPX-1018
       "go/verizon.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
       "go/verizon/index.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
       // GO-LANDERS-1007 Batch A
-      "es/go/tmobile.html": { title: "Pague T-Mobile en línea | CellPay", description: "Pague su T-Mobile en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
-      "es/go/tmobile/index.html": { title: "Pague T-Mobile en línea | CellPay", description: "Pague su T-Mobile en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/tmobile.html": { title: "Pagar factura de T-Mobile en línea | CellPay", description: "Pague su factura de T-Mobile en línea como invitado. Solo el número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar." }, // TMO-ATT-LPX-1018
+      "es/go/tmobile/index.html": { title: "Pagar factura de T-Mobile en línea | CellPay", description: "Pague su factura de T-Mobile en línea como invitado. Solo el número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar." }, // TMO-ATT-LPX-1018
       "es/go/verizon.html": { title: "Pague Verizon Prepaid en línea | CellPay", description: "Pague su Verizon Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "es/go/verizon/index.html": { title: "Pague Verizon Prepaid en línea | CellPay", description: "Pague su Verizon Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       // GO-LANDERS-1007 Batch B
@@ -960,6 +960,7 @@ const htmlAliasPlugin = (): Plugin => ({
     // GO-LANDERS-1007: /go shells that stay noindex,follow but still carry the www self-canonical + EN/ES hreflang pair in the raw HTML
     // (same canonical seo.ts sets at runtime). Both sides of each pair must be listed.
     const GO_LINKED = new Set<string>([
+      "go/att.html", "go/att/index.html", "es/go/att.html", "es/go/att/index.html", // TMO-ATT-LPX-1018
       "go/tmobile.html", "go/tmobile/index.html",
       "es/go/tmobile.html", "es/go/tmobile/index.html",
       "go/verizon.html", "go/verizon/index.html",

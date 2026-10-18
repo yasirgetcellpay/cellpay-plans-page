@@ -12,6 +12,8 @@ export const goUsesPayWording = (slug: string): boolean => GO_PAY_WORDING.has(sl
 
 export const goKeywordsFor = (slug: string, lang: "en" | "es"): string | undefined => {
   const keywords: Record<string, { en: string; es: string }> = {
+    tmobile: { en: "T-Mobile pay bill, pay my T-Mobile bill, pay T-Mobile bill as guest, pay T-Mobile with phone number, pay T-Mobile without signing in", es: "pagar T-Mobile, pagar factura de T-Mobile, pagar el teléfono T-Mobile, pagar T-Mobile sin cuenta" }, // TMO-ATT-LPX-1018
+    "topup-at": { en: "AT&T Prepaid pay bill, pay AT&T bill, ATT prepaid pay bill, pay AT&T Prepaid as guest, AT&T pay my bill prepaid", es: "pagar AT&T Prepago, pagar factura de AT&T, pago de AT&T Prepago sin cuenta" }, // TMO-ATT-LPX-1018
     metropcs: {
       en: "MetroPCS pay bill, Metro PCS bill pay, Metro by T-Mobile bill payment, pay Metro bill as guest, pay Metro with phone number",
       es: "pagar Metro PCS, pagar factura MetroPCS, pago Metro by T-Mobile, pagar Metro como invitado",
