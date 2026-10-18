@@ -16,6 +16,8 @@ import { supabase } from "@/integrations/supabase/client"; // AUTOPAY-POSTPURCHA
 import { carrierPagePath } from "@/lib/checkoutResume"; // AUTOPAY-POSTPURCHASE-1013
 import { trackFunnel } from "@/lib/funnelEvents"; // AUTOPAY-POSTPURCHASE-1013
 import { fetchRefundState, refundedPanelText, isPayWord, type RefundState } from "@/lib/orderRefundState"; // REFUNDED-STATE-1017
+import { retryCauseFor, retryReasonText } from "@/lib/refundRetry"; // REFUND-RETRY-LATE-1018
+import { RefundRetryButtons } from "@/components/RefundRetryButtons"; // REFUND-RETRY-LATE-1018
 
 interface TransactionData {
   id?: number;
@@ -53,6 +55,10 @@ const OrderConfirmation = () => {
   const [error, setError] = useState<string | null>(null);
   const enhancedPushedRef = useRef(false);
   const [refunded, setRefunded] = useState<RefundState | null>(null); // REFUNDED-STATE-1017
+  const retryInfoRef = useRef<{ phone10: string; amount: number | null; email: string }>({ phone10: "", amount: null, email: "" }); // REFUND-RETRY-LATE-1018
+  const thisDeviceRef = useRef(false); // REFUND-RETRY-LATE-1018
+  const loadAtRef = useRef(Date.now()); // REFUND-RETRY-LATE-1018
+  const keepRetryInfo = (t: TransactionData | null | undefined) => { try { const p = String(t?.phone_number ?? "").replace(/\D/g, "").slice(-10); const a = Number(String(t?.amount ?? "").replace(/[^0-9.-]/g, "")); retryInfoRef.current = { phone10: p.length === 10 ? p : "", amount: t?.amount === undefined || t?.amount === null || !Number.isFinite(a) ? null : a, email: String(t?.user?.email ?? "").trim() }; } catch { /* ignore */ } }; // REFUND-RETRY-LATE-1018
 
   const formatE164 = (phone?: string): string => {
     if (!phone) return "";
@@ -111,12 +117,33 @@ const OrderConfirmation = () => {
     fetchTransaction();
   }, [hashid]);
 
+  useEffect(() => { // REFUND-RETRY-LATE-1018
+    if (!transaction || refunded || !hashid) return; // REFUND-RETRY-LATE-1018
+    let stopped = false, last = 0, busy = false; // REFUND-RETRY-LATE-1018
+    const POLL = 20_000, POLL_MAX = 15 * 60_000, FOCUS_MAX = 60 * 60_000; // REFUND-RETRY-LATE-1018
+    const since = () => Date.now() - loadAtRef.current; // REFUND-RETRY-LATE-1018
+    const check = async (limit: number) => { // REFUND-RETRY-LATE-1018
+      if (stopped || busy || !thisDeviceRef.current || since() > limit || Date.now() - last < POLL) return; // REFUND-RETRY-LATE-1018
+      busy = true; last = Date.now(); // REFUND-RETRY-LATE-1018
+      try { const rs = await fetchRefundState(hashid); if (rs && !stopped) { stopped = true; keepRetryInfo(transaction); setRefunded(rs); } } catch { /* keep polling */ } finally { busy = false; } // REFUND-RETRY-LATE-1018
+    }; // REFUND-RETRY-LATE-1018
+    const tick = window.setInterval(() => { if (document.visibilityState === "visible") void check(POLL_MAX); }, POLL); // REFUND-RETRY-LATE-1018
+    const onVis = () => { if (document.visibilityState === "visible") void check(FOCUS_MAX); }; // REFUND-RETRY-LATE-1018
+    document.addEventListener("visibilitychange", onVis); window.addEventListener("focus", onVis); // REFUND-RETRY-LATE-1018
+    const amount = parseAmount(transaction.amount), total = Math.round((amount + Number(transaction.fee || 0)) * 100) / 100; // REFUND-RETRY-LATE-1018
+    const dwell = ([["4m", 4], ["8m", 8], ["15m", 15]] as const).map(([tag, min]) => window.setTimeout(() => { // REFUND-RETRY-LATE-1018
+      if (!stopped && thisDeviceRef.current && document.visibilityState === "visible") trackFunnel("retry_late_alive", { carrier: transaction.carrier?.slug ?? null, amount, total, retry_action: tag }, `${hashid}|${tag}`); // REFUND-RETRY-LATE-1018
+    }, Math.max(0, min * 60_000 - since()))); // REFUND-RETRY-LATE-1018
+    return () => { stopped = true; window.clearInterval(tick); dwell.forEach((d) => window.clearTimeout(d)); document.removeEventListener("visibilitychange", onVis); window.removeEventListener("focus", onVis); }; // REFUND-RETRY-LATE-1018
+  }, [transaction, refunded, hashid]); // REFUND-RETRY-LATE-1018
+
   const fetchTransaction = async () => {
     try {
+      try { thisDeviceRef.current = sessionStorage.getItem("cp_purchase_pending") === hashid || localStorage.getItem(`cp_purchase_early:${hashid}`) !== null; } catch { /* ignore */ } // REFUND-RETRY-LATE-1018
       const refundP = fetchRefundState(hashid); // REFUNDED-STATE-1017: in parallel, 1500 ms cap, error = not refunded
       const raw = await callProxy({ endpoint: `transactions/view/${hashid}`, method: "GET" });
       const rs = await refundP; // REFUNDED-STATE-1017: refunded -> no receipt, no purchase beacon
-      if (rs) { setRefunded(rs); return; }
+      if (rs) { try { const w = raw as Record<string, unknown>; let d = (w.data || w) as Record<string, unknown>; if (d.data && typeof d.data === "object" && !Array.isArray(d.data)) d = d.data as Record<string, unknown>; keepRetryInfo((d.transaction || d) as TransactionData); } catch { /* ignore */ } setRefunded(rs); return; } // REFUND-RETRY-LATE-1018
       const wrapper = raw as Record<string, unknown>;
       let result = (wrapper.data || wrapper) as Record<string, unknown>;
       if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
@@ -173,6 +200,7 @@ const OrderConfirmation = () => {
           if ((pendingMatch || fresh) && localStorage.getItem(sentKey) === null && localStorage.getItem(`cp_purchase_early:${hashid}`) === null) { // BEACON-AT-SUCCESS-1011: Checkout already fired it
             localStorage.setItem(sentKey, String(Date.now()));
             fire = true;
+            thisDeviceRef.current = true; // REFUND-RETRY-LATE-1018
           }
         } catch { fire = false; }
         if (fire) {
@@ -288,6 +316,15 @@ const OrderConfirmation = () => {
           const slug = refunded.carrierSlug || "";
           const pt = refundedPanelText(lang, isPayWord(`${slug} ${carrierName}`), refunded.total);
           const target = (slug && carrierPagePath(slug)) || home;
+          const cause = retryCauseFor(slug); // REFUND-RETRY-LATE-1018
+          if (cause) { const ri = retryInfoRef.current; const short = refundedPanelText(lang, isPayWord(`${slug} ${carrierName}`), refunded.total, true); return ( // REFUND-RETRY-LATE-1018
+            <div className="text-center py-16" role="status" data-testid="order-refunded">
+              <h1 className="text-lg font-bold text-foreground">{short.title}</h1>
+              <p className="text-sm text-muted-foreground mt-2">{short.text}</p>
+              <p data-testid="retry-reason" className="text-sm text-foreground mt-3">{retryReasonText(cause, lang, ri.phone10)}</p>
+              <RefundRetryButtons lang={lang} slug={slug} phone10={ri.phone10} amount={ri.amount} total={refunded.total} email={ri.email} brandColor={brandColor} hashid={hashid} stage="late" />
+            </div>
+          ); } // REFUND-RETRY-LATE-1018
           return (
             <div className="text-center py-16" role="status" data-testid="order-refunded">
               <h1 className="text-lg font-bold text-foreground">{pt.title}</h1>
