@@ -867,4 +867,23 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/ultra-mobile" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/ultra-mobile" />
   </url>
+  <!-- // AEO-12-TRACFONE-1018 -->
+  <url>
+    <loc>https://www.cellpay.us/how-to-pay/tracfone</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/tracfone" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/tracfone" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/tracfone" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/es/como-pagar/tracfone</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/tracfone" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/tracfone" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/tracfone" />
+  </url>
 </urlset>
