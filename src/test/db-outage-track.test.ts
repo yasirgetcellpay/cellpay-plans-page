@@ -36,7 +36,7 @@ function wrapper(raw: () => Promise<unknown>, phone = "5552010000", amount = 50)
   }) as (p: Record<string, unknown>) => Promise<unknown>;
   return { fn, until };
 }
-beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date("2026-10-18T03:48:00Z")); localStorage.clear(); vi.resetModules(); });
+beforeEach(() => { (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true; vi.useFakeTimers(); vi.setSystemTime(new Date("2026-10-18T03:48:00Z")); localStorage.clear(); vi.resetModules(); });
 afterEach(() => { cleanup(); vi.clearAllTimers(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe("tracking queue", () => {
@@ -158,5 +158,50 @@ describe("pure isolate MEMDUP", () => {
   });
   it("keeps only 2000 entries and prunes expired on access", () => {
     const m = new Map<string, MemdupEntry>(); for (let i = 0; i < 2001; i++) memdupCheck(m, String(i), false); expect(m.size).toBe(2000); expect(m.has("0")).toBe(false); vi.setSystemTime(Date.now() + 180001); memdupCheck(m, null, false); expect(m.size).toBe(0);
+  });
+});
+
+describe("actual proxy post-payment pipeline", () => {
+  const proxy = readFileSync("supabase/functions/cellpay-proxy/index.ts", "utf8");
+  const helpers = proxy.slice(proxy.indexOf("const REFUND_FAILURE_MESSAGE"), proxy.indexOf("async function finishTransactionLog"));
+  const pipeline = proxy.slice(proxy.indexOf("// Always return 200 so supabase.functions.invoke doesn't throw"), proxy.indexOf("// Pockyt Cash App session status polling"));
+  async function run(data: unknown, status = 200, late = false, pockyt = false) {
+    const writes: Array<{ name: string; args: unknown[] }> = [];
+    const capture = (name: string) => (...args: unknown[]) => { writes.push({ name, args: structuredClone(args) }); return Promise.resolve(null); };
+    const m = new Map<string, MemdupEntry>(); memdupCheck(m, "test", false);
+    let release: ((id: string) => void) | undefined;
+    const idP = late ? new Promise<string>((r) => { release = r; }) : Promise.resolve("new-order");
+    const posts: Promise<unknown>[] = [];
+    const reply = compile(`${helpers}\nreturn (async () => { ${pipeline} return wrapped; })();`, {
+      asRecord: (v: unknown) => v && typeof v === "object" && !Array.isArray(v) ? v : {}, text: (v: unknown) => v === null || v === undefined ? null : String(v),
+      data, response: { ok: status >= 200 && status < 300, status }, rawText: JSON.stringify(data), rawReplyParseFailed: false,
+      shouldLogTransaction: true, isPockytCreate: pockyt, isPlaidCheckout: false, isPayPalTx: false, endpoint: "checkout/transaction", paymentMethod: pockyt ? "pockyt" : "cardpayment",
+      txLogId: late ? null : "new-order", payload: {}, payloadRecord: {}, callerHost: "", riskAction: "", refillKey: "key",
+      logRawCellPayReply: capture("raw"), logCarrierCheck: vi.fn(), refillCooldownRpc: capture("cooldown"), callDatabaseRpc: capture("rpc"),
+      finishTransactionLog: capture("finish"), logDataErr: capture("dataErr"), logCardFacts: capture("cardFacts"),
+      isRefillErrorResult: (v: { data?: { status?: boolean; message?: string } }) => v.data?.status === false && /error during refill/i.test(v.data?.message || ""),
+      memdupUpdate, MEMDUP: m, memKey: pockyt ? null : "test", logIdP: () => idP, raceNull, waitUntilSafe: (p: Promise<unknown>) => posts.push(p), structuredClone,
+    }) as Promise<Record<string, unknown>>;
+    await flushMicro();
+    if (late) await vi.advanceTimersByTimeAsync(1500);
+    const wrapped = await reply;
+    return { wrapped, writes, m, posts, release };
+  }
+  it("returns during an unavailable log create, retains synchronous paid dedupe, then finalizes a late row without reply-only fields", async () => {
+    const data = { status: true, hashid: "ORDER1234", transactionId: "ORDER1234" };
+    const out = await run(data, 200, true);
+    expect(out.wrapped).toEqual({ success: true, data }); expect(out.writes.some((w) => w.name === "finish")).toBe(false); expect(out.m.get("test")?.s).toBe("success");
+    out.release?.("late-row"); await Promise.all(out.posts); expect(out.writes.find((w) => w.name === "finish")?.args).toEqual(["late-row", { success: true, data }, "cardpayment", 10000]);
+  });
+  it("preserves refund auditing and cooldown-before-card-facts order", async () => {
+    const out = await run({ status: true, hashid: "not-returned", message: "There was some error during refill. This transaction has been auto refunded." });
+    expect(out.wrapped.data).toMatchObject({ status: false, refund_signal: true }); expect(out.m.size).toBe(0);
+    const final = out.writes.find((w) => w.name === "rpc" && w.args[0] === "finalize_transaction_log"); expect(final?.args[1]).toMatchObject({ _id: "new-order", _status: "failed", _hashid: null, _transaction_id: null }); expect(final?.args[2]).toBe(10000);
+    expect(out.writes.findIndex((w) => w.name === "cooldown")).toBeLessThan(out.writes.findIndex((w) => w.name === "cardFacts"));
+    expect(out.writes.find((w) => w.name === "cardFacts")?.args[2]).not.toHaveProperty("pending_log_id");
+  });
+  it("preserves CHARGE_UNCONFIRMED rewrite and Cash App HostedURL", async () => {
+    const out = await run({ status: false, message: "SQLSTATE[23000]: constraint" }, 400); expect(out.wrapped.code).toBe("CHARGE_UNCONFIRMED"); expect(JSON.stringify(out.wrapped)).not.toContain("SQLSTATE"); expect(out.m.get("test")?.s).toBe("unknown");
+    const cash = await run({ status: true, HostedURL: "https://example.invalid" }, 200, false, true); expect(cash.wrapped.data).toEqual({ status: true, HostedURL: "https://example.invalid" }); expect(cash.writes.find((w) => w.name === "finish")?.args[2]).toBe("pockyt");
   });
 });
