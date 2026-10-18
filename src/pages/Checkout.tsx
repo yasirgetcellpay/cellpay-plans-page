@@ -189,6 +189,10 @@ const isUnconfirmed = (raw: Record<string, unknown>): boolean => {
   const d = raw && typeof raw.data === "object" && raw.data ? raw.data as Record<string, unknown> : {};
   return raw?.code === "CHARGE_UNCONFIRMED" || raw?.charge_unconfirmed === true || d.charge_unconfirmed === true;
 };
+const isDbFormatUnconfirmed = (raw: Record<string, unknown>): boolean => { // NAME-SANITIZE-1018B
+  const d = raw && typeof raw.data === "object" && raw.data ? raw.data as Record<string, unknown> : {}; // NAME-SANITIZE-1018B
+  return isUnconfirmed(raw) && d.unconfirmed_kind === "db_format"; // NAME-SANITIZE-1018B
+}; // NAME-SANITIZE-1018B
 const hasRefundSignal = (value: unknown): boolean => {
   if (!value || typeof value !== "object") return false;
   const obj = value as Record<string, unknown>;
@@ -1667,6 +1671,7 @@ const Checkout = () => {
       if (raw.code === "DUP_CONFIRM" || raw.code === "IN_FLIGHT") { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); return; }
       if (raw.code === "BAD_PHONE") { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); return; } // REFUNDED-STATE-1017: wrapper already navigated
       if (raw.code === "RETRY_CAP" || raw.code === "RETRY_WAIT") { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(String(raw.message || "")); return; } // REFUND-RETRY-LATE-1018
+      if (isDbFormatUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(false); setLock(lockKey(state?.phone, validation?.amount ?? state?.amount), "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); return; } // NAME-SANITIZE-1018B
       if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); return; } // REFUNDED-STATE-1017
       setLoadReason(loadReasonKind(loadTextFrom(raw))); // LOADTEXT-REASON-1017
       const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Transaction failed"; // SUCCESS-FLAG-FIX-1016
@@ -2222,6 +2227,7 @@ const Checkout = () => {
           if (raw.code === "MAYBE_PAID" || raw.code === "MAYBE_PAID_LOCK") { showMaybePaid(raw.code === "MAYBE_PAID_LOCK"); } // DB-OUTAGE-TRACK-1017
           else if (raw.code === "BAD_PHONE") { /* REFUNDED-STATE-1017: wrapper already navigated */ }
           else if (raw.code === "RETRY_CAP" || raw.code === "RETRY_WAIT") { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(String(raw.message || "")); } // REFUND-RETRY-LATE-1018
+          else if (isDbFormatUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(false); setLock(lockKey(state?.phone, validation?.amount ?? state?.amount), "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); } // NAME-SANITIZE-1018B
           else if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); } // REFUNDED-STATE-1017
           else if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") {
             setLoadReason(loadReasonKind(loadTextFrom(raw))); // LOADTEXT-REASON-1017

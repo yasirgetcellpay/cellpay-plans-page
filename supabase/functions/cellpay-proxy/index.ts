@@ -322,6 +322,11 @@ function chargeUnconfirmedKind(status: number, data: unknown, wrapped: Record<st
 }
 
 // REFUNDED-STATE-1017: the original upstream reply is a failure whose message says it was auto-refunded.
+function isDbFormatError(data: unknown, wrapped: Record<string, unknown>): boolean { // NAME-SANITIZE-1018B
+  const d = asRecord(data); const inner = asRecord(d.data); // NAME-SANITIZE-1018B
+  const texts = [d.message, d.error, d.msg, wrapped.error, inner.message, inner.error, inner.msg].filter((t): t is string => typeof t === "string"); // NAME-SANITIZE-1018B
+  return texts.some((t) => /SQLSTATE\[(22007|22021)\]|Incorrect string value/i.test(t)); // NAME-SANITIZE-1018B
+} // NAME-SANITIZE-1018B
 function autoRefundFailure(wrapped: Record<string, unknown>): boolean {
   const data = asRecord(wrapped.data);
   if (data.parseError === true) return false;
@@ -3258,7 +3263,8 @@ serve(async (req) => {
         const keep: Record<string, unknown> = {};
         if (wrapped.pending_log_id) keep.pending_log_id = wrapped.pending_log_id;
         if (wrapped.risk_action) keep.risk_action = wrapped.risk_action;
-        wrapped = { success: false, code: "CHARGE_UNCONFIRMED", error: "charge_unconfirmed", data: { status: false, message: "charge_unconfirmed", charge_unconfirmed: true }, ...keep };
+        const dbFormat = unconfirmedKind === "sqlstate" && isDbFormatError(data, wrapped); // NAME-SANITIZE-1018B
+        wrapped = { success: false, code: "CHARGE_UNCONFIRMED", error: "charge_unconfirmed", data: { status: false, message: "charge_unconfirmed", charge_unconfirmed: true, ...(dbFormat ? { unconfirmed_kind: "db_format" } : {}) }, ...keep }; // NAME-SANITIZE-1018B
       }
       if (loadText && !isPockytCreate) wrapped.load_text = loadText; // LOADTEXT-REASON-1017 (display hint only; never decides success)
     }
