@@ -17,8 +17,8 @@ import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
 import { billPageByPath, billJsonLd } from "@/content/billCarrierSeo"; // SEO-CONTENT-1014
-import { takeCheckoutPrefill, resolveEmailPrefill } from "@/lib/checkoutResume"; // EMAIL-PREFILL-1013
-import { trackFunnel } from "@/lib/funnelEvents"; // EMAIL-PREFILL-1013
+import { takeCheckoutPrefill } from "@/lib/checkoutResume"; // EMAIL-PREFILL-1013 // ST-PREFILL-1018
+import { useEmailPrefill } from "@/hooks/useEmailPrefill"; // EMAIL-PREFILL-1013 // ST-PREFILL-1018
 import { t, type Language } from "@/lib/i18n";
 import {
   CricketQuickPayContent,
@@ -551,51 +551,19 @@ const DynamicCarrier = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
 
-  // EMAIL-PREFILL-1013: ?t=<token> from a reminder email -> phone (only if the field is still empty) and amount (only if the page
-  // offers it), once after plans load; then t is removed from the address bar. Any failure: page behaves as before.
-  const [emailPrefillDone, setEmailPrefillDone] = useState(false); // EMAIL-PREFILL-1013
-  useEffect(() => {
-    if (loading || emailPrefillDone) return;
-    setEmailPrefillDone(true);
-    let tok: string | null = null;
-    try { tok = new URLSearchParams(window.location.search).get("t"); } catch { tok = null; }
-    // AUTOPAY-VISIBLE-1013: ap=1 -> checkout pre-ticks Auto Pay (not its terms) for this carrier; ap leaves the address bar with t.
-    try {
-      const q = new URLSearchParams(window.location.search);
-      if (q.get("ap") === "1") sessionStorage.setItem("cp_email_ap", JSON.stringify({ slug: carrierSlug, ts: Date.now() }));
-      if (!tok && q.has("ap")) {
-        const u = new URL(window.location.href);
-        u.searchParams.delete("ap");
-        window.history.replaceState(window.history.state, "", u.pathname + u.search + u.hash);
-      }
-    } catch { /* ignore */ }
-    if (!tok) return;
-    void (async () => {
-      try {
-        const r = await resolveEmailPrefill(carrierSlug, window.location.search);
-        if (r) {
-          setPhone((cur) => (cur.replace(/\D/g, "") === "" ? formatPhone(r.phone) : cur));
-          const n = r.amount;
-          if (n !== null) {
-            if (showRange) {
-              if (Number.isInteger(n) && n >= rangeMin && n <= rangeMax) setAmount(String(n));
-            } else if (showFixedPlans && plans.length > 0) {
-              const match = plans.find((p) => p.amount === n);
-              if (match) setAmount(String(match.amount));
-            }
-          }
-          trackFunnel("prefill_used", { carrier: carrierSlug, amount: n ?? null, fee: null, total: null });
-        }
-      } catch { /* behave as today */ }
-      try {
-        const u = new URL(window.location.href);
-        u.searchParams.delete("t");
-        u.searchParams.delete("ap"); // AUTOPAY-VISIBLE-1013
-        window.history.replaceState(window.history.state, "", u.pathname + u.search + u.hash);
-      } catch { /* ignore */ }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading]); // EMAIL-PREFILL-1013
+  // EMAIL-PREFILL-1013 / AUTOPAY-VISIBLE-1013: shared token handling; preserve page-specific selection. // ST-PREFILL-1018
+  useEmailPrefill(carrierSlug, !loading, (r) => { // ST-PREFILL-1018
+    setPhone((cur) => (cur.replace(/\D/g, "") === "" ? formatPhone(r.phone) : cur)); // ST-PREFILL-1018
+    const n = r.amount; // ST-PREFILL-1018
+    if (n !== null) { // ST-PREFILL-1018
+      if (showRange) { // ST-PREFILL-1018
+        if (Number.isInteger(n) && n >= rangeMin && n <= rangeMax) setAmount(String(n)); // ST-PREFILL-1018
+      } else if (showFixedPlans && plans.length > 0) { // ST-PREFILL-1018
+        const match = plans.find((p) => p.amount === n); // ST-PREFILL-1018
+        if (match) setAmount(String(match.amount)); // ST-PREFILL-1018
+      } // ST-PREFILL-1018
+    } // ST-PREFILL-1018
+  }); // ST-PREFILL-1018
 
   const phoneDigits = phone.replace(/\D/g, "");
   const amountNum = parseAmountDollars(amount) || 0; // dollars, same unit checkout and the API use
