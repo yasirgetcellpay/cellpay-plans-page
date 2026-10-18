@@ -9,6 +9,7 @@ import { PlanGrid } from "@/components/PlanGrid";
 import { fetchCarrierView, verifyPhone } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
 import { applySeoHead } from "@/lib/seo";
+import { useEmailPrefill } from "@/hooks/useEmailPrefill"; // ST-PREFILL-1018
 
 const brandColor = "hsl(72,74%,44%)";
 
@@ -53,6 +54,7 @@ const StraightTalk = () => {
   const [apiPlans, setApiPlans] = useState<ApiPlan[]>([]);
   const [verifying, setVerifying] = useState(false);
   const [plansLoaded, setPlansLoaded] = useState(false); // speed SP-1a: keep space reserved until plans load (no layout jump)
+  useEmailPrefill("straight-talk", plansLoaded, (r) => { setPhone((cur) => (cur.replace(/\D/g, "") === "" ? formatPhone(r.phone) : cur)); }); // ST-PREFILL-1018
 
   useEffect(() => {
     (async () => {
