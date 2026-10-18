@@ -321,12 +321,12 @@ function chargeUnconfirmedKind(status: number, data: unknown, wrapped: Record<st
   return null;
 }
 
-// REFUNDED-STATE-1017: the original upstream reply is a failure whose message says it was auto-refunded.
 function isDbFormatError(data: unknown, wrapped: Record<string, unknown>): boolean { // NAME-SANITIZE-1018B
   const d = asRecord(data); const inner = asRecord(d.data); // NAME-SANITIZE-1018B
   const texts = [d.message, d.error, d.msg, wrapped.error, inner.message, inner.error, inner.msg].filter((t): t is string => typeof t === "string"); // NAME-SANITIZE-1018B
   return texts.some((t) => /SQLSTATE\[(22007|22021)\]|Incorrect string value/i.test(t)); // NAME-SANITIZE-1018B
 } // NAME-SANITIZE-1018B
+// REFUNDED-STATE-1017: the original upstream reply is a failure whose message says it was auto-refunded.
 function autoRefundFailure(wrapped: Record<string, unknown>): boolean {
   const data = asRecord(wrapped.data);
   if (data.parseError === true) return false;
