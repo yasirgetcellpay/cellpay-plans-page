@@ -1,6 +1,6 @@
 export type RetryCause = "tmo_plan_mismatch" | "simple_not_found" | "metro_invalid_number" | "boost_blank"; // REFUND-RETRY-1018
 export type RetryAction = "to_carrier" | "amount" | "number" | "try_again" | "other_carrier"; // REFUND-RETRY-1018
-export type RetryContext = { v: 1; ts: number; cause: RetryCause; action: RetryAction; from_carrier: string; to_carrier: string; email?: string; method?: string }; // REFUND-RETRY-1018
+export type RetryContext = { v: 1; ts: number; cause: RetryCause; action: RetryAction; from_carrier: string; to_carrier: string; email?: string; method?: string; stage?: "late" }; // REFUND-RETRY-1018 // REFUND-RETRY-LATE-1018
 export type RetryButton = { label: string; action: RetryAction; to_carrier?: string; notBefore?: number; disabled?: boolean }; // REFUND-RETRY-1018
 const HIST = "cp_refund_hist_v1", CTX = "cp_refund_retry_v1", MIN = 60_000, DAY = 24 * 60 * MIN; // REFUND-RETRY-1018
 const CAUSES: Record<string, RetryCause> = { tmobile: "tmo_plan_mismatch", s1: "simple_not_found", metropcs: "metro_invalid_number", boost: "boost_blank" }; // REFUND-RETRY-1018
@@ -64,13 +64,13 @@ export function retryButtons(slug: string, lang: string, phone10: string, now = 
   }); // REFUND-RETRY-1018
 } // REFUND-RETRY-1018
 export function writeRetryCtx(input: Omit<RetryContext, "v" | "ts">, now = Date.now()): void { // REFUND-RETRY-1018
-  try { sessionStorage.setItem(CTX, JSON.stringify({ v: 1, ts: now, cause: input.cause, action: input.action, from_carrier: input.from_carrier, to_carrier: input.to_carrier, ...(input.email ? { email: input.email } : {}), ...(input.method ? { method: input.method } : {}) })); } catch { /* fail open */ } // REFUND-RETRY-1018
+  try { sessionStorage.setItem(CTX, JSON.stringify({ v: 1, ts: now, cause: input.cause, action: input.action, from_carrier: input.from_carrier, to_carrier: input.to_carrier, ...(input.email ? { email: input.email } : {}), ...(input.method ? { method: input.method } : {}), ...(input.stage === "late" ? { stage: "late" } : {}) })); } catch { /* fail open */ } // REFUND-RETRY-1018 // REFUND-RETRY-LATE-1018
 } // REFUND-RETRY-1018
 export function readRetryCtx(maxAgeMs = 30 * MIN): RetryContext | null { // REFUND-RETRY-1018
   try { // REFUND-RETRY-1018
     const r = JSON.parse(sessionStorage.getItem(CTX) || "null"), now = Date.now(); // REFUND-RETRY-1018
     if (!r || r.v !== 1 || typeof r.ts !== "number" || !Number.isFinite(r.ts) || now - r.ts < 0 || now - r.ts >= maxAgeMs || !Object.values(CAUSES).includes(r.cause) || !ACTIONS.includes(r.action) || typeof r.from_carrier !== "string" || !/^[a-z0-9-]{1,30}$/.test(r.from_carrier) || typeof r.to_carrier !== "string" || !/^[a-z0-9-]{1,30}$/.test(r.to_carrier)) return null; // REFUND-RETRY-1018
-    return { v: 1, ts: r.ts, cause: r.cause, action: r.action, from_carrier: r.from_carrier, to_carrier: r.to_carrier, ...(typeof r.email === "string" && r.email.length <= 254 ? { email: r.email } : {}), ...(typeof r.method === "string" && /^[a-z]{2,20}$/.test(r.method) ? { method: r.method } : {}) }; // REFUND-RETRY-1018
+    return { v: 1, ts: r.ts, cause: r.cause, action: r.action, from_carrier: r.from_carrier, to_carrier: r.to_carrier, ...(typeof r.email === "string" && r.email.length <= 254 ? { email: r.email } : {}), ...(typeof r.method === "string" && /^[a-z]{2,20}$/.test(r.method) ? { method: r.method } : {}), ...(r.stage === "late" ? { stage: "late" as const } : {}) }; // REFUND-RETRY-1018 // REFUND-RETRY-LATE-1018
   } catch { return null; } // REFUND-RETRY-1018
 } // REFUND-RETRY-1018
 export function takeRetryPrefill(slug: string): { email?: string; method?: string } | null { // REFUND-RETRY-1018

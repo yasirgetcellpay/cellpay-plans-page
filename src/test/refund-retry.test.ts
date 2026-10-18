@@ -90,7 +90,7 @@ describe("REFUND-RETRY-1018", () => { // REFUND-RETRY-1018
     const good = { event, retry_cause: "tmo_plan_mismatch", retry_action: "to_carrier,amount,number", retry_to_carrier: "metropcs", phone, email: ctx.email }; // REFUND-RETRY-1018
     expect(clean(good, null)).toMatchObject({ event, retry_cause: good.retry_cause, retry_action: good.retry_action, retry_to_carrier: "metropcs" }); // REFUND-RETRY-1018
     expect(clean(good, null)).not.toHaveProperty("phone"); expect(clean(good, null)).not.toHaveProperty("email"); // REFUND-RETRY-1018
-    expect(clean({ event, retry_cause: "evil", retry_action: "number123", retry_to_carrier: "../bad" }, null)).toMatchObject({ retry_cause: null, retry_action: null, retry_to_carrier: null }); // REFUND-RETRY-1018
+    expect(clean({ event, retry_cause: "evil", retry_action: "Number-1!" /* REFUND-RETRY-LATE-1018: digits now allowed */, retry_to_carrier: "../bad" }, null)).toMatchObject({ retry_cause: null, retry_action: null, retry_to_carrier: null }); // REFUND-RETRY-1018
   }); // REFUND-RETRY-1018
   it("isolates retry inserts from existing batches", () => { // REFUND-RETRY-1018
     expect(funnel).toContain('const retryWrite = retryRows.length ? postRows(retryRows) : Promise.resolve();'); // REFUND-RETRY-1018

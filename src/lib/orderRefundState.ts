@@ -31,7 +31,12 @@ export async function fetchRefundedHashids(hashids: string[]): Promise<Set<strin
 
 export const isPayWord = (s: string): boolean => /metro|boost|cricket/i.test(s);
 
-export function refundedPanelText(lang: string, payWord: boolean, total: number): { title: string; text: string } {
+export function refundedPanelText(lang: string, payWord: boolean, total: number, short = false): { title: string; text: string } { // REFUND-RETRY-LATE-1018
+  const r = refundedPanelFull(lang, payWord, total); // REFUND-RETRY-LATE-1018
+  return short ? { title: r.title, text: r.text.replace(/ (Please check the number and plan and try again\.|Revise el número y el plan e inténtelo de nuevo\.)$/, "") } : r; // REFUND-RETRY-LATE-1018
+} // REFUND-RETRY-LATE-1018
+
+function refundedPanelFull(lang: string, payWord: boolean, total: number): { title: string; text: string } { // REFUND-RETRY-LATE-1018
   const amt = `$${Number(total || 0).toFixed(2)}`;
   if (lang === "es") {
     return payWord

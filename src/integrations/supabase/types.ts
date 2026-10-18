@@ -3089,6 +3089,10 @@ export type Database = {
         Args: { _key: string; _seconds?: number }
         Returns: Json
       }
+      refund_retry_gate: {
+        Args: { p_action: string; p_carrier: string; p_phone: string }
+        Returns: Json
+      }
       reminder_optin_create: {
         Args: {
           _consent_version: string
