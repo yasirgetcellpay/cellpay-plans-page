@@ -3177,7 +3177,8 @@ serve(async (req) => {
               _hashid: txnId,
               _transaction_id: txnId,
               _error_message: finalStatus === "failed" ? text(result.message ?? result.msg) : null,
-              _raw_response: result,            }, 10000); // DB-OUTAGE-TRACK-1017
+              _raw_response: result,
+            }, 10000); // DB-OUTAGE-TRACK-1017
           } catch (error) {
             console.error("[tx-log] pockyt finalize failed:", error instanceof Error ? error.message : error);
           }
@@ -3186,7 +3187,8 @@ serve(async (req) => {
           if (finalStatus === "success") {
             try {
               await callDatabaseRpc("finalize_pockyt_log", {
-                _session_id: endpoint.split("/")[3] || "", _pending_log_id: logId, _status: "success", _txn: txnId, _msg: null, _raw: result,              }, 10000); // DB-OUTAGE-TRACK-1017
+                _session_id: endpoint.split("/")[3] || "", _pending_log_id: logId, _status: "success", _txn: txnId, _msg: null, _raw: result,
+              }, 10000); // DB-OUTAGE-TRACK-1017
             } catch (error) {
               console.error("[tx-log] pockyt late-paid flip failed:", error instanceof Error ? error.message : error);
             }

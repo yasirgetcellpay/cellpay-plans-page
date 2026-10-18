@@ -2,13 +2,20 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
-import React from "react";
-import { render, cleanup, fireEvent } from "@testing-library/react";
+import React, { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { raceNull } from "../../supabase/functions/_shared/raceNull";
 import { memdupKey, memdupCheck, memdupUpdate, MEMDUP_UNKNOWN_MS, type MemdupEntry } from "../../supabase/functions/_shared/memdup";
 import { lockKey, activeLock, setLock, clearLock, PAYLOCK_MS, PAYLOCK_UNKNOWN_MS, runPayLocked } from "@/lib/payLock";
 
 const source = readFileSync("src/pages/Checkout.tsx", "utf8");
+let root: Root | undefined;
+function cleanup() { if (root) { act(() => root?.unmount()); root = undefined; } document.body.innerHTML = ""; }
+function render(card: React.ReactElement) {
+  const host = document.createElement("div"); document.body.appendChild(host); root = createRoot(host); act(() => root?.render(card));
+  const q = (id: string) => host.querySelector<HTMLElement>(`[data-testid="${id}"]`);
+  return { getByTestId: (id: string) => { const el = q(id); if (!el) throw new Error(`Missing ${id}`); return el; }, queryByTestId: q, getAllByRole: (_: string) => [...host.querySelectorAll("button")], getByRole: (_: string, opts: { name: string }) => { const el = [...host.querySelectorAll("button")].find((b) => b.textContent === opts.name); if (!el) throw new Error(`Missing ${opts.name}`); return el; }, unmount: cleanup };
+}
 const flushMicro = async () => { for (let i = 0; i < 15; i++) await Promise.resolve(); };
 const tracked = async () => import("@/lib/trackQueue");
 const body = (id = "ORDER1234") => ({ _transaction_id: id, _hashid: id, _value: 50, _source: "checkout_success" });
@@ -133,7 +140,7 @@ describe("maybe-paid card", () => {
       const view = render(card); const text = view.getByTestId("maybe-paid-card").textContent || ""; const payment = carrierSlug !== "tmobile";
       expect(text).toContain(lang === "es" ? `Es posible que su ${payment ? "pago" : "recarga"} se haya realizado` : `Your ${payment ? "payment" : "refill"} may have gone through`);
       expect(text).toContain(lang === "es" ? "Por favor, no vuelva a pagar. Revise su recibo por mensaje de texto o correo electrónico en los próximos minutos, o comuníquese con support@getcellpay.com." : "Please don't pay again. Check your text or email receipt in the next few minutes, or contact support@getcellpay.com.");
-      expect(view.queryByTestId("maybe-paid-pause") !== null).toBe(paused); expect(view.getAllByRole("button")).toHaveLength(2); expect(text).not.toMatch(/try again|retry|intentar de nuevo/i); fireEvent.click(view.getByRole("button", { name: lang === "es" ? "Cerrar" : "Close" })); view.unmount();
+      expect(view.queryByTestId("maybe-paid-pause") !== null).toBe(paused); expect(view.getAllByRole("button")).toHaveLength(2); expect(text).not.toMatch(/try again|retry|intentar de nuevo/i); act(() => view.getByRole("button", { name: lang === "es" ? "Cerrar" : "Close" }).click()); view.unmount();
     }
   });
 });
