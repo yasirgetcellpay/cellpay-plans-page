@@ -990,6 +990,51 @@ export function klarnaMinRefusal(total: unknown, lang: unknown): Record<string, 
     : "Klarna is available for orders of $25 or more. Please choose another way to pay. You were not charged.";
   return { success: false, blocked: true, code: "KLARNA_MIN_TOTAL", message };
 }
+export function klarnaTotalBand(v: unknown): string { // KLARNA-LOG-1017
+  if (v === null || v === undefined || v === "") return "unknown"; // KLARNA-LOG-1017
+  const n = Number(v); // KLARNA-LOG-1017
+  return !Number.isFinite(n) ? "unknown" : n < 25 ? "<25" : n < 50 ? "25-50" : n < 100 ? "50-100" : "100+"; // KLARNA-LOG-1017
+} // KLARNA-LOG-1017
+export function klarnaSrcLabel(v: unknown): string { // KLARNA-LOG-1017
+  return v === "method_list" ? "list" : v === "decline_nsf" ? "funds-klarna" : v === "decline_other" ? "decline-klarna" : "unknown"; // KLARNA-LOG-1017
+} // KLARNA-LOG-1017
+export function klarnaSessionOutcome(httpOk: boolean, data: unknown): "ok" | "no_token" | "http_error" { // KLARNA-LOG-1017
+  if (!httpOk) return "http_error"; // KLARNA-LOG-1017
+  let level = data; // KLARNA-LOG-1017
+  for (let i = 0; i < 3; i++) { // KLARNA-LOG-1017
+    if (!level || typeof level !== "object") break; // KLARNA-LOG-1017
+    const row = level as Record<string, unknown>; // KLARNA-LOG-1017
+    if (typeof row.client_token === "string" && row.client_token.trim()) return "ok"; // KLARNA-LOG-1017
+    level = row.data; // KLARNA-LOG-1017
+  } // KLARNA-LOG-1017
+  return "no_token"; // KLARNA-LOG-1017
+} // KLARNA-LOG-1017
+export function klarnaCategories(data: unknown): string { // KLARNA-LOG-1017
+  let level = data; // KLARNA-LOG-1017
+  for (let i = 0; i < 3; i++) { // KLARNA-LOG-1017
+    if (!level || typeof level !== "object") break; // KLARNA-LOG-1017
+    const row = level as Record<string, unknown>; // KLARNA-LOG-1017
+    if (Array.isArray(row.payment_method_categories)) { // KLARNA-LOG-1017
+      const ids = row.payment_method_categories.flatMap((item: unknown) => { // KLARNA-LOG-1017
+        if (!item || typeof item !== "object") return []; // KLARNA-LOG-1017
+        const id = (item as Record<string, unknown>).identifier; // KLARNA-LOG-1017
+        return typeof id === "string" && /^[a-z_]{1,30}$/.test(id) ? [id] : []; // KLARNA-LOG-1017
+      }).slice(0, 5); // KLARNA-LOG-1017
+      return ids.join("+") || "none"; // KLARNA-LOG-1017
+    } // KLARNA-LOG-1017
+    level = row.data; // KLARNA-LOG-1017
+  } // KLARNA-LOG-1017
+  return "none"; // KLARNA-LOG-1017
+} // KLARNA-LOG-1017
+export function klarnaSessionEvent(outcome: string, httpStatus: number, total: unknown, host: string | null, hasOrigin: boolean, log: unknown, categories = "none"): Record<string, unknown> { // KLARNA-LOG-1017
+  const row = log && typeof log === "object" ? log as Record<string, unknown> : {}; // KLARNA-LOG-1017
+  const lang = row.lang === "en" || row.lang === "es" ? row.lang : "unknown"; // KLARNA-LOG-1017
+  const src = klarnaSrcLabel(row.src); // KLARNA-LOG-1017
+  return { code: `klarna_session:${outcome}`, method: "POST", endpoint_shape: `klarna_session|${httpStatus}|${klarnaTotalBand(total)}|${lang}|${src}|${categories}`, origin_host: host, has_origin: hasOrigin }; // KLARNA-LOG-1017
+} // KLARNA-LOG-1017
+function logKlarnaSession(outcome: string, httpStatus: number, total: unknown, guardOrigin: string | null, body: unknown, categories = "none"): void { // KLARNA-LOG-1017
+  try { recordGuardEvent(klarnaSessionEvent(outcome, httpStatus, total, originHost(guardOrigin), guardOrigin !== null, (body as Record<string, unknown>)?.klarna_log, categories)); } catch { /* never affects the request */ } // KLARNA-LOG-1017
+} // KLARNA-LOG-1017
 
 function recordGuardEvent(event: Record<string, unknown>): void {
   try {
@@ -2752,8 +2797,9 @@ serve(async (req) => {
     if (method.toUpperCase() === "POST" && ppPath === "payments/klarna/session") { // KLARNA-MIN25-1017
       const kp = asRecord(payload); // KLARNA-MIN25-1017
       const kmr = klarnaMinRefusal(kp.amount ?? kp.total, body.lang); // KLARNA-MIN25-1017
-      if (kmr) { recordGuardEvent({ code: "klarna_min_session", method: "POST", endpoint_shape: "payments/klarna/session", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null }); return new Response(JSON.stringify(kmr), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); } // KLARNA-MIN25-1017
+      if (kmr) { recordGuardEvent({ code: "klarna_min_session", method: "POST", endpoint_shape: "payments/klarna/session", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null }); logKlarnaSession("refused_min_total", 200, kp.amount ?? kp.total, guardOrigin, body); return new Response(JSON.stringify(kmr), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); } // KLARNA-MIN25-1017 // KLARNA-LOG-1017
     } // KLARNA-MIN25-1017
+    const isKlarnaSession = method.toUpperCase() === "POST" && ppPath === "payments/klarna/session"; // KLARNA-LOG-1017
     const shouldLogTransaction = endpoint === "checkout/transaction" && method === "POST";
     const payloadRecord = asRecord(payload);
     // [FRAUD-MULTIBLOCK-1012] cp_dev is site-only: read and removed here so CellPay never sees it (body rebuilt).
@@ -3060,6 +3106,7 @@ serve(async (req) => {
       response = await fetch(url, isPockytCreate ? { ...fetchOptions, signal: AbortSignal.timeout(POCKYT_CREATE_TIMEOUT_MS) } : fetchOptions);
       rawText = await response.text();
     } catch (error) {
+      if (isKlarnaSession) logKlarnaSession("exception", 0, asRecord(payload).amount ?? asRecord(payload).total, guardOrigin, body); // KLARNA-LOG-1017
       memdupUpdate(MEMDUP, memKey, "unknown"); // DB-OUTAGE-TRACK-1017
       if (isPockytCreate) await markPockytCreateError(txLogId ?? await raceNull(createP, 1000), error); // DB-OUTAGE-TRACK-1017
       if (isPockytCreate && txLogId === null) waitUntilSafe(logIdP().then((id) => markPockytCreateError(id, error))); // DB-OUTAGE-TRACK-1017
@@ -3077,6 +3124,7 @@ serve(async (req) => {
       data = { raw: rawText, parseError: true };
     }
 
+    if (isKlarnaSession) { try { logKlarnaSession(klarnaSessionOutcome(response.ok, data), response.status, asRecord(payload).amount ?? asRecord(payload).total, guardOrigin, body, klarnaCategories(data)); } catch { /* ignore */ } } // KLARNA-LOG-1017
     if (isPayPalTx) ppScrub(data); // SUCCESS-FLAG-FIX-1016
     if (isPlaidCheckout) scrubPlaidSecrets(data); // SUCCESS-FLAG-FIX-1016
 

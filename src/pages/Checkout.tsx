@@ -121,7 +121,7 @@ declare global {
         authorize: (
           opts: { payment_method_category: string },
           data: Record<string, unknown>,
-          cb: (res: { approved: boolean; authorization_token?: string; show_form?: boolean }) => void // KLARNA-FUNNEL-1017
+          cb: (res: { approved: boolean; authorization_token?: string; show_form?: boolean; finalize_required?: boolean; error?: unknown }) => void // KLARNA-FUNNEL-1017 // KLARNA-LOG-1017
         ) => void;
       };
     };
@@ -1378,9 +1378,11 @@ const Checkout = () => {
 
   // CHECKOUT-FUNNEL: invisible funnel analytics (no UI). Hooks sit above the "if (!state)" return. All fire-and-forget.
   const funnelDataRef = useRef<{ carrier: string | null; amount: number | null; fee: number | null; total: number | null }>({ carrier: null, amount: null, fee: null, total: null });
-  const trackKlarna = (event: KlarnaFunnelEvent, screen: KlarnaSrc, onceKey: string, extra: Pick<FunnelData, "shown" | "cap" | "klarna_result" | "klarna_categories" | "klarna_category" | "klarna_show_form" | "klarna_approved" | "klarna_load"> = {}) => { // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017
+  const trackKlarna = (event: KlarnaFunnelEvent, screen: KlarnaSrc, onceKey: string, extra: Pick<FunnelData, "shown" | "cap" | "klarna_result" | "klarna_categories" | "klarna_category" | "klarna_show_form" | "klarna_approved" | "klarna_load" | "klarna_reason" | "klarna_finalize_required" | "klarna_error"> = {}) => { // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017 // KLARNA-LOG-1017
     try { trackFunnel(event, { ...funnelDataRef.current, screen, decline_ab: readDeclineAb(phone10), checkout_session_id: sessionIdRef.current, ...extra }, onceKey); } catch { /* ignore */ } // KLARNA-FUNNEL-1017
   }; // KLARNA-FUNNEL-1017
+  const klarnaFail = (reason: NonNullable<FunnelData["klarna_reason"]>) => { try { trackKlarna("klarna_session_failed", readKlarnaSrc(phone10), `fail|${reason}|${Date.now()}`, { klarna_reason: reason }); } catch { /* ignore */ } }; // KLARNA-LOG-1017
+  const klarnaErrKeys = (e: unknown): string | undefined => { try { if (!e || typeof e !== "object") return undefined; const ok = (k: unknown) => typeof k === "string" && /^[A-Za-z0-9_.\[\]-]{1,40}$/.test(k); const inv = (e as { invalid_fields?: unknown }).invalid_fields; const s = Array.isArray(inv) ? "invalid_fields:" + inv.filter(ok).slice(0, 10).join(",") : "keys:" + Object.keys(e).filter(ok).slice(0, 10).join(","); return s.slice(0, 200); } catch { return undefined; } }; // KLARNA-LOG-1017
   useEffect(() => { resetFunnel(); }, []);
   // [OURSIDE-RETRY-1012] state (above the "if (!state)" return). Flag ourside_retry: default off on any error.
   const [oursideRetryOn, setOursideRetryOn] = useState(false);
@@ -2256,16 +2258,18 @@ const Checkout = () => {
     try {
       await loadScript(klarnaScriptUrl, "klarna-sdk");
     } catch {
+      klarnaFail("sdk_load_failed"); // KLARNA-LOG-1017
       setErrorMsg("Failed to load Klarna SDK");
       return;
     }
 
-    const sessionResp = await createKlarnaSession({
-      phone_number: normalizePhone(state.phone),
-      carrierId: validation?.carrier_id || validation?.carrierId,
-      plan_id: state.planId ? String(state.planId) : undefined,
-      amount: validation?.total ?? Number(state.amount),
-    }) as Record<string, unknown>;
+    let sessionResp: Record<string, unknown>; // KLARNA-LOG-1017
+    try { sessionResp = await createKlarnaSession({ // KLARNA-LOG-1017
+      phone_number: normalizePhone(state.phone), // KLARNA-LOG-1017
+      carrierId: validation?.carrier_id || validation?.carrierId, // KLARNA-LOG-1017
+      plan_id: state.planId ? String(state.planId) : undefined, // KLARNA-LOG-1017
+      amount: validation?.total ?? Number(state.amount), // KLARNA-LOG-1017
+    }) as Record<string, unknown>; } catch (err) { klarnaFail((err as { cpStatus?: number } | null)?.cpStatus !== undefined ? "server_error" : "network"); throw err; } // KLARNA-LOG-1017
 
     let sessionData = sessionResp;
     if (sessionData.data && typeof sessionData.data === "object") {
@@ -2278,11 +2282,11 @@ const Checkout = () => {
     try { klarnaCats = klarnaCategoryIds(sessionData); } catch { /* use empty categories */ } // KLARNA-CAT-1017
     const klarnaCategory = pickKlarnaCategory(klarnaCats); // KLARNA-CAT-1017
     const klarnaLoc = klarnaLocale(lang); // KLARNA-CAT-1017
-    if (!clientToken) { setErrorMsg("Could not create Klarna session"); return; }
+    if (!clientToken) { klarnaFail(sessionResp?.success === false ? "server_error" : "no_token"); setErrorMsg("Could not create Klarna session"); return; } // KLARNA-LOG-1017
     const klarnaAttempt = String(++klarnaAttemptRef.current); // KLARNA-FUNNEL-1017
     try { trackKlarna("klarna_session_created", readKlarnaSrc(phone10), klarnaAttempt, { klarna_categories: klarnaCats.length ? klarnaCats.join("+") : "none" }); } catch { /* ignore */ } // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017
 
-    if (!window.Klarna) { setErrorMsg("Klarna SDK not available"); return; }
+    if (!window.Klarna) { klarnaFail("sdk_missing"); setErrorMsg("Klarna SDK not available"); return; } // KLARNA-LOG-1017
 
     window.Klarna.Payments.init({ client_token: clientToken });
     const klarnaPayments = window.Klarna.Payments; // KLARNA-CAT-1017
@@ -2313,7 +2317,7 @@ const Checkout = () => {
           },
         },
         async (res) => {
-          try { trackKlarna("klarna_auth_result", readKlarnaSrc(phone10), klarnaAttempt, { klarna_result: (res.approved && res.authorization_token) ? "approved" : (res.show_form === false ? "declined" : "cancelled"), klarna_category: klarnaCategory, klarna_load: klarnaLoadState, klarna_approved: typeof res.approved === "boolean" ? res.approved : undefined, klarna_show_form: typeof res.show_form === "boolean" ? res.show_form : undefined }); } catch { /* ignore */ } // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017
+          try { trackKlarna("klarna_auth_result", readKlarnaSrc(phone10), klarnaAttempt, { klarna_result: (res.approved && res.authorization_token) ? "approved" : (res.show_form === false ? "declined" : "cancelled"), klarna_category: klarnaCategory, klarna_load: klarnaLoadState, klarna_approved: typeof res.approved === "boolean" ? res.approved : undefined, klarna_show_form: typeof res.show_form === "boolean" ? res.show_form : undefined, klarna_finalize_required: typeof res.finalize_required === "boolean" ? res.finalize_required : undefined, klarna_error: klarnaErrKeys(res.error) }); } catch { /* ignore */ } // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017 // KLARNA-LOG-1017
           if (res.approved && res.authorization_token) {
             setKlarnaToken(res.authorization_token);
             try {

@@ -2,7 +2,7 @@
 // Accepts JSON or text/plain (sendBeacon), one object or an array of up to 10. Only whitelisted fields are stored.
 const ALLOWED = new Set(["https://refill.cellpay.us", "https://www.cellpay.us"]);
 const EVENTS = new Set(["checkout_view", "total_shown", "payment_started", "submitted", "left_at_total", "prefill_used", "autopay_postpurchase_offer_shown", "autopay_postpurchase_offer_accepted", "recovery_prompt_shown", "recovery_retry", "recovery_success"]); // DECLINE-RECOVERY-1014: recovery_*; // EMAIL-PREFILL-1013: prefill_used; AUTOPAY-POSTPURCHASE-1013: autopay_postpurchase_*
-const KLARNA_EVENTS = new Set(["klarna_offer_shown", "klarna_clicked", "klarna_session_created", "klarna_auth_result", "klarna_ab_known"]); // KLARNA-FUNNEL-1017 // KLARNA-FUNNEL-FIX-1017
+const KLARNA_EVENTS = new Set(["klarna_offer_shown", "klarna_clicked", "klarna_session_created", "klarna_auth_result", "klarna_ab_known", "klarna_session_failed"]); // KLARNA-FUNNEL-1017 // KLARNA-FUNNEL-FIX-1017 // KLARNA-LOG-1017
 for (const event of KLARNA_EVENTS) EVENTS.add(event); // KLARNA-FUNNEL-1017
 
 function cors(origin: string | null): Record<string, string> {
@@ -58,6 +58,9 @@ function clean(o: unknown, host: string | null): Record<string, unknown> | null 
       klarna_show_form: typeof r.klarna_show_form === "boolean" ? r.klarna_show_form : null, // KLARNA-CAT-1017
       klarna_approved: typeof r.klarna_approved === "boolean" ? r.klarna_approved : null, // KLARNA-CAT-1017
       klarna_load: r.klarna_load === "ok" || r.klarna_load === "no_form" || r.klarna_load === "error" || r.klarna_load === "timeout" ? r.klarna_load : null, // KLARNA-CAT-1017
+      klarna_reason: r.klarna_reason === "no_token" || r.klarna_reason === "sdk_load_failed" || r.klarna_reason === "sdk_missing" || r.klarna_reason === "network" || r.klarna_reason === "server_error" ? r.klarna_reason : null, // KLARNA-LOG-1017
+      klarna_finalize_required: typeof r.klarna_finalize_required === "boolean" ? r.klarna_finalize_required : null, // KLARNA-LOG-1017
+      klarna_error: typeof r.klarna_error === "string" && /^[A-Za-z0-9_.,:\[\]+-]{1,200}$/.test(r.klarna_error) ? r.klarna_error : null, // KLARNA-LOG-1017
     } : {}),
   }; // KLARNA-FUNNEL-1017
 }
