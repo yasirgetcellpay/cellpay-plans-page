@@ -3136,7 +3136,7 @@ serve(async (req) => {
       : { success: false, error: (data as Record<string, unknown>)?.message || (data as Record<string, unknown>)?.error || "Request failed", data };
 
     // SUCCESS-FLAG-FIX-1016: raw logger receives the original upstream body before any rewriting/scrubbing.
-    if (shouldLogTransaction) logRawCellPayReply(txLogId, endpoint, response.status, paymentMethod, data, rawText, rawReplyParseFailed);
+    if (shouldLogTransaction) { if (txLogId) logRawCellPayReply(txLogId, endpoint, response.status, paymentMethod, data, rawText, rawReplyParseFailed); else { let rawCopy: unknown = data; try { rawCopy = structuredClone(data); } catch { /* keep reference */ } const st = response.status; waitUntilSafe(logIdP().then((lateId) => logRawCellPayReply(lateId, endpoint, st, paymentMethod, rawCopy, rawText, rawReplyParseFailed)).catch(() => logRawCellPayReply(null, endpoint, st, paymentMethod, rawCopy, rawText, rawReplyParseFailed))); } } // DBT-FOLLOWUP-1017
     const refundMarker = shouldLogTransaction && !isPockytCreate ? refundSuccessMarker(wrapped) : null;
     const unconfirmedKind = shouldLogTransaction && !isPockytCreate && !refundMarker ? chargeUnconfirmedKind(response.status, data, wrapped) : null; // REFUNDED-STATE-1017
     const refundAudit = refundMarker ? { ...asRecord(data), refund_signal: true, refund_marker: refundMarker } : null;

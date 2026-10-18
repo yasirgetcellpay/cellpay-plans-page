@@ -26,9 +26,9 @@ describe("KLARNA-CAT-1017", () => { // KLARNA-CAT-1017
       const events: unknown[][] = []; // KLARNA-CAT-1017
       const authorize = vi.fn((_opts, _data, cb) => cb({ approved: false, show_form: false })); // KLARNA-CAT-1017
       const load = vi.fn((_opts, _data, cb) => { late = cb; if (mode === "throw") throw new Error("SDK load failed"); if (mode !== "timeout") cb(mode === "ok" ? { show_form: true } : mode === "error" ? { error: true } : { show_form: false }); }); // KLARNA-CAT-1017
-      const names = ["klarnaPayments", "klarnaCategory", "klarnaLoc", "trackKlarna", "readKlarnaSrc", "phone10", "klarnaAttempt", "klarnaFirstName", "klarnaLastName", "emailCleanRef", "klarnaPhone", "klarnaAddress", "klarnaCity", "klarnaCountry", "klarnaState", "klarnaZip", "normalizeRegionCode", "patchFunds", "setErrorMsg", "setSubmitting"]; // KLARNA-CAT-1017
+      const names = ["klarnaPayments", "klarnaCategory", "klarnaLoc", "trackKlarna", "readKlarnaSrc", "phone10", "klarnaAttempt", "klarnaFirstName", "klarnaLastName", "emailCleanRef", "klarnaPhone", "klarnaAddress", "klarnaCity", "klarnaCountry", "klarnaState", "klarnaZip", "normalizeRegionCode", "patchFunds", "setErrorMsg", "setSubmitting", "klarnaErrKeys"]; // KLARNA-CAT-1017 // DBT-FOLLOWUP-1017
       const run = new Function(...names, promiseJS); // KLARNA-CAT-1017
-      const result = run({ load, authorize }, "pay_over_time", "es-US", (...args: unknown[]) => events.push(args), () => "method_list", "", "1", "", "", { current: "" }, "", "", "", "US", "", "", () => "", vi.fn(), vi.fn(), vi.fn()); // KLARNA-CAT-1017
+      const result = run({ load, authorize }, "pay_over_time", "es-US", (...args: unknown[]) => events.push(args), () => "method_list", "", "1", "", "", { current: "" }, "", "", "", "US", "", "", () => "", vi.fn(), vi.fn(), vi.fn(), () => undefined); // KLARNA-CAT-1017 // DBT-FOLLOWUP-1017
       if (mode === "timeout") { expect(authorize).not.toHaveBeenCalled(); await vi.advanceTimersByTimeAsync(8000); } // KLARNA-CAT-1017
       await result; late?.({ show_form: true }); await vi.advanceTimersByTimeAsync(9000); // KLARNA-CAT-1017
       expect(load).toHaveBeenCalledWith({ container: "#klarna-payments-container", payment_method_category: "pay_over_time" }, { locale: "es-US" }, expect.any(Function)); // KLARNA-CAT-1017

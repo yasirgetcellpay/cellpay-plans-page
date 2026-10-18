@@ -769,6 +769,7 @@ const Checkout = () => {
     setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setUnconfirmedCard(false); setInFlightNote(false); setDupAsk(null);
     setMaybePaidPaused(paused);
     setMaybePaid({ until: until ?? activeLock(key)?.until ?? Date.now() + PAYLOCK_UNKNOWN_MS });
+    try { trackFunnel(paused ? "maybe_paid_lock_shown" : "maybe_paid_shown", funnelDataRef.current, String(Date.now())); } catch { /* ignore */ } // DBT-FOLLOWUP-1017
     setSubmitting(false);
   };
   // VZ-PREPAID-GUARD-1017: an upstream call was prevented, not a payment decline.
