@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { callProxy } from "@/services/apiWrapper";
+import { sendTracked } from "@/lib/trackQueue"; // DB-OUTAGE-TRACK-1017
 import { Footer } from "@/components/Footer";
 import { PaymentBar } from "@/components/PaymentBar";
 import { LegalBar } from "@/components/LegalBar";
@@ -207,17 +208,7 @@ const OrderConfirmation = () => {
             const _su = import.meta.env.VITE_SUPABASE_URL as string | undefined;
             const _sk = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
             if (_su && _sk && txnId) {
-              fetch(_su + "/rest/v1/rpc/log_purchase_fire", {
-                method: "POST",
-                keepalive: true,
-                headers: { apikey: _sk, Authorization: "Bearer " + _sk, "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  _transaction_id: txnId,
-                  _hashid: hashid || null,
-                  _value: Math.round((amount + fee) * 100) / 100,
-                  _source: "order_confirmation",
-                }),
-              }).catch(() => {});
+              sendTracked("log_purchase_fire", { _transaction_id: txnId, _hashid: hashid || null, _value: Math.round((amount + fee) * 100) / 100, _source: "order_confirmation" }); // DB-OUTAGE-TRACK-1017
             }
           } catch { /* ignore beacon errors */ }
         }
