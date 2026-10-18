@@ -26,6 +26,6 @@
 - [x] 59 regression tests passed; preview offer/click events read back from analytics, with no payment calls or runtime errors. Deploy only funnel-event and cellpay-proxy; not published. Real Klarna authorization was not exercised.
 
 # REFUND-RETRY-1018 // REFUND-RETRY-1018
-- [ ] Add browser-local carrier reasons, retry choices, history limits and one-shot context. // REFUND-RETRY-1018
-- [ ] Wire refund choices, safe prefill and carrier phone selection; preserve requests and guards. // REFUND-RETRY-1018
-- [ ] Add isolated retry analytics/log metadata, run tests and preview checks, redeploy two functions only. // REFUND-RETRY-1018
+- [x] Add browser-local carrier reasons, retry choices, history limits and one-shot context. // REFUND-RETRY-1018
+- [x] Wire refund choices, safe prefill and carrier phone selection; intercepted Boost and T-Mobile-to-Metro flows verified without extra payment, preserving requests and guards. // REFUND-RETRY-1018
+- [x] Add isolated retry analytics/log metadata; 255 tests passed, 36 existing failures; preview build OK; redeploy cellpay-proxy and funnel-event only, no database changes or frontend publish. // REFUND-RETRY-1018
