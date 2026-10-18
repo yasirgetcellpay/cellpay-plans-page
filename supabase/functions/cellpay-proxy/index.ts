@@ -2565,6 +2565,7 @@ const ASCII_MAP: Record<string, string> = {
 const ASCII_MAP_RE = new RegExp("[" + Object.keys(ASCII_MAP).join("") + "]", "g");
 function toAsciiName(s: string): string {
   return String(s ?? "")
+    .replace(/[\t\r\n]/g, " ").replace(/\p{Cc}/gu, "") // NAME-SANITIZE-1018
     .replace(/[\p{Cf}\uFFFC\uFFFD\uFE00-\uFE0F\u20E3\u034F\u115F\u1160\u3164]/gu, "") // invisible chars removed outright
     .replace(ASCII_MAP_RE, (c) => ASCII_MAP[c] ?? "")
     .normalize("NFKD")                       // general fallback: compatibility + diacritic split (e.g. ﬁ -> fi, ｊ -> j)
@@ -2572,7 +2573,7 @@ function toAsciiName(s: string): string {
     .replace(/[^A-Za-z0-9 .'\-]/g, " ")      // symbols, emoji, U+FFFC, zero-width, non-Latin scripts -> removed
     .replace(/\s+/g, " ")
     .replace(/^[\s.'\-]+|[\s.'\-]+$/g, "")   // no leading/trailing punctuation
-    .trim();
+    .trim().slice(0, 50).trim(); // NAME-SANITIZE-1018
 }
 const hasLatin = (s: string) => /[A-Za-z]/.test(s);
 const FIRST_RE = /^(first_?name|given_?name)$/i, LAST_RE = /^(last_?name|family_?name)$/i;
@@ -2583,11 +2584,25 @@ function foldNameFields(o: Record<string, unknown>): Record<string, string> {
   const fk = keys.find((k) => FIRST_RE.test(k)), lk = keys.find((k) => LAST_RE.test(k));
   for (const k of keys) {
     if (hasLatin(folded[k])) continue;
-    const other = k === fk && lk ? folded[lk] : k === lk && fk ? folded[fk] : "";
-    folded[k] = hasLatin(other) ? other : "Customer"; // never send an empty name
+    folded[k] = "Customer"; // never send an empty name // NAME-SANITIZE-1018
   }
   return folded;
 }
+function foldWalletNames(v: unknown, depth = 0): unknown { // NAME-SANITIZE-1018
+  if (depth > 6 || v === null || typeof v !== "object") return v; // NAME-SANITIZE-1018
+  if (Array.isArray(v)) return v.map((x) => foldWalletNames(x, depth + 1)); // NAME-SANITIZE-1018
+  const src = v as Record<string, unknown>; // NAME-SANITIZE-1018
+  const folded = foldNameFields(src); // NAME-SANITIZE-1018
+  const out: Record<string, unknown> = {}; // NAME-SANITIZE-1018
+  for (const [k, x] of Object.entries(src)) { // NAME-SANITIZE-1018
+    if (k in folded) out[k] = folded[k]; // NAME-SANITIZE-1018
+    else if (typeof x === "string" && /^name$/i.test(k)) { const a = toAsciiName(x); out[k] = /[A-Za-z]/.test(a) ? a : "Customer"; } // NAME-SANITIZE-1018
+    else if (typeof x === "string" && /^phonetic.*name$/i.test(k)) out[k] = toAsciiName(x); // NAME-SANITIZE-1018
+    else if (x && typeof x === "object" && !SKIP_RECURSE.test(k)) out[k] = foldWalletNames(x, depth + 1); // NAME-SANITIZE-1018
+    else out[k] = x; // NAME-SANITIZE-1018
+  } // NAME-SANITIZE-1018
+  return out; // NAME-SANITIZE-1018
+} // NAME-SANITIZE-1018
 function asciiNamesCopy(v: unknown, depth = 0): unknown {
   if (depth > 6 || v === null || typeof v !== "object") return v;
   if (Array.isArray(v)) return v.map((x) => asciiNamesCopy(x, depth + 1));
@@ -2596,6 +2611,16 @@ function asciiNamesCopy(v: unknown, depth = 0): unknown {
   const out: Record<string, unknown> = {};
   for (const [k, x] of Object.entries(src)) {
     if (k in folded) out[k] = folded[k];
+    else if (WALLET_JSON_KEYS.includes(k)) { // NAME-SANITIZE-1018
+      out[k] = x; // NAME-SANITIZE-1018
+      try { // NAME-SANITIZE-1018
+        const wallet = typeof x === "string" ? JSON.parse(x) : x; // NAME-SANITIZE-1018
+        if (wallet && typeof wallet === "object" && !Array.isArray(wallet)) { // NAME-SANITIZE-1018
+          const foldedWallet = foldWalletNames(wallet); // NAME-SANITIZE-1018
+          out[k] = typeof x === "string" ? JSON.stringify(foldedWallet) : foldedWallet; // NAME-SANITIZE-1018
+        } // NAME-SANITIZE-1018
+      } catch { /* fail-open: leave unchanged */ } // NAME-SANITIZE-1018
+    } // NAME-SANITIZE-1018
     else if (x && typeof x === "object" && !SKIP_RECURSE.test(k)) out[k] = asciiNamesCopy(x, depth + 1);
     else out[k] = x;
   }
@@ -2611,9 +2636,15 @@ function namesSentMeta(p: unknown): Record<string, unknown> {
       return { first: typeof f === "string" ? f : null, last: typeof l === "string" ? l : null };
     };
     const orig = pickNames(rec);
-    if (orig.first === null && orig.last === null) return {};
+    const wallet_names_folded = WALLET_JSON_KEYS.some((k) => { // NAME-SANITIZE-1018
+      try { // NAME-SANITIZE-1018
+        const wallet = typeof rec[k] === "string" ? JSON.parse(rec[k] as string) : rec[k]; // NAME-SANITIZE-1018
+        return !!wallet && typeof wallet === "object" && !Array.isArray(wallet) && JSON.stringify(wallet) !== JSON.stringify(foldWalletNames(wallet)); // NAME-SANITIZE-1018
+      } catch { return false; } // NAME-SANITIZE-1018
+    }); // NAME-SANITIZE-1018
+    if (orig.first === null && orig.last === null) return { wallet_names_folded }; // NAME-SANITIZE-1018
     const sent = pickNames(asciiNamesCopy(rec) as Record<string, unknown>);
-    return { name_original: orig, name_sent_to_cellpay: sent, name_folded: orig.first !== sent.first || orig.last !== sent.last };
+    return { name_original: orig, name_sent_to_cellpay: sent, name_folded: orig.first !== sent.first || orig.last !== sent.last, wallet_names_folded }; // NAME-SANITIZE-1018
   } catch { return {}; }
 }
 function asciiNamesBody(body: unknown): unknown {
