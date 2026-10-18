@@ -409,6 +409,9 @@ export type Database = {
           klarna_result: string | null
           klarna_show_form: boolean | null
           lang: string | null
+          retry_action: string | null
+          retry_cause: string | null
+          retry_to_carrier: string | null
           screen: string | null
           session_id: string | null
           shown: boolean | null
@@ -436,6 +439,9 @@ export type Database = {
           klarna_result?: string | null
           klarna_show_form?: boolean | null
           lang?: string | null
+          retry_action?: string | null
+          retry_cause?: string | null
+          retry_to_carrier?: string | null
           screen?: string | null
           session_id?: string | null
           shown?: boolean | null
@@ -463,6 +469,9 @@ export type Database = {
           klarna_result?: string | null
           klarna_show_form?: boolean | null
           lang?: string | null
+          retry_action?: string | null
+          retry_cause?: string | null
+          retry_to_carrier?: string | null
           screen?: string | null
           session_id?: string | null
           shown?: boolean | null

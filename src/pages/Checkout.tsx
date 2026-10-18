@@ -7,6 +7,7 @@ import { PaymentMethodPicker } from "@/components/PaymentMethodPicker"; // METHO
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react"; // CARRIER-ASSIST-1011
 import { flushSync } from "react-dom"; // DECLINE-ONETAP-1017
 import { sendTracked } from "@/lib/trackQueue"; // DB-OUTAGE-TRACK-1017
+import { retryCauseFor, retryReasonText, retryButtons, recordRefund, recordRetryTap, writeRetryCtx, readRetryCtx, takeRetryPrefill, clearRetryCtx, type RetryButton } from "@/lib/refundRetry"; // REFUND-RETRY-1018
 import { lockKey, activeLock, setLock, PAYLOCK_MS, PAYLOCK_UNKNOWN_MS, runPayLocked, refusedBeforeCharge } from "@/lib/payLock"; // DB-OUTAGE-TRACK-1017
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
@@ -440,6 +441,7 @@ const Checkout = () => {
   useEffect(() => {
     if (apTicksRestoredRef.current || !apTicksOrder) return;
     apTicksRestoredRef.current = true;
+    if (readRetryCtx()?.to_carrier === state?.carrierSlug) return; // REFUND-RETRY-1018
     try {
       const v = JSON.parse(sessionStorage.getItem(AP_TICKS_KEY) || "null");
       if (!v || v.v !== 1 || v.order !== apTicksOrder || !(Date.now() - Number(v.ts) <= 30 * 60 * 1000)) { sessionStorage.removeItem(AP_TICKS_KEY); return; }
@@ -758,6 +760,11 @@ const Checkout = () => {
   }, [declineInfo]);
   // TOP4-T2B-1009: the provider auto-refunded this payment -> show the refund card instead of the raw provider sentence.
   const [refundCard, setRefundCard] = useState(false);
+  const [retryResolving, setRetryResolving] = useState<string | null>(null); // REFUND-RETRY-1018
+  const [retryNow, setRetryNow] = useState(Date.now()); // REFUND-RETRY-1018
+  const refundRecordedRef = useRef(false); // REFUND-RETRY-1018
+  const retryPrefillSlugRef = useRef<string | null>(null); // REFUND-RETRY-1018
+  const retryMethodRef = useRef<string | undefined>(undefined); // REFUND-RETRY-1018
   const [loadReason, setLoadReason] = useState<LoadReasonKind | null>(null); // LOADTEXT-REASON-1017
   const [unconfirmedCard, setUnconfirmedCard] = useState(false); // REFUNDED-STATE-1017
   const [maybePaid, setMaybePaid] = useState<{ until: number } | null>(null); // DB-OUTAGE-TRACK-1017
@@ -1463,6 +1470,34 @@ const Checkout = () => {
     };
   }, []);
 
+  useEffect(() => { // REFUND-RETRY-1018
+    if (!refundCard) { refundRecordedRef.current = false; return; } // REFUND-RETRY-1018
+    const cause = retryCauseFor(state?.carrierSlug || ""); // REFUND-RETRY-1018
+    if (!cause || !state || refundRecordedRef.current) return; // REFUND-RETRY-1018
+    refundRecordedRef.current = true; // REFUND-RETRY-1018
+    const now = Date.now(); recordRefund(phone10, state.carrierSlug, now); setRetryNow(now); // REFUND-RETRY-1018
+    try { trackFunnel("retry_offer_shown", { ...funnelDataRef.current, retry_cause: cause, retry_action: retryButtons(state.carrierSlug, lang, phone10, now).map((b) => b.action).join(","), retry_to_carrier: null }, String(now)); } catch { /* ignore */ } // REFUND-RETRY-1018
+  }, [refundCard, state?.carrierSlug, phone10, lang]); // REFUND-RETRY-1018
+  useEffect(() => { // REFUND-RETRY-1018
+    if (!refundCard || !retryCauseFor(state?.carrierSlug || "")) return; // REFUND-RETRY-1018
+    const timer = window.setInterval(() => setRetryNow(Date.now()), 15_000); // REFUND-RETRY-1018
+    return () => window.clearInterval(timer); // REFUND-RETRY-1018
+  }, [refundCard, state?.carrierSlug]); // REFUND-RETRY-1018
+  useEffect(() => { // REFUND-RETRY-1018
+    if (!state?.carrierSlug || retryPrefillSlugRef.current === state.carrierSlug) return; // REFUND-RETRY-1018
+    retryPrefillSlugRef.current = state.carrierSlug; // REFUND-RETRY-1018
+    const pre = takeRetryPrefill(state.carrierSlug); // REFUND-RETRY-1018
+    if (pre?.email) setEmail((current) => current || pre.email || ""); // REFUND-RETRY-1018
+    retryMethodRef.current = pre?.method; // REFUND-RETRY-1018
+    if (pre?.method) methodTappedRef.current = true; // REFUND-RETRY-1018
+  }, [state?.carrierSlug]); // REFUND-RETRY-1018
+  useEffect(() => { // REFUND-RETRY-1018
+    if (loading || !checkoutConfig || !retryMethodRef.current) return; // REFUND-RETRY-1018
+    const offered = Array.from(document.querySelectorAll<HTMLElement>('[data-testid="method-picker"] [data-method]')).map((el) => el.dataset.method); // REFUND-RETRY-1018
+    const method = offered.find((m) => m === retryMethodRef.current); // REFUND-RETRY-1018
+    if (method && ["card", "paypal", "plaid", "googlepay", "applepay", "klarna", "cashapp"].includes(method)) { setPaymentMethod(method as PaymentMethod); retryMethodRef.current = undefined; } // REFUND-RETRY-1018
+    else if (retryMethodRef.current !== "applepay" || applePayAvailable) retryMethodRef.current = undefined; // REFUND-RETRY-1018
+  }, [loading, checkoutConfig, validation, applePayAvailable, walletBlocked, gpayFailed]); // REFUND-RETRY-1018
   if (!state) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background" aria-busy="true">
@@ -1623,6 +1658,7 @@ const Checkout = () => {
       clearCardDeclines();
       clearSessionDeclines(); // DECLINE-RECOVERY-1014
       try { if (sessionStorage.getItem("cp_recovery_shown") === "1") { sessionStorage.removeItem("cp_recovery_shown"); trackFunnel("recovery_success", funnelDataRef.current); } } catch { /* ignore */ } // DECLINE-RECOVERY-1014
+      try { const rr = readRetryCtx(); if (rr) { trackFunnel("retry_success", { ...funnelDataRef.current, retry_cause: rr.cause, retry_action: rr.action, retry_to_carrier: state.carrierSlug }); clearRetryCtx(); } } catch { /* ignore */ } // REFUND-RETRY-1018
       navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
     } else {
       // DUPCHARGE-FOLLOWUPS-1008: DUP_CONFIRM / IN_FLIGHT already opened our own dialog (submitTransaction wrapper): no error box, not a decline.
@@ -3376,6 +3412,8 @@ const Checkout = () => {
       {/* TOP4-T2B-1009: refund card after a provider auto-refund (replaces the raw provider sentence). Message and navigation only:
           no "not charged" note, no decline dialog, no automatic retry; nothing is charged until the customer taps Pay again. */}
       {errorMsg && refundCard && (() => {
+        const cause = retryCauseFor(state.carrierSlug); // REFUND-RETRY-1018
+        const choices = cause ? retryButtons(state.carrierSlug, lang, phone10, retryNow) : []; // REFUND-RETRY-1018
         const es = lang === "es";
         const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`); // REFUND-WORDING-1016
         const amt = `$${Number(validation?.total ?? state.amount ?? 0).toFixed(2)}`; // REFUND-WORDING-1016
@@ -3389,19 +3427,38 @@ const Checkout = () => {
           }, 50);
         };
         const btn = "w-full px-4 py-2.5 rounded-lg font-bold text-sm";
+        const retry = async (choice: RetryButton) => { // REFUND-RETRY-1018
+          if (!cause || retryResolving || choice.disabled) return; // REFUND-RETRY-1018
+          const target = choice.to_carrier || state.carrierSlug; // REFUND-RETRY-1018
+          const key = `${choice.action}${choice.action === "to_carrier" ? "-" + target : ""}`; // REFUND-RETRY-1018
+          setRetryResolving(key); // REFUND-RETRY-1018
+          writeRetryCtx({ cause, action: choice.action, from_carrier: state.carrierSlug, to_carrier: target, email: emailCleanRef.current || undefined, method: paymentMethod }); // REFUND-RETRY-1018
+          try { trackFunnel("retry_tapped", { ...funnelDataRef.current, retry_cause: cause, retry_action: choice.action, retry_to_carrier: choice.action === "other_carrier" ? null : target }, String(Date.now())); } catch { /* ignore */ } // REFUND-RETRY-1018
+          try { // REFUND-RETRY-1018
+            if (choice.action === "to_carrier") { // REFUND-RETRY-1018
+              const result = await resolveCheckoutFromUrl(lang, `?carrier=${target}&amount=${state.amount}&phone=${phone10}`, ""); // REFUND-RETRY-1018
+              if ("state" in result) { writeCheckoutCtx(result.state); window.location.assign(`${lang === "es" ? "/es" : ""}/checkout${stripResumeParams(location.search)}${location.hash}`); } // REFUND-RETRY-1018
+              else { close(); navigate(result.to); } // REFUND-RETRY-1018
+            } else if (choice.action === "amount") { close(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, undefined, location.search, location.hash)); } // REFUND-RETRY-1018
+            else if (choice.action === "number") { close(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, state.amount, location.search, location.hash), { state: { focusPhone: true, selectPhone: true } }); } // REFUND-RETRY-1018
+            else if (choice.action === "other_carrier") { close(); navigate(lang === "es" ? "/es" : "/"); } // REFUND-RETRY-1018
+            else { recordRetryTap(phone10); close(); window.setTimeout(() => { const pay = inlinePayRef.current || paypalContainerRef.current?.querySelector<HTMLElement>('button, [tabindex="0"], iframe'); pay?.scrollIntoView({ behavior: "smooth", block: "center" }); pay?.focus(); }, 0); } // REFUND-RETRY-1018
+          } catch { /* keep the existing card and input */ } // REFUND-RETRY-1018
+          finally { setRetryResolving(null); } // REFUND-RETRY-1018
+        }; // REFUND-RETRY-1018
         return (
           <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={close}>
             <div className="bg-card rounded-2xl p-5 max-w-sm w-full overflow-y-auto overscroll-contain text-center shadow-xl" style={{ maxHeight: "calc(100dvh - 2rem)" }} onClick={(e) => e.stopPropagation()} data-testid="refund-card">
               {/* SUCCESS-FLAG-FIX-1016: owner-approved refund-card title and text only. */}
               {/* REFUND-WORDING-1016: wording only; refund behavior and buttons unchanged. */}
               <h3 className="text-xl font-bold text-foreground mb-2">{es ? (payWord ? "Pago no completado" : "Recarga no completada") : (payWord ? "Payment not completed" : "Refill not completed")}</h3>
-              {loadReason ? (<> {/* LOADTEXT-REASON-1017: refund sentence ends after bank timing; reason paragraph added */}
+              {loadReason || cause ? (<> {/* LOADTEXT-REASON-1017: refund sentence ends after bank timing; reason paragraph added */} {/* // REFUND-RETRY-1018 */}
                 <p className="text-sm text-muted-foreground mb-2" data-testid="refund-card-text">
                   {es
                     ? (payWord ? `Su pago no se completó, así que le reembolsamos sus ${amt}. Según su banco, puede tardar unos días hábiles en reflejarse.` : `Su recarga no se completó, así que le reembolsamos su pago de ${amt}. Según su banco, puede tardar unos días hábiles en reflejarse.`)
                     : (payWord ? `Your payment didn't go through, so we refunded your ${amt}. Depending on your bank, it can take a few business days to show.` : `Your refill didn't go through, so we refunded your payment of ${amt}. Depending on your bank, it can take a few business days to show.`)}
                 </p>
-                <p className="text-sm text-muted-foreground mb-4" data-testid="refund-reason">{loadReasonText(loadReason, lang, state.carrierName)}</p>
+                {cause ? <p className="text-sm text-muted-foreground mb-4" data-testid="retry-reason">{loadReason ? loadReasonText(loadReason, lang, state.carrierName) : retryReasonText(cause, lang, phone10)}</p> : <p className="text-sm text-muted-foreground mb-4" data-testid="refund-reason">{loadReasonText(loadReason, lang, state.carrierName)}</p>} {/* // REFUND-RETRY-1018 */}
               </>) : (
               <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">
                 {es
@@ -3410,8 +3467,13 @@ const Checkout = () => {
               </p>
               )}
               <div className="space-y-2">
-                <button type="button" data-testid="refund-try-again" onClick={() => toCarrier(state.phone)} className={btn + " text-primary-foreground"} style={{ backgroundColor: brandColor }}>{es ? "Intentar de nuevo" : "Try again"}</button>
-                <button type="button" data-testid="refund-change-number" onClick={() => toCarrier("")} className={btn + " border-2 border-border text-foreground bg-background"}>{es ? "Cambiar número" : "Change number"}</button>
+                {cause ? choices.map((choice, index) => { // REFUND-RETRY-1018
+                  const key = `${choice.action}${choice.action === "to_carrier" ? "-" + choice.to_carrier : ""}`; // REFUND-RETRY-1018
+                  return <Button key={key} type="button" data-testid={`retry-btn-${key}`} disabled={!!retryResolving || choice.disabled} onClick={() => void retry(choice)} className={btn + (index === 0 ? " text-primary-foreground" : " border-2 border-border text-foreground bg-background hover:bg-muted")} style={index === 0 ? { backgroundColor: brandColor } : undefined}>{retryResolving === key ? "…" : choice.label}</Button>; // REFUND-RETRY-1018
+                }) : <> {/* // REFUND-RETRY-1018 */}
+                <button type="button" data-testid="refund-try-again" onClick={() => toCarrier(state.phone)} className={btn + " text-primary-foreground"} style={{ backgroundColor: brandColor }}>{es ? "Intentar de nuevo" : "Try again"}</button> {/* // REFUND-RETRY-1018 */}
+                <button type="button" data-testid="refund-change-number" onClick={() => toCarrier("")} className={btn + " border-2 border-border text-foreground bg-background"}>{es ? "Cambiar número" : "Change number"}</button> {/* // REFUND-RETRY-1018 */}
+                </>} {/* // REFUND-RETRY-1018 */}
                 <button type="button" data-testid="refund-carrier-help" onClick={() => { close(); window.setTimeout(() => window.dispatchEvent(new CustomEvent("cp-carrier-help")), 50); }} className="w-full text-sm underline text-muted-foreground pt-1">{es ? "¿No está seguro de su compañía?" : "Not sure of your carrier?"}</button>
                 <button type="button" data-testid="refund-help" onClick={openHelp} className="w-full text-sm underline text-muted-foreground pt-1">{es ? "Ayuda" : "Help"}</button>
               </div>

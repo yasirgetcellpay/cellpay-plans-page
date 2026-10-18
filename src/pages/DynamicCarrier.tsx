@@ -528,7 +528,7 @@ const DynamicCarrier = ({
   useEffect(() => {
     if (loading || location.state?.focusPhone !== true || focusedPhone.current === location.key) return;
     const input = document.getElementById("carrier-phone-input");
-    if (input instanceof HTMLInputElement) { input.focus(); focusedPhone.current = location.key; }
+    if (input instanceof HTMLInputElement) { input.focus(); if (location.state?.selectPhone === true && input.value) input.select(); focusedPhone.current = location.key; } // REFUND-RETRY-1018
   }, [loading, location.key, location.state]);
 
   // Runs after plans load so we can clamp to range or match an existing fixed plan.
