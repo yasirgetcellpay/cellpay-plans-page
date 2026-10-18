@@ -594,6 +594,7 @@ const Checkout = () => {
   const [klarnaState, setKlarnaState] = useState("");
   const [klarnaZip, setKlarnaZip] = useState("");
   const [klarnaCountry, setKlarnaCountry] = useState("US");
+  useEffect(() => { if (paymentMethod === "klarna" && !klarnaPhone.trim() && state?.phone) setKlarnaPhone(state.phone); }, [paymentMethod, klarnaPhone, state?.phone]); // KLARNA-FORM-1018
 
   // Checkout config from API (typed)
   const [checkoutConfig, setCheckoutConfig] = useState<Record<string, unknown> | null>(null);
@@ -2300,7 +2301,7 @@ const Checkout = () => {
       await loadScript(klarnaScriptUrl, "klarna-sdk");
     } catch {
       klarnaFail("sdk_load_failed"); // KLARNA-LOG-1017
-      setErrorMsg("Failed to load Klarna SDK");
+      setErrorMsg(lang === "es" ? "No pudimos cargar Klarna. Intente de nuevo o use otro método de pago." : "Failed to load Klarna SDK"); // KLARNA-FORM-1018
       return;
     }
 
@@ -2323,11 +2324,11 @@ const Checkout = () => {
     try { klarnaCats = klarnaCategoryIds(sessionData); } catch { /* use empty categories */ } // KLARNA-CAT-1017
     const klarnaCategory = pickKlarnaCategory(klarnaCats); // KLARNA-CAT-1017
     const klarnaLoc = klarnaLocale(lang); // KLARNA-CAT-1017
-    if (!clientToken) { klarnaFail(sessionResp?.success === false ? "server_error" : "no_token"); setErrorMsg("Could not create Klarna session"); return; } // KLARNA-LOG-1017
+    if (!clientToken) { klarnaFail(sessionResp?.success === false ? "server_error" : "no_token"); setErrorMsg(lang === "es" ? "No pudimos iniciar Klarna. Intente de nuevo o use otro método de pago." : "Could not create Klarna session"); return; } // KLARNA-LOG-1017 // KLARNA-FORM-1018
     const klarnaAttempt = String(++klarnaAttemptRef.current); // KLARNA-FUNNEL-1017
     try { trackKlarna("klarna_session_created", readKlarnaSrc(phone10), klarnaAttempt, { klarna_categories: klarnaCats.length ? klarnaCats.join("+") : "none" }); } catch { /* ignore */ } // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017
 
-    if (!window.Klarna) { klarnaFail("sdk_missing"); setErrorMsg("Klarna SDK not available"); return; } // KLARNA-LOG-1017
+    if (!window.Klarna) { klarnaFail("sdk_missing"); setErrorMsg(lang === "es" ? "No pudimos cargar Klarna. Intente de nuevo o use otro método de pago." : "Klarna SDK not available"); return; } // KLARNA-LOG-1017 // KLARNA-FORM-1018
 
     window.Klarna.Payments.init({ client_token: clientToken });
     const klarnaPayments = window.Klarna.Payments; // KLARNA-CAT-1017
@@ -2366,7 +2367,7 @@ const Checkout = () => {
               const result = await submitTransaction(buildKlarnaPayload(res.authorization_token)) as Record<string, unknown>;
               handleResult(result);
             } catch {
-              setErrorMsg("Klarna payment failed");
+              setErrorMsg(lang === "es" ? "El pago con Klarna no se completó. Intente de nuevo o use otro método de pago." : "Klarna payment failed"); // KLARNA-FORM-1018
             }
           } else {
             // FUNDS-DECLINE-1016: logging only; keep authorization and submission behavior unchanged.
@@ -2375,7 +2376,7 @@ const Checkout = () => {
                 patchFunds(phone10, { klarna_auth_declined: true }); // KLARNA-FUNNEL-1017
               } catch { /* ignore */ }
             }
-            setErrorMsg("Klarna authorization was declined or cancelled");
+            setErrorMsg(lang === "es" ? "Klarna no aprobó el pago o usted lo canceló. Puede intentar de nuevo o usar otro método de pago." : "Klarna authorization was declined or cancelled"); // KLARNA-FORM-1018
           }
           setSubmitting(false);
           resolve();
@@ -2502,14 +2503,14 @@ const Checkout = () => {
       if (cardCvv.length < 3) return "CVV is required.";
     }
     if (paymentMethod === "klarna") {
-      if (!klarnaFirstName.trim()) return "Klarna: first name is required.";
-      if (!klarnaLastName.trim()) return "Klarna: last name is required.";
-      if (klarnaPhone.replace(/\D/g, "").length < 10) return "Klarna: valid phone is required.";
-      if (!klarnaAddress.trim()) return "Klarna: street address is required.";
-      if (!klarnaCity.trim()) return "Klarna: city is required.";
-      if (!klarnaState.trim()) return "Klarna: state is required.";
-      if (!klarnaCountry.trim()) return "Klarna: country is required.";
-      if (klarnaZip.length < 5) return "Klarna: ZIP is required.";
+      if (!klarnaFirstName.trim()) return lang === "es" ? "Klarna: escriba su nombre." : "Klarna: first name is required."; // KLARNA-FORM-1018
+      if (!klarnaLastName.trim()) return lang === "es" ? "Klarna: escriba su apellido." : "Klarna: last name is required."; // KLARNA-FORM-1018
+      if (klarnaPhone.replace(/\D/g, "").length < 10) return lang === "es" ? "Klarna: escriba un número de teléfono válido de 10 dígitos." : "Klarna: valid phone is required."; // KLARNA-FORM-1018
+      if (!klarnaAddress.trim()) return lang === "es" ? "Klarna: escriba su dirección." : "Klarna: street address is required."; // KLARNA-FORM-1018
+      if (!klarnaCity.trim()) return lang === "es" ? "Klarna: escriba su ciudad." : "Klarna: city is required."; // KLARNA-FORM-1018
+      if (!klarnaState.trim()) return lang === "es" ? "Klarna: escriba su estado." : "Klarna: state is required."; // KLARNA-FORM-1018
+      if (!klarnaCountry.trim()) return lang === "es" ? "Klarna: escriba su país." : "Klarna: country is required."; // KLARNA-FORM-1018
+      if (klarnaZip.length < 5) return lang === "es" ? "Klarna: escriba su código postal de 5 dígitos." : "Klarna: ZIP is required."; // KLARNA-FORM-1018
     }
     return null;
   };
@@ -2862,7 +2863,9 @@ const Checkout = () => {
 
           {/* Klarna Billing Details */}
           {paymentMethod === "klarna" && (
-            <div className="bg-card rounded-xl border border-border p-5 space-y-4">
+            <div className="bg-card rounded-xl border border-border p-5 space-y-4"
+              onFocusCapture={() => { try { trackKlarna("klarna_form_started", readKlarnaSrc(phone10), `form|${declineSeqRef.current}`); } catch { /* ignore */ } }} // KLARNA-FORM-1018
+            >
               <h2 className="font-bold text-foreground mb-1 text-sm">{tr.billingDetails}</h2>
               <div className="grid grid-cols-2 gap-3">
                 <div>
