@@ -51,6 +51,7 @@ import { readCheckoutCtx, writeCheckoutCtx, clearCheckoutCtx, resolveCheckoutFro
 import { trackFunnel, resetFunnel, funnelFired } from "@/lib/funnelEvents"; // CHECKOUT-FUNNEL
 import { readDeclineAb, writeFunds, patchFunds, clearFunds, setKlarnaSrc, readKlarnaSrc, clearKlarnaSrc, type KlarnaSrc } from "@/lib/declineRecovery"; // KLARNA-FUNNEL-1017
 import type { KlarnaFunnelEvent, FunnelData } from "@/lib/funnelEvents"; // KLARNA-FUNNEL-1017
+import { klarnaCategoryIds, pickKlarnaCategory, klarnaLocale } from "@/lib/klarnaCategory"; // KLARNA-CAT-1017
 
 interface LocationState {
   phone: string;
@@ -110,10 +111,11 @@ declare global {
     Klarna?: {
       Payments: {
         init: (config: { client_token: string }) => void;
-        load: (
-          opts: { container: string; payment_method_category: string },
-          cb: (res: { show_form: boolean }) => void
-        ) => void;
+        load: ( // KLARNA-CAT-1017
+          opts: { container: string; payment_method_category: string }, // KLARNA-CAT-1017
+          data: Record<string, unknown>, // KLARNA-CAT-1017
+          cb: (res: { show_form: boolean; error?: unknown }) => void // KLARNA-CAT-1017
+        ) => void; // KLARNA-CAT-1017
         authorize: (
           opts: { payment_method_category: string },
           data: Record<string, unknown>,
@@ -1344,7 +1346,7 @@ const Checkout = () => {
 
   // CHECKOUT-FUNNEL: invisible funnel analytics (no UI). Hooks sit above the "if (!state)" return. All fire-and-forget.
   const funnelDataRef = useRef<{ carrier: string | null; amount: number | null; fee: number | null; total: number | null }>({ carrier: null, amount: null, fee: null, total: null });
-  const trackKlarna = (event: KlarnaFunnelEvent, screen: KlarnaSrc, onceKey: string, extra: Pick<FunnelData, "shown" | "cap" | "klarna_result"> = {}) => { // KLARNA-FUNNEL-1017
+  const trackKlarna = (event: KlarnaFunnelEvent, screen: KlarnaSrc, onceKey: string, extra: Pick<FunnelData, "shown" | "cap" | "klarna_result" | "klarna_categories" | "klarna_category" | "klarna_show_form" | "klarna_approved" | "klarna_load"> = {}) => { // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017
     try { trackFunnel(event, { ...funnelDataRef.current, screen, decline_ab: readDeclineAb(phone10), checkout_session_id: sessionIdRef.current, ...extra }, onceKey); } catch { /* ignore */ } // KLARNA-FUNNEL-1017
   }; // KLARNA-FUNNEL-1017
   useEffect(() => { resetFunnel(); }, []);
@@ -2236,18 +2238,31 @@ const Checkout = () => {
       else sessionData = inner;
     }
     const clientToken = sessionData.client_token as string;
+    let klarnaCats: string[] = []; // KLARNA-CAT-1017
+    try { klarnaCats = klarnaCategoryIds(sessionData); } catch { /* use empty categories */ } // KLARNA-CAT-1017
+    const klarnaCategory = pickKlarnaCategory(klarnaCats); // KLARNA-CAT-1017
+    const klarnaLoc = klarnaLocale(lang); // KLARNA-CAT-1017
     if (!clientToken) { setErrorMsg("Could not create Klarna session"); return; }
     const klarnaAttempt = String(++klarnaAttemptRef.current); // KLARNA-FUNNEL-1017
-    try { trackKlarna("klarna_session_created", readKlarnaSrc(phone10), klarnaAttempt); } catch { /* ignore */ } // KLARNA-FUNNEL-1017
+    try { trackKlarna("klarna_session_created", readKlarnaSrc(phone10), klarnaAttempt, { klarna_categories: klarnaCats.length ? klarnaCats.join("+") : "none" }); } catch { /* ignore */ } // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017
 
     if (!window.Klarna) { setErrorMsg("Klarna SDK not available"); return; }
 
     window.Klarna.Payments.init({ client_token: clientToken });
+    const klarnaPayments = window.Klarna.Payments; // KLARNA-CAT-1017
 
     return new Promise<void>((resolve) => {
-      window.Klarna!.Payments.authorize(
-        { payment_method_category: "pay_later" },
+      let klarnaLoadState: "ok" | "no_form" | "error" | "timeout" = "no_form"; // KLARNA-CAT-1017
+      let authorizeStarted = false; // KLARNA-CAT-1017
+      let loadTimer: ReturnType<typeof setTimeout> | undefined; // KLARNA-CAT-1017
+      const runAuthorize = () => { // KLARNA-CAT-1017
+        if (authorizeStarted) return; // KLARNA-CAT-1017
+        authorizeStarted = true; // KLARNA-CAT-1017
+        clearTimeout(loadTimer); // KLARNA-CAT-1017
+      klarnaPayments.authorize( // KLARNA-CAT-1017
+        { payment_method_category: klarnaCategory }, // KLARNA-CAT-1017
         {
+          locale: klarnaLoc, // KLARNA-CAT-1017
           billing_address: {
             given_name: klarnaFirstName,
             family_name: klarnaLastName,
@@ -2262,7 +2277,7 @@ const Checkout = () => {
           },
         },
         async (res) => {
-          try { trackKlarna("klarna_auth_result", readKlarnaSrc(phone10), klarnaAttempt, { klarna_result: (res.approved && res.authorization_token) ? "approved" : (res.show_form === false ? "declined" : "cancelled") }); } catch { /* ignore */ } // KLARNA-FUNNEL-1017
+          try { trackKlarna("klarna_auth_result", readKlarnaSrc(phone10), klarnaAttempt, { klarna_result: (res.approved && res.authorization_token) ? "approved" : (res.show_form === false ? "declined" : "cancelled"), klarna_category: klarnaCategory, klarna_load: klarnaLoadState, klarna_approved: typeof res.approved === "boolean" ? res.approved : undefined, klarna_show_form: typeof res.show_form === "boolean" ? res.show_form : undefined }); } catch { /* ignore */ } // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017
           if (res.approved && res.authorization_token) {
             setKlarnaToken(res.authorization_token);
             try {
@@ -2285,6 +2300,15 @@ const Checkout = () => {
           resolve();
         }
       );
+      }; // KLARNA-CAT-1017
+      loadTimer = setTimeout(() => { if (authorizeStarted) return; klarnaLoadState = "timeout"; runAuthorize(); }, 8000); // KLARNA-CAT-1017
+      try { // KLARNA-CAT-1017
+        klarnaPayments.load({ container: "#klarna-payments-container", payment_method_category: klarnaCategory }, { locale: klarnaLoc }, (res) => { // KLARNA-CAT-1017
+          if (authorizeStarted) return; // KLARNA-CAT-1017
+          klarnaLoadState = res?.show_form ? "ok" : (res?.error ? "error" : "no_form"); // KLARNA-CAT-1017
+          runAuthorize(); // KLARNA-CAT-1017
+        }); // KLARNA-CAT-1017
+      } catch { if (!authorizeStarted) { klarnaLoadState = "error"; runAuthorize(); } } // KLARNA-CAT-1017
     });
   };
 
