@@ -44,6 +44,8 @@ export async function callProxy(req: ProxyRequest): Promise<unknown> {
     });
 
     if (error) { // PLAN-BLOCK-CLEANUP-1017
+      const context = (error as { context?: unknown }).context; // DB-OUTAGE-TRACK-1017
+      const cpStatus = context instanceof Response ? context.status : undefined; // DB-OUTAGE-TRACK-1017
       let politeMsg = ""; // PLAN-BLOCK-CLEANUP-1017
       try { // PLAN-BLOCK-CLEANUP-1017
         const ctx = (error as { context?: unknown }).context; // PLAN-BLOCK-CLEANUP-1017
@@ -52,8 +54,10 @@ export async function callProxy(req: ProxyRequest): Promise<unknown> {
           if (b && b.code === "PLAN_GUARD" && typeof b.message === "string") politeMsg = b.message.trim(); // PLAN-BLOCK-CLEANUP-1017
         } // PLAN-BLOCK-CLEANUP-1017
       } catch { /* keep the original message */ } // PLAN-BLOCK-CLEANUP-1017
-      if (politeMsg) { const pe = new Error(politeMsg); pe.name = "PlanGuardError"; throw pe; } // PLAN-BLOCK-CLEANUP-1017
-      throw new Error(error.message || "Proxy call failed"); // PLAN-BLOCK-CLEANUP-1017
+      if (politeMsg) { const pe = new Error(politeMsg) as Error & { cpStatus?: number }; pe.name = "PlanGuardError"; if (cpStatus !== undefined) pe.cpStatus = cpStatus; throw pe; } // PLAN-BLOCK-CLEANUP-1017 // DB-OUTAGE-TRACK-1017
+      const thrownError = new Error(error.message || "Proxy call failed") as Error & { cpStatus?: number }; // PLAN-BLOCK-CLEANUP-1017 // DB-OUTAGE-TRACK-1017
+      if (cpStatus !== undefined) thrownError.cpStatus = cpStatus; // DB-OUTAGE-TRACK-1017
+      throw thrownError; // DB-OUTAGE-TRACK-1017
     } // PLAN-BLOCK-CLEANUP-1017
     return data;
   } finally {

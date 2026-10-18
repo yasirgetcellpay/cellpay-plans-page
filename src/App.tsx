@@ -3,6 +3,7 @@ import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from "
 import { HELP_CHAT_ENABLED } from "@/components/help/helpChatFlag";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { captureTrackingIdsFromUrl } from "@/lib/tracking";
+import { startTrackQueue } from "@/lib/trackQueue"; // DB-OUTAGE-TRACK-1017
 import { usePresence } from "@/hooks/usePresence";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import Home from "./pages/Home.tsx";
@@ -368,10 +369,12 @@ const CatchAll = () => {
   return <NotFound />;
 };
 
+const TrackQueueStarter = () => { useEffect(() => { startTrackQueue(); }, []); return null; }; // DB-OUTAGE-TRACK-1017
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
       <TrackingCapture />
+      <TrackQueueStarter />
       <ScrollToTop />
       <CheckoutPrefetch />
       <Suspense fallback={<RouteFallback />}>

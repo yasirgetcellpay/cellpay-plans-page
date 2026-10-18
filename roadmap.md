@@ -1,4 +1,10 @@
 # VZ-PREPAID-GUARD-1017
+<!-- DB-OUTAGE-TRACK-1017 -->
+- [x] Add browser tracking retry queue and app/success-path wiring.
+- [x] Add background order logging and pure in-memory duplicate guard; preserve CellPay requests.
+- [x] Add phone/amount locks and bilingual maybe-paid state across submission callers.
+- [x] Verify new outage regressions and intercepted-payment preview; provide full diff without deployment, publishing or database changes.
+
 - [x] Add pure guard and shared bilingual wording; carrier number focus.
 - [x] Apply prepared migration `vz_prepaid_guard_1017` (authorized by the owner).
 - [x] Integrate transaction and PayPal pre-create guard; dedicated checkout dialog and notes.
