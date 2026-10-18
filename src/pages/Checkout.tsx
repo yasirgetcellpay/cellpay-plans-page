@@ -3458,7 +3458,7 @@ const Checkout = () => {
                     ? (payWord ? `Su pago no se completó, así que le reembolsamos sus ${amt}. Según su banco, puede tardar unos días hábiles en reflejarse.` : `Su recarga no se completó, así que le reembolsamos su pago de ${amt}. Según su banco, puede tardar unos días hábiles en reflejarse.`)
                     : (payWord ? `Your payment didn't go through, so we refunded your ${amt}. Depending on your bank, it can take a few business days to show.` : `Your refill didn't go through, so we refunded your payment of ${amt}. Depending on your bank, it can take a few business days to show.`)}
                 </p>
-                <p className="text-sm text-muted-foreground mb-4" data-testid={cause ? "retry-reason" : "refund-reason"}>{loadReason ? loadReasonText(loadReason, lang, state.carrierName) : cause ? retryReasonText(cause, lang, phone10) : null}</p> {/* // REFUND-RETRY-1018 */}
+                {cause ? <p className="text-sm text-muted-foreground mb-4" data-testid="retry-reason">{loadReason ? loadReasonText(loadReason, lang, state.carrierName) : retryReasonText(cause, lang, phone10)}</p> : <p className="text-sm text-muted-foreground mb-4" data-testid="refund-reason">{loadReasonText(loadReason, lang, state.carrierName)}</p>} {/* // REFUND-RETRY-1018 */}
               </>) : (
               <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">
                 {es
