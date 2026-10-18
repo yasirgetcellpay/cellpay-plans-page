@@ -399,7 +399,12 @@ export type Database = {
           fee: number | null
           host: string | null
           id: number
+          klarna_approved: boolean | null
+          klarna_categories: string | null
+          klarna_category: string | null
+          klarna_load: string | null
           klarna_result: string | null
+          klarna_show_form: boolean | null
           lang: string | null
           screen: string | null
           session_id: string | null
@@ -418,7 +423,12 @@ export type Database = {
           fee?: number | null
           host?: string | null
           id?: number
+          klarna_approved?: boolean | null
+          klarna_categories?: string | null
+          klarna_category?: string | null
+          klarna_load?: string | null
           klarna_result?: string | null
+          klarna_show_form?: boolean | null
           lang?: string | null
           screen?: string | null
           session_id?: string | null
@@ -437,7 +447,12 @@ export type Database = {
           fee?: number | null
           host?: string | null
           id?: number
+          klarna_approved?: boolean | null
+          klarna_categories?: string | null
+          klarna_category?: string | null
+          klarna_load?: string | null
           klarna_result?: string | null
+          klarna_show_form?: boolean | null
           lang?: string | null
           screen?: string | null
           session_id?: string | null
