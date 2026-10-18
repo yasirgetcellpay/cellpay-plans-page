@@ -4,7 +4,7 @@ import { resetFunnel, trackFunnel } from "@/lib/funnelEvents"; // DBT-FOLLOWUP-1
 const proxy = readFileSync("supabase/functions/cellpay-proxy/index.ts", "utf8"); // DBT-FOLLOWUP-1017
 const checkout = readFileSync("src/pages/Checkout.tsx", "utf8"); // DBT-FOLLOWUP-1017
 const funnel = readFileSync("supabase/functions/funnel-event/index.ts", "utf8"); // DBT-FOLLOWUP-1017
-afterEach(() => { vi.restoreAllMocks(); resetFunnel(); }); // DBT-FOLLOWUP-1017
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); resetFunnel(); }); // DBT-FOLLOWUP-1017
 describe("DBT-FOLLOWUP-1017", () => { // DBT-FOLLOWUP-1017
   it("links raw replies immediately or through the late id without another three-second wait", () => { // DBT-FOLLOWUP-1017
     const line = proxy.split("\n").find((value) => value.includes("if (shouldLogTransaction) {") && value.includes("// DBT-FOLLOWUP-1017")); // DBT-FOLLOWUP-1017
@@ -31,7 +31,7 @@ describe("DBT-FOLLOWUP-1017", () => { // DBT-FOLLOWUP-1017
   it("sends maybe_paid_shown without a phone field", async () => { // DBT-FOLLOWUP-1017
     resetFunnel(); // DBT-FOLLOWUP-1017
     const sendBeacon = vi.fn(() => true); // DBT-FOLLOWUP-1017
-    vi.spyOn(navigator, "sendBeacon").mockImplementation(sendBeacon); // DBT-FOLLOWUP-1017
+    vi.stubGlobal("navigator", { sendBeacon }); // DBT-FOLLOWUP-1017
     const data = { carrier: "metro", amount: 30, phone: "2025550199" }; // DBT-FOLLOWUP-1017
     trackFunnel("maybe_paid_shown", data, "k1"); // DBT-FOLLOWUP-1017
     expect(sendBeacon).toHaveBeenCalledTimes(1); // DBT-FOLLOWUP-1017
