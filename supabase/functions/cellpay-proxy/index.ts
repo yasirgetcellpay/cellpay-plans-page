@@ -3011,6 +3011,33 @@ serve(async (req) => {
         }
       } catch { /* refill cooldown fails open */ }
     }
+    if (shouldLogTransaction && retryMetaFrom((body as Record<string, unknown>)?.retry_meta).retry_src === "refund_retry") { // REFUND-RETRY-LATE-1018
+      let gate: Record<string, unknown> | null = null; // REFUND-RETRY-LATE-1018
+      try { // REFUND-RETRY-LATE-1018
+        const gUrl = Deno.env.get("SUPABASE_URL"), gKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"); // REFUND-RETRY-LATE-1018
+        if (gUrl && gKey) { // REFUND-RETRY-LATE-1018
+          const gRes = await fetch(`${gUrl}/rest/v1/rpc/refund_retry_gate`, { // REFUND-RETRY-LATE-1018
+            method: "POST", // REFUND-RETRY-LATE-1018
+            headers: { apikey: gKey, authorization: `Bearer ${gKey}`, "content-type": "application/json" }, // REFUND-RETRY-LATE-1018
+            body: JSON.stringify({ p_phone: String(payloadRecord.phone_number ?? payloadRecord.phoneNumber ?? "").replace(/\D/g, ""), p_carrier: String(payloadRecord.carrier_slug ?? ""), p_action: String(retryMetaFrom((body as Record<string, unknown>)?.retry_meta).retry_action ?? "") }), // REFUND-RETRY-LATE-1018
+            signal: AbortSignal.timeout(1000), // REFUND-RETRY-LATE-1018
+          }); // REFUND-RETRY-LATE-1018
+          if (gRes.ok) { const gj = await gRes.json(); gate = asRecord(Array.isArray(gj) ? gj[0] : gj); } else await gRes.body?.cancel(); // REFUND-RETRY-LATE-1018
+        } // REFUND-RETRY-LATE-1018
+      } catch { gate = null; /* refund retry gate fails open */ } // REFUND-RETRY-LATE-1018
+      const gEs = String((body as Record<string, unknown>)?.lang ?? "").startsWith("es"); // REFUND-RETRY-LATE-1018
+      if (gate && gate.block === "cap") { // REFUND-RETRY-LATE-1018
+        recordGuardEvent({ code: "refund_retry_cap", method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null }); // REFUND-RETRY-LATE-1018
+        const msg = gEs ? "Para protegerle, no se puede volver a intentar con este número hoy. No se le cobró este intento. Inténtelo de nuevo mañana o comuníquese con support@getcellpay.com." : "To protect you, this number can't be tried again today. You were not charged for this attempt. Please try again tomorrow or contact support@getcellpay.com."; // REFUND-RETRY-LATE-1018
+        return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_CAP", message: msg }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); // REFUND-RETRY-LATE-1018
+      } // REFUND-RETRY-LATE-1018
+      if (gate && gate.block === "wait") { // REFUND-RETRY-LATE-1018
+        recordGuardEvent({ code: "refund_retry_wait", method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null }); // REFUND-RETRY-LATE-1018
+        const ra = Math.round(Number(gate.retry_after)); // REFUND-RETRY-LATE-1018
+        const msg = gEs ? "Espere unos 10 minutos antes de volver a intentar con este número. No se le cobró este intento." : "Please wait about 10 minutes before trying this number again. You were not charged for this attempt."; // REFUND-RETRY-LATE-1018
+        return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_WAIT", retry_after: Number.isFinite(ra) && ra > 0 ? ra : 600, message: msg }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); // REFUND-RETRY-LATE-1018
+      } // REFUND-RETRY-LATE-1018
+    } // REFUND-RETRY-LATE-1018
     // [DUPCHARGE-1008] Every payment method through checkout/transaction (card, Apple Pay, Google Pay, Klarna, Cash App, Pay by Bank).
     // session_paid -> SESSION_PAID: nothing is charged; the earlier paid order's hashid goes back so the site shows that order.
     // recent (same phone + amount paid in the last 10 min) -> DUP_CONFIRM unless the site resent it with dup_confirm: true after the
