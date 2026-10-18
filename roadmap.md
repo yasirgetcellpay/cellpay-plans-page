@@ -24,3 +24,8 @@
 - [x] Preserve existing funnel records and apply additive analytics migration.
 - [x] Add isolated Klarna events, mirrored flags, and retry metadata without UI/payment changes.
 - [x] 59 regression tests passed; preview offer/click events read back from analytics, with no payment calls or runtime errors. Deploy only funnel-event and cellpay-proxy; not published. Real Klarna authorization was not exercised.
+
+# REFUND-RETRY-1018 // REFUND-RETRY-1018
+- [ ] Add browser-local carrier reasons, retry choices, history limits and one-shot context. // REFUND-RETRY-1018
+- [ ] Wire refund choices, safe prefill and carrier phone selection; preserve requests and guards. // REFUND-RETRY-1018
+- [ ] Add isolated retry analytics/log metadata, run tests and preview checks, redeploy two functions only. // REFUND-RETRY-1018
