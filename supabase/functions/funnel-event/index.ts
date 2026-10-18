@@ -53,6 +53,11 @@ function clean(o: unknown, host: string | null): Record<string, unknown> | null 
       checkout_session_id: typeof r.checkout_session_id === "string" && /^[A-Za-z0-9_-]{1,100}$/.test(r.checkout_session_id) ? r.checkout_session_id : null,
       klarna_result: r.klarna_result === "approved" || r.klarna_result === "declined" || r.klarna_result === "cancelled" ? r.klarna_result : null,
       shown: typeof r.shown === "boolean" ? r.shown : null, cap: typeof r.cap === "boolean" ? r.cap : null,
+      klarna_categories: typeof r.klarna_categories === "string" && /^[a-z_+]{1,120}$/.test(r.klarna_categories) ? r.klarna_categories : null, // KLARNA-CAT-1017
+      klarna_category: typeof r.klarna_category === "string" && /^[a-z_]{1,30}$/.test(r.klarna_category) ? r.klarna_category : null, // KLARNA-CAT-1017
+      klarna_show_form: typeof r.klarna_show_form === "boolean" ? r.klarna_show_form : null, // KLARNA-CAT-1017
+      klarna_approved: typeof r.klarna_approved === "boolean" ? r.klarna_approved : null, // KLARNA-CAT-1017
+      klarna_load: r.klarna_load === "ok" || r.klarna_load === "no_form" || r.klarna_load === "error" || r.klarna_load === "timeout" ? r.klarna_load : null, // KLARNA-CAT-1017
     } : {}),
   }; // KLARNA-FUNNEL-1017
 }
