@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { readRetryCtx } from "@/lib/refundRetry"; // REFUND-RETRY-1018
 import { readFunds, readKlarnaSrc } from "@/lib/declineRecovery"; // KLARNA-FUNNEL-1017
 
 const TIMEOUT_MS = 15000;
@@ -379,6 +380,7 @@ function storedRetryMeta(payload: Record<string, unknown>): Record<string, unkno
     }
   } catch { /* ignore */ }
   try { if (String(payload.payment_method).toLowerCase() === "klarna") out.klarna_src = readKlarnaSrc(String(payload.phone_number || "").replace(/\D/g, "")); } catch { /* ignore */ } // KLARNA-FUNNEL-1017
+  try { const rr = readRetryCtx(); if (rr) { out.retry_src = "refund_retry"; out.retry_from_carrier = rr.from_carrier; out.retry_action = rr.action; out.retry_cause = rr.cause; } } catch { /* ignore */ } // REFUND-RETRY-1018
   return Object.keys(out).length ? out : undefined;
 }
 
