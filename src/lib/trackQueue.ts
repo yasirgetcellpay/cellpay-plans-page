@@ -76,7 +76,7 @@ export function flushTrackQueue(): void {
     const q = read();
     write(q);
     if (Number(localStorage.getItem(LOCK)) > now) { schedule(); return; }
-    const lease = now + 15000;
+    let lease = now + 15000;
     localStorage.setItem(LOCK, String(lease));
     flushing = true;
     void (async () => {
@@ -84,6 +84,8 @@ export function flushTrackQueue(): void {
         for (const e of q.filter((entry) => entry.next <= now)) {
           // Renew our lease for sequential batches without stealing another tab's lease.
           if (Number(localStorage.getItem(LOCK)) !== lease) break;
+          lease = Date.now() + 15000;
+          localStorage.setItem(LOCK, String(lease));
           const current = read().find((v) => v.k === e.k && v.id === e.id);
           if (!current || current.next > Date.now()) continue;
           const done = await attempt(current.k, current.b, 5000, false);
