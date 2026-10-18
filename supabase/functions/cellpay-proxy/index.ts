@@ -147,6 +147,7 @@ function retryMetaFrom(v: unknown): Record<string, unknown> {
     for (const k of ["klarna_offered", "klarna_clicked", "klarna_auth_declined"]) if (typeof r[k] === "boolean") out[k] = r[k];
     if (r.klarna_src === "decline_nsf" || r.klarna_src === "decline_other" || r.klarna_src === "method_list") out.klarna_src = r.klarna_src; // KLARNA-FUNNEL-1017
     if (r.retry_src === "refund_retry") { out.retry_src = "refund_retry"; if (typeof r.retry_from_carrier === "string" && /^[a-z0-9-]{1,30}$/.test(r.retry_from_carrier)) out.retry_from_carrier = r.retry_from_carrier; if (typeof r.retry_action === "string" && /^(to_carrier|amount|number|try_again|other_carrier)$/.test(r.retry_action)) out.retry_action = r.retry_action; if (typeof r.retry_cause === "string" && /^(tmo_plan_mismatch|simple_not_found|metro_invalid_number|boost_blank)$/.test(r.retry_cause)) out.retry_cause = r.retry_cause; } // REFUND-RETRY-1018
+    if (r.retry_src === "refund_retry" && r.retry_stage === "late") out.retry_stage = "late"; // REFUND-RETRY-LATE-1018
     return out;
   } catch {
     return {};

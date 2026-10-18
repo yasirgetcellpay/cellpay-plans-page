@@ -380,7 +380,7 @@ function storedRetryMeta(payload: Record<string, unknown>): Record<string, unkno
     }
   } catch { /* ignore */ }
   try { if (String(payload.payment_method).toLowerCase() === "klarna") out.klarna_src = readKlarnaSrc(String(payload.phone_number || "").replace(/\D/g, "")); } catch { /* ignore */ } // KLARNA-FUNNEL-1017
-  try { const rr = readRetryCtx(); if (rr) { out.retry_src = "refund_retry"; out.retry_from_carrier = rr.from_carrier; out.retry_action = rr.action; out.retry_cause = rr.cause; } } catch { /* ignore */ } // REFUND-RETRY-1018
+  try { const rr = readRetryCtx(); if (rr) { out.retry_src = "refund_retry"; out.retry_from_carrier = rr.from_carrier; out.retry_action = rr.action; out.retry_cause = rr.cause; if (rr.stage === "late") out.retry_stage = "late"; } } catch { /* ignore */ } // REFUND-RETRY-1018 // REFUND-RETRY-LATE-1018
   return Object.keys(out).length ? out : undefined;
 }
 

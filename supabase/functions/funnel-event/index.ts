@@ -4,7 +4,7 @@ const ALLOWED = new Set(["https://refill.cellpay.us", "https://www.cellpay.us"])
 const EVENTS = new Set(["checkout_view", "total_shown", "payment_started", "submitted", "left_at_total", "prefill_used", "autopay_postpurchase_offer_shown", "autopay_postpurchase_offer_accepted", "recovery_prompt_shown", "recovery_retry", "recovery_success", "maybe_paid_shown", "maybe_paid_lock_shown"]); // DECLINE-RECOVERY-1014: recovery_*; // EMAIL-PREFILL-1013: prefill_used; AUTOPAY-POSTPURCHASE-1013: autopay_postpurchase_* // DBT-FOLLOWUP-1017
 const KLARNA_EVENTS = new Set(["klarna_offer_shown", "klarna_clicked", "klarna_session_created", "klarna_auth_result", "klarna_ab_known", "klarna_session_failed"]); // KLARNA-FUNNEL-1017 // KLARNA-FUNNEL-FIX-1017 // KLARNA-LOG-1017
 for (const event of KLARNA_EVENTS) EVENTS.add(event); // KLARNA-FUNNEL-1017
-const RETRY_EVENTS = new Set(["retry_offer_shown", "retry_tapped", "retry_success"]); // REFUND-RETRY-1018
+const RETRY_EVENTS = new Set(["retry_offer_shown", "retry_tapped", "retry_success", "retry_late_alive"]); // REFUND-RETRY-1018 // REFUND-RETRY-LATE-1018
 for (const event of RETRY_EVENTS) EVENTS.add(event); // REFUND-RETRY-1018
 
 function cors(origin: string | null): Record<string, string> {
@@ -51,7 +51,7 @@ function clean(o: unknown, host: string | null): Record<string, unknown> | null 
   return { event, carrier, amount: num(r.amount), fee: num(r.fee), total: num(r.total), session_id: sid, lang, host, client_ts,
     ...(RETRY_EVENTS.has(event) ? { // REFUND-RETRY-1018
       retry_cause: typeof r.retry_cause === "string" && /^(tmo_plan_mismatch|simple_not_found|metro_invalid_number|boost_blank)$/.test(r.retry_cause) ? r.retry_cause : null, // REFUND-RETRY-1018
-      retry_action: typeof r.retry_action === "string" && /^[a-z_,]{1,80}$/.test(r.retry_action) ? r.retry_action : null, // REFUND-RETRY-1018
+      retry_action: typeof r.retry_action === "string" && /^[a-z0-9_,]{1,80}$/.test(r.retry_action) ? r.retry_action : null, // REFUND-RETRY-1018 // REFUND-RETRY-LATE-1018
       retry_to_carrier: typeof r.retry_to_carrier === "string" && /^[a-z0-9-]{1,30}$/.test(r.retry_to_carrier) ? r.retry_to_carrier : null, // REFUND-RETRY-1018
     } : {}), // REFUND-RETRY-1018
     ...(KLARNA_EVENTS.has(event) ? { // KLARNA-FUNNEL-1017

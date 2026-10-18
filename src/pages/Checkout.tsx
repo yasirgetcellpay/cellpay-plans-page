@@ -1658,13 +1658,14 @@ const Checkout = () => {
       clearCardDeclines();
       clearSessionDeclines(); // DECLINE-RECOVERY-1014
       try { if (sessionStorage.getItem("cp_recovery_shown") === "1") { sessionStorage.removeItem("cp_recovery_shown"); trackFunnel("recovery_success", funnelDataRef.current); } } catch { /* ignore */ } // DECLINE-RECOVERY-1014
-      try { const rr = readRetryCtx(); if (rr) { trackFunnel("retry_success", { ...funnelDataRef.current, retry_cause: rr.cause, retry_action: rr.action, retry_to_carrier: state.carrierSlug }); clearRetryCtx(); } } catch { /* ignore */ } // REFUND-RETRY-1018
+      try { const rr = readRetryCtx(); if (rr) { trackFunnel("retry_success", { ...funnelDataRef.current, retry_cause: rr.cause, retry_action: (rr.stage === "late" ? "late," : "") + rr.action, retry_to_carrier: state.carrierSlug }); /* REFUND-RETRY-LATE-1018 */ clearRetryCtx(); } } catch { /* ignore */ } // REFUND-RETRY-1018
       navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
     } else {
       // DUPCHARGE-FOLLOWUPS-1008: DUP_CONFIRM / IN_FLIGHT already opened our own dialog (submitTransaction wrapper): no error box, not a decline.
       if (raw.code === "MAYBE_PAID" || raw.code === "MAYBE_PAID_LOCK") { showMaybePaid(raw.code === "MAYBE_PAID_LOCK"); return; } // DB-OUTAGE-TRACK-1017
       if (raw.code === "DUP_CONFIRM" || raw.code === "IN_FLIGHT") { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); return; }
       if (raw.code === "BAD_PHONE") { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); return; } // REFUNDED-STATE-1017: wrapper already navigated
+      if (raw.code === "RETRY_CAP" || raw.code === "RETRY_WAIT") { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(String(raw.message || "")); return; } // REFUND-RETRY-LATE-1018
       if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); return; } // REFUNDED-STATE-1017
       setLoadReason(loadReasonKind(loadTextFrom(raw))); // LOADTEXT-REASON-1017
       const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Transaction failed"; // SUCCESS-FLAG-FIX-1016
@@ -2219,6 +2220,7 @@ const Checkout = () => {
           // DUPCHARGE-FOLLOWUPS-1008: DUP_CONFIRM / IN_FLIGHT already opened our own dialog (submitTransaction wrapper): no error box.
           if (raw.code === "MAYBE_PAID" || raw.code === "MAYBE_PAID_LOCK") { showMaybePaid(raw.code === "MAYBE_PAID_LOCK"); } // DB-OUTAGE-TRACK-1017
           else if (raw.code === "BAD_PHONE") { /* REFUNDED-STATE-1017: wrapper already navigated */ }
+          else if (raw.code === "RETRY_CAP" || raw.code === "RETRY_WAIT") { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(String(raw.message || "")); } // REFUND-RETRY-LATE-1018
           else if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); } // REFUNDED-STATE-1017
           else if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") {
             setLoadReason(loadReasonKind(loadTextFrom(raw))); // LOADTEXT-REASON-1017
