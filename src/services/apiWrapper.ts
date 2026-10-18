@@ -16,6 +16,8 @@ interface ProxyRequest {
   visit_source?: { ref_host?: string; utm_source?: string; landing_path?: string };
   /** OURSIDE-RETRY-1012: top-level; cellpay-proxy stores it in transaction_logs.metadata only. Never sent to CellPay. */
   retry_meta?: Record<string, unknown>;
+  /** KLARNA-LOG-1017: top-level; cellpay-proxy uses it only for a PII-free log row. Never sent to CellPay. */ // KLARNA-LOG-1017
+  klarna_log?: { lang?: "en" | "es"; src?: string }; // KLARNA-LOG-1017
 }
 
 export async function callProxy(req: ProxyRequest): Promise<unknown> {
@@ -448,7 +450,9 @@ export async function createApplePaySession(payload: Record<string, unknown>): P
 
 // Klarna session
 export async function createKlarnaSession(payload: Record<string, unknown>): Promise<unknown> {
-  return callProxy({ endpoint: "payments/klarna/session", method: "POST", payload });
+  let klarna_log: { lang?: "en" | "es"; src?: string } | undefined; // KLARNA-LOG-1017
+  try { klarna_log = { lang: pageLang(), src: readKlarnaSrc(String(payload.phone_number || "").replace(/\D/g, "")) }; } catch { klarna_log = undefined; } // KLARNA-LOG-1017
+  return callProxy({ endpoint: "payments/klarna/session", method: "POST", payload, klarna_log }); // KLARNA-LOG-1017
 }
 
 // Pockyt (Cash App) session status
