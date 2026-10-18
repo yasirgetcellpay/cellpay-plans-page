@@ -1,6 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { scoreRisk, riskEngineMode } from "../_shared/riskLogic.ts"; // FRAUD-MULTIBLOCK-1012 5b
 import { vzGuardGate } from "../_shared/vzPrepaidGuard.ts"; // VZ-PREPAID-GUARD-1017
+import { raceNull } from "../_shared/raceNull.ts"; // DB-OUTAGE-TRACK-1017
+import { memdupKey, memdupCheck, memdupUpdate, type MemdupEntry } from "../_shared/memdup.ts"; // DB-OUTAGE-TRACK-1017
+const MEMDUP = new Map<string, MemdupEntry>(); // DB-OUTAGE-TRACK-1017
+function waitUntilSafe(p: Promise<unknown>): void { try { const rt = (globalThis as unknown as { EdgeRuntime?: { waitUntil: (p: Promise<unknown>) => void } }).EdgeRuntime; if (rt && typeof rt.waitUntil === "function") rt.waitUntil(p); } catch { /* ignore */ } } // DB-OUTAGE-TRACK-1017
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,7 +33,7 @@ function numberText(value: unknown): string | null {
   return Number.isFinite(n) ? String(n) : null;
 }
 
-async function callDatabaseRpc(name: string, payload: Record<string, unknown>): Promise<unknown> {
+async function callDatabaseRpc(name: string, payload: Record<string, unknown>, timeoutMs?: number): Promise<unknown> { // DB-OUTAGE-TRACK-1017
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) throw new Error("Database credentials not configured");
@@ -42,6 +46,7 @@ async function callDatabaseRpc(name: string, payload: Record<string, unknown>): 
       "content-type": "application/json",
     },
     body: JSON.stringify(payload),
+    ...(timeoutMs === undefined ? {} : { signal: AbortSignal.timeout(timeoutMs) }), // DB-OUTAGE-TRACK-1017
   });
 
   if (!res.ok) {
@@ -211,6 +216,7 @@ async function createTransactionLog(
   arb: Record<string, unknown> = {},
   clicks: Record<string, string> = {},
   mfMeta: Record<string, unknown> = {}, // [FRAUD-MULTIBLOCK-1012] mf_* keys only (never a PAN)
+  timeoutMs?: number, // DB-OUTAGE-TRACK-1017
 ): Promise<string | null> {
   const payment = asRecord(payload.payment);
   try {
@@ -247,7 +253,7 @@ async function createTransactionLog(
           ...mfMeta, // [FRAUD-MULTIBLOCK-1012] mf_device, mf_did, mf_card (BIN6:last4), mf_card_fp, mf_addr, mf_addr_h, mf_ip
         },
       },
-    });
+    }, timeoutMs); // DB-OUTAGE-TRACK-1017
     return typeof id === "string" ? id : null;
   } catch (error) {
     console.error("[tx-log] create failed:", error instanceof Error ? error.message : error);
@@ -354,6 +360,7 @@ async function finishTransactionLog(
   id: string | null,
   wrapped: Record<string, unknown>,
   paymentMethod?: string | null,
+  timeoutMs?: number, // DB-OUTAGE-TRACK-1017
 ) {
   if (!id) return;
   const result = unwrapTransactionResult(wrapped);
@@ -378,7 +385,7 @@ async function finishTransactionLog(
     try {
       await callDatabaseRpc("finalize_transaction_log", {
         _id: id, _status: "pending", _hashid: null, _transaction_id: null, _error_message: null, _raw_response: result,
-      });
+      }, timeoutMs); // DB-OUTAGE-TRACK-1017
     } catch (error) {
       console.error("[tx-log] pockyt pending save failed:", error instanceof Error ? error.message : error);
     }
@@ -393,7 +400,7 @@ async function finishTransactionLog(
       _transaction_id: text(result.transactionId ?? result.transaction_id),
       _error_message: isSuccess ? null : text(result.msg ?? result.message ?? wrapped.error),
       _raw_response: result,
-    });
+    }, timeoutMs); // DB-OUTAGE-TRACK-1017
   } catch (error) {
     console.error("[tx-log] finalize failed:", error instanceof Error ? error.message : error);
   }
@@ -2961,6 +2968,7 @@ serve(async (req) => {
     // recent (same phone + amount paid in the last 10 min) -> DUP_CONFIRM unless the site resent it with dup_confirm: true after the
     // customer confirmed "You just paid $X for this number, charge again?". dup_confirm is a site-only flag: removed here, so it never
     // reaches the log row or CellPay. Calm 200 before the log and CellPay; sits before the BL-3 claim. Fails open.
+    const memdupConfirmed = payloadRecord.dup_confirm === true; // DB-OUTAGE-TRACK-1017
     if (shouldLogTransaction) {
       const dupConfirmed = payloadRecord.dup_confirm === true;
       if ("dup_confirm" in payloadRecord) {
@@ -2999,18 +3007,36 @@ serve(async (req) => {
         }
       } catch { /* dedupe fails open */ }
     }
-    const txLogId = shouldLogTransaction
-      ? await createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...retryMetaFrom(body.retry_meta), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}), ...namesSentMeta(payloadRecord) /* ACCENT-FOLD-1015C */ }, clickIdsFrom(body.click_ids),
-          mf ? await mfLogMeta(mf, null) : {})
-      : null;
+    const memKey = shouldLogTransaction && (paymentMethod || "").toLowerCase() !== "pockyt" ? memdupKey(payloadRecord, paymentMethod) : null; // DB-OUTAGE-TRACK-1017
+    if (memKey) { // DB-OUTAGE-TRACK-1017: after BL-3, all existing guards unchanged
+      const hit = memdupCheck(MEMDUP, memKey, memdupConfirmed);
+      if (hit?.code === "SESSION_PAID") {
+        recordGuardEvent({ code: "memdup_session_paid", method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null });
+        const paid = numberText(payloadRecord.total) ?? numberText(payloadRecord.amount) ?? "";
+        return new Response(JSON.stringify({ success: false, blocked: true, code: "SESSION_PAID", hashid: hit.hashid, amount: paid, message: `This order is already paid ($${paid}), so we did not charge you again. Your receipt was sent by email.` }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (hit?.code === "IN_FLIGHT") {
+        recordGuardEvent({ code: "memdup_in_flight", method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null });
+        return new Response(JSON.stringify({ success: false, blocked: true, code: "IN_FLIGHT", message: "Your payment is still processing. Please wait a moment; you were not charged again." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+    const createP: Promise<string | null> = shouldLogTransaction
+      ? createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...retryMetaFrom(body.retry_meta), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}), ...namesSentMeta(payloadRecord) /* ACCENT-FOLD-1015C */ }, clickIdsFrom(body.click_ids),
+          mf ? await mfLogMeta(mf, null) : {}, 20000)
+      : Promise.resolve(null); // DB-OUTAGE-TRACK-1017
+    waitUntilSafe(createP); // DB-OUTAGE-TRACK-1017
+    const txLogId = await raceNull(createP, 3000); // DB-OUTAGE-TRACK-1017
     if (mf && txLogId) mfIpPatchLater(txLogId, mfIpP); // [FRAUD-MULTIBLOCK-1012 FIX] mf_ip added in the background only
     if (shouldLogTransaction && txLogId) consentPatchLater(txLogId, body.retry_meta); // CONSENT-EVERY-ATTEMPT-1016 (not awaited)
     if (shouldLogTransaction) velocityShadow(txLogId, payloadRecord, paymentMethod); // [VEL1-1007] log-only, not awaited
+    if (txLogId === null) waitUntilSafe(createP.then((lateId) => { if (lateId) { if (mf) mfIpPatchLater(lateId, mfIpP); consentPatchLater(lateId, body.retry_meta); velocityShadow(lateId, payloadRecord, paymentMethod); } }).catch(() => {})); // DB-OUTAGE-TRACK-1017
+    const logIdP = (): Promise<string | null> => txLogId ? Promise.resolve(txLogId) : raceNull(createP, 20000); // DB-OUTAGE-TRACK-1017
 
     // [plaid v2] Plaid checkout: claim the bound plaid_ref (single use, same order values) and send CellPay's v2 body only.
     if (isPlaidCheckout) {
       const prepared = await plaidV2CheckoutBody(payloadRecord);
       if ("fail" in prepared) {
+        memdupUpdate(MEMDUP, memKey, "decline"); // DB-OUTAGE-TRACK-1017: no CellPay request was made
         plaidV2Event(`plv2:checkout:${prepared.why}`, `checkout/transaction#log=${txLogId ?? "none"}`, guardOrigin);
         await finishTransactionLog(txLogId, prepared.fail, paymentMethod);
         if (txLogId) prepared.fail.pending_log_id = txLogId;
@@ -3034,7 +3060,9 @@ serve(async (req) => {
       response = await fetch(url, isPockytCreate ? { ...fetchOptions, signal: AbortSignal.timeout(POCKYT_CREATE_TIMEOUT_MS) } : fetchOptions);
       rawText = await response.text();
     } catch (error) {
-      if (isPockytCreate) await markPockytCreateError(txLogId, error);
+      memdupUpdate(MEMDUP, memKey, "unknown"); // DB-OUTAGE-TRACK-1017
+      if (isPockytCreate) await markPockytCreateError(txLogId ?? await raceNull(createP, 1000), error); // DB-OUTAGE-TRACK-1017
+      if (isPockytCreate && txLogId === null) waitUntilSafe(logIdP().then((id) => markPockytCreateError(id, error))); // DB-OUTAGE-TRACK-1017
       throw error;
     }
 
@@ -3068,9 +3096,6 @@ serve(async (req) => {
 
     logCarrierCheck(endpoint, response.status, wrapped, payload, callerHost); // [CARRIER-CHECK-LOG-1011] not awaited
     // [refill-cooldown Fix F] Start the 10-min cooldown ONLY on CellPay's refill-error result. Fail-open (1 s), response unchanged.
-    if (shouldLogTransaction && refillKey && isRefillErrorResult(wrapped)) {
-      try { await refillCooldownRpc("refill_cooldown_mark", refillKey); } catch { /* refill cooldown fails open */ }
-    }
     // [plaid v2] CellPay's error code / errors reach the browser (422 code "plaid_ref" -> the site links again), no Plaid token
     // reaches the log or the browser, and one PII-free outcome row per Plaid checkout goes to proxy_guard_events.
     if (isPlaidCheckout) {
@@ -3089,23 +3114,36 @@ serve(async (req) => {
 
     if (isPayPalTx) ppScrub(wrapped); // [PAYPAL-REBUILD-1009] never log or return PayPal approval secrets
     if (shouldLogTransaction) {
-      // SUCCESS-FLAG-FIX-1016: finalize only this new failed order, retaining the full original reply for audit.
-      if (refundAudit && txLogId) {
-        try { await callDatabaseRpc("finalize_transaction_log", { _id: txLogId, _status: "failed", _hashid: null, _transaction_id: null, _error_message: REFUND_FAILURE_MESSAGE, _raw_response: refundAudit }); }
-        catch (error) { console.error("[tx-log] refund finalize failed:", error instanceof Error ? error.message : error); }
-      } else await finishTransactionLog(txLogId, wrapped, paymentMethod);
-      await logDataErr(txLogId, payloadRecord, wrapped, paymentMethod); // [OURSIDE-RETRY-1012] masked, failed data-error rows only
-      if (!isPlaidCheckout && /^(card|applepay|googlepay|klarna)/i.test(String(paymentMethod || ""))) await logCardFacts(txLogId, payloadRecord, wrapped, paymentMethod); // [CARDLOG-1007 v3] never throws
+      const logWrapped = structuredClone(wrapped); // DB-OUTAGE-TRACK-1017: snapshot before browser-only reply fields
+      const memResult = unwrapTransactionResult(logWrapped); // DB-OUTAGE-TRACK-1017
+      const memStatus = String(memResult.status || "").toLowerCase(); // DB-OUTAGE-TRACK-1017
+      const memSuccess = !refundMarker && logWrapped.success === true && (memResult.status === true || memStatus === "true" || memStatus === "success" || memStatus === "completed"); // DB-OUTAGE-TRACK-1017
+      memdupUpdate(MEMDUP, memKey, unconfirmedKind ? "unknown" : memSuccess ? "success" : "decline", text(memResult.hashid ?? memResult.id) ?? undefined); // DB-OUTAGE-TRACK-1017
+      const postWork = async () => { // DB-OUTAGE-TRACK-1017
+        if (shouldLogTransaction && refillKey && isRefillErrorResult(wrapped)) {
+          try { await refillCooldownRpc("refill_cooldown_mark", refillKey); } catch { /* refill cooldown fails open */ }
+        }
+        const id = await logIdP();
+        // SUCCESS-FLAG-FIX-1016: finalize only this new failed order, retaining the full original reply for audit.
+        if (refundAudit && id) {
+          try { await callDatabaseRpc("finalize_transaction_log", { _id: id, _status: "failed", _hashid: null, _transaction_id: null, _error_message: REFUND_FAILURE_MESSAGE, _raw_response: refundAudit }, 10000); }
+          catch (error) { console.error("[tx-log] refund finalize failed:", error instanceof Error ? error.message : error); }
+        } else await finishTransactionLog(id, logWrapped, paymentMethod, 10000);
+        await logDataErr(id, payloadRecord, logWrapped, paymentMethod); // [OURSIDE-RETRY-1012] masked, failed data-error rows only
+        if (!isPlaidCheckout && /^(card|applepay|googlepay|klarna)/i.test(String(paymentMethod || ""))) await logCardFacts(id, payloadRecord, logWrapped, paymentMethod); // [CARDLOG-1007 v3] never throws
+        // REFUNDED-STATE-1017: keep each RPC's own existing fail-open cap.
+        if (id && !isPockytCreate) {
+          if (unconfirmedKind) await rpcSoon("tx_log_meta_merge", { _id: id, _patch: { charge_unconfirmed: true, crash_kind: unconfirmedKind } });
+          if (refundAudit || (!unconfirmedKind && autoRefundFailure(logWrapped))) {
+            await rpcSoon("mark_order_refunded", { _id: id, _source: "reply", _reason: loadText ?? refundMarker ?? "reply_auto_refund" });
+          }
+          if (loadText) await rpcSoon("set_tx_load_text", { _id: id, _text: loadText }); // LOADTEXT-REASON-1017
+        }
+      };
+      const post = postWork(); waitUntilSafe(post); // DB-OUTAGE-TRACK-1017
+      await raceNull(post, 1500); // DB-OUTAGE-TRACK-1017
       if (txLogId) wrapped.pending_log_id = txLogId;
       if (riskAction === "step_up") wrapped.risk_action = "step_up"; // [FRAUD-MULTIBLOCK-1012 5c] enforce mode only
-      // REFUNDED-STATE-1017: after the row is finalized (fail-open, 1500 ms each; the reply below is unchanged by these writes).
-      if (txLogId && !isPockytCreate) {
-        if (unconfirmedKind) await rpcSoon("tx_log_meta_merge", { _id: txLogId, _patch: { charge_unconfirmed: true, crash_kind: unconfirmedKind } });
-        if (refundAudit || (!unconfirmedKind && autoRefundFailure(wrapped))) {
-          await rpcSoon("mark_order_refunded", { _id: txLogId, _source: "reply", _reason: loadText ?? refundMarker ?? "reply_auto_refund" });
-        }
-        if (loadText) await rpcSoon("set_tx_load_text", { _id: txLogId, _text: loadText }); // LOADTEXT-REASON-1017
-      }
       // REFUNDED-STATE-1017: crash/timeout = outcome unknown; never SQLSTATE text or HTML to the browser.
       if (unconfirmedKind && !isPockytCreate) {
         const keep: Record<string, unknown> = {};
@@ -3131,6 +3169,7 @@ serve(async (req) => {
         if (txnId && successStatuses.includes(internal)) finalStatus = "success";
         else if (failureStatuses.includes(internal)) finalStatus = "failed";
         if (finalStatus) {
+          const settle = (async () => { // DB-OUTAGE-TRACK-1017
           try {
             await callDatabaseRpc("finalize_transaction_log", {
               _id: logId,
@@ -3138,8 +3177,7 @@ serve(async (req) => {
               _hashid: txnId,
               _transaction_id: txnId,
               _error_message: finalStatus === "failed" ? text(result.message ?? result.msg) : null,
-              _raw_response: result,
-            });
+              _raw_response: result,            }, 10000); // DB-OUTAGE-TRACK-1017
           } catch (error) {
             console.error("[tx-log] pockyt finalize failed:", error instanceof Error ? error.message : error);
           }
@@ -3148,12 +3186,13 @@ serve(async (req) => {
           if (finalStatus === "success") {
             try {
               await callDatabaseRpc("finalize_pockyt_log", {
-                _session_id: endpoint.split("/")[3] || "", _pending_log_id: logId, _status: "success", _txn: txnId, _msg: null, _raw: result,
-              });
+                _session_id: endpoint.split("/")[3] || "", _pending_log_id: logId, _status: "success", _txn: txnId, _msg: null, _raw: result,              }, 10000); // DB-OUTAGE-TRACK-1017
             } catch (error) {
               console.error("[tx-log] pockyt late-paid flip failed:", error instanceof Error ? error.message : error);
             }
           }
+          })();
+          waitUntilSafe(settle); await raceNull(settle, 1500); // DB-OUTAGE-TRACK-1017
         }
       }
     }
