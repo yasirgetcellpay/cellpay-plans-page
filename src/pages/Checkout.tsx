@@ -2228,6 +2228,8 @@ const Checkout = () => {
             const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
             const autoRefund = /auto[\s-]?refund/i.test(msg);
             setShowNotChargedNote(!autoRefund && !txn);
+            // WALLET-NSF-1018: an Apple Pay insufficient-funds decline opens the same low-funds screen as card / Google Pay (Klarna at $25+, other ways to pay). Apple Pay is NOT marked declined, so the customer can still use another card in Apple Pay. Same 3-per-tab guard: from the 3rd decline the old plain dialog stays.
+            if (!autoRefund && !txn && isNsfDecline(msg)) { const aSess = bumpSessionDeclines(); if (aSess < 3) { try { declineSeqRef.current += 1; } catch { /* ignore */ } setDeclineInfo({ cls: classifyDecline(msg, state.carrierSlug), n: 0, method: "applepay", sess: aSess, msg: String(msg || "") }); } } // WALLET-NSF-1018
             setRefundCard(autoRefund); // TOP4-T2B-1009
             setErrorMsg(orsOnFail(msg)); // [OURSIDE-RETRY-1012]
           }
@@ -3227,7 +3229,7 @@ const Checkout = () => {
 
       {/* Error dialog */}
       {errorMsg && !refundCard && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => { if (declineInfo && (declineInfo.method === "applepay" || declineInfo.method === "googlepay")) setPaymentMethod("card"); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setLoadReason(null); /* LOADTEXT-REASON-1017 */ }}> {/* DECLINE-RECOVERY-1014C: wallet decline -> card */}
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4" onClick={() => { if (declineInfo && declineInfo.method === "googlepay") setPaymentMethod("card"); /* WALLET-NSF-1018: Apple Pay low-funds keeps Apple Pay selected */ setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setLoadReason(null); /* LOADTEXT-REASON-1017 */ }}> {/* DECLINE-RECOVERY-1014C: wallet decline -> card */}
           {/* DECLINE-DIALOG-1008: scrolls inside itself on short phones (iPhone SE + Safari bars clipped the top); on a card decline
               the raw processor message is hidden (the recovery hint below explains it); other errors still show errorMsg. */}
           <div className="bg-card rounded-2xl p-5 max-w-sm w-full max-h-[90vh] overflow-y-auto overscroll-contain text-center shadow-xl" style={{ maxHeight: "calc(100dvh - 2rem)" }} onClick={(e) => e.stopPropagation()}>
@@ -3254,7 +3256,7 @@ const Checkout = () => {
               const capped = declineInfo.n > MAX_CARD_RETRIES || declineInfo.cls === "blocked";
               // DECLINE-RECOVERY-1014: card-testing guard (3+ declines this tab, or blocked) -> only PayPal + support + close.
               const sessCap = declineInfo.sess >= 3 || declineInfo.cls === "blocked";
-              const close = () => { if (declineInfo.method === "applepay" || declineInfo.method === "googlepay") setPaymentMethod("card"); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); }; // DECLINE-RECOVERY-1014C: wallet decline -> card (toMethod overrides after)
+              const close = () => { if (declineInfo.method === "googlepay") setPaymentMethod("card"); /* WALLET-NSF-1018: Apple Pay low-funds keeps Apple Pay selected */ setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); }; // DECLINE-RECOVERY-1014C: wallet decline -> card (toMethod overrides after)
               const rec = () => { try { trackFunnel("recovery_retry", funnelDataRef.current); } catch { /* ignore */ } }; // DECLINE-RECOVERY-1014
               // DECLINE-DIALOG-1008: after the switch, bring PLACE ORDER NOW into view and outline it for 1.5 s so the customer sees
               // where to tap next. Only scrolls; it never submits and never opens a wallet sheet by itself.
@@ -3322,6 +3324,10 @@ const Checkout = () => {
               const cashBtn = !sessCap && offered.has("cashapp") && (
                 <button type="button" data-testid="decline-cashapp" onClick={() => toMethod("cashapp")} className={btn + " text-black"} style={{ backgroundColor: "#00D632" }}>{dc.useCashApp}</button>
               );
+              // WALLET-NSF-1018: after an Apple Pay low-funds decline, one tap re-opens the Apple Pay sheet so the customer can pick another card in Apple Pay.
+              const apAgainBtn = nsfView && declineInfo.method === "applepay" && !sessCap && applePayAvailable && offered.has("applepay") && !walletBlocked.includes("applepay") && ( // WALLET-NSF-1018
+                <button type="button" data-testid="funds-applepay-again" onClick={() => walletNow("applepay")} className="w-full px-4 py-3.5 rounded-lg font-bold text-base bg-black text-white">{lang === "es" ? "Usar otra tarjeta en Apple Pay" : "Use another card in Apple Pay"}</button>
+              ); // WALLET-NSF-1018
               const bankBtn = !sessCap && offered.has("plaid") && plaidOn === true && (
                 <button type="button" data-testid="decline-paybybank" onClick={() => toMethod("plaid")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayByBank}</button>
               );
@@ -3355,7 +3361,7 @@ const Checkout = () => {
                       {ab === "variant" && primaryWallet ? <>
                         <button type="button" data-testid="decline-ab-primary-wallet" data-decline-ab-wallet={primaryWallet} /* DECLINE-ONETAP-1017 */ onClick={() => walletNow(primaryWallet)} className="w-full px-4 py-3.5 rounded-lg font-bold text-base bg-black text-white">{primaryWallet === "applepay" ? dc.abPrimaryAp : dc.abPrimaryGp}</button>
                         {ppBtn}{primaryWallet === "applepay" ? gpBtn : apBtn}{cashBtn}{bankBtn}
-                      </> : <>{apBtn}{gpBtn}{ppBtn}{cashBtn}{bankBtn}</>}
+                      </> : <>{apAgainBtn}{apBtn}{gpBtn}{ppBtn}{cashBtn}{bankBtn}</>} {/* WALLET-NSF-1018: + apAgainBtn */}
                       {showAnother && <button type="button" data-testid="decline-another-card" onClick={() => { if (isCard) focusCardNumber(); else toMethod("card"); }} className={quiet}>{dc.useAnotherCard}</button>}
                       {isCard && !(isCard && capped) && <button type="button" data-testid="funds-same-card" onClick={focusCard} className="w-full text-xs underline text-muted-foreground pt-1">{fc.sameCard}</button>}
                     </>
