@@ -71,7 +71,7 @@ const prRangeMsg = (slug: string, lang: string): string | null => // PLAN-RANGES
   : slug === "verizon" ? (lang === "es" ? "Pagos de Verizon: de $15 a $150" : "Verizon payments: $15 to $150")
   : null;
 const dropHiddenPlans = <T extends { plan_id: string; amount: number }>(slug: string, list: T[]): T[] => // PLAN-RANGES-1016
-  list.filter((p) => p.plan_id !== "8282" && p.plan_id !== "325635" && p.plan_id !== "547871" && p.plan_id !== "32993000" && !(PR_LIMITS[slug] && slug !== "boost" && p.amount > PR_LIMITS[slug].max)); // H2O-HIDE-325635-1017 // PLAN-BLOCK-CLEANUP-1017 // ULTRA64-HIDE-1017
+  list.filter((p) => p.plan_id !== "8282" && p.plan_id !== "325635" && p.plan_id !== "547871" && p.plan_id !== "32993000" && p.plan_id !== "8947005" && !(PR_LIMITS[slug] && slug !== "boost" && p.amount > PR_LIMITS[slug].max)); // H2O-HIDE-325635-1017 // PLAN-BLOCK-CLEANUP-1017 // ULTRA64-HIDE-1017 // LYCA10-HIDE-1017
 
 function normalizePlans(plans: Array<Record<string, unknown>>): NormalizedPlan[] {
   return plans.map((p) => {
