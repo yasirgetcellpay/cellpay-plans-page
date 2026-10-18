@@ -627,6 +627,7 @@ const AP1_ORIGIN_DOMAIN: Record<string, string> = {
 };
 const AP1_MIN_MS = 2500; // every 200 reply waits at least this long
 const AP1_UPSTREAM_TIMEOUT_MS = 2000;
+const AP1_RL_TIMEOUT_MS = 2500; // [AP1-RL-1018] rate-limit RPC budget (was 1000 inline; two cancels failed closed on a slow DB moment)
 const AP1_LIMITS = { ip: { max: 10, windowS: 3600 }, phone: { max: 5, windowS: 3600 } };
 const AP1_TS_MODE: "shadow" = "shadow"; // standing decision: Turnstile only if abuse. Shadow logs, never blocks.
 const AP1_TS_ACTION = "autopay_cancel";
@@ -863,8 +864,8 @@ async function ap1HandleUnsubscribe(
   let limited: string | null = null;
   try {
     const [ipOk, phoneOk] = await Promise.all([
-      ap1Rpc("ap1_rate_limit_hit", { _bucket: await ap1Hash("ip", ip ?? "none"), _limit: AP1_LIMITS.ip.max, _window_seconds: AP1_LIMITS.ip.windowS }, 1000),
-      ap1Rpc("ap1_rate_limit_hit", { _bucket: await ap1Hash("ph", phone), _limit: AP1_LIMITS.phone.max, _window_seconds: AP1_LIMITS.phone.windowS }, 1000),
+      ap1Rpc("ap1_rate_limit_hit", { _bucket: await ap1Hash("ip", ip ?? "none"), _limit: AP1_LIMITS.ip.max, _window_seconds: AP1_LIMITS.ip.windowS }, AP1_RL_TIMEOUT_MS), // [AP1-RL-1018]
+      ap1Rpc("ap1_rate_limit_hit", { _bucket: await ap1Hash("ph", phone), _limit: AP1_LIMITS.phone.max, _window_seconds: AP1_LIMITS.phone.windowS }, AP1_RL_TIMEOUT_MS), // [AP1-RL-1018]
     ]);
     if (ipOk !== true) limited = "ap1:rl_ip";
     else if (phoneOk !== true) limited = "ap1:rl_phone";
