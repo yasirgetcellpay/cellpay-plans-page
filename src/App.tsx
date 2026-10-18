@@ -766,7 +766,7 @@ const App = () => (
               logo={attLogo}
               h1="Pay Your AT&T Prepaid Bill Online"
               title="Pay Your AT&T Prepaid Bill Online | CellPay"
-              description="Pay or refill your AT&T Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay."
+              description="Pay your AT&T Prepaid bill online as a guest. Just the phone number, pick the amount, pay. Service fee shown before you pay."
             />
           }
         />
@@ -781,7 +781,7 @@ const App = () => (
               logo={attLogo}
               h1="Pay Your AT&T Prepaid Bill Online"
               title="Pay Your AT&T Prepaid Bill Online | CellPay"
-              description="Pay or refill your AT&T Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay."
+              description="Pay your AT&T Prepaid bill online as a guest. Just the phone number, pick the amount, pay. Service fee shown before you pay."
             />
           }
         />
@@ -1285,9 +1285,9 @@ const App = () => (
               carrierId={43}
               brandColor="hsl(330,100%,45%)"
               logo={tmobileLogo}
-              h1="Pay Your T-Mobile Bill Online"
-              title="Pay Your T-Mobile Bill Online | CellPay"
-              description="Pay your T-Mobile bill online. No login. Pay for anyone. Enter the phone number, pick the amount, pay. Low service fee shown before you pay."
+              h1="Pay Your T-Mobile Bill as a Guest"
+              title="Pay My T-Mobile Bill as a Guest by Phone Number | CellPay"
+              description="Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay."
             />
           }
         />
@@ -1300,9 +1300,9 @@ const App = () => (
               carrierId={43}
               brandColor="hsl(330,100%,45%)"
               logo={tmobileLogo}
-              h1="Pay Your T-Mobile Bill Online"
-              title="Pay Your T-Mobile Bill Online | CellPay"
-              description="Pay your T-Mobile bill online. No login. Pay for anyone. Enter the phone number, pick the amount, pay. Low service fee shown before you pay."
+              h1="Pay Your T-Mobile Bill as a Guest"
+              title="Pay My T-Mobile Bill as a Guest by Phone Number | CellPay"
+              description="Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay."
             />
           }
         />
@@ -1349,9 +1349,9 @@ const App = () => (
               carrierId={43}
               brandColor="hsl(330,100%,45%)"
               logo={tmobileLogo}
-              h1="Pague T-Mobile en línea"
-              title="Pague T-Mobile en línea | CellPay"
-              description="Pague su T-Mobile en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              h1="Pague su factura de T-Mobile sin iniciar sesión"
+              title="Pagar factura de T-Mobile en línea | CellPay"
+              description="Pague su factura de T-Mobile en línea como invitado. Solo el número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar."
             />
           }
         />
@@ -1365,9 +1365,9 @@ const App = () => (
               carrierId={43}
               brandColor="hsl(330,100%,45%)"
               logo={tmobileLogo}
-              h1="Pague T-Mobile en línea"
-              title="Pague T-Mobile en línea | CellPay"
-              description="Pague su T-Mobile en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              h1="Pague su factura de T-Mobile sin iniciar sesión"
+              title="Pagar factura de T-Mobile en línea | CellPay"
+              description="Pague su factura de T-Mobile en línea como invitado. Solo el número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar."
             />
           }
         />
