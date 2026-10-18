@@ -6,6 +6,8 @@ import { AccountDropdown } from "@/components/AccountDropdown";
 import { PaymentMethodPicker } from "@/components/PaymentMethodPicker"; // METHODS-VISIBILITY-1011
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react"; // CARRIER-ASSIST-1011
 import { flushSync } from "react-dom"; // DECLINE-ONETAP-1017
+import { sendTracked } from "@/lib/trackQueue"; // DB-OUTAGE-TRACK-1017
+import { lockKey, activeLock, setLock, PAYLOCK_MS, PAYLOCK_UNKNOWN_MS, runPayLocked, refusedBeforeCharge } from "@/lib/payLock"; // DB-OUTAGE-TRACK-1017
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
 import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry, markWalletDeclined, walletDeclined, getDeclineAb, declineHint, isNsfDecline, FUNDS_COPY, KLARNA_MIN_TOTAL, klarnaQuarter } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014C: + wallet block // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry // DECLINE-MSGS-1016 // FUNDS-DECLINE-1016
@@ -205,7 +207,7 @@ const setPurchasePending = (hid: string) => {
 // [receipt item_name, receipt item_id, space-separated plan ids] per carrier slug. Unknown carrier/plan -> no early fire.
 const EP_TABLE: Record<string, Array<[string, string, string]>> = {"boost":[["Boost","boost","66666"]],"h2o":[["H2O Wireless","h2o","3520 4439 5213 8282 32205 54787"]],"lyca":[["Lyca Mobile","lyca","1906 1907 1908 1909 1924 8768 8830 8831 8864 8907 9876789 28947019"]],"metropcs":[["Metro PCS","metropcs","33333"]],"net10":[["NET10","net10","3686 3924 3993 6346 9569 9570"]],"pageplus":[["Page Plus","pageplus","4919 31004 32164 8818410 8918412"]],"s1":[["Simple Mobile","s1","2631 2632 2634 2655 12676"]],"straight-talk":[["Straight Talk","straight-talk","39411 39412 39413 39414 addon-39421 Broadband-39422"]],"tmobile":[["T-Mobile","tmobile","834 835 836 8209 8328 8329 28254 28694 232179"],["T-Mobile Flexi","tmobile-flexi","238888"]],"topup-at":[["AT&T","topup-at","23915"],["AT&T","topup-af","9011 9012 9013 9014 9015 9016 9017 9018 9019 9020 9021 9022 9023 9024 9025 9026"]],"topup-crc":[["Cricket Wireless","topup-crc","44444"]],"total-wireless":[["Total Wireless","total-wireless","32140 32191 32193 321450 887800 887801 887802 887803 887804 887805 887806"]],"tracfone":[["Tracfone","tracfone","288 289 298 9545 10647 10648 10649"]],"ultra-mobile":[["Ultra Mobile","ultra-mobile","1367 1469 8274 8275 8278 8279 5523059 32990000 32991000 32992000 32993000"]],"verizon":[["Verizon Wireless Prepaid","verizon","2628 2629 2636 2637 2638 2639 22118 24322 24324 24325 24328"],["Verizon Wireless Flexi","verizon-wireless-flexi","291945"]]};
 // MARKETING-OPTIN-1013: record the optional email opt-in on the order row (by order id), best-effort, never blocks.
-const recordMarketingOptIn = (hid: string, optIn: boolean, uiLang?: string): void => { try { const id = String(hid || "").trim(); if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return; let pLang = "en"; try { if (window.location.pathname.startsWith("/es") || uiLang === "es") pLang = "es"; } catch { /* ignore */ } let pBrowser: string | null = null; try { pBrowser = typeof navigator !== "undefined" && typeof navigator.language === "string" ? navigator.language : null; } catch { /* ignore */ } /* CONSENT-TERMS-1014 */ void Promise.resolve((supabase as unknown as { rpc: (fn: string, a: Record<string, unknown>) => PromiseLike<unknown> }).rpc("record_marketing_opt_in", { p_hashid: id, p_opt_in: optIn === true, p_lang: pLang, p_browser_language: pBrowser })).catch(() => {}); } catch { /* best-effort, never blocks */ } };
+const recordMarketingOptIn = (hid: string, optIn: boolean, uiLang?: string): void => { try { const id = String(hid || "").trim(); if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return; let pLang = "en"; try { if (window.location.pathname.startsWith("/es") || uiLang === "es") pLang = "es"; } catch { /* ignore */ } let pBrowser: string | null = null; try { pBrowser = typeof navigator !== "undefined" && typeof navigator.language === "string" ? navigator.language : null; } catch { /* ignore */ } /* CONSENT-TERMS-1014 */ sendTracked("record_marketing_opt_in", { p_hashid: id, p_opt_in: optIn === true, p_lang: pLang, p_browser_language: pBrowser }); /* DB-OUTAGE-TRACK-1017 */ } catch { /* best-effort, never blocks */ } };
 const earlyPurchase = (hid: string, slug: string, plan: unknown, amountIn: unknown, totalIn: unknown): void => {
   try {
     const id = String(hid || "").trim();
@@ -245,12 +247,7 @@ const earlyPurchase = (hid: string, slug: string, plan: unknown, amountIn: unkno
       const _su = import.meta.env.VITE_SUPABASE_URL as string | undefined;
       const _sk = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
       if (_su && _sk) {
-        fetch(_su + "/rest/v1/rpc/log_purchase_fire", {
-          method: "POST",
-          keepalive: true,
-          headers: { apikey: _sk, Authorization: "Bearer " + _sk, "Content-Type": "application/json" },
-          body: JSON.stringify({ _transaction_id: id, _hashid: id, _value: value, _source: "checkout_success" }),
-        }).catch(() => {});
+        sendTracked("log_purchase_fire", { _transaction_id: id, _hashid: id, _value: value, _source: "checkout_success" }); // DB-OUTAGE-TRACK-1017
       }
     } catch { /* ignore beacon errors */ }
   } catch { /* storage / anything else: /order-confirmation fires as before */ }
@@ -521,6 +518,12 @@ const Checkout = () => {
   const [stepUp, setStepUp] = useState(false);
   const submitTransaction = async (p: Record<string, unknown>): Promise<unknown> => {
     if (!phoneOk) { badPhoneGo(); return { success: false, code: "BAD_PHONE", error: "Please enter the full 10-digit phone number." }; } // REFUNDED-STATE-1017
+    const key = lockKey(state?.phone, validation?.amount ?? state?.amount); // DB-OUTAGE-TRACK-1017
+    const skipLock = String(p.payment_method || "").toLowerCase() === "pockyt"; // DB-OUTAGE-TRACK-1017
+    if (key && !skipLock) { // DB-OUTAGE-TRACK-1017
+      const current = activeLock(key);
+      if (current) { setLock(key, current.s, PAYLOCK_MS); return { success: false, code: "MAYBE_PAID_LOCK" }; }
+    }
     const confirmed = dupConfirmRef.current;
     dupConfirmRef.current = false;
     // FRAUD-MULTIBLOCK-1012: cp_dev (proxy reads and removes it; never sent to CellPay). At most 300 ms wait, empty on timeout.
@@ -534,7 +537,24 @@ const Checkout = () => {
       }
     } catch { /* empty cp_dev */ }
     const withDev = { ...p, cp_dev: cpDev };
-    const raw = await submitTransactionRaw(confirmed ? { ...withDev, dup_confirm: true } : withDev);
+    const raw = await runPayLocked(key, skipLock, // DB-OUTAGE-TRACK-1017
+      () => submitTransactionRaw(confirmed ? { ...withDev, dup_confirm: true } : withDev),
+      (value) => {
+        const rawReply = value && typeof value === "object" ? value as Record<string, unknown> : {};
+        let result = rawReply;
+        if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
+          const inner = result.data as Record<string, unknown>;
+          result = inner.data && typeof inner.data === "object" && !Array.isArray(inner.data) ? inner.data as Record<string, unknown> : inner;
+        }
+        const nested = result.data && typeof result.data === "object" ? result.data as Record<string, unknown> : {};
+        if (result.HostedURL || result.hostedUrl || result.hosted_url || nested.HostedURL || nested.hostedUrl || nested.hosted_url) return false;
+        const status = String(result.status || "").toLowerCase();
+        return !hasRefundSignal(rawReply) && !/error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")) &&
+          ((rawReply.code === "SESSION_PAID" && typeof rawReply.hashid === "string" && !!rawReply.hashid) || result.status === true || ["true", "success", "completed"].includes(status));
+      },
+      (until) => { maybePaidKeyRef.current = key; showMaybePaid(false, until); },
+      () => { if (maybePaidKeyRef.current === key) { setMaybePaid(null); setMaybePaidPaused(false); } },
+    );
     const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
     if (r.risk_action === "step_up") setStepUp(true); // FRAUD-MULTIBLOCK-1012 5c (enforce only)
     if (r.code === "DUP_CONFIRM") setDupAsk({ amount: String(r.amount ?? "") });
@@ -740,6 +760,17 @@ const Checkout = () => {
   const [refundCard, setRefundCard] = useState(false);
   const [loadReason, setLoadReason] = useState<LoadReasonKind | null>(null); // LOADTEXT-REASON-1017
   const [unconfirmedCard, setUnconfirmedCard] = useState(false); // REFUNDED-STATE-1017
+  const [maybePaid, setMaybePaid] = useState<{ until: number } | null>(null); // DB-OUTAGE-TRACK-1017
+  const [maybePaidPaused, setMaybePaidPaused] = useState(false); // DB-OUTAGE-TRACK-1017
+  const maybePaidKeyRef = useRef<string | null>(null); // DB-OUTAGE-TRACK-1017
+  const showMaybePaid = (paused: boolean, until?: number) => { // DB-OUTAGE-TRACK-1017
+    const key = lockKey(state?.phone, validation?.amount ?? state?.amount);
+    maybePaidKeyRef.current = key;
+    setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setUnconfirmedCard(false); setInFlightNote(false); setDupAsk(null);
+    setMaybePaidPaused(paused);
+    setMaybePaid({ until: until ?? activeLock(key)?.until ?? Date.now() + PAYLOCK_UNKNOWN_MS });
+    setSubmitting(false);
+  };
   // VZ-PREPAID-GUARD-1017: an upstream call was prevented, not a payment decline.
   const [vzBlock, setVzBlock] = useState<{ method: string } | null>(null);
   const showVzBlock = (method: string) => {
@@ -1058,6 +1089,7 @@ const Checkout = () => {
         const st = String(r.status ?? "").toLowerCase();
         // SUCCESS-FLAG-FIX-1016: confirmed refunds use the shared refund card, never the PayPal paid/checking panel.
         if (hasRefundSignal(raw) || /error during refill|auto[\s-]?refund/i.test(String(r.msg || r.message || ""))) { handleResult(raw); return; }
+        if (raw.code === "MAYBE_PAID" || raw.code === "MAYBE_PAID_LOCK") { handleResult(raw); return; } // DB-OUTAGE-TRACK-1017
         if (raw.code === "BAD_PHONE" || isUnconfirmed(raw)) { handleResult(raw); return; } // REFUNDED-STATE-1017
         const ok = raw.success !== false && (r.status === true || st === "true" || st === "success" || st === "completed");
         const deepId = (v: unknown, d = 0): string => {
@@ -1591,6 +1623,7 @@ const Checkout = () => {
       navigate(`${lang === "es" ? "/es" : ""}/order-confirmation?${params.toString()}`);
     } else {
       // DUPCHARGE-FOLLOWUPS-1008: DUP_CONFIRM / IN_FLIGHT already opened our own dialog (submitTransaction wrapper): no error box, not a decline.
+      if (raw.code === "MAYBE_PAID" || raw.code === "MAYBE_PAID_LOCK") { showMaybePaid(raw.code === "MAYBE_PAID_LOCK"); return; } // DB-OUTAGE-TRACK-1017
       if (raw.code === "DUP_CONFIRM" || raw.code === "IN_FLIGHT") { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); return; }
       if (raw.code === "BAD_PHONE") { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); return; } // REFUNDED-STATE-1017: wrapper already navigated
       if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); return; } // REFUNDED-STATE-1017
@@ -1751,6 +1784,7 @@ const Checkout = () => {
     if (code === "plaid_ref") return plaidError(raw, tr.plaidRelink);
     if (plaidUnavailable(raw)) return null;
     const body = raw.data && typeof raw.data === "object" ? raw.data as Record<string, unknown> : {};
+    if (raw.code === "MAYBE_PAID" || raw.code === "MAYBE_PAID_LOCK" || isUnconfirmed(raw)) { handleResult(raw); return null; } // DB-OUTAGE-TRACK-1017
     if (raw.code === "DUP_CONFIRM" || raw.code === "IN_FLIGHT") return null; // DUPCHARGE-FOLLOWUPS-1008: our own dialog shows, no error box
     if (raw.success === false || body.success === false) {
       setErrorMsg(plaidError(raw.success === false ? raw : body, tr.plaidPaymentFailed));
@@ -2144,7 +2178,8 @@ const Checkout = () => {
           console.error("[ApplePay] transaction failed", result);
           try { session.completePayment({ status: session.STATUS_FAILURE }); } catch (e) { console.warn("[ApplePay] completePayment(failure) after the sheet closed", e); } // DUPCHARGE-1008
           // DUPCHARGE-FOLLOWUPS-1008: DUP_CONFIRM / IN_FLIGHT already opened our own dialog (submitTransaction wrapper): no error box.
-          if (raw.code === "BAD_PHONE") { /* REFUNDED-STATE-1017: wrapper already navigated */ }
+          if (raw.code === "MAYBE_PAID" || raw.code === "MAYBE_PAID_LOCK") { showMaybePaid(raw.code === "MAYBE_PAID_LOCK"); } // DB-OUTAGE-TRACK-1017
+          else if (raw.code === "BAD_PHONE") { /* REFUNDED-STATE-1017: wrapper already navigated */ }
           else if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); } // REFUNDED-STATE-1017
           else if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") {
             setLoadReason(loadReasonKind(loadTextFrom(raw))); // LOADTEXT-REASON-1017
@@ -2159,7 +2194,8 @@ const Checkout = () => {
       } catch (err) {
         console.error("[ApplePay] onpaymentauthorized error", err);
         try { session.completePayment({ status: session.STATUS_FAILURE }); } catch (e) { console.warn("[ApplePay] completePayment(failure) after the sheet closed", e); } // DUPCHARGE-1008
-        setErrorMsg(err instanceof Error && err.name === "PlanGuardError" ? err.message : "Apple Pay payment failed: " + (err instanceof Error ? err.message : String(err))); // PLAN-BLOCK-CLEANUP-1017
+        if (refusedBeforeCharge(err)) setErrorMsg(err instanceof Error && err.name === "PlanGuardError" ? err.message : "Apple Pay payment failed: " + (err instanceof Error ? err.message : String(err))); // PLAN-BLOCK-CLEANUP-1017 // DB-OUTAGE-TRACK-1017
+        else { const key = lockKey(state?.phone, validation?.amount ?? state?.amount); setLock(key, "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); } // DB-OUTAGE-TRACK-1017
       }
       setSubmitting(false);
     };
@@ -2435,6 +2471,9 @@ const Checkout = () => {
 
   // ─── Main handler ───
   const handlePlaceOrder = async () => {
+    const key = lockKey(state?.phone, validation?.amount ?? state?.amount); // DB-OUTAGE-TRACK-1017
+    const current = activeLock(key); // DB-OUTAGE-TRACK-1017
+    if (current) { setLock(key, current.s, PAYLOCK_MS); showMaybePaid(true); return; } // DB-OUTAGE-TRACK-1017: before wallet sheets
     if (!phoneOk) { badPhoneGo(); return; } // REFUNDED-STATE-1017: submit nothing
     try { getDeclineAb(normalizePhone(String(state?.phone || ""))); } catch { /* ignore */ } // DECLINE-AB-1016: assignment in session before the first submit
     try { if (mlOfferNoAbRef.current) { const ab = readDeclineAb(phone10); if (ab) { trackKlarna("klarna_ab_known", "method_list", "method_list_ab", { }); mlOfferNoAbRef.current = false; } } } catch { /* ignore */ } // KLARNA-FUNNEL-FIX-1017
@@ -3401,6 +3440,26 @@ const Checkout = () => {
               <div className="space-y-2">
                 <button type="button" data-testid="unconfirmed-try-again" onClick={() => { close(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, undefined, location.search, location.hash)); }} className={btn + " text-primary-foreground"} style={{ backgroundColor: brandColor }}>{es ? "Intentar de nuevo" : "Try again"}</button>
                 <button type="button" data-testid="unconfirmed-help" onClick={openHelp} className="w-full text-sm underline text-muted-foreground pt-1">{es ? "Ayuda" : "Help"}</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+      {maybePaid && (() => { // DB-OUTAGE-TRACK-1017
+        const es = lang === "es";
+        const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`);
+        const close = () => { setMaybePaid(null); setMaybePaidPaused(false); };
+        const openHelp = () => { close(); window.setTimeout(() => { const b = document.querySelector<HTMLElement>('[data-testid="help-launcher"]'); if (b) b.click(); else window.location.href = "mailto:support@getcellpay.com"; }, 50); };
+        const time = new Date(maybePaid.until).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).toLowerCase();
+        return (
+          <div className="fixed inset-0 z-[100] bg-foreground/50 flex items-center justify-center p-4" onClick={close}>
+            <div role="dialog" aria-modal="true" aria-labelledby="maybe-paid-title" className="bg-card rounded-2xl p-5 max-w-sm w-full max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain text-center shadow-xl" onClick={(e) => e.stopPropagation()} data-testid="maybe-paid-card">
+              <h3 id="maybe-paid-title" className="text-xl font-bold text-foreground mb-2">{es ? `Es posible que su ${payWord ? "pago" : "recarga"} se haya realizado` : `Your ${payWord ? "payment" : "refill"} may have gone through`}</h3>
+              <p className="text-sm text-muted-foreground mb-4">{es ? "Por favor, no vuelva a pagar. Revise su recibo por mensaje de texto o correo electrónico en los próximos minutos, o comuníquese con support@getcellpay.com." : "Please don't pay again. Check your text or email receipt in the next few minutes, or contact support@getcellpay.com."}</p>
+              {maybePaidPaused && <p className="text-sm text-muted-foreground mb-4" data-testid="maybe-paid-pause">{es ? `Para evitarle un cobro doble, este número y este monto quedan en pausa hasta las ${time}.` : `To protect you from a double charge, this number and amount are paused until ${time}.`}</p>}
+              <div className="space-y-2">
+                <Button className="w-full" onClick={openHelp}>{es ? "Contactar a soporte" : "Contact support"}</Button>
+                <Button variant="outline" className="w-full" onClick={close}>{es ? "Cerrar" : "Close"}</Button>
               </div>
             </div>
           </div>
