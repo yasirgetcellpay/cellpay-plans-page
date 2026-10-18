@@ -62,21 +62,24 @@ describe("KLARNA-LOG-1017", () => { // KLARNA-LOG-1017
     expect(keys({ authorization_token: "private-token", email: "private-email" })).toBe("keys:authorization_token,email"); // KLARNA-LOG-1017
     expect(keys(null)).toBeUndefined(); // KLARNA-LOG-1017
   }); // KLARNA-LOG-1017
-  it("logs without changing SDK authorization order and arguments", async () => { // KLARNA-LOG-1017
+  it.each(["ok", "no_form", "error", "throw", "timeout"])("logs without changing SDK authorization order and arguments: %s", async (mode) => { // KLARNA-LOG-1017
     const promiseStart = page.indexOf("    return new Promise<void>((resolve) => {", page.indexOf("  const handleKlarna = async")); // KLARNA-LOG-1017
     const promiseEnd = page.indexOf("\n  };", promiseStart); // KLARNA-LOG-1017
     const js = ts.transpile(page.slice(promiseStart, promiseEnd), { target: ts.ScriptTarget.ES2022 }); // KLARNA-LOG-1017
     const events: unknown[][] = []; // KLARNA-LOG-1017
     const authorize = vi.fn((_opts, _data, cb) => cb({ approved: false, show_form: false, finalize_required: false, error: { invalid_fields: ["billing_address.email"] } })); // KLARNA-LOG-1017
-    const load = vi.fn((_opts, _data, cb) => cb({ show_form: true })); // KLARNA-LOG-1017
+    vi.useFakeTimers(); // KLARNA-LOG-1017
+    const load = vi.fn((_opts, _data, cb) => { if (mode === "throw") throw new Error("SDK load failed"); if (mode !== "timeout") cb(mode === "ok" ? { show_form: true } : mode === "error" ? { error: true } : { show_form: false }); }); // KLARNA-LOG-1017
     const names = ["klarnaPayments", "klarnaCategory", "klarnaLoc", "trackKlarna", "readKlarnaSrc", "phone10", "klarnaAttempt", "klarnaFirstName", "klarnaLastName", "emailCleanRef", "klarnaPhone", "klarnaAddress", "klarnaCity", "klarnaCountry", "klarnaState", "klarnaZip", "normalizeRegionCode", "patchFunds", "setErrorMsg", "setSubmitting", "klarnaErrKeys"]; // KLARNA-LOG-1017
     const run = new Function(...names, js); // KLARNA-LOG-1017
     const errLine = page.split("\n").find(line => line.includes("const klarnaErrKeys =")); // KLARNA-LOG-1017
     if (!errLine) throw new Error("Missing helper"); // KLARNA-LOG-1017
     const keys = runInNewContext(compile(errLine) + "; klarnaErrKeys;"); // KLARNA-LOG-1017
-    await run({ load, authorize }, "pay_over_time", "es-US", (...args: unknown[]) => events.push(args), () => "method_list", "", "1", "", "", { current: "" }, "", "", "", "US", "", "", () => "", vi.fn(), vi.fn(), vi.fn(), keys); // KLARNA-LOG-1017
+    const result = run({ load, authorize }, "pay_over_time", "es-US", (...args: unknown[]) => events.push(args), () => "method_list", "", "1", "", "", { current: "" }, "", "", "", "US", "", "", () => "", vi.fn(), vi.fn(), vi.fn(), keys); // KLARNA-LOG-1017
+    if (mode === "timeout") { expect(authorize).not.toHaveBeenCalled(); await vi.advanceTimersByTimeAsync(8000); } // KLARNA-LOG-1017
+    await result; vi.useRealTimers(); // KLARNA-LOG-1017
     expect(load).toHaveBeenCalledWith({ container: "#klarna-payments-container", payment_method_category: "pay_over_time" }, { locale: "es-US" }, expect.any(Function)); // KLARNA-LOG-1017
     expect(authorize).toHaveBeenCalledTimes(1); // KLARNA-LOG-1017
-    expect(events[0]?.[3]).toMatchObject({ klarna_finalize_required: false, klarna_error: "invalid_fields:billing_address.email", klarna_category: "pay_over_time", klarna_load: "ok" }); // KLARNA-LOG-1017
+    expect(events[0]?.[3]).toMatchObject({ klarna_finalize_required: false, klarna_error: "invalid_fields:billing_address.email", klarna_category: "pay_over_time", klarna_load: mode === "throw" ? "error" : mode }); // KLARNA-LOG-1017
   }); // KLARNA-LOG-1017
 }); // KLARNA-LOG-1017
