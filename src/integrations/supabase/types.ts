@@ -402,7 +402,10 @@ export type Database = {
           klarna_approved: boolean | null
           klarna_categories: string | null
           klarna_category: string | null
+          klarna_error: string | null
+          klarna_finalize_required: boolean | null
           klarna_load: string | null
+          klarna_reason: string | null
           klarna_result: string | null
           klarna_show_form: boolean | null
           lang: string | null
@@ -426,7 +429,10 @@ export type Database = {
           klarna_approved?: boolean | null
           klarna_categories?: string | null
           klarna_category?: string | null
+          klarna_error?: string | null
+          klarna_finalize_required?: boolean | null
           klarna_load?: string | null
+          klarna_reason?: string | null
           klarna_result?: string | null
           klarna_show_form?: boolean | null
           lang?: string | null
@@ -450,7 +456,10 @@ export type Database = {
           klarna_approved?: boolean | null
           klarna_categories?: string | null
           klarna_category?: string | null
+          klarna_error?: string | null
+          klarna_finalize_required?: boolean | null
           klarna_load?: string | null
+          klarna_reason?: string | null
           klarna_result?: string | null
           klarna_show_form?: boolean | null
           lang?: string | null
