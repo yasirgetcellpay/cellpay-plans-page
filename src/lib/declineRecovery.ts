@@ -1,11 +1,12 @@
 // GROWTH-1007-A: card-decline recovery (display only). Classifies the processor message so the error dialog can offer
 // the right next step. It NEVER retries or re-submits by itself: every retry is a new tap by the customer on a decline
 // that had NO transaction id (= nothing was charged). Card retries are capped per order in this tab (anti card-testing).
-export type DeclineClass = "details" | "funds" | "blocked" | "system" | "invalid" | "plan"; // DECLINE-RECOVERY-1014: + invalid, plan
+export type DeclineClass = "details" | "funds" | "risk" | "blocked" | "system" | "invalid" | "plan"; // DECLINE-RECOVERY-1014: + invalid, plan // DECLINE-REJECTED-1018
 
 const DETAILS = /(cvv|cvc|cvv2|security code|avs|address|zip|postal|expir|exp(\.|iration)? date|invalid card|card number|incorrect|invalid account|invalid number)/i;
-const FUNDS = /(insufficient|nsf|not sufficient|limit|exceed|over.?limit|withdrawal|do not honou?r|rejected)/i;
-// Fraud & QA 10:41: blocked = ONLY stolen, lost, pick-up, fraud, velocity. Do-not-honor / "Transaction rejected" -> funds.
+const FUNDS = /(insufficient|nsf|not sufficient|limit|exceed|over.?limit|withdrawal|do not honou?r)/i; // DECLINE-REJECTED-1018
+// Fraud & QA: blocked = ONLY stolen, lost, pick-up, fraud, velocity. Do-not-honor -> funds; transaction rejected -> risk. // DECLINE-REJECTED-1018
+const RISK = /transaction (was )?rejected/i; // DECLINE-REJECTED-1018
 const BLOCKED = /(stolen|\blost\b|pick[\s-]?up|fraud|velocity)/i;
 const INVALID = /(invalid data|missing one or more fields|validation failed)/i; // DECLINE-RECOVERY-1014
 const SYSTEM = /(timeout|timed out|network|unavailable|try again later|system|gateway|failed to fetch|load failed|typeerror|internal)/i;
@@ -13,6 +14,7 @@ const SYSTEM = /(timeout|timed out|network|unavailable|try again later|system|ga
 export function classifyDecline(msg: string, carrierSlug?: string): DeclineClass { // DECLINE-RECOVERY-1014: + carrierSlug
   const m = String(msg || "");
   if (BLOCKED.test(m)) return "blocked"; // checked first: never invite a card retry on a risk/fraud block
+  if (RISK.test(m)) return "risk"; // DECLINE-REJECTED-1018
   if (INVALID.test(m)) return "invalid"; // DECLINE-RECOVERY-1014
   if (String(carrierSlug || "").includes("ultra") && /paypal declined/i.test(m)) return "plan"; // DECLINE-RECOVERY-1014
   if (DETAILS.test(m)) return "details";
@@ -87,6 +89,9 @@ export function isValidEmail(s: string): boolean {
 
 export const DECLINE_COPY = {
   en: {
+    risk: "A security check stopped this card, so the payment didn't go through. Trying the same card again won't work. Please use a different card or another way to pay.", // DECLINE-REJECTED-1018
+    riskAp: "A security check stopped this card, so the payment didn't go through. Trying the same card again won't work. Please pay with Apple Pay or a different card.", // DECLINE-REJECTED-1018
+    riskGp: "A security check stopped this card, so the payment didn't go through. Trying the same card again won't work. Please pay with Google Pay or a different card.", // DECLINE-REJECTED-1018
     details: "The card details didn't match what your bank has. Check the card number, expiry date, CVV (3 digits on the back) and the billing ZIP code, then try again.", // DECLINE-RECOVERY-1014
     invalid: "Some payment details couldn't be read. Check your name, email and billing ZIP code, then try again or use another card.", // DECLINE-RECOVERY-1014
     plan: "This payment didn't go through. Please check that you picked the right plan and amount for this number, then try again.", // DECLINE-RECOVERY-1014
@@ -115,6 +120,9 @@ export const DECLINE_COPY = {
     abTryCard: "Try card again", // DECLINE-AB-1016
   },
   es: {
+    risk: "Un control de seguridad detuvo esta tarjeta y el pago no se completó. Volver a usar la misma tarjeta no va a funcionar. Use otra tarjeta u otra forma de pago.", // DECLINE-REJECTED-1018
+    riskAp: "Un control de seguridad detuvo esta tarjeta y el pago no se completó. Volver a usar la misma tarjeta no va a funcionar. Pague con Apple Pay o con otra tarjeta.", // DECLINE-REJECTED-1018
+    riskGp: "Un control de seguridad detuvo esta tarjeta y el pago no se completó. Volver a usar la misma tarjeta no va a funcionar. Pague con Google Pay o con otra tarjeta.", // DECLINE-REJECTED-1018
     details: "Los datos de la tarjeta no coinciden con los de su banco. Revise el número, la fecha de vencimiento, el CVV (3 dígitos al reverso) y el código postal de facturación, y vuelva a intentar.", // DECLINE-RECOVERY-1014
     invalid: "No pudimos leer algunos datos del pago. Revise su nombre, correo y código postal de facturación, y vuelva a intentar o use otra tarjeta.", // DECLINE-RECOVERY-1014
     plan: "Este pago no se completó. Verifique que eligió el plan y el monto correctos para este número, y vuelva a intentar.", // DECLINE-RECOVERY-1014
@@ -252,3 +260,17 @@ export function readKlarnaSrc(phone: string): KlarnaSrc {
   } catch { return "method_list"; }
 }
 export function clearKlarnaSrc(phone: string): void { clearFlags("cp_klarna_src_v1", "cp_klarna_src_phone_v1:", phone); }
+
+export function declineBtnCode(testid: string, wallet?: string): string | null { // DECLINE-REJECTED-1018
+  try { // DECLINE-REJECTED-1018
+    if (testid === "decline-ab-primary-wallet" || testid === "decline-risk-wallet") return wallet === "applepay" ? "ap" : wallet === "googlepay" ? "gp" : null; // DECLINE-REJECTED-1018
+    const codes: Record<string, string> = { "decline-applepay": "ap", "decline-googlepay": "gp", "decline-paypal": "pp", "decline-cashapp": "cash", "decline-paybybank": "bank", "decline-another-card": "card", "decline-retry-card": "retry", "funds-same-card": "retry", "decline-klarna": "klarna", "funds-klarna": "klarna", "funds-applepay-again": "ap_again", "decline-other": "close" }; // DECLINE-REJECTED-1018
+    return Object.prototype.hasOwnProperty.call(codes, testid) ? codes[testid] : null; // DECLINE-REJECTED-1018
+  } catch { return null; } // DECLINE-REJECTED-1018
+} // DECLINE-REJECTED-1018
+export function declineActionFor(code: string | null): string | null { // DECLINE-REJECTED-1018
+  try { // DECLINE-REJECTED-1018
+    const actions: Record<string, string> = { ap: "applepay", gp: "googlepay", pp: "paypal", cash: "cashapp", bank: "bank", card: "another_card", retry: "retry_same", klarna: "klarna", ap_again: "applepay_again", close: "close" }; // DECLINE-REJECTED-1018
+    return code !== null && Object.prototype.hasOwnProperty.call(actions, code) ? actions[code] : null; // DECLINE-REJECTED-1018
+  } catch { return null; } // DECLINE-REJECTED-1018
+} // DECLINE-REJECTED-1018

@@ -7,6 +7,9 @@ for (const event of KLARNA_EVENTS) EVENTS.add(event); // KLARNA-FUNNEL-1017
 const RETRY_EVENTS = new Set(["retry_offer_shown", "retry_tapped", "retry_success", "retry_late_alive"]); // REFUND-RETRY-1018 // REFUND-RETRY-LATE-1018
 for (const event of RETRY_EVENTS) EVENTS.add(event); // REFUND-RETRY-1018
 
+const DECLINE_EVENTS = new Set(["decline_screen_shown", "decline_action"]); // DECLINE-REJECTED-1018
+for (const event of DECLINE_EVENTS) EVENTS.add(event); // DECLINE-REJECTED-1018
+
 function cors(origin: string | null): Record<string, string> {
   const h: Record<string, string> = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -49,6 +52,16 @@ function clean(o: unknown, host: string | null): Record<string, unknown> | null 
     if (!isNaN(d.getTime())) client_ts = d.toISOString();
   }
   return { event, carrier, amount: num(r.amount), fee: num(r.fee), total: num(r.total), session_id: sid, lang, host, client_ts,
+    ...(DECLINE_EVENTS.has(event) ? { // DECLINE-REJECTED-1018
+      screen: typeof r.screen === "string" && /^(nsf|risk|details|blocked|cap|other)$/.test(r.screen) ? r.screen : null, // DECLINE-REJECTED-1018
+      decline_ab: r.decline_ab === "control" || r.decline_ab === "variant" ? r.decline_ab : null, // DECLINE-REJECTED-1018
+      checkout_session_id: typeof r.checkout_session_id === "string" && /^[A-Za-z0-9_-]{1,100}$/.test(r.checkout_session_id) ? r.checkout_session_id : null, // DECLINE-REJECTED-1018
+      decline_method: typeof r.decline_method === "string" && /^(card|applepay|googlepay)$/.test(r.decline_method) ? r.decline_method : null, // DECLINE-REJECTED-1018
+      ap_available: typeof r.ap_available === "boolean" ? r.ap_available : null, // DECLINE-REJECTED-1018
+      gp_available: typeof r.gp_available === "boolean" ? r.gp_available : null, // DECLINE-REJECTED-1018
+      decline_buttons: typeof r.decline_buttons === "string" && /^[a-z_,]{1,80}$/.test(r.decline_buttons) ? r.decline_buttons : null, // DECLINE-REJECTED-1018
+      decline_action: typeof r.decline_action === "string" && /^(applepay|applepay_again|googlepay|paypal|cashapp|bank|another_card|retry_same|klarna|close)$/.test(r.decline_action) ? r.decline_action : null, // DECLINE-REJECTED-1018
+    } : {}), // DECLINE-REJECTED-1018
     ...(RETRY_EVENTS.has(event) ? { // REFUND-RETRY-1018
       retry_cause: typeof r.retry_cause === "string" && /^(tmo_plan_mismatch|simple_not_found|metro_invalid_number|boost_blank)$/.test(r.retry_cause) ? r.retry_cause : null, // REFUND-RETRY-1018
       retry_action: typeof r.retry_action === "string" && /^[a-z0-9_,]{1,80}$/.test(r.retry_action) ? r.retry_action : null, // REFUND-RETRY-1018 // REFUND-RETRY-LATE-1018
@@ -90,14 +103,15 @@ Deno.serve(async (req) => {
     const rows: Record<string, unknown>[] = [];
     const klarnaRows: Record<string, unknown>[] = []; // KLARNA-FUNNEL-1017
     const retryRows: Record<string, unknown>[] = []; // REFUND-RETRY-1018
+    const declineRows: Record<string, unknown>[] = []; // DECLINE-REJECTED-1018
     for (const item of list) {
       const row = clean(item, host);
       if (!row) continue;
       if (!allow(ipHits, ip, 60, 60_000)) break;
       if (row.session_id && !allow(sidHits, String(row.session_id), 40, 600_000)) continue;
-      (RETRY_EVENTS.has(String(row.event)) ? retryRows : KLARNA_EVENTS.has(String(row.event)) ? klarnaRows : rows).push(row); // KLARNA-FUNNEL-1017 // REFUND-RETRY-1018
+      (DECLINE_EVENTS.has(String(row.event)) ? declineRows : RETRY_EVENTS.has(String(row.event)) ? retryRows : KLARNA_EVENTS.has(String(row.event)) ? klarnaRows : rows).push(row); // KLARNA-FUNNEL-1017 // REFUND-RETRY-1018 // DECLINE-REJECTED-1018
     }
-    if (rows.length === 0 && klarnaRows.length === 0 && retryRows.length === 0) return done; // KLARNA-FUNNEL-1017 // REFUND-RETRY-1018
+    if (rows.length === 0 && klarnaRows.length === 0 && retryRows.length === 0 && declineRows.length === 0) return done; // KLARNA-FUNNEL-1017 // REFUND-RETRY-1018 // DECLINE-REJECTED-1018
     const url = Deno.env.get("SUPABASE_URL"), key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!url || !key) return done;
     const postRows = (batch: Record<string, unknown>[]) => { // KLARNA-FUNNEL-1017: independent requests, including synchronous failures.
@@ -111,11 +125,13 @@ Deno.serve(async (req) => {
     const write = rows.length ? postRows(rows) : Promise.resolve(); // KLARNA-FUNNEL-1017
     const klarnaWrite = klarnaRows.length ? postRows(klarnaRows) : Promise.resolve(); // KLARNA-FUNNEL-1017
     const retryWrite = retryRows.length ? postRows(retryRows) : Promise.resolve(); // REFUND-RETRY-1018
+    const declineWrite = declineRows.length ? postRows(declineRows) : Promise.resolve(); // DECLINE-REJECTED-1018
     // deno-lint-ignore no-explicit-any
     const rt = (globalThis as any).EdgeRuntime;
     if (rt && typeof rt.waitUntil === "function") rt.waitUntil(write); else await write;
     if (rt && typeof rt.waitUntil === "function") rt.waitUntil(klarnaWrite); else await klarnaWrite; // KLARNA-FUNNEL-1017
     if (rt && typeof rt.waitUntil === "function") rt.waitUntil(retryWrite); else await retryWrite; // REFUND-RETRY-1018
+    if (rt && typeof rt.waitUntil === "function") rt.waitUntil(declineWrite); else await declineWrite; // DECLINE-REJECTED-1018
   } catch { /* never error to client */ }
   return done;
 });
