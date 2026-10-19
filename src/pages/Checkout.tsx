@@ -11,7 +11,7 @@ import { retryCauseFor, retryReasonText, retryButtons, recordRefund, recordRetry
 import { lockKey, activeLock, setLock, PAYLOCK_MS, PAYLOCK_UNKNOWN_MS, runPayLocked, refusedBeforeCharge } from "@/lib/payLock"; // DB-OUTAGE-TRACK-1017
 import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, CheckCircle2, ShieldCheck, Lock, Headphones } from "lucide-react";
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
-import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry, markWalletDeclined, walletDeclined, getDeclineAb, declineHint, isNsfDecline, FUNDS_COPY, KLARNA_MIN_TOTAL, klarnaQuarter } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014C: + wallet block // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry // DECLINE-MSGS-1016 // FUNDS-DECLINE-1016
+import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry, markWalletDeclined, walletDeclined, getDeclineAb, declineHint, isNsfDecline, FUNDS_COPY, KLARNA_MIN_TOTAL, klarnaQuarter, declineBtnCode, declineActionFor } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014C: + wallet block // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry // DECLINE-MSGS-1016 // FUNDS-DECLINE-1016 // DECLINE-REJECTED-1018
 import { AP_LAST_KEY } from "@/components/AutoPayReceiptCard";
 import { PLAID_ENABLED, PAYPAL_ENABLED } from "@/config/paymentFlags";
 // [PAYPAL-REBUILD-1009] QA only: ?pp_qa=1 shows the PayPal tile in this tab while PAYPAL_ENABLED is false (?pp_qa=0 clears it).
@@ -1442,6 +1442,15 @@ const Checkout = () => {
     } catch { /* ignore */ } // KLARNA-FUNNEL-1017
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [declineInfo, loading, validation, state, applePayAvailable, walletBlocked, gpayFailed, paymentMethod, errorMsg]); // KLARNA-FUNNEL-1017
+  useEffect(() => { // DECLINE-REJECTED-1018
+    try { // DECLINE-REJECTED-1018
+      if (!declineInfo || !errorMsg || refundCard) return; // DECLINE-REJECTED-1018
+      const el = document.querySelector('[data-testid="decline-recovery"]') as HTMLElement | null; if (!el) return; // DECLINE-REJECTED-1018
+      const codes = Array.from(el.querySelectorAll("button[data-testid]")).map((b) => declineBtnCode((b as HTMLElement).dataset.testid || "", (b as HTMLElement).dataset.declineAbWallet)).filter(Boolean); // DECLINE-REJECTED-1018
+      trackFunnel("decline_screen_shown", { ...funnelDataRef.current, screen: el.dataset.screen as FunnelData["screen"], decline_ab: readDeclineAb(phone10), checkout_session_id: sessionIdRef.current, decline_method: el.dataset.method, ap_available: el.dataset.apAvailable === "1", gp_available: el.dataset.gpAvailable === "1", decline_buttons: Array.from(new Set(codes)).join(",") }, `shown|${declineSeqRef.current}`); // DECLINE-REJECTED-1018
+    } catch { /* ignore */ } // DECLINE-REJECTED-1018
+    // eslint-disable-next-line react-hooks/exhaustive-deps // DECLINE-REJECTED-1018
+  }, [declineInfo, errorMsg, refundCard]); // DECLINE-REJECTED-1018
   useEffect(() => {
     const started = () => { try { trackFunnel("payment_started", funnelDataRef.current); } catch { /* ignore */ } };
     const onFocus = (e: Event) => {
@@ -3297,12 +3306,14 @@ const Checkout = () => {
               const btn = "w-full px-4 py-2.5 rounded-lg font-bold text-sm";
               const isCard = declineInfo.method === "card";
               const noRetry = noSameRetry(declineInfo.msg || "", declineInfo.method) || declineInfo.method === "applepay" || declineInfo.method === "googlepay"; // DECLINE-RECOVERY-1014B // DECLINE-RECOVERY-1014C: no same-wallet retry
-              const hint = sessCap ? dc.capSession : capped && declineInfo.cls !== "blocked" ? dc.capReached : (declineHint(declineInfo.msg || "", lang) ?? dc[declineInfo.cls]); // DECLINE-RECOVERY-1014 // DECLINE-MSGS-1016
               const walletFirst = isCard && !sessCap; // DECLINE-LEVERS-1015-D1
               const isAndroidUA = typeof navigator !== "undefined" && /Android/.test(navigator.userAgent); // DECLINE-LEVERS-1015-D1
               const showAp = !sessCap && applePayAvailable && offered.has("applepay") && !walletBlocked.includes("applepay") && !(noRetry && declineInfo.method === "applepay"); // DECLINE-LEVERS-1015-D1
               // DECLINE-LEVERS-1015-D1: Google Pay: offered, not failed/blocked, and not on an iPhone/iPad that has Apple Pay
               const showGp = !sessCap && offered.has("googlepay") && !walletBlocked.includes("googlepay") && !(noRetry && declineInfo.method === "googlepay") && !(walletFirst && isIOS && applePayAvailable && !isAndroidUA);
+              const riskView = declineInfo.cls === "risk" && !sessCap && !nsfView; // DECLINE-REJECTED-1018
+              const riskWallet: PaymentMethod | null = riskView ? (showAp ? "applepay" : showGp ? "googlepay" : null) : null; // DECLINE-REJECTED-1018
+              const hint = sessCap ? dc.capSession : capped && declineInfo.cls !== "blocked" ? dc.capReached : (declineHint(declineInfo.msg || "", lang) ?? (declineInfo.cls === "risk" ? riskWallet === "applepay" ? dc.riskAp : riskWallet === "googlepay" ? dc.riskGp : dc.risk : dc[declineInfo.cls])); // DECLINE-RECOVERY-1014 // DECLINE-MSGS-1016 // DECLINE-REJECTED-1018
               const showPp = offered.has("paypal"); // DECLINE-LEVERS-1015-D1
               const showRetry = !sessCap && !(isCard && capped) && !noRetry; // DECLINE-LEVERS-1015-D1
               const showAnother = !sessCap && !(isCard && capped); // DECLINE-LEVERS-1015-D1
@@ -3346,7 +3357,13 @@ const Checkout = () => {
               const primaryWallet: PaymentMethod | null = abVariant ? (showAp ? "applepay" : "googlepay") : null; // DECLINE-AB-1016
               const quiet = "w-full px-4 py-2 rounded-lg font-semibold text-sm border border-border text-foreground bg-background"; // DECLINE-AB-1016
               return (
-                <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls} data-wallet-first={walletFirst ? "1" : "0"} data-decline-ab={ab} data-funds={nsfView ? "1" : undefined}>
+                <div className="space-y-2 text-left" data-testid="decline-recovery" data-class={declineInfo.cls} data-wallet-first={walletFirst ? "1" : "0"} data-decline-ab={ab} data-funds={nsfView ? "1" : undefined} // DECLINE-REJECTED-1018
+                  data-screen={declineInfo.cls === "blocked" ? "blocked" : sessCap ? "cap" : nsfView ? "nsf" : declineInfo.cls === "risk" ? "risk" : declineInfo.cls === "details" ? "details" : "other"} // DECLINE-REJECTED-1018
+                  data-method={declineInfo.method} // DECLINE-REJECTED-1018
+                  data-ap-available={(typeof window !== "undefined" && !!window.ApplePaySession && applePayAvailable) ? "1" : "0"} // DECLINE-REJECTED-1018
+                  data-gp-available={(offered.has("googlepay") && !gpayFailed && !walletBlocked.includes("googlepay")) ? "1" : "0"} // DECLINE-REJECTED-1018
+                  onClickCapture={(e) => { try { const b = (e.target as HTMLElement)?.closest?.("button[data-testid]") as HTMLElement | null; if (!b) return; const a = declineActionFor(declineBtnCode(b.dataset.testid || "", b.dataset.declineAbWallet)); if (!a) return; trackFunnel("decline_action", { ...funnelDataRef.current, screen: declineInfo.cls === "blocked" ? "blocked" : sessCap ? "cap" : nsfView ? "nsf" : declineInfo.cls === "risk" ? "risk" : declineInfo.cls === "details" ? "details" : "other", decline_ab: readDeclineAb(phone10), checkout_session_id: sessionIdRef.current, decline_method: declineInfo.method, decline_action: a }, `act|${declineSeqRef.current}|${a}|${Date.now()}`); } catch { /* ignore */ } }} // DECLINE-REJECTED-1018
+                >
                   {!nsfView && <p className="text-sm text-foreground mb-2" data-testid="decline-hint">{hint}</p>}
                   {nsfView ? ( // FUNDS-DECLINE-1016: recovery switches tabs only, never submits.
                     <>
@@ -3374,6 +3391,12 @@ const Checkout = () => {
                       {showAnother && <button type="button" data-testid="decline-another-card" onClick={() => { if (isCard) focusCardNumber(); else toMethod("card"); }} className={quiet}>{dc.useAnotherCard}</button>}
                       {isCard && !(isCard && capped) && <button type="button" data-testid="funds-same-card" onClick={focusCard} className="w-full text-xs underline text-muted-foreground pt-1">{fc.sameCard}</button>}
                     </>
+                  ) : riskView ? ( // DECLINE-REJECTED-1018
+                    <> {/* // DECLINE-REJECTED-1018 */}
+                      {riskWallet && <button type="button" data-testid="decline-risk-wallet" data-decline-ab-wallet={riskWallet} onClick={() => walletNow(riskWallet)} className="w-full px-4 py-3.5 rounded-lg font-bold text-base bg-black text-white">{riskWallet === "applepay" ? dc.abPrimaryAp : dc.abPrimaryGp}</button>} {/* // DECLINE-REJECTED-1018 */}
+                      {ppBtn}{cashBtn}{bankBtn} {/* // DECLINE-REJECTED-1018 */}
+                      {showAnother && <button type="button" data-testid="decline-another-card" onClick={() => { if (isCard) { setCardNumber(""); setCardExpiry(""); setCardCvv(""); focusCardNumber(); } else toMethod("card"); }} className={quiet}>{dc.useAnotherCard}</button>} {/* // DECLINE-REJECTED-1018 */}
+                    </> // DECLINE-REJECTED-1018
                   ) : abVariant && primaryWallet ? ( // DECLINE-AB-1016: variant layout
                     <>
                       <button type="button" data-testid="decline-ab-primary-wallet" data-decline-ab-wallet={primaryWallet}
