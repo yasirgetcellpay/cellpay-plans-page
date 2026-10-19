@@ -389,14 +389,19 @@ export type Database = {
       checkout_funnel_events: {
         Row: {
           amount: number | null
+          ap_available: boolean | null
           cap: boolean | null
           carrier: string | null
           checkout_session_id: string | null
           client_ts: string | null
           created_at: string
           decline_ab: string | null
+          decline_action: string | null
+          decline_buttons: string | null
+          decline_method: string | null
           event: string
           fee: number | null
+          gp_available: boolean | null
           host: string | null
           id: number
           klarna_approved: boolean | null
@@ -419,14 +424,19 @@ export type Database = {
         }
         Insert: {
           amount?: number | null
+          ap_available?: boolean | null
           cap?: boolean | null
           carrier?: string | null
           checkout_session_id?: string | null
           client_ts?: string | null
           created_at?: string
           decline_ab?: string | null
+          decline_action?: string | null
+          decline_buttons?: string | null
+          decline_method?: string | null
           event: string
           fee?: number | null
+          gp_available?: boolean | null
           host?: string | null
           id?: number
           klarna_approved?: boolean | null
@@ -449,14 +459,19 @@ export type Database = {
         }
         Update: {
           amount?: number | null
+          ap_available?: boolean | null
           cap?: boolean | null
           carrier?: string | null
           checkout_session_id?: string | null
           client_ts?: string | null
           created_at?: string
           decline_ab?: string | null
+          decline_action?: string | null
+          decline_buttons?: string | null
+          decline_method?: string | null
           event?: string
           fee?: number | null
+          gp_available?: boolean | null
           host?: string | null
           id?: number
           klarna_approved?: boolean | null
