@@ -191,8 +191,9 @@ const isUnconfirmed = (raw: Record<string, unknown>): boolean => {
 };
 const isDbFormatUnconfirmed = (raw: Record<string, unknown>): boolean => { // NAME-SANITIZE-1018B
   const d = raw && typeof raw.data === "object" && raw.data ? raw.data as Record<string, unknown> : {}; // NAME-SANITIZE-1018B
-  return isUnconfirmed(raw) && d.unconfirmed_kind === "db_format"; // NAME-SANITIZE-1018B
+  return isUnconfirmed(raw) && (d.unconfirmed_kind === "db_format" || d.unconfirmed_kind === "backend_exception"); // NAME-SANITIZE-1018B // BACKEND-EXC-1019
 }; // NAME-SANITIZE-1018B
+const isBackendExcReply = (raw: Record<string, unknown>): boolean => { try { return /backend exception/i.test(JSON.stringify(raw ?? {})); } catch { return false; } }; // BACKEND-EXC-1019
 const hasRefundSignal = (value: unknown): boolean => {
   if (!value || typeof value !== "object") return false;
   const obj = value as Record<string, unknown>;
@@ -1621,13 +1622,14 @@ const Checkout = () => {
   // [OURSIDE-RETRY-1012] Data-error fallback (never resends) + flagged single Retry. Per-session record in sessionStorage
   // "cp_ors:<checkout session id>" ({ fallback_shown, failed_method, retry_offered, retry_clicked }); read by submitTransaction.
   const ORS_DATA_ERR = /Validation failed|One or more fields in the request contains invalid data/i;
-  const ORS_REFILL_ERR = /error during refill|Backend exception|System malfunction/i;
+  const ORS_REFILL_ERR = /error during refill|System malfunction/i; // BACKEND-EXC-1019
   const orsKey = () => `cp_ors:${sessionIdRef.current || "none"}`;
   const orsRead = (): Record<string, unknown> => { try { return JSON.parse(sessionStorage.getItem(orsKey()) || "{}") || {}; } catch { return {}; } };
   const orsWrite = (patch: Record<string, unknown>) => { try { sessionStorage.setItem(orsKey(), JSON.stringify({ ...orsRead(), ...patch })); } catch { /* ignore */ } };
   /** Returns the message to show for a failed payment (data errors get the fallback text) and sets the highlight / Retry state. */
   const orsOnFail = (msg: string): string => {
     try {
+      if (/backend exception/i.test(msg)) { setOrsRetry(false); return lang === "es" ? "No pudimos completar este pago. Espere unos minutos y vuelva a intentarlo, o use otro método de pago." : "We couldn't complete this payment. Please wait a few minutes and try again, or use another payment method."; } // BACKEND-EXC-1019
       setOrsRetry(false);
       if (ORS_DATA_ERR.test(msg)) {
         orsWrite({ fallback_shown: true, failed_method: paymentMethod });
@@ -1681,6 +1683,7 @@ const Checkout = () => {
       if (raw.code === "BAD_PHONE") { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); return; } // REFUNDED-STATE-1017: wrapper already navigated
       if (raw.code === "RETRY_CAP" || raw.code === "RETRY_WAIT") { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(String(raw.message || "")); return; } // REFUND-RETRY-LATE-1018
       if (isDbFormatUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(false); setLock(lockKey(state?.phone, validation?.amount ?? state?.amount), "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); return; } // NAME-SANITIZE-1018B
+      if (paymentMethod !== "cashapp" && isBackendExcReply(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(false); setLock(lockKey(state?.phone, validation?.amount ?? state?.amount), "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); return; } // BACKEND-EXC-1019
       if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); return; } // REFUNDED-STATE-1017
       setLoadReason(loadReasonKind(loadTextFrom(raw))); // LOADTEXT-REASON-1017
       const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Transaction failed"; // SUCCESS-FLAG-FIX-1016
@@ -2237,6 +2240,7 @@ const Checkout = () => {
           else if (raw.code === "BAD_PHONE") { /* REFUNDED-STATE-1017: wrapper already navigated */ }
           else if (raw.code === "RETRY_CAP" || raw.code === "RETRY_WAIT") { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(String(raw.message || "")); } // REFUND-RETRY-LATE-1018
           else if (isDbFormatUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(false); setLock(lockKey(state?.phone, validation?.amount ?? state?.amount), "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); } // NAME-SANITIZE-1018B
+          else if (isBackendExcReply(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(false); setLock(lockKey(state?.phone, validation?.amount ?? state?.amount), "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); } // BACKEND-EXC-1019
           else if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); } // REFUNDED-STATE-1017
           else if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") {
             setLoadReason(loadReasonKind(loadTextFrom(raw))); // LOADTEXT-REASON-1017
