@@ -2039,10 +2039,13 @@ export type Database = {
           amount: number | null
           checkout_session_id: string | null
           created_at: string | null
+          err: string | null
           id: number
           ip_asn: number | null
           ip_country: string | null
+          ip_country_hdr: string | null
           ip_datacenter: boolean | null
+          ip_src: string | null
           latency_ms: number | null
           linked_block: Json | null
           mode: string | null
@@ -2050,6 +2053,7 @@ export type Database = {
           phone_last4: string | null
           reasons: Json | null
           score: number | null
+          timed_out: boolean | null
           transaction_log_id: string | null
         }
         Insert: {
@@ -2057,10 +2061,13 @@ export type Database = {
           amount?: number | null
           checkout_session_id?: string | null
           created_at?: string | null
+          err?: string | null
           id?: number
           ip_asn?: number | null
           ip_country?: string | null
+          ip_country_hdr?: string | null
           ip_datacenter?: boolean | null
+          ip_src?: string | null
           latency_ms?: number | null
           linked_block?: Json | null
           mode?: string | null
@@ -2068,6 +2075,7 @@ export type Database = {
           phone_last4?: string | null
           reasons?: Json | null
           score?: number | null
+          timed_out?: boolean | null
           transaction_log_id?: string | null
         }
         Update: {
@@ -2075,10 +2083,13 @@ export type Database = {
           amount?: number | null
           checkout_session_id?: string | null
           created_at?: string | null
+          err?: string | null
           id?: number
           ip_asn?: number | null
           ip_country?: string | null
+          ip_country_hdr?: string | null
           ip_datacenter?: boolean | null
+          ip_src?: string | null
           latency_ms?: number | null
           linked_block?: Json | null
           mode?: string | null
@@ -2086,6 +2097,7 @@ export type Database = {
           phone_last4?: string | null
           reasons?: Json | null
           score?: number | null
+          timed_out?: boolean | null
           transaction_log_id?: string | null
         }
         Relationships: []

@@ -1,15 +1,20 @@
 // FRAUD-MULTIBLOCK-1012 5b: pre-payment risk score (shared by the risk-score function and cellpay-proxy).
 // Service role only. Whole budget 700 ms; any error -> { action: "allow", error: true }. Never reads or stores a full card number:
 // card / address keys come in already reduced (BIN6:last4, normalized address). Stores phone last 4 only.
+// RISK-COVER-IP-1019: budget 700 ms in enforce, 2500 ms otherwise (shadow runs in the background, never on the customer's path).
+// The decision row is ALWAYS written (own 1500 ms timeout), also on timeout/error (action allow, timed_out / err set).
 
 export type RiskInput = {
   phone?: string | null; email?: string | null; amount?: number | null; carrier_slug?: string | null; payment_method?: string | null;
   checkout_session_id?: string | null; cp_dev?: { dev_fp?: string; dev_id?: string } | null; visitorId?: string | null;
   card_bin6?: string | null; card_last4?: string | null; card_exp?: string | null; addr_norm?: string | null; ip?: string | null;
+  ip_src?: string | null; ip_country_hdr?: string | null;
 };
 export type RiskResult = { score?: number; action: "allow" | "step_up" | "hold" | "block"; reasons?: string[]; mode?: string; error?: boolean };
 
-const BUDGET_MS = 700;
+const BUDGET_ENFORCE_MS = 700;
+const BUDGET_SHADOW_MS = 2500;
+const LOG_TIMEOUT_MS = 1500;
 const s = (v: unknown): string | null => (v === undefined || v === null || String(v).trim() === "" ? null : String(v).trim());
 
 async function rpc(name: string, body: Record<string, unknown>, signal: AbortSignal): Promise<unknown> {
@@ -55,13 +60,25 @@ export async function riskEngineMode(signal?: AbortSignal): Promise<string> {
   }
 }
 
+function logDecision(row: Record<string, unknown>): Promise<void> {
+  return rest("risk_decisions", AbortSignal.timeout(LOG_TIMEOUT_MS), {
+    method: "POST", headers: { prefer: "return=minimal" }, body: JSON.stringify(row),
+  }).then(() => {}).catch(() => {});
+}
+
 export async function scoreRisk(inp: RiskInput, knownMode?: string): Promise<RiskResult> {
   const t0 = Date.now();
+  const mode = knownMode ?? (await riskEngineMode(AbortSignal.timeout(300)));
+  if (mode === "off") return { action: "allow", mode: "off" };
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), BUDGET_MS);
+  const timer = setTimeout(() => ac.abort(), mode === "enforce" ? BUDGET_ENFORCE_MS : BUDGET_SHADOW_MS);
+  const pd = (s(inp.phone) || "").replace(/\D/g, "");
+  const hdrCountry = s(inp.ip_country_hdr) && /^[A-Za-z]{2}$/.test(String(inp.ip_country_hdr).trim()) ? String(inp.ip_country_hdr).trim().toUpperCase() : null;
+  const baseRow = {
+    checkout_session_id: s(inp.checkout_session_id), phone_last4: pd.length >= 4 ? pd.slice(-4) : null, payment_method: s(inp.payment_method),
+    amount: Number.isFinite(Number(inp.amount)) ? Number(inp.amount) : null, mode, ip_src: s(inp.ip_src), ip_country_hdr: hdrCountry,
+  };
   try {
-    const mode = knownMode ?? (await riskEngineMode(ac.signal));
-    if (mode === "off") return { action: "allow", mode: "off" };
     const phone = s(inp.phone), email = s(inp.email), ip = s(inp.ip);
     const device = s(inp.cp_dev?.dev_fp), did = s(inp.cp_dev?.dev_id);
     const card = inp.card_bin6 && inp.card_last4 && /^\d{6}$/.test(inp.card_bin6) && /^\d{4}$/.test(inp.card_last4) ? `${inp.card_bin6}:${inp.card_last4}` : null;
@@ -78,10 +95,11 @@ export async function scoreRisk(inp: RiskInput, knownMode?: string): Promise<Ris
 
     const f = (feat && typeof feat === "object" ? feat : {}) as Record<string, number>;
     const ipr = first(ipe);
+    const ipCountry = s(ipr.country) ? String(ipr.country).toUpperCase() : hdrCountry; // DB range first, Cloudflare header as fallback
     if (ipr.cgnat !== true) {
       // IP adds points only (never a block on its own); carrier CGNAT never scores.
       if (ipr.datacenter === true) f.ip_datacenter = 1;
-      if (s(ipr.country) && String(ipr.country).toUpperCase() !== "US") f.ip_foreign = 1;
+      if (ipCountry && ipCountry !== "US") f.ip_foreign = 1;
     }
     const w = new Map<string, { weight: number; cap: number | null }>();
     for (const r of (Array.isArray(rules) ? rules : []) as Array<Record<string, unknown>>) {
@@ -108,18 +126,20 @@ export async function scoreRisk(inp: RiskInput, knownMode?: string): Promise<Ris
     else if (score >= band("band_stepup", 25)) action = "step_up";
     score = Math.round(score * 10) / 10;
 
-    const pd = (phone || "").replace(/\D/g, "");
-    await rest("risk_decisions", ac.signal, {
-      method: "POST", headers: { prefer: "return=minimal" },
-      body: JSON.stringify({
-        checkout_session_id: s(inp.checkout_session_id), phone_last4: pd.length >= 4 ? pd.slice(-4) : null, payment_method: method,
-        amount, score, action, mode, reasons, linked_block: linked,
-        ip_asn: typeof ipr.asn === "number" ? ipr.asn : null, ip_country: s(ipr.country), ip_datacenter: ipr.datacenter === true,
-        latency_ms: Date.now() - t0,
-      }),
-    }).catch(() => {});
+    clearTimeout(timer);
+    await logDecision({
+      ...baseRow, score, action, reasons, linked_block: linked,
+      ip_asn: typeof ipr.asn === "number" ? ipr.asn : null, ip_country: ipCountry, ip_datacenter: ipr.datacenter === true,
+      latency_ms: Date.now() - t0, timed_out: false,
+    });
     return { score, action, reasons, mode };
-  } catch {
+  } catch (e) {
+    clearTimeout(timer);
+    const timedOut = ac.signal.aborted;
+    await logDecision({
+      ...baseRow, score: null, action: "allow", reasons: [timedOut ? "error:timeout" : "error"], ip_country: hdrCountry,
+      latency_ms: Date.now() - t0, timed_out: timedOut, err: String((e as Error)?.message ?? e).slice(0, 120),
+    });
     return { action: "allow", error: true };
   } finally {
     clearTimeout(timer);

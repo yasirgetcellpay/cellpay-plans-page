@@ -669,6 +669,23 @@ function ap1ClientIp(req: Request): string | null {
   return null;
 }
 
+// [RISK-COVER-IP-1019] Risk-engine client IP: CF-Connecting-IP, else the rightmost PUBLIC X-Forwarded-For entry (never the leftmost,
+// which the client can set; never a body field). src is logged on risk_decisions.ip_src; cf-ipcountry (if present) as a fallback country.
+function riskIsPrivateIp(ip: string): boolean {
+  return /^(10\.|127\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.)/.test(ip) || /^(::1$|f[cd]|fe[89ab])/i.test(ip);
+}
+function riskClientIp(req: Request): { ip: string | null; src: string; country: string | null } {
+  const cc = (req.headers.get("cf-ipcountry") || "").trim().toUpperCase();
+  const country = /^[A-Z][A-Z0-9]$/.test(cc) && cc !== "XX" ? cc : null;
+  const cf = (req.headers.get("cf-connecting-ip") || "").trim();
+  if (ap1IsIp(cf)) return { ip: cf, src: "cf", country };
+  const xff = (req.headers.get("x-forwarded-for") || "").split(",").map((x) => x.trim()).filter(Boolean);
+  for (let i = xff.length - 1; i >= 0; i--) {
+    if (ap1IsIp(xff[i]) && !riskIsPrivateIp(xff[i])) return { ip: xff[i], src: i === 0 ? "xff_first" : `xff_r${xff.length - 1 - i}`, country };
+  }
+  return { ip: null, src: "none", country };
+}
+
 // AP-1's own event writer: same table and fetch shape as recordGuardEvent, but its OWN per-isolate cap so AP-1
 // traffic can never crowd out 1a/Fraud refusal rows. guard_version "ap1". Fire-and-forget, never throws.
 const AP1_EVENT_CAP_PER_MINUTE = Number(Deno.env.get("AP1_EVENT_CAP_PER_MINUTE") ?? "200");
@@ -2852,10 +2869,33 @@ serve(async (req) => {
     let mfIpP: Promise<Record<string, unknown> | null> = Promise.resolve(null);
     let riskAction: string | null = null;
     const reqIp = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
+    const riskIp = riskClientIp(req); // [RISK-COVER-IP-1019] risk engine only; reqIp (mf metadata) unchanged
     const paymentMethod = text(payloadRecord.payment_method ?? payloadRecord.paymentMethod);
     // [plaid v2] A Plaid checkout carries no Plaid token or Link metadata past this point (guards, log row, CellPay).
     const isPlaidCheckout = shouldLogTransaction && (paymentMethod || "").toLowerCase() === "plaid";
     if (isPlaidCheckout) for (const k of PLAID_V2_DROP) delete payloadRecord[k];
+    // [RISK-COVER-IP-1019] Shadow risk decision for EVERY checkout attempt, started here before any guard can refuse it. Background only
+    // (waitUntilSafe): the mode read and the scoring never touch the customer's response or its timing. Enforce keeps its own path below.
+    if (shouldLogTransaction) {
+      try {
+        const pay0 = asRecord(payloadRecord.payment);
+        const m1 = buildMf(payloadRecord, cpDev, paymentMethod);
+        const rin0 = {
+          phone: text(payloadRecord.phone_number ?? payloadRecord.phoneNumber), email: text(pay0.email ?? payloadRecord.email),
+          amount: Number(payloadRecord.amount), carrier_slug: text(payloadRecord.carrier_slug ?? payloadRecord.carrierSlug),
+          payment_method: paymentMethod, checkout_session_id: text(payloadRecord.kount_ssid ?? payloadRecord.riskified_sessionid ?? payloadRecord.cbsys_sessionid),
+          cp_dev: { dev_fp: m1.device ?? undefined, dev_id: m1.did ?? undefined }, visitorId: m1.visitor,
+          card_bin6: m1.bin6, card_last4: m1.last4, card_exp: m1.card_exp, addr_norm: m1.addr,
+          ip: riskIp.ip, ip_src: riskIp.src, ip_country_hdr: riskIp.country,
+        };
+        waitUntilSafe((async () => {
+          try {
+            const md = await riskEngineMode();
+            if (md !== "off" && md !== "enforce") await scoreRisk(rin0, md);
+          } catch { /* shadow never throws */ }
+        })());
+      } catch { /* risk shadow fails open */ }
+    }
     // [PAYPAL-REBUILD-1009] PayPal through checkout/transaction (CellPay takes the money). Before every other guard: switch / QA allowlist,
     // then the shape CellPay requires (paypal_authorization with orderID + payerID; payment firstName / lastName / email). A refusal is
     // a calm 200: nothing goes to CellPay, nothing is captured (the PayPal approval just expires). Then the normal card guards and the
@@ -2979,7 +3019,8 @@ serve(async (req) => {
             amount: Number(payloadRecord.amount), carrier_slug: text(payloadRecord.carrier_slug ?? payloadRecord.carrierSlug),
             payment_method: paymentMethod, checkout_session_id: text(payloadRecord.kount_ssid ?? payloadRecord.riskified_sessionid ?? payloadRecord.cbsys_sessionid),
             cp_dev: { dev_fp: m0.device ?? undefined, dev_id: m0.did ?? undefined }, visitorId: m0.visitor,
-            card_bin6: m0.bin6, card_last4: m0.last4, card_exp: m0.card_exp, addr_norm: m0.addr, ip: reqIp,
+            card_bin6: m0.bin6, card_last4: m0.last4, card_exp: m0.card_exp, addr_norm: m0.addr,
+            ip: riskIp.ip, ip_src: riskIp.src, ip_country_hdr: riskIp.country,
           };
           if (mode === "enforce") {
             const rr = await Promise.race([
@@ -2994,12 +3035,7 @@ serve(async (req) => {
               recordGuardEvent({ code: `risk_${rr.action}`, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: true });
               if (rr.action === "step_up") riskAction = "step_up";
             }
-          } else {
-            const job = scoreRisk(rin, mode).catch(() => null);
-            // deno-lint-ignore no-explicit-any
-            const runtime = (globalThis as any).EdgeRuntime;
-            if (runtime && typeof runtime.waitUntil === "function") runtime.waitUntil(job);
-          }
+          } // shadow: the decision was already started before the guards ([RISK-COVER-IP-1019]), so nothing runs here
         }
       } catch { /* risk engine fails open */ }
     }
