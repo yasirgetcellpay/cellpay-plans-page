@@ -886,4 +886,23 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/tracfone" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/tracfone" />
   </url>
+  <!-- // AEO-13-PAGEPLUS-1019 -->
+  <url>
+    <loc>https://www.cellpay.us/how-to-pay/page-plus</loc>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/page-plus" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/page-plus" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/page-plus" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/es/como-pagar/page-plus</loc>
+    <lastmod>2026-10-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/page-plus" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/page-plus" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/page-plus" />
+  </url>
 </urlset>

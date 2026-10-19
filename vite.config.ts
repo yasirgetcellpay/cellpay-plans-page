@@ -274,6 +274,8 @@ const HTML_ROUTES = [
   "es/como-pagar/ultra-mobile/index.html", // AEO-11-ULTRA-1017
   "how-to-pay/tracfone/index.html", // AEO-12-TRACFONE-1018
   "es/como-pagar/tracfone/index.html", // AEO-12-TRACFONE-1018
+  "how-to-pay/page-plus/index.html", // AEO-13-PAGEPLUS-1019
+  "es/como-pagar/page-plus/index.html", // AEO-13-PAGEPLUS-1019
   // AI-ANSWERS-1014: amount answer pages
   "how-to-pay/boost-mobile/25/index.html",
   "es/como-pagar/boost-mobile/25/index.html",

@@ -61,6 +61,8 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [How to pay Ultra Mobile](https://www.cellpay.us/how-to-pay/ultra-mobile)
 <!-- // AEO-12-TRACFONE-1018 -->
 - [How to pay Tracfone](https://www.cellpay.us/how-to-pay/tracfone)
+<!-- // AEO-13-PAGEPLUS-1019 -->
+- [How to pay Page Plus](https://www.cellpay.us/how-to-pay/page-plus)
 - [How to pay H2O Wireless](https://www.cellpay.us/how-to-pay/h2o) · [Cómo pagar H2O Wireless](https://www.cellpay.us/es/como-pagar/h2o)
 - Boost Mobile amounts: [$25](https://www.cellpay.us/how-to-pay/boost-mobile/25) · [$45](https://www.cellpay.us/how-to-pay/boost-mobile/45) · [$50](https://www.cellpay.us/how-to-pay/boost-mobile/50)
 - Metro by T-Mobile amounts: [$25](https://www.cellpay.us/how-to-pay/metro-pcs/25) · [$45](https://www.cellpay.us/how-to-pay/metro-pcs/45) · [$50](https://www.cellpay.us/how-to-pay/metro-pcs/50)
@@ -97,6 +99,8 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [Cómo pagar Ultra Mobile](https://www.cellpay.us/es/como-pagar/ultra-mobile)
 <!-- // AEO-12-TRACFONE-1018 -->
 - [Cómo pagar Tracfone](https://www.cellpay.us/es/como-pagar/tracfone)
+<!-- // AEO-13-PAGEPLUS-1019 -->
+- [Cómo pagar Page Plus](https://www.cellpay.us/es/como-pagar/page-plus)
 - [Cómo pagar H2O Wireless](https://www.cellpay.us/es/como-pagar/h2o)
 - Montos de Boost Mobile: [$25](https://www.cellpay.us/es/como-pagar/boost-mobile/25) · [$45](https://www.cellpay.us/es/como-pagar/boost-mobile/45) · [$50](https://www.cellpay.us/es/como-pagar/boost-mobile/50)
 - Montos de Metro by T-Mobile: [$25](https://www.cellpay.us/es/como-pagar/metro-pcs/25) · [$45](https://www.cellpay.us/es/como-pagar/metro-pcs/45) · [$50](https://www.cellpay.us/es/como-pagar/metro-pcs/50)
