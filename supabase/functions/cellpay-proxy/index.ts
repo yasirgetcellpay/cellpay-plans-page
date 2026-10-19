@@ -309,12 +309,12 @@ function extractLoadText(body: unknown): string | null {
   return null;
 }
 
-// REFUNDED-STATE-1017: crash / timeout reply where the charge outcome is unknown. Never the HTTP 200 "Backend exception" replies.
-function chargeUnconfirmedKind(status: number, data: unknown, wrapped: Record<string, unknown>): "http5xx" | "html" | "sqlstate" | null {
+// REFUNDED-STATE-1017: crash / timeout reply where the charge outcome is unknown. HTTP 200 "Backend exception" is now treated as outcome unknown. // BACKEND-EXC-1019
+function chargeUnconfirmedKind(status: number, data: unknown, wrapped: Record<string, unknown>): "http5xx" | "html" | "sqlstate" | "backend_exc" | null { // BACKEND-EXC-1019
   const d = asRecord(data);
   const inner = asRecord(d.data);
   const texts = [d.message, d.error, d.msg, wrapped.error, inner.message, inner.error, inner.msg].filter((t): t is string => typeof t === "string");
-  if (status < 500 && texts.some((t) => /backend exception/i.test(t))) return null;
+  if (status < 500 && texts.some((t) => /backend exception/i.test(t))) return "backend_exc"; // BACKEND-EXC-1019
   if (status >= 500) return "http5xx";
   if (d.parseError === true) return "html";
   if (texts.some((t) => /SQLSTATE/i.test(t))) return "sqlstate";
@@ -1757,6 +1757,7 @@ async function dedupeClaim(p: Record<string, unknown>, method: string | null): P
 // Marks ONLY on that result: never on declines, throttles, validation errors, non-JSON/gateway pages (504) or timeouts.
 const REFILL_COOLDOWN_S = 600;
 const REFILL_ERROR_RE = /error during refill|auto[- ]?refunded/i;
+const RETRY_BLOCK_RE = /error during refill|auto[- ]?refunded|backend exception/i; // BACKEND-EXC-1019
 
 // PLAN-RANGES-1016: plan_guard. Server amount check against carriers/view hub data BEFORE anything is sent to CellPay. Fail-open on hub errors.
 type PlanGuardResult = { ok: boolean; reason?: string; message?: string; source: "hub" | "cache" | "failopen" | "none" }; // PLAN-RANGES-1016
@@ -1843,7 +1844,7 @@ async function retryBlockCheck(pr: Record<string, unknown>): Promise<number | nu
     if (!r.ok) { await r.body?.cancel(); return null; }
     const rows = await r.json();
     if (!Array.isArray(rows)) return null;
-    const hit = rows.find((row: Record<string, unknown>) => Math.abs(Number(row.amount) - amt) <= 0.01 && REFILL_ERROR_RE.test(String(row.error_message ?? "")));
+    const hit = rows.find((row: Record<string, unknown>) => Math.abs(Number(row.amount) - amt) <= 0.01 && RETRY_BLOCK_RE.test(String(row.error_message ?? ""))); // BACKEND-EXC-1019
     if (!hit) return null;
     const left = Math.ceil((Date.parse(String(hit.created_at)) + RB_WINDOW_MS - Date.now()) / 1000);
     return Number.isFinite(left) && left > 0 ? left : null;
@@ -3264,7 +3265,7 @@ serve(async (req) => {
         if (wrapped.pending_log_id) keep.pending_log_id = wrapped.pending_log_id;
         if (wrapped.risk_action) keep.risk_action = wrapped.risk_action;
         const dbFormat = unconfirmedKind === "sqlstate" && isDbFormatError(data, wrapped); // NAME-SANITIZE-1018B
-        wrapped = { success: false, code: "CHARGE_UNCONFIRMED", error: "charge_unconfirmed", data: { status: false, message: "charge_unconfirmed", charge_unconfirmed: true, ...(dbFormat ? { unconfirmed_kind: "db_format" } : {}) }, ...keep }; // NAME-SANITIZE-1018B
+        wrapped = { success: false, code: "CHARGE_UNCONFIRMED", error: "charge_unconfirmed", data: { status: false, message: "charge_unconfirmed", charge_unconfirmed: true, ...(dbFormat ? { unconfirmed_kind: "db_format" } : unconfirmedKind === "backend_exc" ? { unconfirmed_kind: "backend_exception" } : {}) }, ...keep }; // NAME-SANITIZE-1018B // BACKEND-EXC-1019
       }
       if (loadText && !isPockytCreate) wrapped.load_text = loadText; // LOADTEXT-REASON-1017 (display hint only; never decides success)
     }
