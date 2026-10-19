@@ -24,10 +24,10 @@ describe("LPX-1017", () => {
   it("sets Metro's English headline and title", () => {
     const copy = goLpxForCarrier("metropcs", "en");
     expect(copy?.h1).toContain("MetroPCS Bill Payment Online");
-    expect(copy?.title).toBe("Pay Your MetroPCS Bill as a Guest | CellPay");
+    expect(copy?.title).toBe("MetroPCS Bill Payment Online — Pay as a Guest | CellPay"); // METRO-LPX-1019
   });
   it("sets Metro's Spanish headline", () => {
-    expect(goLpxForCarrier("metropcs", "es")?.h1?.startsWith("Pagar MetroPCS por teléfono")).toBe(true);
+    expect(goLpxForCarrier("metropcs", "es")?.h1?.startsWith("Pagar Metro PCS en línea")).toBe(true); // METRO-LPX-1019
   });
   it("sets Cricket's Spanish headline and debit-card subline", () => {
     const copy = goLpxForCarrier("topup-crc", "es");

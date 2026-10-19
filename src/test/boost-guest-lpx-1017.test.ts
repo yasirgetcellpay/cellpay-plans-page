@@ -41,7 +41,7 @@ describe("BOOST-GUEST-LPX-1017", () => {
     expect(goLpxForCarrier("metropcs", "en")).toEqual({
       h1: "MetroPCS Bill Payment Online — Pay as a Guest",
       subline: "No login or PIN. Enter the Metro by T-Mobile phone number and pay online with a debit or credit card.",
-      title: "Pay Your MetroPCS Bill as a Guest | CellPay",
+      title: "MetroPCS Bill Payment Online — Pay as a Guest | CellPay", // METRO-LPX-1019
     });
   });
 
