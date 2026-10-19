@@ -644,6 +644,7 @@ for (const pg of HOW_TO_PAY_PAGES.filter((p) => p.key === "tracfone")) { // AEO-
     pg.faqs[0].a = pg.faqs[0].a.replace("ingresa el", "ingrese el").replace("elige el", "elija el").replace("y paga.", "y pague."); // AEO-12-TRACFONE-1018
     pg.faqs[2].a = pg.faqs[2].a.replace("así que ve el", "así que verá el"); // AEO-12-TRACFONE-1018
   } // AEO-12-TRACFONE-1018
+} // AEO-12-TRACFONE-1018
 HOW_TO_PAY_PAGES.push( // AEO-13-PAGEPLUS-1019
   en({ // AEO-13-PAGEPLUS-1019
     key: "page-plus", name: "Page Plus", slug: "pageplus", checkout: "/pageplus.html", an: "a", // AEO-13-PAGEPLUS-1019
@@ -702,7 +703,7 @@ for (const pg of HOW_TO_PAY_PAGES.filter((p) => p.key === "page-plus")) { // AEO
     pg.faqs[0].a = pg.faqs[0].a.replace("ingresa el", "ingrese el").replace("elige el", "elija el").replace("y paga.", "y pague."); // AEO-13-PAGEPLUS-1019
     pg.faqs[2].a = pg.faqs[2].a.replace("así que ve el", "así que verá el"); // AEO-13-PAGEPLUS-1019
   } // AEO-13-PAGEPLUS-1019
-} // AEO-12-TRACFONE-1018
+} // AEO-13-PAGEPLUS-1019
 
 // AI-ANSWERS-1014: 18 amount answer pages (Boost, Metro, Cricket x $25/$45/$50, EN + ES). Same template/renderers as the parent
 // guides; pay wording only, no fee amounts, no plan contents or prices. Payment methods come from the shared flag-driven list.
