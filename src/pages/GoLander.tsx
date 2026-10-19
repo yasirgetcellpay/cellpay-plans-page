@@ -224,7 +224,7 @@ const GoLander = ({
 
   // noindex + ads SEO (static shells also ship noindex)
   useEffect(() => {
-    applySeoHead({ title: lpx?.title ?? title, description: feeCopy1019(carrierSlug, lang, goFeeCopy(description)), keywords: goKeywordsFor(carrierSlug, lang === "es" ? "es" : "en"), path: typeof window !== "undefined" ? window.location.pathname : "/" }); // LPX-1017
+    applySeoHead({ title: lpx?.title ?? title, description: feeCopy1019(carrierSlug, lang, goFeeCopy(description)), keywords: goKeywordsFor(carrierSlug, lang === "es" ? "es" : "en"), path: typeof window !== "undefined" ? window.location.pathname : "/" }); // LPX-1017 // METRO-FEECOPY-1019
     let tag = document.querySelector('meta[name="robots"]');
     if (!tag) {
       tag = document.createElement("meta");
