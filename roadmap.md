@@ -1,4 +1,7 @@
 # VZ-PREPAID-GUARD-1017
+# DECLINE-REJECTED-1018 // DECLINE-REJECTED-1018
+- [ ] Add the risk decline screen, pure button mappings and two isolated funnel events; preserve all payment calls and guards. // DECLINE-REJECTED-1018
+- [ ] Verify risk recovery and regression tests without deployment, migration or publishing. // DECLINE-REJECTED-1018
 # AEO-12-TRACFONE-1018 <!-- // AEO-12-TRACFONE-1018 -->
 - [x] Add Tracfone guide pair, requested links, routes, static shells and index entries. <!-- // AEO-12-TRACFONE-1018 -->
 - [x] Verify EN/ES guides and inbound navigation, mobile layout, static renderers, matching Ultra FAQs, schemas, sitemap dates and unchanged refill title; build OK, not published. Existing SEO tests retain 28 failures from their older expected origin. <!-- // AEO-12-TRACFONE-1018 -->
