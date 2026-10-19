@@ -14,7 +14,7 @@ export type RiskResult = { score?: number; action: "allow" | "step_up" | "hold" 
 
 const BUDGET_ENFORCE_MS = 700;
 const BUDGET_SHADOW_MS = 2500;
-const LOG_TIMEOUT_MS = 1500;
+const LOG_TIMEOUT_MS = 3000;
 const s = (v: unknown): string | null => (v === undefined || v === null || String(v).trim() === "" ? null : String(v).trim());
 
 async function rpc(name: string, body: Record<string, unknown>, signal: AbortSignal): Promise<unknown> {
@@ -51,11 +51,18 @@ let modeCache: { v: string; t: number } | null = null; // 60 s per-isolate cache
 export async function riskEngineMode(signal?: AbortSignal): Promise<string> {
   if (modeCache && Date.now() - modeCache.t < 60000) return modeCache.v;
   try {
-    const rows = await rest("checkout_guard_controls?key=eq.riskengine&select=value", signal ?? AbortSignal.timeout(300));
+    // RISK-COVER-IP-1019b: callers on the customer's path pass their own short signal (unchanged); background callers get 1500 ms.
+    const rows = await rest("checkout_guard_controls?key=eq.riskengine&select=value", signal ?? AbortSignal.timeout(1500));
     const v = String(first(rows).value ?? "off");
     modeCache = { v, t: Date.now() };
     return v;
-  } catch {
+  } catch (e) {
+    // On a failed read keep the last known mode unless it was enforce (enforce still fails open to off).
+    if (modeCache && modeCache.v !== "enforce") return modeCache.v;
+    if (!signal) {
+      // Background caller with no known mode: leave one diagnostic row so lost decisions can be counted.
+      await logDecision({ mode: "unknown", action: "allow", reasons: ["error:mode_read"], timed_out: true, err: String((e as Error)?.message ?? e).slice(0, 120) });
+    }
     return "off";
   }
 }
