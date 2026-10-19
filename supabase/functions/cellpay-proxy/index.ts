@@ -3,6 +3,7 @@ import { scoreRisk, riskEngineMode } from "../_shared/riskLogic.ts"; // FRAUD-MU
 import { vzGuardGate } from "../_shared/vzPrepaidGuard.ts"; // VZ-PREPAID-GUARD-1017
 import { raceNull } from "../_shared/raceNull.ts"; // DB-OUTAGE-TRACK-1017
 import { memdupKey, memdupCheck, memdupUpdate, type MemdupEntry } from "../_shared/memdup.ts"; // DB-OUTAGE-TRACK-1017
+import { categorizeLoadText, isCcRefundBody } from "../_shared/loadTextCategory.ts"; // LOADTEXT-PICK-1019
 const MEMDUP = new Map<string, MemdupEntry>(); // DB-OUTAGE-TRACK-1017
 function waitUntilSafe(p: Promise<unknown>): void { try { const rt = (globalThis as unknown as { EdgeRuntime?: { waitUntil: (p: Promise<unknown>) => void } }).EdgeRuntime; if (rt && typeof rt.waitUntil === "function") rt.waitUntil(p); } catch { /* ignore */ } } // DB-OUTAGE-TRACK-1017
 
@@ -300,7 +301,7 @@ function extractLoadText(body: unknown): string | null {
   try {
     const root = asRecord(body);
     if (root.parseError === true) return null;
-    for (const obj of [root, asRecord(root.data)]) {
+    for (const obj of [root, asRecord(root.data), asRecord(asRecord(root.data).data)]) { // LOADTEXT-PICK-1019: + body.data.data
       for (const [k, v] of Object.entries(obj)) {
         if (/^(loadtext|load_text|loadmessage)$/i.test(k) && typeof v === "string" && v.trim()) return v.trim().slice(0, 500);
       }
@@ -333,6 +334,7 @@ function autoRefundFailure(wrapped: Record<string, unknown>): boolean {
   const result = unwrapTransactionResult(wrapped);
   const st = String(result.status ?? "").toLowerCase();
   if (wrapped.success === true && (result.status === true || st === "true" || st === "success" || st === "completed")) return false;
+  if (isCcRefundBody(data)) return true; // LOADTEXT-PICK-1019: TransResult ccRefund = auto refunded
   const msg = text(result.message ?? result.msg ?? data.message ?? data.msg ?? wrapped.error);
   return msg !== null && /auto[\s-]?refund/i.test(msg);
 }
@@ -3289,6 +3291,13 @@ serve(async (req) => {
             await rpcSoon("mark_order_refunded", { _id: id, _source: "reply", _reason: loadText ?? refundMarker ?? "reply_auto_refund" });
           }
           if (loadText) await rpcSoon("set_tx_load_text", { _id: id, _text: loadText }); // LOADTEXT-REASON-1017
+          if (loadText) { // LOADTEXT-PICK-1019: the category the site shows, for analytics; unknown parts kept so rules can be added
+            const lt = categorizeLoadText(loadText);
+            if (lt) {
+              await rpcSoon("tx_log_meta_merge", { _id: id, _patch: { load_text_category: lt.category, load_text_unknown: lt.unknown, ...(lt.unknown ? { load_text_unknown_parts: lt.unknownParts } : {}), load_text_cc_refund: isCcRefundBody(data) } });
+              recordGuardEvent({ code: `lt:${lt.category}${lt.unknown ? ":unknown" : ""}`, method: "POST", endpoint_shape: `checkout/transaction#log=${id}`, origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null });
+            }
+          } // LOADTEXT-PICK-1019
         }
       };
       const post = postWork(); waitUntilSafe(post); // DB-OUTAGE-TRACK-1017
