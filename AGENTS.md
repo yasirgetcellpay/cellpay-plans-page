@@ -1,4 +1,5 @@
 # Project architecture rules
+- Keep decline classification and analytics button mappings in the shared declineRecovery helper, and post decline events in an independent funnel batch so analytics failures cannot affect payments or legacy logging. // DECLINE-REJECTED-1018
 - Keep carrier payment guides in the shared howToPay content source and existing renderers so runtime text and prerendered FAQ schemas match. // AEO-12-TRACFONE-1018
 - Keep Verizon prepaid history gating in a pure shared edge-function helper with injected lookup/audit dependencies so fail-open behavior is unit-testable.
 - Keep Verizon customer wording in a frontend-only shared module using relative imports from prerendered content so runtime and static notes match.
