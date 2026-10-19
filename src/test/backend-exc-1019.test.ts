@@ -65,7 +65,7 @@ describe("BACKEND-EXC-1019", () => { // BACKEND-EXC-1019
     const check = runInNewContext(compile(`${helpers}\nretryBlockCheck;`), { Deno: { env: { get: () => "test" } }, AbortSignal, Date: class extends Date { static now() { return now; } }, fetch: async (url: string) => { queries.push(url); return { ok: true, json: async () => [{ amount: 50, error_message: message, created_at: new Date(now - 60000).toISOString() }] }; } }); // BACKEND-EXC-1019
     expect(await check({ phone_number: "2025550123", plan_id: "test-plan", amount: 50 })).toBe(1740); // BACKEND-EXC-1019
     expect(await check({ phone_number: "2025550123", plan_id: "test-plan", amount: 51 })).toBeNull(); // BACKEND-EXC-1019
-    const query = new URL(queries[0]).searchParams; // BACKEND-EXC-1019
+    const query = new URL(queries[0], "https://test.invalid").searchParams; // BACKEND-EXC-1019
     expect(query.get("phone_number")).toBe('in.("2025550123")'); // BACKEND-EXC-1019
     expect(query.get("plan_id")).toBe("eq.test-plan"); // BACKEND-EXC-1019
     expect(query.get("created_at")).toBe(`gte.${new Date(now - 1800000).toISOString()}`); // BACKEND-EXC-1019
