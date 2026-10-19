@@ -675,8 +675,8 @@ const App = () => (
               brandColor="hsl(270,60%,32%)"
               logo={metroLogo}
               h1="Pay Your Metro Bill as a Guest — Just the Phone Number"
-              title="Pay Your Metro Bill as a Guest | CellPay"
-              description="Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+              title="MetroPCS Bill Payment Online — Pay as a Guest | CellPay" // METRO-LPX-1019
+              description="Metro PCS bill payment online as a guest. Enter the Metro by T-Mobile phone number, pick a plan, pay with debit or credit card. Service fee shown before you pay."
             />
           }
         />
@@ -690,8 +690,8 @@ const App = () => (
               brandColor="hsl(270,60%,32%)"
               logo={metroLogo}
               h1="Pay Your Metro Bill as a Guest — Just the Phone Number"
-              title="Pay Your Metro Bill as a Guest | CellPay"
-              description="Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay."
+              title="MetroPCS Bill Payment Online — Pay as a Guest | CellPay" // METRO-LPX-1019
+              description="Metro PCS bill payment online as a guest. Enter the Metro by T-Mobile phone number, pick a plan, pay with debit or credit card. Service fee shown before you pay."
             />
           }
         />
@@ -828,8 +828,8 @@ const App = () => (
               brandColor="hsl(270,60%,32%)"
               logo={metroLogo}
               h1="Pague su factura de Metro como invitado — solo con el número de teléfono"
-              title="Pague su factura de Metro como invitado | CellPay"
-              description="Pague su Metro by T-Mobile (Metro PCS) como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              title="Pagar Metro PCS en línea como invitado | CellPay" // METRO-LPX-1019
+              description="Pague su factura de Metro PCS en línea como invitado. Ingrese el número de Metro by T-Mobile, elija el plan y pague con tarjeta de débito o crédito. La tarifa de servicio se muestra antes de pagar."
             />
           }
         />
@@ -844,8 +844,8 @@ const App = () => (
               brandColor="hsl(270,60%,32%)"
               logo={metroLogo}
               h1="Pague su factura de Metro como invitado — solo con el número de teléfono"
-              title="Pague su factura de Metro como invitado | CellPay"
-              description="Pague su Metro by T-Mobile (Metro PCS) como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              title="Pagar Metro PCS en línea como invitado | CellPay" // METRO-LPX-1019
+              description="Pague su factura de Metro PCS en línea como invitado. Ingrese el número de Metro by T-Mobile, elija el plan y pague con tarjeta de débito o crédito. La tarifa de servicio se muestra antes de pagar."
             />
           }
         />

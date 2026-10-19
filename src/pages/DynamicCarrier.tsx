@@ -16,6 +16,7 @@ import { SIMPLE_META, SIMPLE_ANSWER, SIMPLE_FAQ_TITLE, SIMPLE_LINKS, simpleFaqs,
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
+import { feeCopy1019 } from "@/lib/feeCopy1019"; // METRO-FEECOPY-1019
 import { billPageByPath, billJsonLd } from "@/content/billCarrierSeo"; // SEO-CONTENT-1014
 import { takeCheckoutPrefill } from "@/lib/checkoutResume"; // EMAIL-PREFILL-1013 // ST-PREFILL-1018
 import { useEmailPrefill } from "@/hooks/useEmailPrefill"; // EMAIL-PREFILL-1013 // ST-PREFILL-1018
@@ -376,7 +377,7 @@ const DynamicCarrier = ({
           applySeoHead({
             title: "Pay Metro by T-Mobile Bill Online – Metro PCS | CellPay", // GSC-MAULIK-1014
             description:
-              "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay.",
+              feeCopy1019(carrierSlug, lang, "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay."), // METRO-FEECOPY-1019
             keywords:
               "metro pcs pay bill, metropcs pay bill, pay metro pcs bill, metro pcs payment, metro by t-mobile pay bill, metropcs bill pay online", // GSC-MAULIK-1014: "metro pcs refill" removed
           });
@@ -390,7 +391,7 @@ const DynamicCarrier = ({
         if (carrierSlug === "boost" && lang !== "es") {
           applySeoHead({
             title: "Boost Mobile Bill Payment Online | CellPay",
-            description: "Recharge Boost Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay.",
+            description: feeCopy1019(carrierSlug, lang, "Recharge Boost Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay."), // METRO-FEECOPY-1019
           });
         }
 
@@ -741,13 +742,14 @@ const DynamicCarrier = ({
           vite.config.ts carrierFirstScreen). Information only: Auto Pay is chosen at checkout and is never pre-checked. */}
       <div className="max-w-[420px] mx-auto px-4 pt-3">
         <p className="bg-card rounded-xl border border-border px-3 py-2.5 text-xs text-foreground leading-relaxed text-center">
-          {bill /* SEO-CONTENT-1014 */
+          {/* METRO-FEECOPY-1019 */}
+          {feeCopy1019(carrierSlug, lang, bill /* SEO-CONTENT-1014 */
             ? bill.autoPayInfoLead + (bill.lang === "es"
               ? " Lo puede activar al pagar. El Pago Automático está desactivado a menos que usted lo marque o llegue desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PLAN-BLOCK-CLEANUP-1017
               : " You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en"))
             : lang === "es"
             ? "Opcional: Auto Pago para no olvidar su recarga. Lo puede activar al pagar. El Pago Automático está desactivado a menos que usted lo marque o llegue desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PLAN-BLOCK-CLEANUP-1017
-            : (carrierSlug === "metropcs" ? "Optional: Auto Pay so you never miss a payment." /* GSC-MAULIK-1014 */ : "Optional: Auto Pay so you never miss a refill.") + " You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en")}
+            : (carrierSlug === "metropcs" ? "Optional: Auto Pay so you never miss a payment." /* GSC-MAULIK-1014 */ : "Optional: Auto Pay so you never miss a refill.") + " You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link. Low service fee shown before you pay. " + weAcceptLine("en"))}
         </p>
       </div>
 

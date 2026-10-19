@@ -552,7 +552,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "es/go/metro.html": {
-        h1: "Pagar MetroPCS por teléfono — solo con su número",
+        h1: "Pagar Metro PCS en línea con tarjeta, sin cuenta", // METRO-LPX-1019
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/boost.html": {
@@ -564,7 +564,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/metro/index.html": {
-        h1: "Pagar MetroPCS por teléfono — solo con su número",
+        h1: "Pagar Metro PCS en línea con tarjeta, sin cuenta", // METRO-LPX-1019
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/boost/index.html": {
@@ -819,16 +819,16 @@ const htmlAliasPlugin = (): Plugin => ({
       "total-wireless.html":       { title: "Total Wireless Refill — Online Top-Up | CellPay",       description: "Recharge Total Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       // GO-1 / GO-2 titles (noindex applied via GO_SHELLS in buildMeta)
       "go/boost.html":             { title: "Pay Your Boost Mobile Bill as a Guest | CellPay", description: "Pay your Boost Mobile bill as a guest. Just your phone number, no login. Pay with debit or credit card. Service fee shown before you pay." },
-      "go/metro.html":             { title: "Pay Your MetroPCS Bill as a Guest | CellPay", description: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/metro.html":             { title: "MetroPCS Bill Payment Online — Pay as a Guest | CellPay", description: "Metro PCS bill payment online as a guest. Enter the Metro by T-Mobile phone number, pick a plan, pay with debit or credit card. Service fee shown before you pay." }, // METRO-LPX-1019
       "go/simple-mobile.html":     { title: "Pay Your Simple Mobile Bill Online | CellPay", description: "Pay your Simple Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       "go/boost/index.html":       { title: "Pay Your Boost Mobile Bill as a Guest | CellPay", description: "Pay your Boost Mobile bill as a guest. Just your phone number, no login. Pay with debit or credit card. Service fee shown before you pay." },
-      "go/metro/index.html":       { title: "Pay Your MetroPCS Bill as a Guest | CellPay", description: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
+      "go/metro/index.html":       { title: "MetroPCS Bill Payment Online — Pay as a Guest | CellPay", description: "Metro PCS bill payment online as a guest. Enter the Metro by T-Mobile phone number, pick a plan, pay with debit or credit card. Service fee shown before you pay." }, // METRO-LPX-1019
       "go/simple-mobile/index.html": { title: "Pay Your Simple Mobile Bill Online | CellPay", description: "Pay your Simple Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       // GO-1b / GO-2 ES + Ultra + Cricket/ATT
-      "es/go/metro.html": { title: "Pague su factura de MetroPCS como invitado | CellPay", description: "Pague su Metro by T-Mobile como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/metro.html": { title: "Pagar Metro PCS en línea como invitado | CellPay", description: "Pague su factura de Metro PCS en línea como invitado. Ingrese el número de Metro by T-Mobile, elija el plan y pague con tarjeta de débito o crédito. La tarifa de servicio se muestra antes de pagar." }, // METRO-LPX-1019
       "es/go/boost.html": { title: "Pague su factura de Boost como invitado | CellPay", description: "Pague su factura de Boost Mobile como invitado. Solo su número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar." },
       "es/go/cricket.html": { title: "Pague Cricket en línea | CellPay", description: "Pague su Cricket en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
-      "es/go/metro/index.html": { title: "Pague su factura de MetroPCS como invitado | CellPay", description: "Pague su Metro by T-Mobile como invitado. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/metro/index.html": { title: "Pagar Metro PCS en línea como invitado | CellPay", description: "Pague su factura de Metro PCS en línea como invitado. Ingrese el número de Metro by T-Mobile, elija el plan y pague con tarjeta de débito o crédito. La tarifa de servicio se muestra antes de pagar." }, // METRO-LPX-1019
       "es/go/boost/index.html": { title: "Pague su factura de Boost como invitado | CellPay", description: "Pague su factura de Boost Mobile como invitado. Solo su número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar." },
       "es/go/cricket/index.html": { title: "Pague Cricket en línea | CellPay", description: "Pague su Cricket en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
       "go/ultra.html": { title: "Pay Your Ultra Mobile Bill Online | CellPay", description: "Pay your Ultra Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
@@ -978,6 +978,18 @@ const htmlAliasPlugin = (): Plugin => ({
       s
         .replace("Low service fee shown before you pay", "Service fee shown before you pay")
         .replace("Cargo por servicio bajo, mostrado antes de pagar", "Cargo por servicio mostrado antes de pagar");
+    // METRO-FEECOPY-1019: approved fee wording on Metro shells (EN + ES) and Spanish Boost shells. Keep in sync with src/lib/feeCopy1019.ts.
+    const FEE1019_ROUTES = new Set([
+      "metropcs.html", "metro-pcs.html", "guest-metro-pcs.html", "guest-metropcs.html",
+      "go/metro.html", "go/metro/index.html", "es/go/metro.html", "es/go/metro/index.html",
+      "es/metropcs.html", "es/metro-pcs.html", "metropcs-espanol.html",
+      "es/boost.html", "boost-espanol.html", "es/go/boost.html", "es/go/boost/index.html",
+    ]);
+    const fee1019 = (route: string, html: string): string =>
+      !FEE1019_ROUTES.has(route) ? html : html
+        .split("Low service fee shown before you pay").join("Service fee shown before you pay")
+        .split("Cargo por servicio bajo, mostrado antes de pagar").join("La tarifa de servicio se muestra antes de pagar")
+        .split("Cargo por servicio mostrado antes de pagar").join("La tarifa de servicio se muestra antes de pagar");
     // SEO-ES-META-1007: one carrier-named Spanish description for Spanish carrier pages.
     // SEO-ES-META: keep in sync with src/pages/DynamicCarrier.tsx (lang === "es" applySeoHead).
     const esCarrierDesc = (name: string) =>
@@ -1942,6 +1954,7 @@ const htmlAliasPlugin = (): Plugin => ({
       }
 
       if (goScreen && GO_SHELLS.has(route)) out = goCrit1017(out, goCritSetup); // CSS-CRIT-1017
+      out = fee1019(route, out); // METRO-FEECOPY-1019
       return out;
     };
 

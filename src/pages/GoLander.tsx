@@ -14,6 +14,7 @@ import { goLpxForCarrier } from "@/content/goCopy";
 import { PlanGrid } from "@/components/PlanGrid";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
+import { feeCopy1019 } from "@/lib/feeCopy1019"; // METRO-FEECOPY-1019
 import { takeCheckoutPrefill } from "@/lib/checkoutResume";
 import { t, type Language } from "@/lib/i18n";
 import cellpayLogo from "@/assets/cellpay-logo.svg";
@@ -223,7 +224,7 @@ const GoLander = ({
 
   // noindex + ads SEO (static shells also ship noindex)
   useEffect(() => {
-    applySeoHead({ title: lpx?.title ?? title, description: goFeeCopy(description), keywords: goKeywordsFor(carrierSlug, lang === "es" ? "es" : "en"), path: typeof window !== "undefined" ? window.location.pathname : "/" }); // LPX-1017
+    applySeoHead({ title: lpx?.title ?? title, description: feeCopy1019(carrierSlug, lang, goFeeCopy(description)), keywords: goKeywordsFor(carrierSlug, lang === "es" ? "es" : "en"), path: typeof window !== "undefined" ? window.location.pathname : "/" }); // LPX-1017
     let tag = document.querySelector('meta[name="robots"]');
     if (!tag) {
       tag = document.createElement("meta");
@@ -484,9 +485,7 @@ const GoLander = ({
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
   const autoPayLine = goAutoPayLine(carrierSlug, isEs ? "es" : "en"); // LPX-1017
   const amountHelp = goUsesPayWording(carrierSlug) ? (isEs ? "Ingrese el monto que desea pagar" : "Enter the amount you want to pay") : tr.enterAmount; // LPX-1017
-  const feeLine = isEs
-    ? "Cargo por servicio mostrado antes de pagar"
-    : "Service fee shown before you pay";
+  const feeLine = feeCopy1019(carrierSlug, isEs ? "es" : "en", isEs ? "Cargo por servicio mostrado antes de pagar" : "Service fee shown before you pay"); // METRO-FEECOPY-1019
   const faqHeading = isEs ? "Preguntas frecuentes" : "Common questions";
   const faqName = GO_AD_NAMES[carrierSlug] ?? initialName; // ADS-FOLLOWUPS-1008: ad-style name in the FAQs only
   // TOP4-T2A-1009: + "Why was my payment refunded?" (T-Mobile, AT&T, Simple Mobile, Verizon only); also in the FAQPage JSON-LD below.
