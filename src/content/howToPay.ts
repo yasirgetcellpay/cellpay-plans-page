@@ -10,7 +10,7 @@ import { refundFaq, searchFaqs } from "./carrierHero";
 export type HtpLang = "en" | "es";
 export type HtpFaq = { q: string; a: string };
 export type HtpPage = {
-  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid" | "lyca-mobile" | "metro-pcs" | "boost-mobile" | "cricket" | "net10" | "h2o" | "ultra-mobile" | "tracfone"; // AEO-10-H2O-1016: + H2O Wireless; // AEO-09-NET10-1015: + Net10 Wireless; // CRICKET-GUIDE-1014: + Cricket Wireless; SEO-CONTENT-1014: + Boost Mobile; AEO-07-METRO-1012: + Metro by T-Mobile; AEO-06-LYCA-1011: + Lyca Mobile; AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid // AEO-11-ULTRA-1017 // AEO-12-TRACFONE-1018
+  key: "straight-talk" | "att-prepaid" | "simple-mobile" | "t-mobile-prepaid" | "verizon-prepaid" | "lyca-mobile" | "metro-pcs" | "boost-mobile" | "cricket" | "net10" | "h2o" | "ultra-mobile" | "tracfone" | "page-plus"; // AEO-10-H2O-1016: + H2O Wireless; // AEO-09-NET10-1015: + Net10 Wireless; // CRICKET-GUIDE-1014: + Cricket Wireless; SEO-CONTENT-1014: + Boost Mobile; AEO-07-METRO-1012: + Metro by T-Mobile; AEO-06-LYCA-1011: + Lyca Mobile; AEO-03-04-1008: + Simple Mobile, T-Mobile Prepaid; TOP4-T4-1009: + Verizon Prepaid // AEO-11-ULTRA-1017 // AEO-12-TRACFONE-1018
   lang: HtpLang;
   path: string; // www path of this page
   enPath: string;
@@ -644,6 +644,64 @@ for (const pg of HOW_TO_PAY_PAGES.filter((p) => p.key === "tracfone")) { // AEO-
     pg.faqs[0].a = pg.faqs[0].a.replace("ingresa el", "ingrese el").replace("elige el", "elija el").replace("y paga.", "y pague."); // AEO-12-TRACFONE-1018
     pg.faqs[2].a = pg.faqs[2].a.replace("así que ve el", "así que verá el"); // AEO-12-TRACFONE-1018
   } // AEO-12-TRACFONE-1018
+HOW_TO_PAY_PAGES.push( // AEO-13-PAGEPLUS-1019
+  en({ // AEO-13-PAGEPLUS-1019
+    key: "page-plus", name: "Page Plus", slug: "pageplus", checkout: "/pageplus.html", an: "a", // AEO-13-PAGEPLUS-1019
+    title: "How to Pay Your Page Plus Bill Online (No Login) | CellPay", // AEO-13-PAGEPLUS-1019
+    description: "Pay Page Plus online in 2 minutes: enter the Page Plus number, pick a plan, pay by card, Apple Pay, Google Pay or PayPal. No login needed.", // AEO-13-PAGEPLUS-1019
+    h1: "How to Pay Your Page Plus Bill Online", // AEO-13-PAGEPLUS-1019
+    intro: "To pay your Page Plus bill online without logging in, open CellPay's Page Plus page, enter the 10-digit Page Plus phone number, pick your plan, and pay. Service fee shown before you pay. Most payments post within a few minutes (up to 30 minutes). CellPay is an independent payment service, not Page Plus.", // AEO-13-PAGEPLUS-1019
+    steps: [ // AEO-13-PAGEPLUS-1019
+      { name: "Open the page", text: "Open the CellPay Page Plus page (/pageplus.html)." }, // AEO-13-PAGEPLUS-1019
+      { name: "Enter the number", text: "Enter the 10-digit Page Plus number and check it." }, // AEO-13-PAGEPLUS-1019
+      { name: "Pick a plan", text: "Pick a plan from the list." }, // AEO-13-PAGEPLUS-1019
+      { name: "Review the total", text: "Review the total (service fee shown before you pay)." }, // AEO-13-PAGEPLUS-1019
+      { name: "Pay", text: `Pay with ${PAY_EN} and keep your confirmation.` }, // AEO-13-PAGEPLUS-1019
+    ], // AEO-13-PAGEPLUS-1019
+    step3: "Pick a plan from the list.", // AEO-13-PAGEPLUS-1019
+    faq2: { q: "Does Page Plus have online guest pay?", a: "Page Plus offers its own payment options on its official website and app. On CellPay you can pay online with only the Page Plus number." }, // AEO-13-PAGEPLUS-1019
+    postA: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. If it hasn't posted after 30 minutes, email support@getcellpay.com with your phone number and transaction details. You see a confirmation with your transaction details once the payment goes through.", // AEO-13-PAGEPLUS-1019
+    autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.", // AEO-13-PAGEPLUS-1019
+    autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.", // AEO-13-PAGEPLUS-1019
+    moreFaqs: [ // AEO-13-PAGEPLUS-1019
+      { q: "What if I don't know how much I owe?", a: "CellPay doesn't show your Page Plus balance. Check the amount due in your Page Plus app, account or text messages, then choose that plan or amount here. The total with the service fee is shown before you pay." }, // AEO-13-PAGEPLUS-1019
+      { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." }, // AEO-13-PAGEPLUS-1019
+    ], // AEO-13-PAGEPLUS-1019
+    related: [["/how-to-pay/tracfone", "How to pay Tracfone"], ["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/net10", "How to pay Net10 Wireless"], ["/guest-pageplus.html", "Pay without an account"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // AEO-13-PAGEPLUS-1019
+    updatedIso: "2026-10-19", updatedText: "Last updated: October 19, 2026", // AEO-13-PAGEPLUS-1019
+  }), // AEO-13-PAGEPLUS-1019
+  es({ // AEO-13-PAGEPLUS-1019
+    key: "page-plus", name: "Page Plus", slug: "pageplus", checkout: "/es/pageplus.html", // AEO-13-PAGEPLUS-1019
+    title: "Cómo pagar Page Plus en línea (sin cuenta) | CellPay", // AEO-13-PAGEPLUS-1019
+    description: "Pague o recargue Page Plus en línea: ingrese el número, elija su plan y pague. Sin cuenta. El cargo por servicio se muestra antes de pagar.", // AEO-13-PAGEPLUS-1019
+    h1: "Cómo pagar Page Plus en línea", // AEO-13-PAGEPLUS-1019
+    intro: "Para pagar su factura de Page Plus en línea sin iniciar sesión, abra la página de Page Plus en CellPay, escriba el número de 10 dígitos, elija su plan y pague. El cargo por servicio se muestra antes de pagar. La mayoría de los pagos se aplican en pocos minutos (hasta 30 minutos). CellPay es un servicio de pago independiente, no Page Plus.", // AEO-13-PAGEPLUS-1019
+    steps: [ // AEO-13-PAGEPLUS-1019
+      { name: "Abra la página", text: "Abra la página de Page Plus en CellPay (/es/pageplus.html)." }, // AEO-13-PAGEPLUS-1019
+      { name: "Ingrese el número", text: "Escriba el número de Page Plus de 10 dígitos y verifíquelo." }, // AEO-13-PAGEPLUS-1019
+      { name: "Elija un plan", text: "Elija un plan de la lista." }, // AEO-13-PAGEPLUS-1019
+      { name: "Revise el total", text: "Revise el total (el cargo por servicio se muestra antes de pagar)." }, // AEO-13-PAGEPLUS-1019
+      { name: "Pague", text: `Pague con ${PAY_ES} y guarde su confirmación.` }, // AEO-13-PAGEPLUS-1019
+    ], // AEO-13-PAGEPLUS-1019
+    step3: "Elija un plan de la lista.", // AEO-13-PAGEPLUS-1019
+    faq2: { q: "¿Page Plus tiene pago en línea como invitado?", a: "Page Plus ofrece sus propias formas de pago en su sitio web oficial y en su aplicación. En CellPay puede pagar en línea solo con el número de Page Plus." }, // AEO-13-PAGEPLUS-1019
+    postA: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Si no se ha acreditado después de 30 minutos, escriba a support@getcellpay.com con su número de teléfono y los datos de la transacción. Cuando el pago se completa, verá una confirmación con los datos de su transacción.", // AEO-13-PAGEPLUS-1019
+    autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.", // AEO-13-PAGEPLUS-1019
+    autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.", // AEO-13-PAGEPLUS-1019
+    moreFaqs: [ // AEO-13-PAGEPLUS-1019
+      { q: "¿Qué hago si no sé cuánto debo?", a: "CellPay no muestra el saldo de Page Plus. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de Page Plus, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar." }, // AEO-13-PAGEPLUS-1019
+      { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." }, // AEO-13-PAGEPLUS-1019
+    ], // AEO-13-PAGEPLUS-1019
+    related: [["/es/como-pagar/tracfone", "Cómo pagar Tracfone"], ["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/net10", "Cómo pagar Net10 Wireless"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]], // AEO-13-PAGEPLUS-1019
+    updatedIso: "2026-10-19", updatedText: "Última actualización: 19 de octubre de 2026", // AEO-13-PAGEPLUS-1019
+  }), // AEO-13-PAGEPLUS-1019
+); // AEO-13-PAGEPLUS-1019
+for (const pg of HOW_TO_PAY_PAGES.filter((p) => p.key === "page-plus")) { // AEO-13-PAGEPLUS-1019
+  pg.labels.payNow = pg.lang === "es" ? "Pagar ahora" : "Pay now"; // AEO-13-PAGEPLUS-1019
+  if (pg.lang === "es") { // AEO-13-PAGEPLUS-1019
+    pg.faqs[0].a = pg.faqs[0].a.replace("ingresa el", "ingrese el").replace("elige el", "elija el").replace("y paga.", "y pague."); // AEO-13-PAGEPLUS-1019
+    pg.faqs[2].a = pg.faqs[2].a.replace("así que ve el", "así que verá el"); // AEO-13-PAGEPLUS-1019
+  } // AEO-13-PAGEPLUS-1019
 } // AEO-12-TRACFONE-1018
 
 // AI-ANSWERS-1014: 18 amount answer pages (Boost, Metro, Cricket x $25/$45/$50, EN + ES). Same template/renderers as the parent
@@ -820,6 +878,10 @@ const PLAN_NAMES: Record<HtpPage["key"], Record<HtpLang, string[]>> = {
     en: ["Net10 Wireless payment: choose one of the plans shown on the CellPay page"],
     es: ["Pago de Net10 Wireless: elija uno de los planes que aparecen en la página de CellPay"],
   },
+  "page-plus": { // AEO-13-PAGEPLUS-1019
+    en: ["Page Plus payment: choose one of the plans shown on the CellPay page"], // AEO-13-PAGEPLUS-1019
+    es: ["Pago de Page Plus: elija uno de los planes que aparecen en la página de CellPay"], // AEO-13-PAGEPLUS-1019
+  }, // AEO-13-PAGEPLUS-1019
   tracfone: { // AEO-12-TRACFONE-1018
     en: ["Tracfone payment: choose one of the plans shown on the CellPay page"], // AEO-12-TRACFONE-1018
     es: ["Pago de Tracfone: elija uno de los planes que aparecen en la página de CellPay"], // AEO-12-TRACFONE-1018
