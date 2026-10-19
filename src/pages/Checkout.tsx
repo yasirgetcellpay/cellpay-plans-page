@@ -41,7 +41,7 @@ import {
   type ValidationResult,
 } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
-import { loadTextFrom, loadReasonKind, loadReasonText, type LoadReasonKind } from "@/lib/loadTextReason"; // LOADTEXT-REASON-1017 // REFUNDED-STATE-1017
+import { loadTextFrom, loadTextPick, isCcRefund, pickReasonText, pickRefundLine, pickButtons, type LoadPick } from "@/lib/loadTextPick"; // LOADTEXT-PICK-1019 (replaces the LOADTEXT-REASON-1017 import here; src/lib/loadTextReason.ts stays)
 import { isVerizonSlug, VZ_NOTE, VZ_NOTICE_MIN, vzBlockText } from "@/lib/vzPrepaid"; // VZ-PREPAID-GUARD-1017
 import { Button } from "@/components/ui/button"; // VZ-PREPAID-GUARD-1017
 import { applySeoHead } from "@/lib/seo";
@@ -193,7 +193,7 @@ const isDbFormatUnconfirmed = (raw: Record<string, unknown>): boolean => { // NA
   const d = raw && typeof raw.data === "object" && raw.data ? raw.data as Record<string, unknown> : {}; // NAME-SANITIZE-1018B
   return isUnconfirmed(raw) && (d.unconfirmed_kind === "db_format" || d.unconfirmed_kind === "backend_exception"); // NAME-SANITIZE-1018B // BACKEND-EXC-1019
 }; // NAME-SANITIZE-1018B
-const isBackendExcReply = (raw: Record<string, unknown>): boolean => { try { return /backend exception/i.test(JSON.stringify(raw ?? {})); } catch { return false; } }; // BACKEND-EXC-1019
+const isBackendExcReply = (raw: Record<string, unknown>): boolean => { try { return /backend exception/i.test(JSON.stringify(raw ?? {}, (k, v) => (/^(loadtext|load_text|loadmessage)$/i.test(k) ? undefined : v))); } catch { return false; } }; // BACKEND-EXC-1019 // LOADTEXT-PICK-1019: a LoadText part never triggers this; only the reply message does
 const hasRefundSignal = (value: unknown): boolean => {
   if (!value || typeof value !== "object") return false;
   const obj = value as Record<string, unknown>;
@@ -556,7 +556,7 @@ const Checkout = () => {
         const nested = result.data && typeof result.data === "object" ? result.data as Record<string, unknown> : {};
         if (result.HostedURL || result.hostedUrl || result.hosted_url || nested.HostedURL || nested.hostedUrl || nested.hosted_url) return false;
         const status = String(result.status || "").toLowerCase();
-        return !hasRefundSignal(rawReply) && !/error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")) &&
+        return !hasRefundSignal(rawReply) && !isCcRefund(rawReply) && !/error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")) && // LOADTEXT-PICK-1019
           ((rawReply.code === "SESSION_PAID" && typeof rawReply.hashid === "string" && !!rawReply.hashid) || result.status === true || ["true", "success", "completed"].includes(status));
       },
       (until) => { maybePaidKeyRef.current = key; showMaybePaid(false, until); },
@@ -771,7 +771,7 @@ const Checkout = () => {
   const refundRecordedRef = useRef(false); // REFUND-RETRY-1018
   const retryPrefillSlugRef = useRef<string | null>(null); // REFUND-RETRY-1018
   const retryMethodRef = useRef<string | undefined>(undefined); // REFUND-RETRY-1018
-  const [loadReason, setLoadReason] = useState<LoadReasonKind | null>(null); // LOADTEXT-REASON-1017
+  const [loadReason, setLoadReason] = useState<LoadPick | null>(null); // LOADTEXT-REASON-1017 // LOADTEXT-PICK-1019: now the picked LoadText category
   const [unconfirmedCard, setUnconfirmedCard] = useState(false); // REFUNDED-STATE-1017
   const [maybePaid, setMaybePaid] = useState<{ until: number } | null>(null); // DB-OUTAGE-TRACK-1017
   const [maybePaidPaused, setMaybePaidPaused] = useState(false); // DB-OUTAGE-TRACK-1017
@@ -1657,7 +1657,7 @@ const Checkout = () => {
       }
     }
     const status = result.status;
-    const failedRefill = hasRefundSignal(raw) || /error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")); // SUCCESS-FLAG-FIX-1016
+    const failedRefill = hasRefundSignal(raw) || isCcRefund(raw) || /error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")); // SUCCESS-FLAG-FIX-1016 // LOADTEXT-PICK-1019: + TransResult ccRefund
     const isSuccess = !failedRefill && (status === true || status === "true" || String(status || "").toLowerCase() === "success" || String(status || "").toLowerCase() === "completed"); // SUCCESS-FLAG-FIX-1016
     if (isSuccess) {
       try { clearFunds(phone10); clearKlarnaSrc(phone10); } catch { /* ignore */ } // FUNDS-DECLINE-1016 // KLARNA-FUNNEL-1017
@@ -1685,7 +1685,7 @@ const Checkout = () => {
       if (isDbFormatUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(false); setLock(lockKey(state?.phone, validation?.amount ?? state?.amount), "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); return; } // NAME-SANITIZE-1018B
       if (paymentMethod !== "cashapp" && isBackendExcReply(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(false); setLock(lockKey(state?.phone, validation?.amount ?? state?.amount), "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); return; } // BACKEND-EXC-1019
       if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); return; } // REFUNDED-STATE-1017
-      setLoadReason(loadReasonKind(loadTextFrom(raw))); // LOADTEXT-REASON-1017
+      setLoadReason(loadTextPick(loadTextFrom(raw))); // LOADTEXT-PICK-1019
       const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Transaction failed"; // SUCCESS-FLAG-FIX-1016
       const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
       const autoRefund = /auto[\s-]?refund/i.test(msg);
@@ -2216,7 +2216,7 @@ const Checkout = () => {
           }
         }
 
-        const failedRefill = hasRefundSignal(raw) || /error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")); // SUCCESS-FLAG-FIX-1016
+        const failedRefill = hasRefundSignal(raw) || isCcRefund(raw) || /error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")); // SUCCESS-FLAG-FIX-1016 // LOADTEXT-PICK-1019: + TransResult ccRefund
         const isSuccess = !failedRefill && (result.status === true || result.status === "true" || String(result.status || "").toLowerCase() === "success" || String(result.status || "").toLowerCase() === "completed"); // SUCCESS-FLAG-FIX-1016
         if (isSuccess) {
           try { clearFunds(phone10); clearKlarnaSrc(phone10); } catch { /* ignore */ } // FUNDS-DECLINE-1016 // KLARNA-FUNNEL-1017
@@ -2243,7 +2243,7 @@ const Checkout = () => {
           else if (isBackendExcReply(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(false); setLock(lockKey(state?.phone, validation?.amount ?? state?.amount), "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); } // BACKEND-EXC-1019
           else if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); } // REFUNDED-STATE-1017
           else if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") {
-            setLoadReason(loadReasonKind(loadTextFrom(raw))); // LOADTEXT-REASON-1017
+            setLoadReason(loadTextPick(loadTextFrom(raw))); // LOADTEXT-PICK-1019
             const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Apple Pay transaction failed"; // SUCCESS-FLAG-FIX-1016
             const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
             const autoRefund = /auto[\s-]?refund/i.test(msg);
@@ -3258,7 +3258,7 @@ const Checkout = () => {
             {nsfView ? ( // FUNDS-DECLINE-1016
               <h3 className="text-lg font-bold text-foreground mb-2" data-testid="funds-title">{fc.title}</h3>
             ) : <><div className="text-3xl mb-2">❌</div><h3 className="text-xl font-bold text-foreground mb-2">{tr.paymentFailed}</h3></>}
-            {!declineInfo && <p className="text-sm text-muted-foreground mb-2">{(loadReason && loadReasonText(loadReason, lang, state.carrierName)) || errorMsg}</p>} {/* LOADTEXT-REASON-1017 */}
+            {!declineInfo && <p className="text-sm text-muted-foreground mb-2">{(loadReason && loadReason.category !== "generic" && pickReasonText(loadReason.category, lang, state.carrierName, state.carrierSlug)) || errorMsg}</p>} {/* LOADTEXT-REASON-1017 */}
             {orsRetry && oursideRetryOn && paymentMethod === orsFailed && (
               <button type="button" data-testid="ors-retry" className="w-full mb-2 rounded-lg py-2.5 font-bold text-primary-foreground" style={{ backgroundColor: brandColor }}
                 onClick={() => { orsWrite({ retry_clicked: true }); setOrsRetry(false); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); void handlePlaceOrder(); }}>
@@ -3458,6 +3458,8 @@ const Checkout = () => {
       {errorMsg && refundCard && (() => {
         const cause = retryCauseFor(state.carrierSlug); // REFUND-RETRY-1018
         const choices = cause ? retryButtons(state.carrierSlug, lang, phone10, retryNow) : []; // REFUND-RETRY-1018
+        const pick = loadReason; // LOADTEXT-PICK-1019
+        const pickChoices = pick ? pickButtons(pick.category, lang, choices) : null; // LOADTEXT-PICK-1019: null for generic = existing buttons
         const es = lang === "es";
         const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`); // REFUND-WORDING-1016
         const amt = `$${Number(validation?.total ?? state.amount ?? 0).toFixed(2)}`; // REFUND-WORDING-1016
@@ -3472,12 +3474,12 @@ const Checkout = () => {
         };
         const btn = "w-full px-4 py-2.5 rounded-lg font-bold text-sm";
         const retry = async (choice: RetryButton) => { // REFUND-RETRY-1018
-          if (!cause || retryResolving || choice.disabled) return; // REFUND-RETRY-1018
+          if ((!cause && !pickChoices) || retryResolving || choice.disabled) return; // REFUND-RETRY-1018 // LOADTEXT-PICK-1019
           const target = choice.to_carrier || state.carrierSlug; // REFUND-RETRY-1018
           const key = `${choice.action}${choice.action === "to_carrier" ? "-" + target : ""}`; // REFUND-RETRY-1018
           setRetryResolving(key); // REFUND-RETRY-1018
-          writeRetryCtx({ cause, action: choice.action, from_carrier: state.carrierSlug, to_carrier: target, email: emailCleanRef.current || undefined, method: paymentMethod }); // REFUND-RETRY-1018
-          try { trackFunnel("retry_tapped", { ...funnelDataRef.current, retry_cause: cause, retry_action: choice.action, retry_to_carrier: choice.action === "other_carrier" ? null : target }, String(Date.now())); } catch { /* ignore */ } // REFUND-RETRY-1018
+          if (cause) writeRetryCtx({ cause, action: choice.action, from_carrier: state.carrierSlug, to_carrier: target, email: emailCleanRef.current || undefined, method: paymentMethod }); // REFUND-RETRY-1018
+          if (cause) try { trackFunnel("retry_tapped", { ...funnelDataRef.current, retry_cause: cause, retry_action: choice.action, retry_to_carrier: choice.action === "other_carrier" ? null : target }, String(Date.now())); } catch { /* ignore */ } // REFUND-RETRY-1018
           try { // REFUND-RETRY-1018
             if (choice.action === "to_carrier") { // REFUND-RETRY-1018
               const result = await resolveCheckoutFromUrl(lang, `?carrier=${target}&amount=${state.amount}&phone=${phone10}`, ""); // REFUND-RETRY-1018
@@ -3496,13 +3498,16 @@ const Checkout = () => {
               {/* SUCCESS-FLAG-FIX-1016: owner-approved refund-card title and text only. */}
               {/* REFUND-WORDING-1016: wording only; refund behavior and buttons unchanged. */}
               <h3 className="text-xl font-bold text-foreground mb-2">{es ? (payWord ? "Pago no completado" : "Recarga no completada") : (payWord ? "Payment not completed" : "Refill not completed")}</h3>
-              {loadReason || cause ? (<> {/* LOADTEXT-REASON-1017: refund sentence ends after bank timing; reason paragraph added */} {/* // REFUND-RETRY-1018 */}
+              {pick ? (<> {/* LOADTEXT-PICK-1019: picked reason + refund line */}
+                <p className="text-sm text-muted-foreground mb-2" data-testid="pick-reason" data-pick={pick.category}>{pickReasonText(pick.category, lang, state.carrierName, state.carrierSlug, pick.category === "generic" && cause ? retryReasonText(cause, lang, phone10) : null)}</p>
+                <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">{pickRefundLine(lang)}</p>
+              </>) : cause ? (<> {/* LOADTEXT-REASON-1017: refund sentence ends after bank timing; reason paragraph added */} {/* // REFUND-RETRY-1018 */}
                 <p className="text-sm text-muted-foreground mb-2" data-testid="refund-card-text">
                   {es
                     ? (payWord ? `Su pago no se completó, así que le reembolsamos sus ${amt}. Según su banco, puede tardar unos días hábiles en reflejarse.` : `Su recarga no se completó, así que le reembolsamos su pago de ${amt}. Según su banco, puede tardar unos días hábiles en reflejarse.`)
                     : (payWord ? `Your payment didn't go through, so we refunded your ${amt}. Depending on your bank, it can take a few business days to show.` : `Your refill didn't go through, so we refunded your payment of ${amt}. Depending on your bank, it can take a few business days to show.`)}
                 </p>
-                {cause ? <p className="text-sm text-muted-foreground mb-4" data-testid="retry-reason">{loadReason ? loadReasonText(loadReason, lang, state.carrierName) : retryReasonText(cause, lang, phone10)}</p> : <p className="text-sm text-muted-foreground mb-4" data-testid="refund-reason">{loadReasonText(loadReason, lang, state.carrierName)}</p>} {/* // REFUND-RETRY-1018 */}
+                <p className="text-sm text-muted-foreground mb-4" data-testid="retry-reason">{retryReasonText(cause, lang, phone10)}</p> {/* // REFUND-RETRY-1018 */} {/* LOADTEXT-PICK-1019: LoadText cases now use the pick branch above */}
               </>) : (
               <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">
                 {es
@@ -3511,7 +3516,10 @@ const Checkout = () => {
               </p>
               )}
               <div className="space-y-2">
-                {cause ? choices.map((choice, index) => { // REFUND-RETRY-1018
+                {pickChoices ? pickChoices.map((b, index) => { // LOADTEXT-PICK-1019: buttons point at the matched reason
+                  const key = `${b.action}${b.action === "to_carrier" ? "-" + b.to_carrier : ""}`; // LOADTEXT-PICK-1019
+                  return <Button key={`pick-${key}`} type="button" data-testid={`pick-btn-${key}`} disabled={!!retryResolving} onClick={() => { if (b.action === "ok") close(); else void retry({ label: b.label, action: b.action, ...(b.to_carrier ? { to_carrier: b.to_carrier } : {}) }); }} className={btn + (index === 0 ? " text-primary-foreground" : " border-2 border-border text-foreground bg-background hover:bg-muted")} style={index === 0 ? { backgroundColor: brandColor } : undefined}>{retryResolving === key ? "…" : b.label}</Button>; // LOADTEXT-PICK-1019
+                }) : cause ? choices.map((choice, index) => { // REFUND-RETRY-1018
                   const key = `${choice.action}${choice.action === "to_carrier" ? "-" + choice.to_carrier : ""}`; // REFUND-RETRY-1018
                   return <Button key={key} type="button" data-testid={`retry-btn-${key}`} disabled={!!retryResolving || choice.disabled} onClick={() => void retry(choice)} className={btn + (index === 0 ? " text-primary-foreground" : " border-2 border-border text-foreground bg-background hover:bg-muted")} style={index === 0 ? { backgroundColor: brandColor } : undefined}>{retryResolving === key ? "…" : choice.label}</Button>; // REFUND-RETRY-1018
                 }) : <> {/* // REFUND-RETRY-1018 */}
