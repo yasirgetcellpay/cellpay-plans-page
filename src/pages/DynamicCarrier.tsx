@@ -782,6 +782,15 @@ const DynamicCarrier = ({
               {lineNote && (
                 <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 -mt-2">{lineNote}</p>
               )}
+              {carrierSlug === "tmobile" && ( // TMO-PREPAID-NOTE-1020
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 -mt-2" data-tmo-note="1020">{/* TMO-PREPAID-NOTE-1020 */}
+                  {lang === "es" ? (
+                    <>Solo para T-Mobile Prepago. Los números de pospago, <a href="/es/metropcs.html" className="underline font-semibold">Metro</a> y Mint no se pueden pagar aquí.</>
+                  ) : (
+                    <>For T-Mobile Prepaid only. Postpaid, <a href="/metropcs.html" className="underline font-semibold">Metro</a> and Mint numbers can't be paid here.</>
+                  )}
+                </p>
+              )}
               {phoneDigits.length === 10 && (
                 <p className="text-[10px] sm:text-xs text-cellpay-green font-semibold mb-2 -mt-1">
                   ✓ {tr.refilling}: {phone}
