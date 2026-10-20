@@ -53,6 +53,7 @@ export const HOW_TO_USE: Record<HtuLang, HtuPage> = {
       ["/how-to-pay/ultra-mobile", "How to pay Ultra Mobile"], // AEO-11-ULTRA-1017
       ["/how-to-pay/tracfone", "How to pay Tracfone"], // AEO-12-TRACFONE-1018
       ["/how-to-pay/page-plus", "How to pay Page Plus"], // AEO-13-PAGEPLUS-1019
+      ["/how-to-pay/total-wireless", "How to pay Total Wireless"], // AEO-14-TOTAL-1020
       ["/how-to-pay/h2o", "How to pay H2O"], // AEO-10-H2O-1016
     ],
   },

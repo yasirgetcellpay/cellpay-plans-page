@@ -1686,6 +1686,8 @@ const App = () => (
         <Route path="/es/como-pagar/tracfone" element={<HowToPay />} /> {/* // AEO-12-TRACFONE-1018 */}
         <Route path="/how-to-pay/page-plus" element={<HowToPay />} /> {/* // AEO-13-PAGEPLUS-1019 */}
         <Route path="/es/como-pagar/page-plus" element={<HowToPay />} /> {/* // AEO-13-PAGEPLUS-1019 */}
+        <Route path="/how-to-pay/total-wireless" element={<HowToPay />} /> {/* // AEO-14-TOTAL-1020 */}
+        <Route path="/es/como-pagar/total-wireless" element={<HowToPay />} /> {/* // AEO-14-TOTAL-1020 */}
         {/* AI-ANSWERS-1014: amount answer pages */}
         <Route path="/how-to-pay/boost-mobile/25" element={<HowToPay />} />
         <Route path="/es/como-pagar/boost-mobile/25" element={<HowToPay />} />

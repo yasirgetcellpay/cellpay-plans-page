@@ -992,6 +992,8 @@ const DynamicCarrier = ({
                   ? (lang === "es" ? "Cómo pagar Ultra Mobile" : "How to pay Ultra Mobile") // AEO-11-ULTRA-1017
                   : carrierSlug === "pageplus" // AEO-13-PAGEPLUS-1019
                   ? (lang === "es" ? "Cómo pagar Page Plus" : "How to pay Page Plus") // AEO-13-PAGEPLUS-1019
+                  : carrierSlug === "total-wireless" // AEO-14-TOTAL-1020
+                  ? (lang === "es" ? "Cómo pagar Total Wireless" : "How to pay Total Wireless") // AEO-14-TOTAL-1020
                   : carrierSlug === "tracfone" // AEO-12-TRACFONE-1018
                   ? (lang === "es" ? "Cómo pagar Tracfone" : "How to pay Tracfone") // AEO-12-TRACFONE-1018
                   : carrierSlug === "h2o" // AEO-10-H2O-1016
@@ -1033,6 +1035,7 @@ const HTP_GUIDE_BY_SLUG: Record<string, { key: string; name: string }> = {
   "ultra-mobile": { key: "ultra-mobile", name: "Ultra Mobile" }, // AEO-11-ULTRA-1017
   "tracfone": { key: "tracfone", name: "Tracfone" }, // AEO-12-TRACFONE-1018
   "pageplus": { key: "page-plus", name: "Page Plus" }, // AEO-13-PAGEPLUS-1019
+  "total-wireless": { key: "total-wireless", name: "Total Wireless" }, // AEO-14-TOTAL-1020
   h2o: { key: "h2o", name: "H2O Wireless" }, // AEO-10-H2O-1016: /h2o.html, /es/h2o.html, /guest-h2o.html
 };
 
