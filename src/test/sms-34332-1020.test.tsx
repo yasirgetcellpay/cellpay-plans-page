@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"; // SMS-34332-1020
 import { readFileSync } from "node:fs"; // SMS-34332-1020
 import ts from "typescript"; // SMS-34332-1020
-import React, { useRef, useState } from "react"; // SMS-34332-1020
-import { cleanup, fireEvent, render } from "@testing-library/react"; // SMS-34332-1020
+import React, { act, useState } from "react"; // SMS-34332-1020
+import { createRoot, type Root } from "react-dom/client"; // SMS-34332-1020
 const source = readFileSync("src/pages/Checkout.tsx", "utf8"); // SMS-34332-1020
 const compile = (code: string, scope: Record<string, unknown>) => new Function(...Object.keys(scope), ts.transpileModule(code, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React } }).outputText)(...Object.values(scope)); // SMS-34332-1020
-beforeEach(() => { localStorage.clear(); vi.resetModules(); }); // SMS-34332-1020
-afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); }); // SMS-34332-1020
+let root: Root | undefined; // SMS-34332-1020
+beforeEach(() => { (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true; localStorage.clear(); vi.resetModules(); }); // SMS-34332-1020
+afterEach(() => { act(() => root?.unmount()); root = undefined; document.body.innerHTML = ""; vi.restoreAllMocks(); vi.unstubAllGlobals(); }); // SMS-34332-1020
 describe("SMS-34332-1020 consent", () => { // SMS-34332-1020
   it("starts unchecked and changes only through explicit checkbox input", () => { // SMS-34332-1020
     const start = source.indexOf('            <label className="flex items-start gap-2 mt-3 cursor-pointer" data-sms-optin="1020">'); // SMS-34332-1020
@@ -14,10 +15,11 @@ describe("SMS-34332-1020 consent", () => { // SMS-34332-1020
     const state = source.split("\n").filter((line) => line.includes("const [smsOptIn,") || line.includes("const smsOptInRef =")).join("\n"); // SMS-34332-1020
     const ref = { current: false }; // SMS-34332-1020
     const Form = compile(`return function Form() { ${state} return (${label}); };`, { React, useState, useRef: () => ref, lang: "en" }) as React.ComponentType; // SMS-34332-1020
-    const view = render(<Form />); const input = view.getByTestId("sms-optin") as HTMLInputElement; // SMS-34332-1020
+    const host = document.createElement("div"); document.body.appendChild(host); root = createRoot(host); act(() => root?.render(<Form />)); // SMS-34332-1020
+    const input = host.querySelector<HTMLInputElement>('[data-testid="sms-optin"]'); if (!input) throw new Error("Missing checkbox"); // SMS-34332-1020
     expect(input.checked).toBe(false); expect(ref.current).toBe(false); expect(input.required).toBe(false); expect(input.disabled).toBe(false); // SMS-34332-1020
-    fireEvent.click(input); expect(input.checked).toBe(true); expect(ref.current).toBe(true); // SMS-34332-1020
-    fireEvent.click(input); expect(input.checked).toBe(false); expect(ref.current).toBe(false); // SMS-34332-1020
+    act(() => input.click()); expect(input.checked).toBe(true); expect(ref.current).toBe(true); // SMS-34332-1020
+    act(() => input.click()); expect(input.checked).toBe(false); expect(ref.current).toBe(false); // SMS-34332-1020
   }); // SMS-34332-1020
   it.each([false, true])("logs explicit consent %s with only the three allowed fields", async (optIn) => { // SMS-34332-1020
     const fetch = vi.fn().mockResolvedValue({ ok: true, status: 200 }); vi.stubGlobal("fetch", fetch); // SMS-34332-1020
