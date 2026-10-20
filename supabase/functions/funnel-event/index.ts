@@ -2,7 +2,7 @@
 // Accepts JSON or text/plain (sendBeacon), one object or an array of up to 10. Only whitelisted fields are stored.
 const ALLOWED = new Set(["https://refill.cellpay.us", "https://www.cellpay.us"]);
 const EVENTS = new Set(["checkout_view", "total_shown", "payment_started", "submitted", "left_at_total", "prefill_used", "autopay_postpurchase_offer_shown", "autopay_postpurchase_offer_accepted", "recovery_prompt_shown", "recovery_retry", "recovery_success", "maybe_paid_shown", "maybe_paid_lock_shown"]); // DECLINE-RECOVERY-1014: recovery_*; // EMAIL-PREFILL-1013: prefill_used; AUTOPAY-POSTPURCHASE-1013: autopay_postpurchase_* // DBT-FOLLOWUP-1017
-const KLARNA_EVENTS = new Set(["klarna_offer_shown", "klarna_clicked", "klarna_session_created", "klarna_auth_result", "klarna_ab_known", "klarna_session_failed", "klarna_form_started"]); // KLARNA-FUNNEL-1017 // KLARNA-FUNNEL-FIX-1017 // KLARNA-LOG-1017 // KLARNA-FORM-1018
+const KLARNA_EVENTS = new Set(["klarna_form_blocked", "klarna_auth_abandoned", "klarna_offer_shown", "klarna_clicked", "klarna_session_created", "klarna_auth_result", "klarna_ab_known", "klarna_session_failed", "klarna_form_started"]); // KLARNA-FUNNEL-1017 // KLARNA-FUNNEL-FIX-1017 // KLARNA-LOG-1017 // KLARNA-FORM-1018
 for (const event of KLARNA_EVENTS) EVENTS.add(event); // KLARNA-FUNNEL-1017
 const RETRY_EVENTS = new Set(["retry_offer_shown", "retry_tapped", "retry_success", "retry_late_alive"]); // REFUND-RETRY-1018 // REFUND-RETRY-LATE-1018
 for (const event of RETRY_EVENTS) EVENTS.add(event); // REFUND-RETRY-1018
@@ -68,6 +68,7 @@ function clean(o: unknown, host: string | null): Record<string, unknown> | null 
       retry_to_carrier: typeof r.retry_to_carrier === "string" && /^[a-z0-9-]{1,30}$/.test(r.retry_to_carrier) ? r.retry_to_carrier : null, // REFUND-RETRY-1018
     } : {}), // REFUND-RETRY-1018
     ...(KLARNA_EVENTS.has(event) ? { // KLARNA-FUNNEL-1017
+      klarna_field: typeof r.klarna_field === "string" && /^(first_name|last_name|phone|address|city|state|country|zip)$/.test(r.klarna_field) ? r.klarna_field : null, // KLARNA-OPEN-1019
       screen: r.screen === "decline_nsf" || r.screen === "decline_other" || r.screen === "method_list" ? r.screen : null,
       decline_ab: r.decline_ab === "control" || r.decline_ab === "variant" ? r.decline_ab : null,
       checkout_session_id: typeof r.checkout_session_id === "string" && /^[A-Za-z0-9_-]{1,100}$/.test(r.checkout_session_id) ? r.checkout_session_id : null,
