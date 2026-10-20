@@ -14,7 +14,7 @@ describe("SMS-34332-1020 consent", () => { // SMS-34332-1020
     const label = source.slice(start, source.indexOf("</label>", start) + "</label>".length); // SMS-34332-1020
     const state = source.split("\n").filter((line) => line.includes("const [smsOptIn,") || line.includes("const smsOptInRef =")).join("\n"); // SMS-34332-1020
     const ref = { current: false }; // SMS-34332-1020
-    const Form = compile(`return function Form() { ${state} return (${label}); };`, { React, useState, useRef: () => ref, lang: "en" }) as React.ComponentType; // SMS-34332-1020
+    const Form = compile(`return function Form() {\n${state}\nreturn (${label}); };`, { React, useState, useRef: () => ref, lang: "en" }) as React.ComponentType; // SMS-34332-1020
     const host = document.createElement("div"); document.body.appendChild(host); root = createRoot(host); act(() => root?.render(<Form />)); // SMS-34332-1020
     const input = host.querySelector<HTMLInputElement>('[data-testid="sms-optin"]'); if (!input) throw new Error("Missing checkbox"); // SMS-34332-1020
     expect(input.checked).toBe(false); expect(ref.current).toBe(false); expect(input.required).toBe(false); expect(input.disabled).toBe(false); // SMS-34332-1020
