@@ -2884,7 +2884,7 @@ serve(async (req) => {
         const m1 = buildMf(payloadRecord, cpDev, paymentMethod);
         const rin0 = {
           phone: text(payloadRecord.phone_number ?? payloadRecord.phoneNumber), email: text(pay0.email ?? payloadRecord.email),
-          amount: Number(payloadRecord.amount), carrier_slug: text(payloadRecord.carrier_slug ?? payloadRecord.carrierSlug),
+          amount: Number(payloadRecord.amount), total: Number(payloadRecord.total), carrier_slug: text(payloadRecord.carrier_slug ?? payloadRecord.carrierSlug), // RISK-RULES-1020
           payment_method: paymentMethod, checkout_session_id: text(payloadRecord.kount_ssid ?? payloadRecord.riskified_sessionid ?? payloadRecord.cbsys_sessionid),
           cp_dev: { dev_fp: m1.device ?? undefined, dev_id: m1.did ?? undefined }, visitorId: m1.visitor,
           card_bin6: m1.bin6, card_last4: m1.last4, card_exp: m1.card_exp, addr_norm: m1.addr,
@@ -3018,7 +3018,7 @@ serve(async (req) => {
           const m0 = mf ?? buildMf(payloadRecord, cpDev, paymentMethod);
           const rin = {
             phone: text(payloadRecord.phone_number ?? payloadRecord.phoneNumber), email: text(pay.email ?? payloadRecord.email),
-            amount: Number(payloadRecord.amount), carrier_slug: text(payloadRecord.carrier_slug ?? payloadRecord.carrierSlug),
+            amount: Number(payloadRecord.amount), total: Number(payloadRecord.total), carrier_slug: text(payloadRecord.carrier_slug ?? payloadRecord.carrierSlug), // RISK-RULES-1020
             payment_method: paymentMethod, checkout_session_id: text(payloadRecord.kount_ssid ?? payloadRecord.riskified_sessionid ?? payloadRecord.cbsys_sessionid),
             cp_dev: { dev_fp: m0.device ?? undefined, dev_id: m0.did ?? undefined }, visitorId: m0.visitor,
             card_bin6: m0.bin6, card_last4: m0.last4, card_exp: m0.card_exp, addr_norm: m0.addr,
