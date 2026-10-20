@@ -19,6 +19,7 @@ import { goStaticSentence, goStaticFaqHtml, goAutoPayLine, goRouteInfo, goKeywor
 import { top4Hero, verizonTrustLine, usCellularNote } from "./src/content/carrierHero"; // BATCH3-1014
 // PRIVACY-1007: privacy policy text (shared with src/pages/PrivacyPolicy.tsx) for the static raw HTML (EN + ES).
 import { PRIVACY_PAGES, privacyMainHtml, type PpPage } from "./src/content/privacyPolicy";
+import { SMS_TERMS, smsMainHtml } from "./src/content/smsTerms"; // SMS-34332-1020
 // TOP4-T3-1009: Spanish How to Use page head (same title/description HowToUse.tsx sets at runtime)
 import { HOW_TO_USE } from "./src/content/howToUse";
 // SPA-SHELLS-1011: static first screen (<main>) for /about-us, /faq, /how-to-use, /es/how-to-use, /terms-and-conditions.
@@ -209,6 +210,7 @@ const HTML_ROUTES = [
   "faq.html",
   "how-to-use.html",
   "privacy-policy.html",
+  "sms-terms.html", // SMS-34332-1020
   "terms-and-conditions.html",
   "returns-policy.html",
   "returns-and-refunds-policy.html",
@@ -232,6 +234,7 @@ const HTML_ROUTES = [
   // TOP4-T3-1009: Spanish How to Use (indexable; www canonical + en/es hreflang via pairFor)
   "es/how-to-use/index.html",
   "privacy-policy/index.html",
+  "sms-terms/index.html", // SMS-34332-1020
   // PRIVACY-1007: Spanish privacy policy (indexable; www canonical + en/es hreflang via pairFor)
   "es/privacy-policy/index.html",
   "terms-and-conditions/index.html",
@@ -912,6 +915,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "about-us.html", "contact-us.html",
       "faq.html", "how-to-use.html",
       "privacy-policy.html", "terms-and-conditions.html",
+      "sms-terms.html", // SMS-34332-1020
       "returns-policy.html", "returns-and-refunds-policy.html",
       "es/returns-and-refunds-policy.html", "es/privacy-policy.html",
       "es/terms-and-conditions.html", "es/returns-policy.html",
@@ -1139,6 +1143,7 @@ const htmlAliasPlugin = (): Plugin => ({
           title: "Privacy Policy — CellPay",
           description: "How CellPay collects, uses, and protects customer information when you purchase a prepaid mobile refill: data we collect, how we share it, and your choices.",
         },
+        "sms-terms/index.html": { title: SMS_TERMS.title, description: SMS_TERMS.description }, // SMS-34332-1020
         // PRIVACY-1007: same title/description PrivacyPolicy.tsx sets at runtime (src/content/privacyPolicy.ts)
         "es/privacy-policy/index.html": {
           title: PRIVACY_PAGES.es.title,
@@ -1714,6 +1719,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "lp/metro/index.html": "metropcs.html", "lp/boost/index.html": "boost.html",
       // AEO-PAGES-1007: /terms and /about short URLs (App.tsx sends them to the full page)
       "terms/index.html": "terms-and-conditions/index.html", "about/index.html": "about-us/index.html",
+      "privacy/index.html": "privacy-policy/index.html", // SMS-34332-1020
     };
 
     // PRIVACY-1007: privacy policy pages carry the full policy in the raw HTML: Navbar look + the same <main> as
@@ -1928,6 +1934,9 @@ const htmlAliasPlugin = (): Plugin => ({
         /* keep plain shell */
       }
       const ppPage = PRIVACY_BY_ROUTE[route];
+      if (route === "sms-terms/index.html") { // SMS-34332-1020
+        try { out = out.replace(/<div id="root"><\/div>/i, () => infoFirstScreen(smsMainHtml())); } catch { /* keep plain shell */ } // SMS-34332-1020
+      } // SMS-34332-1020
       if (ppPage) {
         try {
           const body = privacyFirstScreen(ppPage);
