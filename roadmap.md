@@ -1,4 +1,7 @@
 # VZ-PREPAID-GUARD-1017
+# SMS-34332-1020 <!-- // SMS-34332-1020 -->
+- [ ] Add approved terms and aliases, privacy paragraphs, optional checkout consent and best-effort logging. <!-- // SMS-34332-1020 -->
+- [ ] Verify terms, consent defaults/link behavior and queue regressions without real payments or publishing. <!-- // SMS-34332-1020 -->
 # DECLINE-REJECTED-1018 // DECLINE-REJECTED-1018
 - [x] Add the risk decline screen, pure button mappings and two isolated funnel events; preserve all payment calls and guards. // DECLINE-REJECTED-1018
 - [x] Verify EN desktop/control and ES mobile/variant risk recovery with intercepted payments, shown/action events and preserved inputs; 149 tests passed, build OK; no deployment, migration or publishing. // DECLINE-REJECTED-1018
