@@ -55,6 +55,7 @@ import { trackFunnel, resetFunnel, funnelFired } from "@/lib/funnelEvents"; // C
 import { readDeclineAb, writeFunds, patchFunds, clearFunds, setKlarnaSrc, readKlarnaSrc, clearKlarnaSrc, type KlarnaSrc } from "@/lib/declineRecovery"; // KLARNA-FUNNEL-1017
 import type { KlarnaFunnelEvent, FunnelData } from "@/lib/funnelEvents"; // KLARNA-FUNNEL-1017
 import { klarnaCategoryIds, pickKlarnaCategory, klarnaLocale } from "@/lib/klarnaCategory"; // KLARNA-CAT-1017
+import { firstMissingKlarnaField, type KlarnaField } from "@/lib/klarnaMissing"; // KLARNA-OPEN-1019
 
 interface LocationState {
   phone: string;
@@ -599,6 +600,25 @@ const Checkout = () => {
   const [klarnaState, setKlarnaState] = useState("");
   const [klarnaZip, setKlarnaZip] = useState("");
   const [klarnaCountry, setKlarnaCountry] = useState("US");
+  const [klarnaMissing, setKlarnaMissing] = useState<KlarnaField | null>(null); // KLARNA-OPEN-1019
+  const klarnaValues = { firstName: klarnaFirstName, lastName: klarnaLastName, phone: klarnaPhone, address: klarnaAddress, city: klarnaCity, state: klarnaState, country: klarnaCountry, zip: klarnaZip }; // KLARNA-OPEN-1019
+  const currentKlarnaMissing = firstMissingKlarnaField(klarnaValues); // KLARNA-OPEN-1019
+  const isKlarnaValid = currentKlarnaMissing === null; // KLARNA-OPEN-1019
+  const klarnaPendingRef = useRef<{ attempt: string; src: KlarnaSrc } | null>(null); // KLARNA-OPEN-1019
+  const klarnaAbandonDataRef = useRef<FunnelData>({}); // KLARNA-OPEN-1019
+  useEffect(() => { if (isKlarnaValid || paymentMethod !== "klarna") setKlarnaMissing(null); }, [isKlarnaValid, paymentMethod]); // KLARNA-OPEN-1019
+  useEffect(() => { // KLARNA-OPEN-1019
+    const abandon = () => {
+      const pending = klarnaPendingRef.current;
+      if (!pending) return;
+      klarnaPendingRef.current = null;
+      try { trackFunnel("klarna_auth_abandoned", { ...klarnaAbandonDataRef.current, screen: pending.src }, `abandon|${pending.attempt}`); } catch { /* ignore */ }
+    };
+    const hidden = () => { if (document.visibilityState === "hidden") abandon(); };
+    window.addEventListener("pagehide", abandon);
+    document.addEventListener("visibilitychange", hidden);
+    return () => { window.removeEventListener("pagehide", abandon); document.removeEventListener("visibilitychange", hidden); };
+  }, []);
   useEffect(() => { if (paymentMethod === "klarna" && !klarnaPhone.trim() && state?.phone) setKlarnaPhone(state.phone); }, [paymentMethod, klarnaPhone, state?.phone]); // KLARNA-FORM-1018
 
   // Checkout config from API (typed)
@@ -1392,9 +1412,10 @@ const Checkout = () => {
 
   // CHECKOUT-FUNNEL: invisible funnel analytics (no UI). Hooks sit above the "if (!state)" return. All fire-and-forget.
   const funnelDataRef = useRef<{ carrier: string | null; amount: number | null; fee: number | null; total: number | null }>({ carrier: null, amount: null, fee: null, total: null });
-  const trackKlarna = (event: KlarnaFunnelEvent, screen: KlarnaSrc, onceKey: string, extra: Pick<FunnelData, "shown" | "cap" | "klarna_result" | "klarna_categories" | "klarna_category" | "klarna_show_form" | "klarna_approved" | "klarna_load" | "klarna_reason" | "klarna_finalize_required" | "klarna_error"> = {}) => { // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017 // KLARNA-LOG-1017
+  const trackKlarna = (event: KlarnaFunnelEvent, screen: KlarnaSrc, onceKey: string, extra: Pick<FunnelData, "shown" | "cap" | "klarna_result" | "klarna_categories" | "klarna_category" | "klarna_show_form" | "klarna_approved" | "klarna_load" | "klarna_reason" | "klarna_finalize_required" | "klarna_error" | "klarna_field"> = {}) => { // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017 // KLARNA-LOG-1017
     try { trackFunnel(event, { ...funnelDataRef.current, screen, decline_ab: readDeclineAb(phone10), checkout_session_id: sessionIdRef.current, ...extra }, onceKey); } catch { /* ignore */ } // KLARNA-FUNNEL-1017
   }; // KLARNA-FUNNEL-1017
+  klarnaAbandonDataRef.current = { ...funnelDataRef.current, decline_ab: readDeclineAb(phone10), checkout_session_id: sessionIdRef.current }; // KLARNA-OPEN-1019
   const klarnaFail = (reason: NonNullable<FunnelData["klarna_reason"]>) => { try { trackKlarna("klarna_session_failed", readKlarnaSrc(phone10), `fail|${reason}|${Date.now()}`, { klarna_reason: reason }); } catch { /* ignore */ } }; // KLARNA-LOG-1017
   const klarnaErrKeys = (e: unknown): string | undefined => { try { if (!e || typeof e !== "object") return undefined; const ok = (k: unknown) => typeof k === "string" && /^[A-Za-z0-9_.\[\]-]{1,40}$/.test(k); const inv = (e as { invalid_fields?: unknown }).invalid_fields; const s = Array.isArray(inv) ? "invalid_fields:" + inv.filter(ok).slice(0, 10).join(",") : "keys:" + Object.keys(e).filter(ok).slice(0, 10).join(","); return s.slice(0, 200); } catch { return undefined; } }; // KLARNA-LOG-1017
   useEffect(() => { resetFunnel(); }, []);
@@ -1599,15 +1620,18 @@ const Checkout = () => {
   const isEmailValid = isValidEmail(cleanEmail(email)); // DECLINE-RECOVERY-1014
 
   // Per-method required-field validation. Every payment method requires email + phone (already provided).
-  const isKlarnaValid =
-    klarnaFirstName.trim().length > 0 &&
-    klarnaLastName.trim().length > 0 &&
-    klarnaPhone.replace(/\D/g, "").length >= 10 &&
-    klarnaAddress.trim().length > 0 &&
-    klarnaCity.trim().length > 0 &&
-    klarnaState.trim().length > 0 &&
-    klarnaCountry.trim().length > 0 &&
-    klarnaZip.length >= 5;
+  const klarnaFix = paymentMethod === "klarna" && !submitting && !isKlarnaValid; // KLARNA-OPEN-1019
+  const klarnaMissingField = klarnaMissing && !isKlarnaValid ? currentKlarnaMissing : null; // KLARNA-OPEN-1019
+  const klarnaLabels = { first_name: tr.firstName, last_name: tr.lastName, phone: tr.billPayerPhone, address: tr.streetAddress, city: tr.city, state: tr.stateProvince, country: tr.country, zip: tr.zip }; // KLARNA-OPEN-1019
+  const klarnaBlocked = () => { // KLARNA-OPEN-1019
+    const field = firstMissingKlarnaField(klarnaValues);
+    setKlarnaMissing(field);
+    if (!field) return;
+    const input = document.querySelector<HTMLInputElement>(`[data-klarna-field="${field}"]`);
+    input?.scrollIntoView({ block: "center", behavior: "smooth" });
+    input?.focus({ preventScroll: true });
+    try { trackKlarna("klarna_form_blocked", readKlarnaSrc(phone10), `blocked|${field}`, { klarna_field: field }); } catch { /* ignore */ }
+  };
 
   let methodValid = true;
   switch (paymentMethod) {
@@ -2345,11 +2369,13 @@ const Checkout = () => {
     const klarnaLoc = klarnaLocale(lang); // KLARNA-CAT-1017
     if (!clientToken) { klarnaFail(sessionResp?.success === false ? "server_error" : "no_token"); setErrorMsg(lang === "es" ? "No pudimos iniciar Klarna. Intente de nuevo o use otro método de pago." : "Could not create Klarna session"); return; } // KLARNA-LOG-1017 // KLARNA-FORM-1018
     const klarnaAttempt = String(++klarnaAttemptRef.current); // KLARNA-FUNNEL-1017
-    try { trackKlarna("klarna_session_created", readKlarnaSrc(phone10), klarnaAttempt, { klarna_categories: klarnaCats.length ? klarnaCats.join("+") : "none" }); } catch { /* ignore */ } // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017
+    const src = readKlarnaSrc(phone10); // KLARNA-OPEN-1019
+    klarnaPendingRef.current = { attempt: klarnaAttempt, src }; // KLARNA-OPEN-1019
+    try { trackKlarna("klarna_session_created", src, klarnaAttempt, { klarna_categories: klarnaCats.length ? klarnaCats.join("+") : "none" }); } catch { /* ignore */ } // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017
 
-    if (!window.Klarna) { klarnaFail("sdk_missing"); setErrorMsg(lang === "es" ? "No pudimos cargar Klarna. Intente de nuevo o use otro método de pago." : "Klarna SDK not available"); return; } // KLARNA-LOG-1017 // KLARNA-FORM-1018
+    if (!window.Klarna) { klarnaPendingRef.current = null; /* KLARNA-OPEN-1019 */ klarnaFail("sdk_missing"); setErrorMsg(lang === "es" ? "No pudimos cargar Klarna. Intente de nuevo o use otro método de pago." : "Klarna SDK not available"); return; } // KLARNA-LOG-1017 // KLARNA-FORM-1018
 
-    window.Klarna.Payments.init({ client_token: clientToken });
+    try { window.Klarna.Payments.init({ client_token: clientToken }); } catch (err) { klarnaPendingRef.current = null; throw err; } // KLARNA-OPEN-1019
     const klarnaPayments = window.Klarna.Payments; // KLARNA-CAT-1017
 
     return new Promise<void>((resolve) => {
@@ -2360,6 +2386,7 @@ const Checkout = () => {
         if (authorizeStarted) return; // KLARNA-CAT-1017
         authorizeStarted = true; // KLARNA-CAT-1017
         clearTimeout(loadTimer); // KLARNA-CAT-1017
+      try { // KLARNA-OPEN-1019
       klarnaPayments.authorize( // KLARNA-CAT-1017
         { payment_method_category: klarnaCategory }, // KLARNA-CAT-1017
         {
@@ -2378,6 +2405,7 @@ const Checkout = () => {
           },
         },
         async (res) => {
+          try { klarnaPendingRef.current = null; } catch { /* analytics never affects authorization */ } // KLARNA-OPEN-1019
           try { trackKlarna("klarna_auth_result", readKlarnaSrc(phone10), klarnaAttempt, { klarna_result: (res.approved && res.authorization_token) ? "approved" : (res.show_form === false ? "declined" : "cancelled"), klarna_category: klarnaCategory, klarna_load: klarnaLoadState, klarna_approved: typeof res.approved === "boolean" ? res.approved : undefined, klarna_show_form: typeof res.show_form === "boolean" ? res.show_form : undefined, klarna_finalize_required: typeof res.finalize_required === "boolean" ? res.finalize_required : undefined, klarna_error: klarnaErrKeys(res.error) }); } catch { /* ignore */ } // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017 // KLARNA-LOG-1017
           if (res.approved && res.authorization_token) {
             setKlarnaToken(res.authorization_token);
@@ -2401,6 +2429,7 @@ const Checkout = () => {
           resolve();
         }
       );
+      } catch (err) { klarnaPendingRef.current = null; throw err; } // KLARNA-OPEN-1019
       }; // KLARNA-CAT-1017
       loadTimer = setTimeout(() => { if (authorizeStarted) return; klarnaLoadState = "timeout"; runAuthorize(); }, 8000); // KLARNA-CAT-1017
       try { // KLARNA-CAT-1017
@@ -2410,7 +2439,7 @@ const Checkout = () => {
           runAuthorize(); // KLARNA-CAT-1017
         }); // KLARNA-CAT-1017
       } catch { if (!authorizeStarted) { klarnaLoadState = "error"; runAuthorize(); } } // KLARNA-CAT-1017
-    });
+    }).catch((err) => { klarnaPendingRef.current = null; throw err; }); // KLARNA-OPEN-1019
   };
 
   // ─── Cash App (Pockyt) ───
@@ -2886,57 +2915,58 @@ const Checkout = () => {
               onFocusCapture={() => { try { trackKlarna("klarna_form_started", readKlarnaSrc(phone10), `form|${declineSeqRef.current}`); } catch { /* ignore */ } }} // KLARNA-FORM-1018
             >
               <h2 className="font-bold text-foreground mb-1 text-sm">{tr.billingDetails}</h2>
+              {klarnaMissingField && <p role="alert" data-testid="klarna-missing-msg" className="text-sm font-semibold text-destructive">{lang === "es" ? "Por favor complete: " : "Please fill in: "}{klarnaLabels[klarnaMissingField]}</p> /* KLARNA-OPEN-1019 */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">{tr.firstName} <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder={tr.firstName} value={klarnaFirstName} onChange={(e) => setKlarnaFirstName(e.target.value)}
-                    className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  <input data-klarna-field="first_name" aria-invalid={klarnaMissingField === "first_name" ? true : undefined} type="text" placeholder={tr.firstName} value={klarnaFirstName} onChange={(e) => setKlarnaFirstName(e.target.value)}
+                    className={`w-full h-11 px-4 rounded-lg border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${klarnaMissingField === "first_name" ? "border-destructive" : "border-input focus:border-transparent"}`}
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">{tr.lastName} <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder={tr.lastName} value={klarnaLastName} onChange={(e) => setKlarnaLastName(e.target.value)}
-                    className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  <input data-klarna-field="last_name" aria-invalid={klarnaMissingField === "last_name" ? true : undefined} type="text" placeholder={tr.lastName} value={klarnaLastName} onChange={(e) => setKlarnaLastName(e.target.value)}
+                    className={`w-full h-11 px-4 rounded-lg border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${klarnaMissingField === "last_name" ? "border-destructive" : "border-input focus:border-transparent"}`}
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
               </div>
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">{tr.billPayerPhone} <span className="text-destructive">*</span></label>
-                <input type="tel" placeholder="(000) 000-0000" value={klarnaPhone} onChange={(e) => setKlarnaPhone(e.target.value)}
-                  className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                <input data-klarna-field="phone" aria-invalid={klarnaMissingField === "phone" ? true : undefined} type="tel" placeholder="(000) 000-0000" value={klarnaPhone} onChange={(e) => setKlarnaPhone(e.target.value)}
+                  className={`w-full h-11 px-4 rounded-lg border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${klarnaMissingField === "phone" ? "border-destructive" : "border-input focus:border-transparent"}`}
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">{tr.streetAddress} <span className="text-destructive">*</span></label>
-                <input type="text" placeholder={tr.streetAddress} value={klarnaAddress} onChange={(e) => setKlarnaAddress(e.target.value)}
-                  className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                <input data-klarna-field="address" aria-invalid={klarnaMissingField === "address" ? true : undefined} type="text" placeholder={tr.streetAddress} value={klarnaAddress} onChange={(e) => setKlarnaAddress(e.target.value)}
+                  className={`w-full h-11 px-4 rounded-lg border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${klarnaMissingField === "address" ? "border-destructive" : "border-input focus:border-transparent"}`}
                   style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">{tr.city} <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder={tr.city} value={klarnaCity} onChange={(e) => setKlarnaCity(e.target.value)}
-                    className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  <input data-klarna-field="city" aria-invalid={klarnaMissingField === "city" ? true : undefined} type="text" placeholder={tr.city} value={klarnaCity} onChange={(e) => setKlarnaCity(e.target.value)}
+                    className={`w-full h-11 px-4 rounded-lg border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${klarnaMissingField === "city" ? "border-destructive" : "border-input focus:border-transparent"}`}
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">{tr.stateProvince} <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder={tr.state} value={klarnaState} onChange={(e) => setKlarnaState(e.target.value.toUpperCase())}
-                    className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  <input data-klarna-field="state" aria-invalid={klarnaMissingField === "state" ? true : undefined} type="text" placeholder={tr.state} value={klarnaState} onChange={(e) => setKlarnaState(e.target.value.toUpperCase())}
+                    className={`w-full h-11 px-4 rounded-lg border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${klarnaMissingField === "state" ? "border-destructive" : "border-input focus:border-transparent"}`}
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">{tr.country} <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder={lang === "es" ? "Estados Unidos" : "United States"} value={klarnaCountry} onChange={(e) => setKlarnaCountry(e.target.value)}
-                    className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  <input data-klarna-field="country" aria-invalid={klarnaMissingField === "country" ? true : undefined} type="text" placeholder={lang === "es" ? "Estados Unidos" : "United States"} value={klarnaCountry} onChange={(e) => setKlarnaCountry(e.target.value)}
+                    className={`w-full h-11 px-4 rounded-lg border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${klarnaMissingField === "country" ? "border-destructive" : "border-input focus:border-transparent"}`}
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">{tr.zip} <span className="text-destructive">*</span></label>
-                  <input type="text" placeholder={tr.zipCode} value={klarnaZip} onChange={(e) => setKlarnaZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
-                    className="w-full h-11 px-4 rounded-lg border border-input bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent"
+                  <input data-klarna-field="zip" aria-invalid={klarnaMissingField === "zip" ? true : undefined} type="text" placeholder={tr.zipCode} value={klarnaZip} onChange={(e) => setKlarnaZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5}
+                    className={`w-full h-11 px-4 rounded-lg border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${klarnaMissingField === "zip" ? "border-destructive" : "border-input focus:border-transparent"}`}
                     style={{ "--tw-ring-color": brandColor } as React.CSSProperties} />
                 </div>
               </div>
@@ -3100,9 +3130,9 @@ const Checkout = () => {
               <button
                 ref={inlinePayRef}
                 type="button"
-                disabled={!canSubmit}
-                onClick={handlePlaceOrder}
-                className="w-full h-[56px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-all active:scale-[0.97] flex items-center justify-center gap-2"
+                disabled={!canSubmit && !klarnaFix} // KLARNA-OPEN-1019
+                onClick={() => { if (klarnaFix) { klarnaBlocked(); return; } handlePlaceOrder(); }} // KLARNA-OPEN-1019
+                className={`w-full h-[56px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-all active:scale-[0.97] flex items-center justify-center gap-2 ${klarnaFix ? "opacity-50" : ""}`} // KLARNA-OPEN-1019
                 style={{ backgroundColor: brandColor }}
               >
                 {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
@@ -3149,6 +3179,7 @@ const Checkout = () => {
             aria-disabled={!canSubmit}
             onClick={() => {
               if (submitting) return;
+              if (klarnaFix) { klarnaBlocked(); return; } // KLARNA-OPEN-1019
               if (canSubmit) { handlePlaceOrder(); return; }
               const card = inlinePayRef.current?.parentElement;
               if (card) window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - 72, behavior: "smooth" });
