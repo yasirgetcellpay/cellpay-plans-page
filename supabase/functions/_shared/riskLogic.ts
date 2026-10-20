@@ -3,14 +3,21 @@
 // card / address keys come in already reduced (BIN6:last4, normalized address). Stores phone last 4 only.
 // RISK-COVER-IP-1019: budget 700 ms in enforce, 2500 ms otherwise (shadow runs in the background, never on the customer's path).
 // The decision row is ALWAYS written (own 1500 ms timeout), also on timeout/error (action allow, timed_out / err set).
+// RISK-RULES-1020: features from risk_score_features_v2 (round_dollar dropped; card type via bin_info, card reuse, Fraud & QA ADD flags).
+// 'hold' is no longer returned: 40-59 = step_up + 'review' tag. risk_rules.shadow_only rules are logged (shadow_score / shadow_action /
+// shadow_reasons) but never change score or action. Card data stays BIN6:last4 in, BIN6 only in the log row.
 
 export type RiskInput = {
   phone?: string | null; email?: string | null; amount?: number | null; carrier_slug?: string | null; payment_method?: string | null;
   checkout_session_id?: string | null; cp_dev?: { dev_fp?: string; dev_id?: string } | null; visitorId?: string | null;
   card_bin6?: string | null; card_last4?: string | null; card_exp?: string | null; addr_norm?: string | null; ip?: string | null;
   ip_src?: string | null; ip_country_hdr?: string | null;
+  total?: number | null; // RISK-RULES-1020: charged total (amount + fees) when known
 };
+// RISK-RULES-1020: "hold" stays in the type only so existing callers still compile; scoreRisk never returns it.
 export type RiskResult = { score?: number; action: "allow" | "step_up" | "hold" | "block"; reasons?: string[]; mode?: string; error?: boolean };
+const RULES_VER = "d2-1020";
+const SHADOW_STEPUP_FLAGS = ["fqa_metro_newcard_ge55", "fqa_newcard_ge150"]; // Fraud & QA ADD 1+2: shadow step-up flags
 
 const BUDGET_ENFORCE_MS = 700;
 const BUDGET_SHADOW_MS = 2500;
@@ -84,6 +91,7 @@ export async function scoreRisk(inp: RiskInput, knownMode?: string): Promise<Ris
   const baseRow = {
     checkout_session_id: s(inp.checkout_session_id), phone_last4: pd.length >= 4 ? pd.slice(-4) : null, payment_method: s(inp.payment_method),
     amount: Number.isFinite(Number(inp.amount)) ? Number(inp.amount) : null, mode, ip_src: s(inp.ip_src), ip_country_hdr: hdrCountry,
+    total: Number.isFinite(Number(inp.total)) && Number(inp.total) > 0 ? Number(inp.total) : null, rules_ver: RULES_VER,
   };
   try {
     const phone = s(inp.phone), email = s(inp.email), ip = s(inp.ip);
@@ -93,14 +101,17 @@ export async function scoreRisk(inp: RiskInput, knownMode?: string): Promise<Ris
     const amount = Number.isFinite(Number(inp.amount)) ? Number(inp.amount) : null;
 
     const [feat, ipe, bl, mf, rules] = await Promise.all([
-      rpc("risk_score_features", { _phone: phone, _email: email, _ip: ip, _device: device ?? did, _amount: amount, _method: method }, ac.signal),
+      rpc("risk_score_features_v2", { _phone: phone, _email: email, _ip: ip, _device: device ?? did, _amount: amount, _method: method,
+        _card: card, _carrier: s(inp.carrier_slug), _total: baseRow.total }, ac.signal),
       ip ? rpc("ip_enrich", { _ip: ip }, ac.signal).catch(() => null) : Promise.resolve(null),
       rpc("checkout_blocklist_check", { _phone: phone, _email: email, _card_h: null, _visitor: s(inp.visitorId), _session: s(inp.checkout_session_id) }, ac.signal).catch(() => null),
       rpc("checkout_blocklist_check_mf", { _devices: [device, did].filter(Boolean), _card: card, _card_exp: s(inp.card_exp), _address: s(inp.addr_norm) }, ac.signal).catch(() => null),
-      rest("risk_rules?select=key,weight,cap", ac.signal),
+      rest("risk_rules?select=key,weight,cap,shadow_only", ac.signal),
     ]);
 
     const f = (feat && typeof feat === "object" ? feat : {}) as Record<string, number>;
+    const cardInfo = first((f as Record<string, unknown>)._card); // RISK-RULES-1020: BIN6 facts (no last4), logged only
+    delete (f as Record<string, unknown>)._card;
     const ipr = first(ipe);
     const ipCountry = s(ipr.country) ? String(ipr.country).toUpperCase() : hdrCountry; // DB range first, Cloudflare header as fallback
     if (ipr.cgnat !== true) {
@@ -108,17 +119,21 @@ export async function scoreRisk(inp: RiskInput, knownMode?: string): Promise<Ris
       if (ipr.datacenter === true) f.ip_datacenter = 1;
       if (ipCountry && ipCountry !== "US") f.ip_foreign = 1;
     }
-    const w = new Map<string, { weight: number; cap: number | null }>();
+    const binCountry = s(cardInfo.country) ? String(cardInfo.country).toUpperCase() : null;
+    if (binCountry && ipCountry && ipr.cgnat !== true && binCountry !== ipCountry) f.card_country_ne_ip_country = 1; // RISK-RULES-1020
+    const w = new Map<string, { weight: number; cap: number | null; shadow: boolean }>();
     for (const r of (Array.isArray(rules) ? rules : []) as Array<Record<string, unknown>>) {
-      w.set(String(r.key), { weight: Number(r.weight), cap: r.cap === null || r.cap === undefined ? null : Number(r.cap) });
+      w.set(String(r.key), { weight: Number(r.weight), cap: r.cap === null || r.cap === undefined ? null : Number(r.cap), shadow: r.shadow_only === true });
     }
-    let score = 0;
-    const reasons: string[] = [];
+    let score = 0, shadowPts = 0;
+    const reasons: string[] = [], shadowReasons: string[] = [];
     for (const [k, raw] of Object.entries(f)) {
       const rule = w.get(k);
       const v = Number(raw);
-      if (!rule || !Number.isFinite(v) || v === 0 || k.startsWith("band_")) continue;
+      if (!rule || !Number.isFinite(v) || v === 0 || k.startsWith("band_") || k.startsWith("_")) continue;
       const pts = rule.weight * (rule.cap !== null ? Math.min(v, rule.cap) : v);
+      if (rule.shadow) { shadowPts += pts; shadowReasons.push(`${k}:${Math.round(pts * 10) / 10}`); continue; } // RISK-RULES-1020: log only
+      if (pts === 0) continue;
       score += pts;
       reasons.push(`${k}:${Math.round(pts * 10) / 10}`);
     }
@@ -126,16 +141,25 @@ export async function scoreRisk(inp: RiskInput, knownMode?: string): Promise<Ris
     const linked = blHit.blocked === true ? { kind: "blocklist", key_type: blHit.key_type, reason: blHit.reason }
       : mfHit.blocked === true ? { kind: "mf", key_type: mfHit.key_type, reason: mfHit.reason } : null;
     const band = (k: string, d: number) => w.get(k)?.weight ?? d;
+    const bandBlock = band("band_block", 60), bandStep = band("band_stepup", 25);
+    // RISK-RULES-1020: no hold. 40-59 = step_up + 'review' tag (after-the-fact review in the daily report).
+    const decide = (sc: number): RiskResult["action"] => (sc >= bandBlock ? "block" : sc >= bandStep ? "step_up" : "allow");
     let action: RiskResult["action"] = "allow";
     if (linked) { action = "block"; reasons.push(`blocklist:${linked.key_type}`); }
-    else if (score >= band("band_block", 60)) action = "block";
-    else if (score >= band("band_hold", 40)) action = "hold";
-    else if (score >= band("band_stepup", 25)) action = "step_up";
+    else {
+      action = decide(score);
+      if (action === "step_up" && score >= 40) reasons.push("review");
+    }
+    // Shadow-only view: what the new rules would do (never returned, never enforced).
+    let shadowAction: RiskResult["action"] = linked ? "block" : decide(score + shadowPts);
+    if (shadowAction === "allow" && SHADOW_STEPUP_FLAGS.some((k) => Number(f[k]) > 0)) shadowAction = "step_up";
     score = Math.round(score * 10) / 10;
 
     clearTimeout(timer);
     await logDecision({
       ...baseRow, score, action, reasons, linked_block: linked,
+      shadow_score: Math.round((score + shadowPts) * 10) / 10, shadow_action: shadowAction, shadow_reasons: shadowReasons,
+      card_info: Object.keys(cardInfo).length ? cardInfo : null,
       ip_asn: typeof ipr.asn === "number" ? ipr.asn : null, ip_country: ipCountry, ip_datacenter: ipr.datacenter === true,
       latency_ms: Date.now() - t0, timed_out: false,
     });

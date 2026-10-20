@@ -67,6 +67,7 @@ interface LocationState {
 }
 
 type PaymentMethod = "card" | "paypal" | "plaid" | "googlepay" | "applepay" | "klarna" | "cashapp";
+const STEPUP_WALLETS: PaymentMethod[] = ["applepay", "googlepay", "paypal"]; // RISK-RULES-1020: step-up = wallets only (enforce mode only)
 
 // Normalize a US phone number for the carrier API: strip non-digits and any
 // leading "1" country code(s). For US numbers we always want exactly 10 digits.
@@ -1971,14 +1972,14 @@ const Checkout = () => {
     const baseCardMethod = {
       type: "CARD",
       parameters: {
-        allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+        allowedAuthMethods: stepUp ? ["CRYPTOGRAM_3DS"] : ["PAN_ONLY", "CRYPTOGRAM_3DS"], // RISK-RULES-1020: step-up = device token only
         allowedCardNetworks: allowedNetworks,
         billingAddressRequired: true,
         billingAddressParameters: { format: "FULL", phoneNumberRequired: true },
       },
     };
 
-    const ready = gpPre ? { result: true } : await client.isReadyToPay({ apiVersion: 2, apiVersionMinor: 0, allowedPaymentMethods: [baseCardMethod] }); // GPAY-CLICK-1011
+    const ready = gpPre && !stepUp ? { result: true } : await client.isReadyToPay({ apiVersion: 2, apiVersionMinor: 0, allowedPaymentMethods: [baseCardMethod] }); // GPAY-CLICK-1011
     if (!ready.result) { setErrorMsg("Google Pay is not available on this device"); return; }
 
     let paymentData: Record<string, unknown>; // GPAY-CLICK-1011: a sheet finished after "Back to payment options" is dropped (no charge, no error)
@@ -2643,6 +2644,7 @@ const Checkout = () => {
       : baseMethods;
   const klarnaListTotal = validation?.total ?? Number(state.amount); // KLARNA-MIN25-1017: same total as the decline screens
   const paymentMethods: MethodEntry[] = paymentMethodsAll.filter((m) => !walletBlocked.includes(m.key) && !(gpayFailed && m.key === "googlepay") && !(m.key === "klarna" && klarnaListTotal < KLARNA_MIN_TOTAL)); // KLARNA-MIN25-1017: hide Klarna under $25 // // DECLINE-RECOVERY-1014C: hide declined wallets // GPAY-LAZY-1014: hide Google Pay if pay.js failed
+  const stepUpMethods: MethodEntry[] = (() => { const w = paymentMethods.filter((m) => STEPUP_WALLETS.includes(m.key)); return w.length ? w : paymentMethods; })(); // RISK-RULES-1020 (stepUp is never true in shadow)
   // FUNDS-DECLINE-1016: the same low-funds view in both arms; existing caps retain priority.
   const nsfView = !!declineInfo && isNsfDecline(declineInfo.msg || "") && !(declineInfo.sess >= 3) && declineInfo.cls !== "blocked";
   const fc = FUNDS_COPY[lang === "es" ? "es" : "en"];
@@ -2704,7 +2706,7 @@ const Checkout = () => {
           {/* VZ-PREPAID-GUARD-1017: larger amounts receive the same note above the payment choices. */}
           {isVerizonSlug(state.carrierSlug) && Number(state.amount) > VZ_NOTICE_MIN && <p data-testid="vz-prepaid-notice" role="note" className="rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-900 text-xs p-3">{VZ_NOTE[lang === "es" ? "es" : "en"]}</p>}
           <div className={orsFailed ? "rounded-xl ring-2 ring-offset-2 ring-primary" : undefined} data-testid="ors-highlight" onMouseOver={kickGpay} onFocus={kickGpay}>{/* [OURSIDE-RETRY-1012] */}{/* GPAY-LAZY-1014: hover/focus on the method list starts pay.js */}
-          <PaymentMethodPicker lang={lang === "es" ? "es" : "en"} methods={paymentMethods} selected={paymentMethod} brandColor={brandColor}
+          <PaymentMethodPicker lang={lang === "es" ? "es" : "en"} methods={stepUp ? stepUpMethods : paymentMethods} selected={paymentMethod} brandColor={brandColor}
             onSelect={(key) => { try { if (key === "klarna" && paymentMethod !== "klarna") trackKlarna("klarna_clicked", "method_list", `method_list|${declineSeqRef.current}`); } catch { /* ignore */ } if (key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); methodTappedRef.current = true; setPaymentMethod(key as PaymentMethod); }} /* KLARNA-FUNNEL-1017 */ />
           </div>
 
@@ -2746,9 +2748,9 @@ const Checkout = () => {
           )}
 
           {/* FRAUD-MULTIBLOCK-1012 5c: step-up (enforce mode only; never shown in shadow) */}
-          {stepUp && paymentMethod === "card" && (
+          {stepUp && !STEPUP_WALLETS.includes(paymentMethod) && ( /* RISK-RULES-1020: wallets only */
             <div role="alert" data-testid="risk-stepup" className="bg-card rounded-xl border border-border p-5 text-sm font-semibold text-foreground">
-              {lang === "es" ? "Por tu seguridad, termina el pago con Apple Pay, Google Pay o PayPal." : "For your security, please finish with Apple Pay, Google Pay or PayPal."}
+              {lang === "es" ? "Por su seguridad, termine el pago con Apple Pay, Google Pay o PayPal." : "For your security, please finish with Apple Pay, Google Pay or PayPal."}
             </div>
           )}
           {/* Card form (only shown for credit card) */}
@@ -2921,7 +2923,7 @@ const Checkout = () => {
           )}
 
           {/* Klarna Billing Details */}
-          {paymentMethod === "klarna" && (
+          {paymentMethod === "klarna" && !stepUp && ( /* RISK-RULES-1020 */
             <div className="bg-card rounded-xl border border-border p-5 space-y-4"
               onFocusCapture={() => { try { trackKlarna("klarna_form_started", readKlarnaSrc(phone10), `form|${declineSeqRef.current}`); } catch { /* ignore */ } }} // KLARNA-FORM-1018
             >

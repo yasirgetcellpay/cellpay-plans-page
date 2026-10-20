@@ -74,6 +74,42 @@ export type Database = {
         }
         Relationships: []
       }
+      bin_info: {
+        Row: {
+          bin6: string
+          brand: string | null
+          category: string | null
+          country: string | null
+          funding: string | null
+          issuer: string | null
+          loaded_at: string
+          prepaid: boolean
+          src: string
+        }
+        Insert: {
+          bin6: string
+          brand?: string | null
+          category?: string | null
+          country?: string | null
+          funding?: string | null
+          issuer?: string | null
+          loaded_at?: string
+          prepaid?: boolean
+          src?: string
+        }
+        Update: {
+          bin6?: string
+          brand?: string | null
+          category?: string | null
+          country?: string | null
+          funding?: string | null
+          issuer?: string | null
+          loaded_at?: string
+          prepaid?: boolean
+          src?: string
+        }
+        Relationships: []
+      }
       campaign_email_log: {
         Row: {
           campaign: string
@@ -2040,6 +2076,7 @@ export type Database = {
         Row: {
           action: string | null
           amount: number | null
+          card_info: Json | null
           checkout_session_id: string | null
           created_at: string | null
           err: string | null
@@ -2055,13 +2092,19 @@ export type Database = {
           payment_method: string | null
           phone_last4: string | null
           reasons: Json | null
+          rules_ver: string | null
           score: number | null
+          shadow_action: string | null
+          shadow_reasons: Json | null
+          shadow_score: number | null
           timed_out: boolean | null
+          total: number | null
           transaction_log_id: string | null
         }
         Insert: {
           action?: string | null
           amount?: number | null
+          card_info?: Json | null
           checkout_session_id?: string | null
           created_at?: string | null
           err?: string | null
@@ -2077,13 +2120,19 @@ export type Database = {
           payment_method?: string | null
           phone_last4?: string | null
           reasons?: Json | null
+          rules_ver?: string | null
           score?: number | null
+          shadow_action?: string | null
+          shadow_reasons?: Json | null
+          shadow_score?: number | null
           timed_out?: boolean | null
+          total?: number | null
           transaction_log_id?: string | null
         }
         Update: {
           action?: string | null
           amount?: number | null
+          card_info?: Json | null
           checkout_session_id?: string | null
           created_at?: string | null
           err?: string | null
@@ -2099,8 +2148,13 @@ export type Database = {
           payment_method?: string | null
           phone_last4?: string | null
           reasons?: Json | null
+          rules_ver?: string | null
           score?: number | null
+          shadow_action?: string | null
+          shadow_reasons?: Json | null
+          shadow_score?: number | null
           timed_out?: boolean | null
+          total?: number | null
           transaction_log_id?: string | null
         }
         Relationships: []
@@ -2110,6 +2164,7 @@ export type Database = {
           cap: number | null
           key: string
           note: string | null
+          shadow_only: boolean
           updated_at: string | null
           weight: number
         }
@@ -2117,6 +2172,7 @@ export type Database = {
           cap?: number | null
           key: string
           note?: string | null
+          shadow_only?: boolean
           updated_at?: string | null
           weight: number
         }
@@ -2124,6 +2180,7 @@ export type Database = {
           cap?: number | null
           key?: string
           note?: string | null
+          shadow_only?: boolean
           updated_at?: string | null
           weight?: number
         }
@@ -3181,6 +3238,10 @@ export type Database = {
           status: string
         }[]
       }
+      risk_card_reuse: {
+        Args: { _card: string; _email?: string; _phone?: string }
+        Returns: Json
+      }
       risk_score_features: {
         Args: {
           _amount: number
@@ -3189,6 +3250,20 @@ export type Database = {
           _ip: string
           _method: string
           _phone: string
+        }
+        Returns: Json
+      }
+      risk_score_features_v2: {
+        Args: {
+          _amount: number
+          _card?: string
+          _carrier?: string
+          _device: string
+          _email: string
+          _ip: string
+          _method: string
+          _phone: string
+          _total?: number
         }
         Returns: Json
       }
