@@ -2159,6 +2159,63 @@ export type Database = {
         }
         Relationships: []
       }
+      risk_nofraud_daily: {
+        Row: {
+          day: string
+          filled_at: string
+          joined_by_session: number
+          joined_by_txid: number
+          orders: number
+          our_action: string
+          outcome: string
+          pay_group: string
+          r1_metro_newcard_ge55: number
+          r2_newcard_ge150: number
+          r3_cb_bin: number
+          r3_foreign_bin: number
+          review: number
+          sh_block: number
+          sh_step_up: number
+          total_sum: number
+        }
+        Insert: {
+          day: string
+          filled_at?: string
+          joined_by_session?: number
+          joined_by_txid?: number
+          orders?: number
+          our_action: string
+          outcome: string
+          pay_group: string
+          r1_metro_newcard_ge55?: number
+          r2_newcard_ge150?: number
+          r3_cb_bin?: number
+          r3_foreign_bin?: number
+          review?: number
+          sh_block?: number
+          sh_step_up?: number
+          total_sum?: number
+        }
+        Update: {
+          day?: string
+          filled_at?: string
+          joined_by_session?: number
+          joined_by_txid?: number
+          orders?: number
+          our_action?: string
+          outcome?: string
+          pay_group?: string
+          r1_metro_newcard_ge55?: number
+          r2_newcard_ge150?: number
+          r3_cb_bin?: number
+          r3_foreign_bin?: number
+          review?: number
+          sh_block?: number
+          sh_step_up?: number
+          total_sum?: number
+        }
+        Relationships: []
+      }
       risk_rules: {
         Row: {
           cap: number | null
@@ -2646,6 +2703,36 @@ export type Database = {
           refunded_face_usd: number | null
           refunded_orders: number | null
           refunded_usd: number | null
+        }
+        Relationships: []
+      }
+      risk_nofraud_daily_summary: {
+        Row: {
+          agree_on_rejects_pct: number | null
+          all_coverage_pct: number | null
+          card_coverage_pct: number | null
+          card_orders: number | null
+          day: string | null
+          filled_at: string | null
+          good_card: number | null
+          good_card_block_pct: number | null
+          good_card_step_up_pct: number | null
+          nf_rejected: number | null
+          nf_rejected_scored: number | null
+          nf_rejected_we_flagged: number | null
+          r1_fired: number | null
+          r1_on_paid: number | null
+          r1_on_rejected: number | null
+          r2_fired: number | null
+          r2_on_paid: number | null
+          r2_on_rejected: number | null
+          r3_cb_fired: number | null
+          r3_cb_on_paid: number | null
+          r3_cb_on_rejected: number | null
+          r3_foreign_fired: number | null
+          r3_foreign_on_paid: number | null
+          r3_foreign_on_rejected: number | null
+          wallet_other_orders: number | null
         }
         Relationships: []
       }
@@ -3242,6 +3329,7 @@ export type Database = {
         Args: { _card: string; _email?: string; _phone?: string }
         Returns: Json
       }
+      risk_nofraud_daily_fill: { Args: { _day: string }; Returns: number }
       risk_score_features: {
         Args: {
           _amount: number

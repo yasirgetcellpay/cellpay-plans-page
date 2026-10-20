@@ -1756,6 +1756,36 @@ const htmlAliasPlugin = (): Plugin => ({
       return `<div id="root"><div class="min-h-screen flex flex-col bg-background">${nav}${main}</div></div>`;
     };
 
+    // CRICKET-LCP-1020: defer only these four shells' app assets until after first paint.
+    const cricketAfterPaint = (route: string, shell: string): string => {
+      if (!["go/cricket.html", "go/cricket/index.html", "es/go/cricket.html", "es/go/cricket/index.html"].includes(route)) return shell;
+      try {
+        const head = shell.match(/<head\b[^>]*>[\s\S]*?<\/head>/i);
+        if (!head || !/<\/body>/i.test(shell)) return shell;
+        const attributes = (tag: string): [string, string][] =>
+          Array.from(tag.replace(/^<\w+\b|\/?>(?:<\/script>)?$/gi, "").matchAll(/([^\s=<>/]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g), m => [m[1], m[2] ?? m[3] ?? m[4] ?? ""]);
+        const value = (attrs: [string, string][], name: string) => attrs.find(([key]) => key.toLowerCase() === name)?.[1];
+        const entries = Array.from(head[0].matchAll(/<script\b[^>]*>\s*<\/script>/gi))
+          .filter(([tag]) => {
+            const attrs = attributes(tag);
+            return value(attrs, "type") === "module" && /^\/assets\/index-[^/]+\.js$/.test(value(attrs, "src") ?? "");
+          });
+        if (entries.length !== 1) return shell;
+        const entry = entries[0][0];
+        const preloads = Array.from(head[0].matchAll(/<link\b[^>]*>/gi))
+          .map(([tag]) => tag).filter(tag => value(attributes(tag), "rel") === "modulepreload");
+        if (preloads.some(tag => !value(attributes(tag), "href"))) return shell;
+        const assets = [...preloads.map(tag => ["link", attributes(tag)]), ["script", attributes(entry)]];
+        const data = JSON.stringify(assets).replace(/</g, "\\u003c");
+        const loader = `<script>/* CRICKET-LCP-1020 */(function(){var done=false;function load(){if(done)return;done=true;${data}.forEach(function(asset){var el=document.createElement(asset[0]);asset[1].forEach(function(attr){el.setAttribute(attr[0],attr[1]);});el.crossOrigin='';document.head.appendChild(el);});}requestAnimationFrame(function(){setTimeout(load,0)});setTimeout(load,300);})();</script>`;
+        let deferredHead = head[0].replace(entry, "");
+        for (const tag of preloads) deferredHead = deferredHead.replace(tag, "");
+        return shell.replace(head[0], () => deferredHead).replace(/<\/body>/i, () => `${loader}</body>`);
+      } catch {
+        return shell;
+      }
+    };
+
     const renderHtml = (route: string): string => {
       const meta = buildMeta(route);
       const url = `/${route.replace(/\/index\.html$/, "/")}`; // relative: resolves to whichever host serves the file
@@ -1966,7 +1996,7 @@ const htmlAliasPlugin = (): Plugin => ({
 
       if (goScreen && GO_SHELLS.has(route)) out = goCrit1017(out, goCritSetup); // CSS-CRIT-1017
       out = fee1019(route, out); // METRO-FEECOPY-1019
-      return out;
+      return cricketAfterPaint(route, out); // CRICKET-LCP-1020
     };
 
     for (const route of HTML_ROUTES) {
