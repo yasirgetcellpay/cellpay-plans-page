@@ -2405,7 +2405,7 @@ const Checkout = () => {
           },
         },
         async (res) => {
-          klarnaPendingRef.current = null; // KLARNA-OPEN-1019
+          try { klarnaPendingRef.current = null; } catch { /* analytics never affects authorization */ } // KLARNA-OPEN-1019
           try { trackKlarna("klarna_auth_result", readKlarnaSrc(phone10), klarnaAttempt, { klarna_result: (res.approved && res.authorization_token) ? "approved" : (res.show_form === false ? "declined" : "cancelled"), klarna_category: klarnaCategory, klarna_load: klarnaLoadState, klarna_approved: typeof res.approved === "boolean" ? res.approved : undefined, klarna_show_form: typeof res.show_form === "boolean" ? res.show_form : undefined, klarna_finalize_required: typeof res.finalize_required === "boolean" ? res.finalize_required : undefined, klarna_error: klarnaErrKeys(res.error) }); } catch { /* ignore */ } // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017 // KLARNA-LOG-1017
           if (res.approved && res.authorization_token) {
             setKlarnaToken(res.authorization_token);
