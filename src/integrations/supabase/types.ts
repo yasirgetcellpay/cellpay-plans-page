@@ -3103,6 +3103,10 @@ export type Database = {
         Args: { _path: string; _session_id: string; _user_agent: string }
         Returns: undefined
       }
+      record_sms_opt_in: {
+        Args: { p_hashid: string; p_lang?: string; p_opt_in: boolean }
+        Returns: undefined
+      }
       record_visit_source: {
         Args: {
           _host: string
