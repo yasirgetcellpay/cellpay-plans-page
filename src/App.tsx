@@ -151,6 +151,7 @@ const HowToPayReady = lazy(
 );
 const HowToPay = () => (howToPayModule ? <HowToPayReady /> : <HowToPayLazy />);
 const PrivacyPolicy = lazyPage(() => import("./pages/PrivacyPolicy.tsx"));
+const SmsTerms = lazyPage(() => import("./pages/SmsTerms.tsx")); // SMS-34332-1020
 const TermsAndConditions = lazyPage(() => import("./pages/TermsAndConditions.tsx"));
 const ReturnsPolicy = lazyPage(() => import("./pages/ReturnsPolicy.tsx"));
 const DMCA = lazyPage(() => import("./pages/DMCA.tsx"));
@@ -1713,6 +1714,8 @@ const App = () => (
         <Route path="/switched-to-metro" element={<Switcher />} />
         <Route path="/es/cambiaste-a-metro" element={<Switcher />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/sms-terms" element={<SmsTerms />} />{/* // SMS-34332-1020 */}
+        <Route path="/sms-terms.html" element={<AliasRedirect to="/sms-terms" />} />{/* // SMS-34332-1020 */}
         <Route path="/privacy-policy.html" element={<AliasRedirect to="/privacy-policy" />} />
         {/* PRIVACY-1007: Spanish privacy policy (same page; text in src/content/privacyPolicy.ts) */}
         <Route path="/es/privacy-policy" element={<PrivacyPolicy />} />
@@ -1721,6 +1724,7 @@ const App = () => (
         <Route path="/terms-and-conditions.html" element={<AliasRedirect to="/terms-and-conditions" />} />
         {/* AEO-PAGES-1007: short legal/about URLs (footer + external links) were the SPA 404 */}
         <Route path="/terms" element={<AliasRedirect to="/terms-and-conditions" />} />
+        <Route path="/privacy" element={<AliasRedirect to="/privacy-policy" />} />{/* // SMS-34332-1020 */}
         <Route path="/about" element={<AliasRedirect to="/about-us" />} />
         <Route path="/returns-policy" element={<ReturnsPolicy />} />
         <Route path="/returns-policy.html" element={<AliasRedirect to="/returns-policy" />} />

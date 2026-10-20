@@ -1,5 +1,5 @@
 // DB-OUTAGE-TRACK-1017: non-personal tracking writes only; payment requests never enter this queue.
-type Kind = "log_purchase_fire" | "record_marketing_opt_in";
+type Kind = "log_purchase_fire" | "record_marketing_opt_in" | "record_sms_opt_in"; // SMS-34332-1020
 type Entry = { k: Kind; id: string; b: Record<string, unknown>; n: number; next: number; t0: number };
 const KEY = "cp_track_q_v1";
 const LOCK = "cp_track_q_lock";
@@ -8,6 +8,7 @@ export const TRACK_BACKOFF = [5000, 15000, 60000, 300000, 1800000, 7200000, 4320
 const FIELDS: Record<Kind, string[]> = {
   log_purchase_fire: ["_transaction_id", "_hashid", "_value", "_source"],
   record_marketing_opt_in: ["p_hashid", "p_opt_in", "p_lang", "p_browser_language"],
+  record_sms_opt_in: ["p_hashid", "p_opt_in", "p_lang"], // SMS-34332-1020
 };
 let started = false;
 let flushing = false;

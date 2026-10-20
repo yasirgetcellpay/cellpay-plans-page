@@ -215,6 +215,7 @@ const setPurchasePending = (hid: string) => {
 const EP_TABLE: Record<string, Array<[string, string, string]>> = {"boost":[["Boost","boost","66666"]],"h2o":[["H2O Wireless","h2o","3520 4439 5213 8282 32205 54787"]],"lyca":[["Lyca Mobile","lyca","1906 1907 1908 1909 1924 8768 8830 8831 8864 8907 9876789 28947019"]],"metropcs":[["Metro PCS","metropcs","33333"]],"net10":[["NET10","net10","3686 3924 3993 6346 9569 9570"]],"pageplus":[["Page Plus","pageplus","4919 31004 32164 8818410 8918412"]],"s1":[["Simple Mobile","s1","2631 2632 2634 2655 12676"]],"straight-talk":[["Straight Talk","straight-talk","39411 39412 39413 39414 addon-39421 Broadband-39422"]],"tmobile":[["T-Mobile","tmobile","834 835 836 8209 8328 8329 28254 28694 232179"],["T-Mobile Flexi","tmobile-flexi","238888"]],"topup-at":[["AT&T","topup-at","23915"],["AT&T","topup-af","9011 9012 9013 9014 9015 9016 9017 9018 9019 9020 9021 9022 9023 9024 9025 9026"]],"topup-crc":[["Cricket Wireless","topup-crc","44444"]],"total-wireless":[["Total Wireless","total-wireless","32140 32191 32193 321450 887800 887801 887802 887803 887804 887805 887806"]],"tracfone":[["Tracfone","tracfone","288 289 298 9545 10647 10648 10649"]],"ultra-mobile":[["Ultra Mobile","ultra-mobile","1367 1469 8274 8275 8278 8279 5523059 32990000 32991000 32992000 32993000"]],"verizon":[["Verizon Wireless Prepaid","verizon","2628 2629 2636 2637 2638 2639 22118 24322 24324 24325 24328"],["Verizon Wireless Flexi","verizon-wireless-flexi","291945"]]};
 // MARKETING-OPTIN-1013: record the optional email opt-in on the order row (by order id), best-effort, never blocks.
 const recordMarketingOptIn = (hid: string, optIn: boolean, uiLang?: string): void => { try { const id = String(hid || "").trim(); if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return; let pLang = "en"; try { if (window.location.pathname.startsWith("/es") || uiLang === "es") pLang = "es"; } catch { /* ignore */ } let pBrowser: string | null = null; try { pBrowser = typeof navigator !== "undefined" && typeof navigator.language === "string" ? navigator.language : null; } catch { /* ignore */ } /* CONSENT-TERMS-1014 */ sendTracked("record_marketing_opt_in", { p_hashid: id, p_opt_in: optIn === true, p_lang: pLang, p_browser_language: pBrowser }); /* DB-OUTAGE-TRACK-1017 */ } catch { /* best-effort, never blocks */ } };
+const recordSmsOptIn = (hid: string, optIn: boolean, uiLang?: string): void => { try { const id = String(hid || "").trim(); if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return; sendTracked("record_sms_opt_in", { p_hashid: id, p_opt_in: optIn === true, p_lang: uiLang === "es" ? "es" : "en" }); } catch { /* ignore */ } }; // SMS-34332-1020
 const earlyPurchase = (hid: string, slug: string, plan: unknown, amountIn: unknown, totalIn: unknown): void => {
   try {
     const id = String(hid || "").trim();
@@ -375,6 +376,8 @@ const Checkout = () => {
   const [autoPay, setAutoPay] = useState(false);
   const [autoPayTerms, setAutoPayTerms] = useState(false);
   const mktOptInRef = useRef(true); // MARKETING-OPTIN-1013
+  const [smsOptIn, setSmsOptIn] = useState(false); // SMS-34332-1020
+  const smsOptInRef = useRef(false); // SMS-34332-1020
   mktOptInRef.current = true; // CONSENT-TERMS-1014: consent is given by placing the order (see terms line above PLACE ORDER NOW)
   useEffect(() => { try { sessionStorage.setItem("cp_mkt_consent_v1", "1"); } catch { /* ignore */ } }, []); // CONSENT-EVERY-ATTEMPT-1016: the consent line is shown on this page, so attempts from here carry consent
   const checkoutConfigRef = useRef<Record<string, unknown> | null>(null); // APAP-1007: mirror of checkoutConfig (state is declared below)
@@ -1690,6 +1693,7 @@ const Checkout = () => {
       setPurchasePending(hid);
       earlyPurchase(hid, state.carrierSlug, state.planId, validation?.amount ?? state.amount, validation?.total ?? state.amount); // BEACON-AT-SUCCESS-1011
       recordMarketingOptIn(hid, mktOptInRef.current, lang); // MARKETING-OPTIN-1013 // CONSENT-TERMS-1014
+      recordSmsOptIn(hid, smsOptInRef.current, lang); // SMS-34332-1020
       const params = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
       clearCheckoutCtx();
       try { sessionStorage.removeItem(AP_TICKS_KEY); } catch { /* ignore */ } // ARB-1b: order placed, forget the ticks
@@ -2251,6 +2255,7 @@ const Checkout = () => {
           setPurchasePending(hid);
           earlyPurchase(hid, state.carrierSlug, state.planId, validation?.amount ?? state.amount, validation?.total ?? state.amount); // BEACON-AT-SUCCESS-1011
           recordMarketingOptIn(hid, mktOptInRef.current, lang); // MARKETING-OPTIN-1013 // CONSENT-TERMS-1014
+          recordSmsOptIn(hid, smsOptInRef.current, lang); // SMS-34332-1020
           const apParams = new URLSearchParams({ hashid: hid, color: brandColor, carrier: state.carrierName });
           clearCheckoutCtx();
           try { sessionStorage.removeItem(AP_TICKS_KEY); } catch { /* ignore */ } // ARB-1b: order placed, forget the ticks
@@ -2711,6 +2716,12 @@ const Checkout = () => {
             {email.length > 3 && !isValidEmail(cleanEmail(email)) && ( /* DECLINE-RECOVERY-1014 */
               <p className="text-xs text-destructive mt-1">{tr.invalidEmail}</p>
             )}
+            <label className="flex items-start gap-2 mt-3 cursor-pointer" data-sms-optin="1020">{/* // SMS-34332-1020 */}
+              <input type="checkbox" data-testid="sms-optin" checked={smsOptIn} onChange={(e) => { setSmsOptIn(e.target.checked); smsOptInRef.current = e.target.checked; }} className="mt-0.5 h-4 w-4 shrink-0" />{/* // SMS-34332-1020 */}
+              <span className="text-xs text-muted-foreground leading-snug">{/* // SMS-34332-1020 */}
+                {lang === "es" ? <>Sí, envíenme recordatorios de pago y mensajes de Text-to-Pay de CellPay a este número. La frecuencia de mensajes varía. Pueden aplicar tarifas de mensajes y datos. Responda HELP para ayuda, STOP para cancelar. El consentimiento no es una condición de compra. Vea nuestros <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Términos de SMS</a> y <a href="/es/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Política de Privacidad</a>.</> : <>Yes, text me payment reminders and Text-to-Pay messages from CellPay at this number. Msg frequency varies. Msg &amp; data rates may apply. Reply HELP for help, STOP to cancel. Consent is not a condition of purchase. See our <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>SMS Terms</a> and <a href="/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Privacy Policy</a>.</>}{/* // SMS-34332-1020 */}
+              </span>{/* // SMS-34332-1020 */}
+            </label>{/* // SMS-34332-1020 */}
           </div>
 
           {/* Checkout trust badges — feedback Page 5–6 #2 */}

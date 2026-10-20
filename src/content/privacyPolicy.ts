@@ -66,6 +66,7 @@ export const PRIVACY_PAGES: Record<PpLang, PpPage> = {
         h: "3. Information Sharing",
         blocks: [
           { p: ["We do not sell your personal information. We share it only with: payment processors to complete your payment; carrier networks to send your refill; service providers that work for us, including advertising partners like Google. We may send them your email or phone number in a protected (encrypted/hashed) form so they can show you relevant CellPay ads or leave you out of ads you don't need. They may use it only to provide these services to us. We also share information with law enforcement when the law requires it."] },
+          { p: ["We do not share, sell, or rent mobile phone numbers or personal information collected through our SMS program to third parties or affiliates for marketing or promotional purposes."] }, // SMS-34332-1020
         ],
       },
       {
@@ -144,6 +145,7 @@ export const PRIVACY_PAGES: Record<PpLang, PpPage> = {
         h: "3. Información que compartimos",
         blocks: [
           { p: ["No vendemos su información personal. Solo la compartimos con: procesadores de pago para completar su pago; redes de operadores para enviar su recarga; proveedores de servicios que trabajan para nosotros, incluidos socios de publicidad como Google. Podemos enviarles su correo electrónico o número de teléfono de forma protegida (cifrada) para que le muestren anuncios relevantes de CellPay o no le muestren anuncios que no necesita. Solo pueden usarla para darnos estos servicios. También compartimos información con las autoridades cuando la ley lo exige."] },
+          { p: ["No compartimos, vendemos ni alquilamos números de teléfono móvil ni información personal recopilada a través de nuestro programa de SMS a terceros ni afiliados con fines de marketing o promocionales."] }, // SMS-34332-1020
         ],
       },
       {
