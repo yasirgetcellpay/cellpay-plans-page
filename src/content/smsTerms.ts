@@ -10,9 +10,9 @@ export const SMS_TERMS = { // SMS-34332-1020
     { h: "How often", p: ["Msg frequency varies."] }, // SMS-34332-1020
     { h: "Cost", p: ["Message and data rates may apply."] }, // SMS-34332-1020
     { h: "Stop texts", p: ["Reply STOP to cancel at any time. You will get one confirmation text, then no more texts."] }, // SMS-34332-1020
-    { h: "Help", p: ["Reply HELP for help, or email ", { href: "mailto:support@getcellpay.com", text: "support@getcellpay.com" }] }, // SMS-34332-1020
+    { h: "Help", p: ["Reply HELP for help, or email ", { href: "mailto:support@getcellpay.com", text: "support@getcellpay.com" }, "."] }, // SMS-34332-1020
     { h: "Carriers", p: ["Carriers are not liable for delayed or undelivered messages."] }, // SMS-34332-1020
-    { h: "Privacy", p: ["We do not share, sell, or rent mobile phone numbers or personal information collected through our SMS program to third parties or affiliates for marketing or promotional purposes. Read our ", { href: "/privacy-policy", text: "Privacy Policy" }] }, // SMS-34332-1020
+    { h: "Privacy", p: ["We do not share, sell, or rent mobile phone numbers or personal information collected through our SMS program to third parties or affiliates for marketing or promotional purposes. Read our ", { href: "/privacy-policy", text: "Privacy Policy" }, "."] }, // SMS-34332-1020
   ] as { h: string; p: SmsInline[] }[], // SMS-34332-1020
 }; // SMS-34332-1020
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); // SMS-34332-1020
