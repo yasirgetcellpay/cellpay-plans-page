@@ -818,7 +818,7 @@ const amtPage = (c: AmtCarrier, a: number, lang: HtpLang): HtpPage => {
       ? (isEs // AEO-15-TMO-AMOUNTS-1021
           ? `Pague T-Mobile Prepago $${a} en línea con solo el número de T-Mobile. Sin iniciar sesión. La tarifa de servicio se muestra antes de pagar.` // AEO-15-TMO-AMOUNTS-1021
           : `Pay T-Mobile Prepaid $${a} online with just the T-Mobile number. No login needed. Enter $${a}, review the total and pay. Service fee shown before you pay.`) // AEO-15-TMO-AMOUNTS-1021
-      : isEs
+      : isEs // AEO-15-TMO-AMOUNTS-1021
       ? `Pague $${a} a ${c.key === "metro-pcs" ? "Metro by T-Mobile" : name} en línea con solo el número de ${c.short}. Sin iniciar sesión. La tarifa de servicio se muestra antes de pagar.` // AEO-15-TMO-AMOUNTS-1021
       : `Pay $${a} to ${c.key === "metro-pcs" ? "Metro by T-Mobile" : name} online with just the ${c.short} number. No login needed. Enter $${a}, review the total and pay. Service fee shown before you pay.`, // AEO-15-TMO-AMOUNTS-1021
     h1: isEs ? `Cómo pagar ${name} $${a} en línea` : `How to pay ${name} $${a} online`, // AEO-15-TMO-AMOUNTS-1021
