@@ -2285,6 +2285,36 @@ export type Database = {
         }
         Relationships: []
       }
+      tmo_lookup_shadow: {
+        Row: {
+          created_at: string
+          event: string
+          host: string | null
+          id: number
+          phone_last4: string | null
+          reason: string | null
+          suggested: string | null
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          host?: string | null
+          id?: number
+          phone_last4?: string | null
+          reason?: string | null
+          suggested?: string | null
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          host?: string | null
+          id?: number
+          phone_last4?: string | null
+          reason?: string | null
+          suggested?: string | null
+        }
+        Relationships: []
+      }
       transaction_card_facts: {
         Row: {
           billing_country: string | null
@@ -3359,6 +3389,7 @@ export type Database = {
         Args: { _id: string; _text: string }
         Returns: boolean
       }
+      tmo_retry_guard_check: { Args: { _phone: string }; Returns: Json }
       tx_log_meta_merge: {
         Args: { _id: string; _patch: Json }
         Returns: undefined

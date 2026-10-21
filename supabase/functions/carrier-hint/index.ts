@@ -52,6 +52,16 @@ Deno.serve(async (req: Request) => {
     const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500));
     const data = await Promise.race([rpc, timeout]) as { carrier?: unknown } | null;
     const c = data && typeof data.carrier === "string" && SLUGS.has(data.carrier) && data.carrier !== picked ? data.carrier : null;
+    if (picked === "tmobile" && (c !== null || !data)) { // TMO-LOOKUP-1020: shadow only; preserve response and never store the full phone.
+      const row = c !== null // TMO-LOOKUP-1020
+        ? { event: "tmo_lookup_would_block", phone_last4: phone.slice(-4), suggested: c, reason: "carrier_hint", host: new URL(origin).hostname } // TMO-LOOKUP-1020
+        : { event: "tmo_lookup_failopen", phone_last4: phone.slice(-4), reason: "timeout_or_error", host: new URL(origin).hostname }; // TMO-LOOKUP-1020
+      const write = Promise.resolve().then(() => sb.from("tmo_lookup_shadow").insert(row)).then(() => undefined).catch(() => undefined); // TMO-LOOKUP-1020
+      try { // TMO-LOOKUP-1020
+        const rt = (globalThis as unknown as { EdgeRuntime?: { waitUntil: (p: Promise<unknown>) => void } }).EdgeRuntime; // TMO-LOOKUP-1020
+        if (rt && typeof rt.waitUntil === "function") rt.waitUntil(write); else void write; // TMO-LOOKUP-1020
+      } catch { /* background logging must never change the response */ } // TMO-LOOKUP-1020
+    } // TMO-LOOKUP-1020
     return new Response(JSON.stringify({ carrier: c }), { status: 200, headers: h });
   } catch {
     return new Response(NONE, { status: 200, headers: h });

@@ -1,4 +1,5 @@
 # Project architecture rules
+- Keep T-Mobile retry gating in a pure fail-open helper with injected lookup/events and customer wording in a frontend-only module so blocked attempts never reach payment or transaction logging. // TMO-LOOKUP-1020
 - Keep SMS legal copy in an import-free shared content source for runtime and static rendering, and SMS consent in the existing best-effort tracking queue outside payment validation and payloads. // SMS-34332-1020
 - Keep decline classification and analytics button mappings in the shared declineRecovery helper, and post decline events in an independent funnel batch so analytics failures cannot affect payments or legacy logging. // DECLINE-REJECTED-1018
 - Keep carrier payment guides in the shared howToPay content source and existing renderers so runtime text and prerendered FAQ schemas match. // AEO-12-TRACFONE-1018
