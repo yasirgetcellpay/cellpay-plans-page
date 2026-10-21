@@ -505,7 +505,7 @@ const htmlAliasPlugin = (): Plugin => ({
     // content in raw HTML, not just after React hydration.
     const GUEST_CONTENT: Record<string, { h1: string; intro: string }> = {
       "guest-metro-pcs.html": {
-        h1: "Metro PCS Guest Payment — One-Time Refill, No login needed",
+        h1: "Metro PCS Guest Payment — One-Time Payment, No login needed",
         intro: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment.",
       },
       "guest-h2o.html": {
@@ -529,7 +529,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "Pay your Lycamobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment.",
       },
       "guest-metropcs.html": {
-        h1: "Metro PCS Guest Payment — One-Time Refill, No login needed",
+        h1: "Metro PCS Guest Payment — One-Time Payment, No login needed",
         intro: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment.",
       },
       "guest-boost.html": {
@@ -811,8 +811,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "topup-crc.html":            { title: "Cricket Quick Pay — Pay Your Cricket Bill Online | CellPay", description: "Cricket Quick Pay on CellPay: pay any Cricket Wireless bill online. No login needed. All major cards & wallets. Service fee shown before you pay." }, // SEO-CONTENT-1014
       "h2o.html":                  { title: "H2O Wireless Refill — Online Top-Up | CellPay",        description: "Recharge H2O Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "lyca.html":                 { title: "Lycamobile Refill — Online Top-Up | CellPay",          description: "Recharge Lycamobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
-      "metropcs.html":             { title: "Pay Metro by T-Mobile Bill Online – Metro PCS | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." }, // GSC-MAULIK-1014
-      "metro-pcs.html":            { title: "Pay Metro by T-Mobile Bill Online – Metro PCS | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." }, // GSC-MAULIK-1014
+      "metropcs.html":             { title: "Pay Metro PCS Bill Online as a Guest – No Login | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." }, // GSC-MAULIK-1014
+      "metro-pcs.html":            { title: "Pay Metro PCS Bill Online as a Guest – No Login | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." }, // GSC-MAULIK-1014
       "guest-metro-pcs.html":      { title: "Metro PCS Guest Payment — Pay Your Bill Online | CellPay",     description: "Pay your Metro PCS bill as a guest. No login needed. All 30-day plans, secure checkout." },
       "guest-h2o.html":            { title: "H2O Wireless Guest Refill — Online Top-Up | CellPay",  description: "Make an H2O Wireless guest payment online. No login needed — pick a 30-day plan, pay securely, and your refill is sent to your line after payment." },
       "guest-pageplus.html":       { title: "Page Plus Guest Refill — Online Top-Up | CellPay",     description: "Pay your Page Plus Cellular bill as a guest. No login needed — pick a 30-day plan, check out securely, and your refill is sent to your line after payment." },
@@ -879,8 +879,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "go/h2o/index.html": { title: "Pay Your H2O Wireless Bill Online | CellPay", description: "Pay your H2O Wireless bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
       "go/lyca.html": { title: "Pay Your Lyca Mobile Bill Online | CellPay", description: "Pay your Lyca Mobile bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
       "go/lyca/index.html": { title: "Pay Your Lyca Mobile Bill Online | CellPay", description: "Pay your Lyca Mobile bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
-      "go/tmobile.html": { title: "Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay", description: "Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay." }, // TMO-ATT-LPX-1018 // LP-AVG-COPY-1021
-      "go/tmobile/index.html": { title: "Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay", description: "Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay." }, // TMO-ATT-LPX-1018 // LP-AVG-COPY-1021
+      "go/tmobile.html": { title: "Pay My T-Mobile Prepaid Bill as a Guest | CellPay", description: "Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay." }, // TMO-ATT-LPX-1018 // LP-AVG-COPY-1021
+      "go/tmobile/index.html": { title: "Pay My T-Mobile Prepaid Bill as a Guest | CellPay", description: "Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay." }, // TMO-ATT-LPX-1018 // LP-AVG-COPY-1021
       "go/verizon.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
       "go/verizon/index.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
       // GO-LANDERS-1007 Batch A
@@ -1899,7 +1899,7 @@ const htmlAliasPlugin = (): Plugin => ({
       }
       // GSC-MAULIK-1014: /metropcs.html never says "refill": drop the sitewide keywords tag and use the page title as image alt.
       if (route === "metropcs.html" || route === "metro-pcs.html") {
-        const mt = "Pay Metro by T-Mobile Bill Online – Metro PCS | CellPay";
+        const mt = "Pay Metro PCS Bill Online as a Guest – No Login | CellPay";
         out = out.replace(/\s*<meta name="keywords"[^>]*>/i, "");
         out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${mt}"`);
       }

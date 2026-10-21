@@ -512,9 +512,9 @@ const App = () => (
               carrierId={38}
               brandColor="hsl(270,60%,32%)"
               logo={metroLogo}
-              seoTitleOverride="Metro PCS Guest Payment — One-Time Refill | CellPay"
+              seoTitleOverride="Metro PCS Guest Payment — Pay Your Bill Online | CellPay"
               seoDescriptionOverride="Make a Metro by T-Mobile (Metro PCS) guest payment online. No login needed — enter your phone number, choose your 30-day plan, and pay securely."
-              seoH1Override="Metro PCS Guest Payment — One-Time Refill, No login needed"
+              seoH1Override="Metro PCS Guest Payment — One-Time Payment, No login needed"
               seoIntroOverride="Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment."
             />
           }
@@ -529,9 +529,9 @@ const App = () => (
               carrierId={38}
               brandColor="hsl(270,60%,32%)"
               logo={metroLogo}
-              seoTitleOverride="Metro PCS Guest Payment — One-Time Refill | CellPay"
+              seoTitleOverride="Metro PCS Guest Payment — Pay Your Bill Online | CellPay"
               seoDescriptionOverride="Make a Metro by T-Mobile (Metro PCS) guest payment online. No login needed — enter your phone number, choose your 30-day plan, and pay securely."
-              seoH1Override="Metro PCS Guest Payment — One-Time Refill, No login needed"
+              seoH1Override="Metro PCS Guest Payment — One-Time Payment, No login needed"
               seoIntroOverride="Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment."
             />
           }
@@ -1287,7 +1287,7 @@ const App = () => (
               brandColor="hsl(330,100%,45%)"
               logo={tmobileLogo}
               h1="Pay Your T-Mobile Prepaid Bill as a Guest"
-              title="Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay"
+              title="Pay My T-Mobile Prepaid Bill as a Guest | CellPay"
               description="Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay."
             />
           }
@@ -1302,7 +1302,7 @@ const App = () => (
               brandColor="hsl(330,100%,45%)"
               logo={tmobileLogo}
               h1="Pay Your T-Mobile Prepaid Bill as a Guest"
-              title="Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay"
+              title="Pay My T-Mobile Prepaid Bill as a Guest | CellPay"
               description="Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay."
             />
           }
