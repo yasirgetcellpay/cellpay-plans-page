@@ -884,7 +884,7 @@ const App = () => (
         />
         <Route
           path="/es/go/cricket"
-          element={
+          element={ // CRICKET-BROAD-COPY-1020
             <GoLander
               lang="es"
               carrierName="Cricket Wireless"
@@ -892,15 +892,15 @@ const App = () => (
               carrierId={45}
               brandColor="hsl(82,60%,42%)"
               logo={cricketLogo}
-              h1="Pague Cricket en línea"
-              title="Pague Cricket en línea | CellPay"
-              description="Pague su Cricket Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              h1="Pague su línea o plan Cricket — con tarjeta, sin iniciar sesión"
+              title="Pague su línea Cricket en línea | CellPay"
+              description="Pague su línea o plan Cricket en línea, en español. Sin cuenta. Escriba su número, elija su plan y pague con tarjeta."
             />
           }
         />
         <Route
           path="/es/go/cricket.html"
-          element={
+          element={ // CRICKET-BROAD-COPY-1020
             <GoLander
               lang="es"
               carrierName="Cricket Wireless"
@@ -908,9 +908,9 @@ const App = () => (
               carrierId={45}
               brandColor="hsl(82,60%,42%)"
               logo={cricketLogo}
-              h1="Pague Cricket en línea"
-              title="Pague Cricket en línea | CellPay"
-              description="Pague su Cricket Wireless en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              h1="Pague su línea o plan Cricket — con tarjeta, sin iniciar sesión"
+              title="Pague su línea Cricket en línea | CellPay"
+              description="Pague su línea o plan Cricket en línea, en español. Sin cuenta. Escriba su número, elija su plan y pague con tarjeta."
             />
           }
         />
