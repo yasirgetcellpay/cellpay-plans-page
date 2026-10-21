@@ -695,11 +695,11 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/tmobile.html": { // TMO-ATT-LPX-1018
-        h1: "Pay Your T-Mobile Bill as a Guest",
+        h1: "Pay Your T-Mobile Prepaid Bill as a Guest", // LP-AVG-COPY-1021
         intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
       "go/tmobile/index.html": { // TMO-ATT-LPX-1018
-        h1: "Pay Your T-Mobile Bill as a Guest",
+        h1: "Pay Your T-Mobile Prepaid Bill as a Guest", // LP-AVG-COPY-1021
         intro: "No login. Pay for anyone. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
       },
       "go/verizon.html": {
@@ -873,8 +873,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "go/h2o/index.html": { title: "Pay Your H2O Wireless Bill Online | CellPay", description: "Pay your H2O Wireless bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
       "go/lyca.html": { title: "Pay Your Lyca Mobile Bill Online | CellPay", description: "Pay your Lyca Mobile bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
       "go/lyca/index.html": { title: "Pay Your Lyca Mobile Bill Online | CellPay", description: "Pay your Lyca Mobile bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
-      "go/tmobile.html": { title: "Pay My T-Mobile Bill as a Guest by Phone Number | CellPay", description: "Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay." }, // TMO-ATT-LPX-1018
-      "go/tmobile/index.html": { title: "Pay My T-Mobile Bill as a Guest by Phone Number | CellPay", description: "Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay." }, // TMO-ATT-LPX-1018
+      "go/tmobile.html": { title: "Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay", description: "Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay." }, // TMO-ATT-LPX-1018 // LP-AVG-COPY-1021
+      "go/tmobile/index.html": { title: "Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay", description: "Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay." }, // TMO-ATT-LPX-1018 // LP-AVG-COPY-1021
       "go/verizon.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
       "go/verizon/index.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
       // GO-LANDERS-1007 Batch A
