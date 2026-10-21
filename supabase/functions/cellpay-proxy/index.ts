@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { scoreRisk, riskEngineMode } from "../_shared/riskLogic.ts"; // FRAUD-MULTIBLOCK-1012 5b
 import { vzGuardGate } from "../_shared/vzPrepaidGuard.ts"; // VZ-PREPAID-GUARD-1017
+import { tmoGuardGate } from "../_shared/tmoRetryGuard.ts"; // TMO-LOOKUP-1020
 import { raceNull } from "../_shared/raceNull.ts"; // DB-OUTAGE-TRACK-1017
 import { memdupKey, memdupCheck, memdupUpdate, type MemdupEntry } from "../_shared/memdup.ts"; // DB-OUTAGE-TRACK-1017
 import { categorizeLoadText, isCcRefundBody } from "../_shared/loadTextCategory.ts"; // LOADTEXT-PICK-1019
@@ -2354,6 +2355,11 @@ async function paypalAction(
       event: (code) => recordGuardEvent({ code, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(origin), has_origin: origin !== null }),
     });
     if (vzReply) return reply(vzReply);
+    const tmoReply = await tmoGuardGate(lr, body.lang, { // TMO-LOOKUP-1020
+      lookup: async (_phone) => await callDatabaseRpc("tmo_retry_guard_check", { _phone }) as { blocked: boolean; retry_after: number }, // TMO-LOOKUP-1020
+      event: (code) => recordGuardEvent({ code, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(origin), has_origin: origin !== null }), // TMO-LOOKUP-1020
+    }); // TMO-LOOKUP-1020
+    if (tmoReply) return reply(tmoReply); // TMO-LOOKUP-1020
     // [BL-2] blocklist (1.2 s, fail-open)
     try {
       const bl = await blocklistCheck(lr, null);
@@ -2937,6 +2943,11 @@ serve(async (req) => {
         event: (code) => recordGuardEvent({ code, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null }),
       });
       if (vzReply) return new Response(JSON.stringify(vzReply), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const tmoReply = await tmoGuardGate(payloadRecord, body.lang, { // TMO-LOOKUP-1020
+        lookup: async (_phone) => await callDatabaseRpc("tmo_retry_guard_check", { _phone }) as { blocked: boolean; retry_after: number }, // TMO-LOOKUP-1020
+        event: (code) => recordGuardEvent({ code, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null }), // TMO-LOOKUP-1020
+      }); // TMO-LOOKUP-1020
+      if (tmoReply) return new Response(JSON.stringify(tmoReply), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); // TMO-LOOKUP-1020
     }
     if (shouldLogTransaction && (paymentMethod || "").toLowerCase() === "klarna") { // KLARNA-MIN25-1017
       const kmr = klarnaMinRefusal(payloadRecord.total, body.lang); // KLARNA-MIN25-1017

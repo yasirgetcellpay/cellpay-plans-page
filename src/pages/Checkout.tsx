@@ -43,6 +43,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { loadTextFrom, loadTextPick, isCcRefund, pickReasonText, pickRefundLine, pickButtons, type LoadPick } from "@/lib/loadTextPick"; // LOADTEXT-PICK-1019 (replaces the LOADTEXT-REASON-1017 import here; src/lib/loadTextReason.ts stays)
 import { isVerizonSlug, VZ_NOTE, VZ_NOTICE_MIN, vzBlockText } from "@/lib/vzPrepaid"; // VZ-PREPAID-GUARD-1017
+import { tmoRetryText } from "@/lib/tmoRetry"; // TMO-LOOKUP-1020
 import { Button } from "@/components/ui/button"; // VZ-PREPAID-GUARD-1017
 import { applySeoHead } from "@/lib/seo";
 import { getGclid } from "@/lib/tracking";
@@ -816,6 +817,11 @@ const Checkout = () => {
     setVzBlock({ method });
   };
   const cardFormRef = useRef<HTMLDivElement>(null);
+  const [tmoBlock, setTmoBlock] = useState<{ retryAfter: number } | null>(null); // TMO-LOOKUP-1020
+  const showTmoBlock = (retryAfter: unknown) => { // TMO-LOOKUP-1020
+    setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setUnconfirmedCard(false); // TMO-LOOKUP-1020
+    setTmoBlock({ retryAfter: typeof retryAfter === "number" && Number.isFinite(retryAfter) ? retryAfter : 0 }); // TMO-LOOKUP-1020
+  }; // TMO-LOOKUP-1020
 
   // Klarna
   const klarnaContainerRef = useRef<HTMLDivElement>(null);
@@ -1119,6 +1125,7 @@ const Checkout = () => {
       try {
         const raw = (await submitTransaction(body) || {}) as Record<string, unknown>;
         if (raw.code === "VZ_NOT_PREPAID") { showVzBlock("paypal"); return; } // VZ-PREPAID-GUARD-1017
+        if (raw.code === "TMO_RETRY_24H") { showTmoBlock(raw.retry_after); return; } // TMO-LOOKUP-1020
         let r = raw;
         if (r.data && typeof r.data === "object" && !Array.isArray(r.data)) {
           const inner = r.data as Record<string, unknown>;
@@ -1227,6 +1234,7 @@ const Checkout = () => {
         ppDupOkRef.current = false;
         if (orderRaw.code === "BAD_PHONE") { badPhoneGo(); throw new Error("__PP_BLOCKED__"); } // REFUNDED-STATE-1017
         if (orderRaw.code === "VZ_NOT_PREPAID") { showVzBlock("paypal"); throw new Error("__PP_BLOCKED__"); } // VZ-PREPAID-GUARD-1017
+        if (orderRaw.code === "TMO_RETRY_24H") { showTmoBlock(orderRaw.retry_after); throw new Error("__PP_BLOCKED__"); } // TMO-LOOKUP-1020
         if (orderRaw.blocked === true) {
           // Proxy guard (blocklist / refill cooldown): calm message, no PayPal order was created, nothing was charged.
           const code = String(orderRaw.code || "");
@@ -1674,6 +1682,7 @@ const Checkout = () => {
   };
   const handleResult = (raw: Record<string, unknown>) => {
     if (raw.code === "VZ_NOT_PREPAID") { showVzBlock(paymentMethod); return; } // VZ-PREPAID-GUARD-1017: before success/decline side effects.
+    if (raw.code === "TMO_RETRY_24H") { showTmoBlock(raw.retry_after); return; } // TMO-LOOKUP-1020
     // Unwrap double-nested { data: { data: { status, message, transactionId } } }
     let result = raw;
     if (result.data && typeof result.data === "object" && !Array.isArray(result.data)) {
@@ -2233,6 +2242,10 @@ const Checkout = () => {
           try { session.completePayment({ status: session.STATUS_FAILURE }); } catch { /* sheet may already be closed */ }
           showVzBlock("applepay"); setSubmitting(false); return;
         }
+        if (raw.code === "TMO_RETRY_24H") { // TMO-LOOKUP-1020
+          try { session.completePayment({ status: session.STATUS_FAILURE }); } catch { /* sheet may already be closed */ } // TMO-LOOKUP-1020
+          showTmoBlock(raw.retry_after); setSubmitting(false); return; // TMO-LOOKUP-1020
+        } // TMO-LOOKUP-1020
 
         // Unwrap
         let result = raw;
@@ -2490,6 +2503,7 @@ const Checkout = () => {
     }) as Record<string, unknown>;
 
     if (raw.code === "VZ_NOT_PREPAID") { showVzBlock("cashapp"); return; } // VZ-PREPAID-GUARD-1017
+    if (raw.code === "TMO_RETRY_24H") { showTmoBlock(raw.retry_after); return; } // TMO-LOOKUP-1020
 
     // Unwrap double-nested response
     let result = raw;
@@ -3485,6 +3499,15 @@ const Checkout = () => {
         </div>
       )}
       {/* VZ-PREPAID-GUARD-1017: number/carrier navigation only, never automatically retries. */}
+      {/* TMO-LOOKUP-1020: prevented attempt, close only, no automatic retry. */}
+      {tmoBlock && (
+        <div className="fixed inset-0 z-[100] bg-background/80 flex items-center justify-center p-4" onClick={() => setTmoBlock(null)}>
+          <div role="dialog" aria-modal="true" aria-label={lang === "es" ? "T-Mobile Prepago" : "T-Mobile Prepaid"} data-testid="tmo-retry-block" className="bg-card rounded-2xl p-5 max-w-sm w-full max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <p data-testid="tmo-retry-block-text" className="text-sm text-muted-foreground mb-4">{tmoRetryText(lang, tmoBlock.retryAfter)}</p>
+            <Button className="w-full" onClick={() => setTmoBlock(null)}>{lang === "es" ? "Entendido" : "OK"}</Button>
+          </div>
+        </div>
+      )}
       {vzBlock && (
         <div className="fixed inset-0 z-[100] bg-background/80 flex items-center justify-center p-4" onClick={() => setVzBlock(null)}>
           <div role="dialog" aria-modal="true" aria-labelledby="vz-block-title" data-testid="vz-not-prepaid" className="bg-card rounded-2xl p-5 max-w-sm w-full max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
