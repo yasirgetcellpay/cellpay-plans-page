@@ -39,8 +39,8 @@ describe("LPX-1017", () => {
   });
   it("sets T-Mobile's English subline and preserves its derived title", () => {
     const copy = goLpxForCarrier("tmobile", "en");
-    expect(copy?.subline).toBe("Just the phone number, without signing in. Pay for yourself or someone else with a debit or credit card."); // TMO-ATT-LPX-1018
-    expect(copy?.title).toBe("Pay My T-Mobile Bill as a Guest by Phone Number | CellPay"); // TMO-ATT-LPX-1018
+    expect(copy?.subline).toBe("T-Mobile Prepaid refill or bill pay with just the phone number, without signing in. Pay for yourself or someone else with a debit or credit card."); // TMO-ATT-LPX-1018
+    expect(copy?.title).toBe("Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay"); // TMO-ATT-LPX-1018
   });
   it("sets AT&T's English guest-pay subline", () => {
     expect(goLpxForCarrier("topup-at", "en")?.subline.startsWith("AT&T Prepaid (ATT) guest pay")).toBe(true);

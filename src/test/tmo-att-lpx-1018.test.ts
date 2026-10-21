@@ -5,9 +5,9 @@ import { goKeywordsFor } from "../content/goPage";
 
 const tmo = {
   en: {
-    h1: "Pay Your T-Mobile Bill as a Guest",
-    subline: "Just the phone number, without signing in. Pay for yourself or someone else with a debit or credit card.",
-    title: "Pay My T-Mobile Bill as a Guest by Phone Number | CellPay",
+    h1: "Pay Your T-Mobile Prepaid Bill as a Guest",
+    subline: "T-Mobile Prepaid refill or bill pay with just the phone number, without signing in. Pay for yourself or someone else with a debit or credit card.",
+    title: "Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay",
   },
   es: {
     h1: "Pague su factura de T-Mobile sin iniciar sesión",
@@ -47,7 +47,7 @@ describe("TMO-ATT-LPX-1018", () => {
   it("AT&T copy unchanged", () => {
     expect(goLpxForCarrier("topup-at", "en")).toEqual({
       h1: "Pay Your AT&T Prepaid Bill Without Signing In",
-      subline: "AT&T Prepaid (ATT) guest pay: just the phone number, no login. Debit or credit card.",
+      subline: "AT&T Prepaid (ATT) guest pay by phone number: no login. Debit or credit card.",
       title: "Pay Your AT&T Prepaid Bill Without Signing In | CellPay",
     });
     expect(goLpxForCarrier("topup-at", "es")).toEqual({

@@ -1286,8 +1286,8 @@ const App = () => (
               carrierId={43}
               brandColor="hsl(330,100%,45%)"
               logo={tmobileLogo}
-              h1="Pay Your T-Mobile Bill as a Guest"
-              title="Pay My T-Mobile Bill as a Guest by Phone Number | CellPay"
+              h1="Pay Your T-Mobile Prepaid Bill as a Guest"
+              title="Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay"
               description="Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay."
             />
           }
@@ -1301,8 +1301,8 @@ const App = () => (
               carrierId={43}
               brandColor="hsl(330,100%,45%)"
               logo={tmobileLogo}
-              h1="Pay Your T-Mobile Bill as a Guest"
-              title="Pay My T-Mobile Bill as a Guest by Phone Number | CellPay"
+              h1="Pay Your T-Mobile Prepaid Bill as a Guest"
+              title="Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay"
               description="Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay."
             />
           }
