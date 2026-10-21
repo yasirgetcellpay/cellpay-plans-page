@@ -1707,6 +1707,12 @@ const App = () => (
         <Route path="/es/como-pagar/cricket/45" element={<HowToPay />} />
         <Route path="/how-to-pay/cricket/50" element={<HowToPay />} />
         <Route path="/es/como-pagar/cricket/50" element={<HowToPay />} />
+        <Route path="/how-to-pay/t-mobile-prepaid/25" element={<HowToPay />} /> {/* // AEO-15-TMO-AMOUNTS-1021 */}
+        <Route path="/es/como-pagar/t-mobile-prepaid/25" element={<HowToPay />} /> {/* // AEO-15-TMO-AMOUNTS-1021 */}
+        <Route path="/how-to-pay/t-mobile-prepaid/45" element={<HowToPay />} /> {/* // AEO-15-TMO-AMOUNTS-1021 */}
+        <Route path="/es/como-pagar/t-mobile-prepaid/45" element={<HowToPay />} /> {/* // AEO-15-TMO-AMOUNTS-1021 */}
+        <Route path="/how-to-pay/t-mobile-prepaid/50" element={<HowToPay />} /> {/* // AEO-15-TMO-AMOUNTS-1021 */}
+        <Route path="/es/como-pagar/t-mobile-prepaid/50" element={<HowToPay />} /> {/* // AEO-15-TMO-AMOUNTS-1021 */}
         {/* ES-FIRST-1014: Spanish-first bill-pay hub + EN twin */}
         <Route path="/es/paga-tu-factura" element={<PayHub />} />
         <Route path="/pay-your-phone-bill" element={<PayHub />} />

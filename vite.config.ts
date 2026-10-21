@@ -300,6 +300,12 @@ const HTML_ROUTES = [
   "es/como-pagar/cricket/45/index.html",
   "how-to-pay/cricket/50/index.html",
   "es/como-pagar/cricket/50/index.html",
+  "how-to-pay/t-mobile-prepaid/25/index.html", // AEO-15-TMO-AMOUNTS-1021
+  "es/como-pagar/t-mobile-prepaid/25/index.html", // AEO-15-TMO-AMOUNTS-1021
+  "how-to-pay/t-mobile-prepaid/45/index.html", // AEO-15-TMO-AMOUNTS-1021
+  "es/como-pagar/t-mobile-prepaid/45/index.html", // AEO-15-TMO-AMOUNTS-1021
+  "how-to-pay/t-mobile-prepaid/50/index.html", // AEO-15-TMO-AMOUNTS-1021
+  "es/como-pagar/t-mobile-prepaid/50/index.html", // AEO-15-TMO-AMOUNTS-1021
   // ES-FIRST-1014: bill-pay hub pair
   "es/paga-tu-factura/index.html",
   "pay-your-phone-bill/index.html",

@@ -699,6 +699,61 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/metro-pcs/50" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/metro-pcs/50" />
   </url>
+  <!-- AEO-15-TMO-AMOUNTS-1021 -->
+  <url>
+    <loc>https://www.cellpay.us/how-to-pay/t-mobile-prepaid/25</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/t-mobile-prepaid/25" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/t-mobile-prepaid/25" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/t-mobile-prepaid/25" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/es/como-pagar/t-mobile-prepaid/25</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/t-mobile-prepaid/25" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/t-mobile-prepaid/25" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/t-mobile-prepaid/25" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/how-to-pay/t-mobile-prepaid/45</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/t-mobile-prepaid/45" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/t-mobile-prepaid/45" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/t-mobile-prepaid/45" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/es/como-pagar/t-mobile-prepaid/45</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/t-mobile-prepaid/45" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/t-mobile-prepaid/45" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/t-mobile-prepaid/45" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/how-to-pay/t-mobile-prepaid/50</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/t-mobile-prepaid/50" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/t-mobile-prepaid/50" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/t-mobile-prepaid/50" />
+  </url>
+  <url>
+    <loc>https://www.cellpay.us/es/como-pagar/t-mobile-prepaid/50</loc>
+    <lastmod>2026-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/t-mobile-prepaid/50" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.cellpay.us/es/como-pagar/t-mobile-prepaid/50" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.cellpay.us/how-to-pay/t-mobile-prepaid/50" />
+  </url>
   <url>
     <loc>https://www.cellpay.us/how-to-pay/cricket/25</loc>
     <lastmod>2026-10-14</lastmod>

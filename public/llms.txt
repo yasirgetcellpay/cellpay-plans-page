@@ -68,6 +68,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [How to pay H2O Wireless](https://www.cellpay.us/how-to-pay/h2o) · [Cómo pagar H2O Wireless](https://www.cellpay.us/es/como-pagar/h2o)
 - Boost Mobile amounts: [$25](https://www.cellpay.us/how-to-pay/boost-mobile/25) · [$45](https://www.cellpay.us/how-to-pay/boost-mobile/45) · [$50](https://www.cellpay.us/how-to-pay/boost-mobile/50)
 - Metro by T-Mobile amounts: [$25](https://www.cellpay.us/how-to-pay/metro-pcs/25) · [$45](https://www.cellpay.us/how-to-pay/metro-pcs/45) · [$50](https://www.cellpay.us/how-to-pay/metro-pcs/50)
+- T-Mobile Prepaid amounts: [$25](https://www.cellpay.us/how-to-pay/t-mobile-prepaid/25) · [$45](https://www.cellpay.us/how-to-pay/t-mobile-prepaid/45) · [$50](https://www.cellpay.us/how-to-pay/t-mobile-prepaid/50)
 - Cricket Wireless amounts: [$25](https://www.cellpay.us/how-to-pay/cricket/25) · [$45](https://www.cellpay.us/how-to-pay/cricket/45) · [$50](https://www.cellpay.us/how-to-pay/cricket/50)
 
 ## Páginas en español
@@ -108,6 +109,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [Cómo pagar H2O Wireless](https://www.cellpay.us/es/como-pagar/h2o)
 - Montos de Boost Mobile: [$25](https://www.cellpay.us/es/como-pagar/boost-mobile/25) · [$45](https://www.cellpay.us/es/como-pagar/boost-mobile/45) · [$50](https://www.cellpay.us/es/como-pagar/boost-mobile/50)
 - Montos de Metro by T-Mobile: [$25](https://www.cellpay.us/es/como-pagar/metro-pcs/25) · [$45](https://www.cellpay.us/es/como-pagar/metro-pcs/45) · [$50](https://www.cellpay.us/es/como-pagar/metro-pcs/50)
+- Montos de T-Mobile Prepago: [$25](https://www.cellpay.us/es/como-pagar/t-mobile-prepaid/25) · [$45](https://www.cellpay.us/es/como-pagar/t-mobile-prepaid/45) · [$50](https://www.cellpay.us/es/como-pagar/t-mobile-prepaid/50)
 - Montos de Cricket Wireless: [$25](https://www.cellpay.us/es/como-pagar/cricket/25) · [$45](https://www.cellpay.us/es/como-pagar/cricket/45) · [$50](https://www.cellpay.us/es/como-pagar/cricket/50)
 
 ## Key facts for every carrier
