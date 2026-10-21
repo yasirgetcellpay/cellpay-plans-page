@@ -1,6 +1,6 @@
 # VZ-PREPAID-GUARD-1017
 # TMO-LOOKUP-1020
-- [ ] Add fail-open T-Mobile retry gating, matching checkout dialog and background last-four-only hint logging; verify and redeploy only cellpay-proxy and carrier-hint.
+- [x] Add fail-open T-Mobile retry gating, matching checkout dialog and background last-four-only hint logging; 49 focused tests and preview build passed; intercepted checkout preserved card input and closed without retry; redeployed only cellpay-proxy and carrier-hint, no SQL or publishing.
 # SMS-34332-1020 <!-- // SMS-34332-1020 -->
 - [x] Add approved terms and aliases, privacy paragraphs, optional checkout consent and best-effort logging. <!-- // SMS-34332-1020 -->
 - [x] Verify terms/aliases and EN/ES consent defaults, toggles and new-tab links; 19 focused tests passed, build OK; no real payments or publishing. Full outage file retains five failures and one missing isCcRefund fixture error; unrelated fixtures unchanged. <!-- // SMS-34332-1020 -->
