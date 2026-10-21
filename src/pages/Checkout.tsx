@@ -3468,7 +3468,11 @@ const Checkout = () => {
                         {primaryWallet === "applepay" ? dc.abPrimaryAp : dc.abPrimaryGp}
                       </button>
                       {!nsfView && declineInfo.cls === "funds" && offered.has("klarna") && total >= KLARNA_MIN_TOTAL && ( // FUNDS-DECLINE-1016
-                        <button type="button" data-testid="decline-klarna" onClick={() => { try { setKlarnaSrc(phone10, "decline_other"); trackKlarna("klarna_clicked", "decline_other", `decline_other|${declineSeqRef.current}`); } catch { /* ignore */ } toMethod("klarna"); }} /* KLARNA-FUNNEL-1017 */ className={btn + " border-2 text-foreground bg-background"} style={{ borderColor: "#FFA8CD" }}>{dc.abKlarna}</button>
+                        <button type="button" data-testid="decline-klarna" onClick={() => { try { setKlarnaSrc(phone10, "decline_other"); trackKlarna("klarna_clicked", "decline_other", `decline_other|${declineSeqRef.current}`); } catch { /* ignore */ }
+                          if (!klarnaFirstName.trim()) setKlarnaFirstName(firstName); // KLARNA-DECLINE-OTHER-1020
+                          if (!klarnaLastName.trim()) setKlarnaLastName(lastName); // KLARNA-DECLINE-OTHER-1020
+                          if (!klarnaPhone.trim()) setKlarnaPhone(state.phone); // KLARNA-DECLINE-OTHER-1020
+                          toMethod("klarna"); }} /* KLARNA-FUNNEL-1017 */ className={btn + " border-2 text-foreground bg-background"} style={{ borderColor: "#FFA8CD" }}>{dc.abKlarna}</button>
                       )}
                       {ppBtn}{primaryWallet === "applepay" ? gpBtn : null}
                       {(showRetry || showAnother) && <p className="text-xs text-muted-foreground pt-1">{dc.orCard}</p>}
