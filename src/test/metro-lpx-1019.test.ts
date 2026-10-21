@@ -18,7 +18,7 @@ describe("METRO-LPX-1019", () => {
     for (const v of Object.values(goLpxForCarrier("metropcs", lang) ?? {})) expect(v).not.toMatch(/refill|recarg/i);
   });
   it("other rows unchanged", () => {
-    expect(goLpxForCarrier("tmobile", "en")?.title).toBe("Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay");
+    expect(goLpxForCarrier("tmobile", "en")?.title).toBe("Pay My T-Mobile Prepaid Bill as a Guest | CellPay");
     expect(goLpxForCarrier("topup-at", "en")?.h1).toBe("Pay Your AT&T Prepaid Bill Without Signing In");
     expect(goLpxForCarrier("boost", "es")?.h1).toBe("Pague su factura de Boost como invitado");
     expect(goLpxForCarrier("topup-crc", "en")?.title).toBe("Pay Your Cricket Bill as a Guest | CellPay");

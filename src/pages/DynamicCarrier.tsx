@@ -375,7 +375,7 @@ const DynamicCarrier = ({
         // (74K/mo, currently ranking #1) and reinforce variants to defend the spot.
         if (carrierSlug === "metropcs" && lang !== "es") {
           applySeoHead({
-            title: "Pay Metro by T-Mobile Bill Online – Metro PCS | CellPay", // GSC-MAULIK-1014
+            title: "Pay Metro PCS Bill Online as a Guest – No Login | CellPay", // GSC-MAULIK-1014 // BILLPAY-METRO-1021
             description:
               feeCopy1019(carrierSlug, lang, "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay."), // METRO-FEECOPY-1019
             keywords:
@@ -425,7 +425,7 @@ const DynamicCarrier = ({
           applySeoHead({
             ...(billPg.title ? { title: billPg.title } : {}),
             description: billPg.description,
-            ...(billPg.lang === "en" ? { keywords: "cricket quick pay, cricket wireless quick pay, pay cricket bill online, cricket bill pay, cricket wireless payment" } : {}),
+            ...(billPg.path === "/topup-crc.html" ? { keywords: "cricket quick pay, cricket wireless quick pay, pay cricket bill online, cricket bill pay, cricket wireless payment" } : {}), // BILLPAY-METRO-1021
             schema: hasStatic ? "" : billJsonLd(billPg),
             schemaSecondary: "",
           });

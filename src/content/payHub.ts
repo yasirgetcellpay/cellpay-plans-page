@@ -60,10 +60,10 @@ export const HUB_PAGES: Record<HubLang, HubPage> = {
     lang: "es",
     path: HUB_PATHS.es,
     altPath: HUB_PATHS.en,
-    title: "Paga tu factura de celular en 1 minuto | CellPay",
+    title: "Pague su factura de celular en 1 minuto | CellPay", // BILLPAY-METRO-1021
     description:
-      "Paga tu factura Boost, Metro, Cricket, Simple, T-Mobile o AT&T con solo el número. Sin cuenta. Tarjeta, Cash App, Pay by Bank y más.",
-    h1: "Paga tu factura Boost, Metro, Cricket o Simple en 1 minuto",
+      "Pague su factura Boost, Metro, Cricket, Simple, T-Mobile o AT&T con solo el número. Sin cuenta. Tarjeta, Cash App, Pay by Bank y más.", // BILLPAY-METRO-1021
+    h1: "Pague su factura Boost, Metro, Cricket o Simple en 1 minuto", // BILLPAY-METRO-1021
     intro: "Solo necesita el número de 10 dígitos. Sin cuenta y sin contraseña de la compañía.",
     phoneLabel: "Número de teléfono",
     phoneHelp: "Escriba el número y elija su compañía.",
@@ -82,7 +82,7 @@ export const HUB_PAGES: Record<HubLang, HubPage> = {
     ],
     home: "Inicio",
     homePath: "/es",
-    crumb: "Paga tu factura",
+    crumb: "Pague su factura", // BILLPAY-METRO-1021
   },
   en: {
     lang: "en",
