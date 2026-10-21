@@ -80,9 +80,17 @@ Deno.serve(async (req) => {
 
     if (isProfit) {
       // CP-PROFIT-1021: all successful web orders with a gclid (DB filters refunds, false successes, blocked fraud).
-      const { data, error } = await sb.rpc("cp_profit_csv", { _token: token });
-      if (error) return empty(500);
-      const rows = (data ?? []) as Array<{ gclid: string; order_id: string; conv_time: string; value: number; email_sha256: string; phone_sha256: string }>;
+      // CP-PROFIT-PAGING-1021: PostgREST caps rpc at 1000 rows -> page with .range until a short page.
+      const PAGE = 1000;
+      const data: unknown[] = [];
+      for (let from = 0; from < 100000; from += PAGE) {
+        const { data: pg, error } = await sb.rpc("cp_profit_csv", { _token: token }).range(from, from + PAGE - 1);
+        if (error) return empty(500);
+        const arr = (pg ?? []) as unknown[];
+        data.push(...arr);
+        if (arr.length < PAGE) break;
+      }
+      const rows = data as Array<{ gclid: string; order_id: string; conv_time: string; value: number; email_sha256: string; phone_sha256: string }>;
       const CONV_NAME = "CP profit value";
       const seen = new Set<string>();
       const lines = [HEADER + ",Event Source"]; // EVENT-SOURCE-1021: cp-profit only
