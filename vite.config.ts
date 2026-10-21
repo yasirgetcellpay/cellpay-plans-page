@@ -567,7 +567,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/cricket.html": {
-        h1: "Pagar Cricket por teléfono — con tarjeta, sin iniciar sesión",
+        h1: "Pague su línea o plan Cricket — con tarjeta, sin iniciar sesión", // CRICKET-BROAD-COPY-1020
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/metro/index.html": {
@@ -579,7 +579,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "es/go/cricket/index.html": {
-        h1: "Pagar Cricket por teléfono — con tarjeta, sin iniciar sesión",
+        h1: "Pague su línea o plan Cricket — con tarjeta, sin iniciar sesión", // CRICKET-BROAD-COPY-1020
         intro: "Sin cuenta. Pague por otra persona. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar.",
       },
       "go/ultra.html": {
@@ -834,10 +834,10 @@ const htmlAliasPlugin = (): Plugin => ({
       // GO-1b / GO-2 ES + Ultra + Cricket/ATT
       "es/go/metro.html": { title: "Pagar Metro PCS en línea como invitado | CellPay", description: "Pague su factura de Metro PCS en línea como invitado. Ingrese el número de Metro by T-Mobile, elija el plan y pague con tarjeta de débito o crédito. La tarifa de servicio se muestra antes de pagar." }, // METRO-LPX-1019
       "es/go/boost.html": { title: "Pague su factura de Boost como invitado | CellPay", description: "Pague su factura de Boost Mobile como invitado. Solo su número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar." },
-      "es/go/cricket.html": { title: "Pague Cricket en línea | CellPay", description: "Pague su Cricket en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/cricket.html": { title: "Pague su línea Cricket en línea | CellPay", description: "Pague su línea o plan Cricket en línea, en español. Sin cuenta. Escriba su número, elija su plan y pague con tarjeta." }, // CRICKET-BROAD-COPY-1020
       "es/go/metro/index.html": { title: "Pagar Metro PCS en línea como invitado | CellPay", description: "Pague su factura de Metro PCS en línea como invitado. Ingrese el número de Metro by T-Mobile, elija el plan y pague con tarjeta de débito o crédito. La tarifa de servicio se muestra antes de pagar." }, // METRO-LPX-1019
       "es/go/boost/index.html": { title: "Pague su factura de Boost como invitado | CellPay", description: "Pague su factura de Boost Mobile como invitado. Solo su número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar." },
-      "es/go/cricket/index.html": { title: "Pague Cricket en línea | CellPay", description: "Pague su Cricket en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar." },
+      "es/go/cricket/index.html": { title: "Pague su línea Cricket en línea | CellPay", description: "Pague su línea o plan Cricket en línea, en español. Sin cuenta. Escriba su número, elija su plan y pague con tarjeta." }, // CRICKET-BROAD-COPY-1020
       "go/ultra.html": { title: "Pay Your Ultra Mobile Bill Online | CellPay", description: "Pay your Ultra Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       "go/ultra/index.html": { title: "Pay Your Ultra Mobile Bill Online | CellPay", description: "Pay your Ultra Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       "go/cricket.html": { title: "Pay Your Cricket Bill as a Guest | CellPay", description: "Pay your Cricket Wireless bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
