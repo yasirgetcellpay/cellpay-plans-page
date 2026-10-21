@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
       const rows = (data ?? []) as Array<{ gclid: string; order_id: string; conv_time: string; value: number; email_sha256: string; phone_sha256: string }>;
       const CONV_NAME = "CP profit value";
       const seen = new Set<string>();
-      const lines = [HEADER];
+      const lines = [HEADER + ",Event Source"]; // EVENT-SOURCE-1021: cp-profit only
       let dropped = 0;
       for (const r of rows) {
         const gclid = clean(r.gclid);
@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
         seen.add(oid);
         const v = Number(r.value);
         if (!Number.isFinite(v) || v <= 0) { dropped++; continue; }
-        lines.push([gclid, CONV_NAME, clean(r.conv_time), v.toFixed(2), "USD", oid, hashOnly(r.email_sha256), hashOnly(r.phone_sha256)].join(","));
+        lines.push([gclid, CONV_NAME, clean(r.conv_time), v.toFixed(2), "USD", oid, hashOnly(r.email_sha256), hashOnly(r.phone_sha256), "WEB"].join(","));
       }
       console.log(`cp-profit rows=${lines.length - 1} dropped_nonpositive=${dropped}`);
       return csv(lines, isHead);
