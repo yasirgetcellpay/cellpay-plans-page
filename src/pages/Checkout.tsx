@@ -1877,6 +1877,7 @@ const Checkout = () => {
     }) as Record<string, unknown>;
     clearPlaidRef(); // single use: every checkout answer ends this plaid_ref
     const code = raw.code ?? plaidData(raw).code;
+    if (raw.code === "TMO_RETRY_24H") { showTmoBlock(raw.retry_after); return null; } // TMO-LOOKUP-1020: before bank-payment failure handling.
     if (code === "plaid_ref") return plaidError(raw, tr.plaidRelink);
     if (plaidUnavailable(raw)) return null;
     const body = raw.data && typeof raw.data === "object" ? raw.data as Record<string, unknown> : {};
