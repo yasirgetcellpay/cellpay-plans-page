@@ -764,24 +764,27 @@ for (const pg of HOW_TO_PAY_PAGES.filter((p) => p.key === "total-wireless")) { /
   } // AEO-14-TOTAL-1020
 } // AEO-14-TOTAL-1020
 
-// AI-ANSWERS-1014: 18 amount answer pages (Boost, Metro, Cricket x $25/$45/$50, EN + ES). Same template/renderers as the parent
+// AI-ANSWERS-1014: 24 amount answer pages (Boost, Metro, Cricket, T-Mobile x $25/$45/$50, EN + ES). Same template/renderers as the parent // AEO-15-TMO-AMOUNTS-1021
 // guides; pay wording only, no fee amounts, no plan contents or prices. Payment methods come from the shared flag-driven list.
-type AmtCarrier = { key: HtpPage["key"]; name: string; short: string; slug: string; enPay: string; esPay: string };
+type AmtCarrier = { key: HtpPage["key"]; name: string; esName?: string; short: string; slug: string; enPay: string; esPay: string }; // AEO-15-TMO-AMOUNTS-1021
 const AMT_CARRIERS: AmtCarrier[] = [
   { key: "boost-mobile", name: "Boost Mobile", short: "Boost", slug: "boost", enPay: "/boost.html", esPay: "/es/boost.html" },
   { key: "metro-pcs", name: "Metro by T-Mobile (Metro PCS)", short: "Metro", slug: "metropcs", enPay: "/metropcs.html", esPay: "/es/metropcs.html" },
   { key: "cricket", name: "Cricket Wireless", short: "Cricket", slug: "topup-crc", enPay: "/topup-crc.html", esPay: "/es/topup-crc.html" },
+  { key: "t-mobile-prepaid", name: "T-Mobile Prepaid", esName: "T-Mobile Prepago", short: "T-Mobile", slug: "tmobile", enPay: "/tmobile-flexi.html", esPay: "/es/tmobile-flexi.html" }, // AEO-15-TMO-AMOUNTS-1021
 ];
 export const HTP_AMOUNTS = [25, 45, 50] as const;
 const AMT_TAIL_EN: Record<string, string> = {
   "boost-mobile": "New Boost lines work too.",
   "metro-pcs": "Metro PCS is now Metro by T-Mobile.",
   cricket: "Any Cricket line works, yours or family.",
+  "t-mobile-prepaid": "Pay for your own line or someone else's.", // AEO-15-TMO-AMOUNTS-1021
 };
 const AMT_TAIL_ES: Record<string, string> = {
   "boost-mobile": "Sirve también para líneas nuevas de Boost.",
   "metro-pcs": "Metro PCS ahora es Metro by T-Mobile.",
   cricket: "Sirve para su línea o la de un familiar.",
+  "t-mobile-prepaid": "Sirve para su línea o la de otra persona.", // AEO-15-TMO-AMOUNTS-1021
 };
 const amtIntroEn = (c: AmtCarrier, a: number): string =>
   a === 25
@@ -791,64 +794,70 @@ const amtIntroEn = (c: AmtCarrier, a: number): string =>
       : `Paying $50 toward ${c.name} takes about a minute on CellPay: enter the 10-digit ${c.short} number, enter $50, confirm the total, then pay with ${PAY_EN}. No login needed. ${AMT_TAIL_EN[c.key]}`;
 const amtIntroEs = (c: AmtCarrier, a: number): string =>
   a === 25
-    ? `Sí, puede pagar $25 a ${c.name} en línea. Abra la página de ${c.short} de CellPay, ingrese el número de ${c.short} de 10 dígitos, escriba $25, revise el total y pague con ${PAY_ES}. Sin iniciar sesión. ${AMT_TAIL_ES[c.key]}`
+    ? `Sí, puede pagar $25 a ${c.esName ?? c.name} en línea. Abra la página de ${c.short} de CellPay, ingrese el número de ${c.short} de 10 dígitos, escriba $25, revise el total y pague con ${PAY_ES}. Sin iniciar sesión. ${AMT_TAIL_ES[c.key]}` // AEO-15-TMO-AMOUNTS-1021
     : a === 45
-      ? `Para pagar $45 en una línea de ${c.name}, vaya a la página de ${c.short} de CellPay, ingrese el número, ingrese $45, revise el total y pague con ${PAY_ES}. Sin cuenta. ${AMT_TAIL_ES[c.key]}`
-      : `Pagar $50 a ${c.name} toma cerca de un minuto en CellPay: ingrese el número de ${c.short} de 10 dígitos, ingrese $50, confirme el total y pague con ${PAY_ES}. Sin iniciar sesión. ${AMT_TAIL_ES[c.key]}`;
+      ? `Para pagar $45 en una línea de ${c.esName ?? c.name}, vaya a la página de ${c.short} de CellPay, ingrese el número, ingrese $45, revise el total y pague con ${PAY_ES}. Sin cuenta. ${AMT_TAIL_ES[c.key]}` // AEO-15-TMO-AMOUNTS-1021
+      : `Pagar $50 a ${c.esName ?? c.name} toma cerca de un minuto en CellPay: ingrese el número de ${c.short} de 10 dígitos, ingrese $50, confirme el total y pague con ${PAY_ES}. Sin iniciar sesión. ${AMT_TAIL_ES[c.key]}`; // AEO-15-TMO-AMOUNTS-1021
 const AMT_DATE_EN = "Last updated: October 14, 2026";
 const AMT_DATE_ES = "Última actualización: 14 de octubre de 2026";
 const amtPage = (c: AmtCarrier, a: number, lang: HtpLang): HtpPage => {
   const isEs = lang === "es";
+  const isTmo = c.key === "t-mobile-prepaid"; // AEO-15-TMO-AMOUNTS-1021
+  const name = isEs ? (c.esName ?? c.name) : c.name; // AEO-15-TMO-AMOUNTS-1021
   const enPath = `/how-to-pay/${c.key}/${a}`;
   const esPath = `/es/como-pagar/${c.key}/${a}`;
   const parentPath = isEs ? `/es/como-pagar/${c.key}` : `/how-to-pay/${c.key}`;
   const pay = isEs ? c.esPay : c.enPay;
-  const shortTitle = c.key === "metro-pcs" ? "Metro by T-Mobile (Metro PCS)" : c.name;
+  const shortTitle = c.key === "metro-pcs" ? "Metro by T-Mobile (Metro PCS)" : name; // AEO-15-TMO-AMOUNTS-1021
   return {
-    key: c.key, lang, path: isEs ? esPath : enPath, enPath, esPath, carrierSlug: c.slug, carrierName: c.name, checkoutPath: pay,
+    key: c.key, lang, path: isEs ? esPath : enPath, enPath, esPath, carrierSlug: c.slug, carrierName: name, checkoutPath: pay, // AEO-15-TMO-AMOUNTS-1021
     title: isEs
-      ? (c.key === "metro-pcs" ? `Cómo pagar ${shortTitle} $${a} | CellPay` : `Cómo pagar ${c.name} $${a} en línea | CellPay`)
-      : (c.key === "metro-pcs" ? `How to Pay ${shortTitle} $${a} | CellPay` : `How to Pay ${c.name} $${a} Online | CellPay`),
-    description: isEs
-      ? `Pague $${a} a ${c.key === "metro-pcs" ? "Metro by T-Mobile" : c.name} en línea con solo el número de ${c.short}. Sin iniciar sesión. La tarifa de servicio se muestra antes de pagar.`
-      : `Pay $${a} to ${c.key === "metro-pcs" ? "Metro by T-Mobile" : c.name} online with just the ${c.short} number. No login needed. Enter $${a}, review the total and pay. Service fee shown before you pay.`,
-    h1: isEs ? `Cómo pagar ${c.name} $${a} en línea` : `How to pay ${c.name} $${a} online`,
+      ? (c.key === "metro-pcs" ? `Cómo pagar ${shortTitle} $${a} | CellPay` : `Cómo pagar ${name} $${a} en línea | CellPay`) // AEO-15-TMO-AMOUNTS-1021
+      : (c.key === "metro-pcs" ? `How to Pay ${shortTitle} $${a} | CellPay` : `How to Pay ${name} $${a} Online | CellPay`), // AEO-15-TMO-AMOUNTS-1021
+    description: isTmo // AEO-15-TMO-AMOUNTS-1021
+      ? (isEs // AEO-15-TMO-AMOUNTS-1021
+          ? `Pague T-Mobile Prepago $${a} en línea con solo el número de T-Mobile. Sin iniciar sesión. La tarifa de servicio se muestra antes de pagar.` // AEO-15-TMO-AMOUNTS-1021
+          : `Pay T-Mobile Prepaid $${a} online with just the T-Mobile number. No login needed. Enter $${a}, review the total and pay. Service fee shown before you pay.`) // AEO-15-TMO-AMOUNTS-1021
+      : isEs
+      ? `Pague $${a} a ${c.key === "metro-pcs" ? "Metro by T-Mobile" : name} en línea con solo el número de ${c.short}. Sin iniciar sesión. La tarifa de servicio se muestra antes de pagar.` // AEO-15-TMO-AMOUNTS-1021
+      : `Pay $${a} to ${c.key === "metro-pcs" ? "Metro by T-Mobile" : name} online with just the ${c.short} number. No login needed. Enter $${a}, review the total and pay. Service fee shown before you pay.`, // AEO-15-TMO-AMOUNTS-1021
+    h1: isEs ? `Cómo pagar ${name} $${a} en línea` : `How to pay ${name} $${a} online`, // AEO-15-TMO-AMOUNTS-1021
     intro: isEs ? amtIntroEs(c, a) : amtIntroEn(c, a),
     steps: isEs
       ? [
           { name: "Ingrese el número de teléfono", text: `En la página de ${c.short} de CellPay (${pay}), escriba el número de ${c.short} de 10 dígitos y verifíquelo.` },
-          { name: `Ingrese $${a}`, text: `Escriba $${a} como el monto que desea pagar.` },
+          { name: `Ingrese $${a}`, text: isTmo ? (a === 45 ? "Escriba $45 como monto personalizado." : `Elija $${a} de la lista o escriba $${a} como monto personalizado.`) : `Escriba $${a} como el monto que desea pagar.` }, // AEO-15-TMO-AMOUNTS-1021
           { name: "Revise el total", text: "El resumen del pedido muestra el número, el monto, la tarifa de servicio y el total." },
           { name: "Pague", text: `Pague con ${PAY_ES} y guarde su confirmación.` },
         ]
       : [
           { name: "Enter the phone number", text: `On the CellPay ${c.short} page (${pay}), type the 10-digit ${c.short} number and check it.` },
-          { name: `Enter $${a}`, text: `Type $${a} as the amount you want to pay.` },
+          { name: `Enter $${a}`, text: isTmo ? (a === 45 ? "Type $45 as a custom amount." : `Pick $${a} from the list or type $${a} as a custom amount.`) : `Type $${a} as the amount you want to pay.` }, // AEO-15-TMO-AMOUNTS-1021
           { name: "Review the total", text: "The order summary shows the number, the amount, the service fee and the total." },
           { name: "Pay", text: `Pay with ${PAY_EN} and keep your confirmation.` },
         ],
     need: [], feeRows: [], feeNote: "", plansLabel: "", plansLoading: "", otherWays: "", someoneElseTitle: "", someoneElse: "", autoPayTitle: "", autoPay: "",
     faqs: isEs
       ? [
-          { q: `¿Puedo pagar exactamente $${a} a ${c.name}?`, a: `Sí. La página de ${c.short} de CellPay acepta montos desde $5 hasta ${c.slug === "boost" ? "$199" : "$250 o más"}, así que puede ingresar $${a}. No necesita iniciar sesión en ${c.short} ni una cuenta de CellPay.` }, // PLAN-RANGES-1016
+          { q: `¿Puedo pagar exactamente $${a} a ${name}?`, a: isTmo ? `Sí. La página de T-Mobile de CellPay le permite ingresar un monto personalizado, así que puede ingresar $${a}. No necesita iniciar sesión en T-Mobile ni una cuenta de CellPay.` : `Sí. La página de ${c.short} de CellPay acepta montos desde $5 hasta ${c.slug === "boost" ? "$199" : "$250 o más"}, así que puede ingresar $${a}. No necesita iniciar sesión en ${c.short} ni una cuenta de CellPay.` }, // PLAN-RANGES-1016 // AEO-15-TMO-AMOUNTS-1021
           { q: "¿Qué métodos de pago puedo usar?", a: METHODS_ES },
-          { q: `¿Hay un cargo por pagar $${a} a ${c.name}?`, a: "Sí, se aplica una tarifa de servicio. La tarifa de servicio se muestra antes de pagar, en el resumen del pedido, así que ve el total completo primero." },
+          { q: `¿Hay un cargo por pagar $${a} a ${name}?`, a: "Sí, se aplica una tarifa de servicio. La tarifa de servicio se muestra antes de pagar, en el resumen del pedido, así que ve el total completo primero." }, // AEO-15-TMO-AMOUNTS-1021
         ]
       : [
-          { q: `Can I pay exactly $${a} to ${c.name}?`, a: `Yes. CellPay's ${c.short} page accepts amounts from $5 to ${c.slug === "boost" ? "$199" : "$250 or more"}, so you can enter $${a}. You don't need a ${c.short} login or a CellPay account.` }, // PLAN-RANGES-1016
+          { q: `Can I pay exactly $${a} to ${name}?`, a: isTmo ? `Yes. CellPay's T-Mobile page lets you enter a custom amount, so you can enter $${a}. You don't need a T-Mobile login or a CellPay account.` : `Yes. CellPay's ${c.short} page accepts amounts from $5 to ${c.slug === "boost" ? "$199" : "$250 or more"}, so you can enter $${a}. You don't need a ${c.short} login or a CellPay account.` }, // PLAN-RANGES-1016 // AEO-15-TMO-AMOUNTS-1021
           { q: "What payment methods can I use?", a: METHODS_EN },
-          { q: `Is there a fee to pay $${a} to ${c.name}?`, a: "Yes, a service fee applies. The service fee is shown before you pay, in the order summary, so you see the full total first." },
+          { q: `Is there a fee to pay $${a} to ${name}?`, a: "Yes, a service fee applies. The service fee is shown before you pay, in the order summary, so you see the full total first." }, // AEO-15-TMO-AMOUNTS-1021
         ],
-    disclaimer: isEs ? `CellPay es un servicio de pago independiente y no está afiliado a ${c.name}.` : `CellPay is an independent payment service and is not affiliated with ${c.name}.`,
-    updated: isEs ? AMT_DATE_ES : AMT_DATE_EN,
-    updatedIso: "2026-10-14",
+    disclaimer: isEs ? `CellPay es un servicio de pago independiente y no está afiliado a ${name}.` : `CellPay is an independent payment service and is not affiliated with ${name}.`, // AEO-15-TMO-AMOUNTS-1021
+    updated: isTmo ? (isEs ? "Última actualización: 21 de octubre de 2026" : "Last updated: October 21, 2026") : (isEs ? AMT_DATE_ES : AMT_DATE_EN), // AEO-15-TMO-AMOUNTS-1021
+    updatedIso: isTmo ? "2026-10-21" : "2026-10-14", // AEO-15-TMO-AMOUNTS-1021
     related: [],
     labels: isEs
-      ? { ...LABELS_ES, payNow: `Pagar ${c.name} ahora`, other: "" }
-      : { ...LABELS_EN, payNow: `Pay ${c.name} now`, other: "" },
+      ? { ...LABELS_ES, payNow: `Pagar ${name} ahora`, other: "" } // AEO-15-TMO-AMOUNTS-1021
+      : { ...LABELS_EN, payNow: `Pay ${name} now`, other: "" }, // AEO-15-TMO-AMOUNTS-1021
     amount: a,
     parentPath,
-    parentLabel: isEs ? `Guía completa: cómo pagar ${c.name}` : `Full guide: how to pay ${c.name}`,
+    parentLabel: isEs ? `Guía completa: cómo pagar ${name}` : `Full guide: how to pay ${name}`, // AEO-15-TMO-AMOUNTS-1021
     methodsTitle: isEs ? "Métodos de pago" : "Payment methods",
     methodsLine: isEs ? METHODS_ES : METHODS_EN,
     feeLine: isEs ? "La tarifa de servicio se muestra antes de pagar." : "Service fee shown before you pay.",
@@ -860,7 +869,7 @@ HOW_TO_PAY_PAGES.push(...AMT_CARRIERS.flatMap((c) => HTP_AMOUNTS.flatMap((a) => 
 export const htpCommonAmounts = (pg: HtpPage): Array<[string, string]> =>
   pg.amount || !AMT_CARRIERS.some((c) => c.key === pg.key)
     ? []
-    : HTP_AMOUNTS.map((a) => [pg.lang === "es" ? `/es/como-pagar/${pg.key}/${a}` : `/how-to-pay/${pg.key}/${a}`, pg.lang === "es" ? `Pagar $${a} a ${pg.carrierName}` : `Pay $${a} to ${pg.carrierName}`]);
+    : HTP_AMOUNTS.map((a) => [pg.lang === "es" ? `/es/como-pagar/${pg.key}/${a}` : `/how-to-pay/${pg.key}/${a}`, pg.lang === "es" ? `Pagar $${a} a ${AMT_CARRIERS.find((c) => c.key === pg.key)?.esName ?? pg.carrierName}` : `Pay $${a} to ${pg.carrierName}`]); // AEO-15-TMO-AMOUNTS-1021
 
 export const howToPayByPath = (pathname: string): HtpPage | undefined => {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
