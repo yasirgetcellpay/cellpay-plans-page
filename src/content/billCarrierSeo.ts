@@ -54,8 +54,44 @@ const esPage = (path: string, name: string, guide?: [string, string]): BillPage 
   guide,
 });
 
+// BILLPAY-METRO-1021
+const metroFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [
+  { q: "¿Cómo pago mi factura de Metro PCS en línea?", a: "Ingrese el número de Metro, elija el monto de su plan y pague. Toma alrededor de un minuto." },
+  { q: "¿Puedo pagar Metro PCS como invitado?", a: "Sí. Sin cuenta y sin iniciar sesión. Solo necesita el número de teléfono." },
+  { q: "¿Puedo pagar sin el PIN de la cuenta?", a: "Sí, el número de teléfono es suficiente." },
+  { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es")}` },
+  { q: "¿Cuándo se aplica mi pago?", a: "Por lo general en pocos minutos. Recibe una confirmación en pantalla y por correo electrónico." },
+  { q: "¿Puedo pagar la línea de Metro de otra persona?", a: "Sí, ingrese su número." },
+] : [
+  { q: "How do I pay my Metro PCS bill online?", a: "Enter the Metro phone number, pick the amount for your plan, and pay. It takes about a minute." },
+  { q: "Can I pay Metro PCS as a guest?", a: "Yes. No account or login. You only need the phone number." },
+  { q: "Can I pay without the account PIN?", a: "Yes, the phone number is enough." },
+  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en")}` },
+  { q: "When does my payment post?", a: "Usually within minutes. You get a confirmation on screen and by email." },
+  { q: "Can I pay for someone else's Metro line?", a: "Yes, enter their number." },
+];
+
 export const BILL_PAGES: BillPage[] = [
-  esPage("/es/metropcs.html", "Metro PCS", ["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"]),
+  { // BILLPAY-METRO-1021
+    ...esPage("/es/metropcs.html", "Metro PCS", ["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"]),
+    title: "Pagar Factura Metro PCS en Línea sin Cuenta | CellPay",
+    h1: "Pague su Factura de Metro by T-Mobile en Línea",
+    sub: "Pague su línea de Metro PCS como invitado, solo con el número. Sin cuenta ni PIN.",
+    faqs: metroFaqs("es"),
+  },
+  { // BILLPAY-METRO-1021
+    path: "/metropcs.html", lang: "en", name: "Metro PCS",
+    title: "Pay Metro PCS Bill Online as a Guest – No Login | CellPay",
+    description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Service fee shown before you pay.",
+    h1: "Pay Your Metro by T-Mobile Bill Online",
+    sub: "Pay your Metro PCS bill as a guest with just the phone number. No login, no PIN.",
+    autoPayInfoLead: "Optional: Auto Pay so you never miss a payment.",
+    enterAmount: "Enter the amount you want to pay",
+    securePayment: "Secure payment. Your payment goes to the number you entered.",
+    faqTitle: "Common questions",
+    faqs: metroFaqs("en"),
+    guide: ["/how-to-pay/metro-pcs", "How to pay Metro by T-Mobile"],
+  },
   esPage("/es/boost.html", "Boost Mobile", ["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"]),
   esPage("/es/topup-crc.html", "Cricket Wireless", ["/es/como-pagar/cricket", "Cómo pagar Cricket Wireless"]), // CRICKET-GUIDE-1014
   {
