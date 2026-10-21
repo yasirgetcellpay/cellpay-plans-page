@@ -2892,6 +2892,23 @@ export type Database = {
         Returns: boolean
       }
       cp_clean_first_name: { Args: { fn: string; ln: string }; Returns: string }
+      cp_email_sha256: { Args: { _e: string }; Returns: string }
+      cp_phone_sha256: { Args: { _p: string }; Returns: string }
+      cp_profit_csv: {
+        Args: { _token: string }
+        Returns: {
+          conv_time: string
+          email_sha256: string
+          gclid: string
+          order_id: string
+          phone_sha256: string
+          value: number
+        }[]
+      }
+      cp_profit_value: {
+        Args: { _amount: number; _slug: string; _total: number }
+        Returns: number
+      }
       dupcharge_check: {
         Args: { _amount: string; _phone: string; _session: string }
         Returns: Json
@@ -3251,6 +3268,14 @@ export type Database = {
           gclid: string
           order_id: string
           value: number
+        }[]
+      }
+      purchase_fallback_csv_hashes: {
+        Args: { _ids: string[]; _token: string }
+        Returns: {
+          email_sha256: string
+          order_id: string
+          phone_sha256: string
         }[]
       }
       purchase_fallback_csv_token_ok: {
