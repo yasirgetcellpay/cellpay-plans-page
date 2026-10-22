@@ -1805,6 +1805,7 @@ async function planGuard(pr: Record<string, unknown>, headers: Record<string, st
   if (plan === "8282" || plan === "325635" || plan === "547871") return { ok: false, reason: `h2o_${plan}`, message: es ? "Este plan no está disponible ahora. Elija otro plan." : "This plan is not available right now. Please choose another plan.", source: "none" }; // H2O-HIDE-325635-1017 // PLAN-BLOCK-CLEANUP-1017
   if (plan === "32993000") return { ok: false, reason: "ultra_32993000", message: es ? "Este plan no está disponible ahora. Elija otro plan." : "This plan is not available right now. Please choose another plan.", source: "none" }; // ULTRA64-HIDE-1017
   if (plan === "8947005") return { ok: false, reason: "lyca_8947005", message: es ? "Este plan no está disponible ahora. Elija otro plan." : "This plan is not available right now. Please choose another plan.", source: "none" }; // LYCA10-HIDE-1017
+  if ((plan === "238888" || slug === "tmobile" || slug === "tmobile-flexi") && Number.isFinite(amt) && amt > 200) return { ok: false, reason: "tmo_cap_200", message: es ? "Las recargas de T-Mobile tienen un límite de $200 por ahora. Ingrese $200 o menos." : "T-Mobile refills are limited to $200 right now. Please enter $200 or less.", source: "none" }; // TMO-CAP-200-1022
   if (!slug || !plan || !Number.isFinite(amt)) return { ok: true, source: "none" };
   let hub: { data: Record<string, unknown> | null; source: "hub" | "cache" };
   try { hub = await pgHub(slug, headers); } catch { hub = { data: null, source: "hub" }; }
