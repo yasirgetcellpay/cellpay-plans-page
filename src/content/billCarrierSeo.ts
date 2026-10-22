@@ -20,6 +20,7 @@ export type BillPage = {
   faqTitle: string;
   faqs: BillFaq[];
   guide?: [string, string]; // how-to-pay guide link (Metro, Boost; CRICKET-GUIDE-1014: + Cricket)
+  more?: [string, string][]; // BILLPAY-BOOST-1022 extra internal links [href, label]
 };
 
 const WWW = "https://www.cellpay.us";
@@ -71,6 +72,23 @@ const metroFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [
   { q: "Can I pay for someone else's Metro line?", a: "Yes, enter their number." },
 ];
 
+// BILLPAY-BOOST-1022
+const boostFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [
+  { q: "¿Cómo pago mi factura de Boost Mobile en línea?", a: "Ingrese el número de Boost, elija el monto de su plan y pague. Toma alrededor de un minuto." },
+  { q: "¿Puedo pagar Boost como invitado?", a: "Sí. Sin cuenta y sin iniciar sesión. Solo necesita el número de teléfono." },
+  { q: "¿Puedo pagar sin iniciar sesión en mi cuenta de Boost?", a: "Sí. No necesita su usuario ni su PIN de Boost. El número de teléfono es suficiente." },
+  { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es")}` },
+  { q: "¿Cuándo se aplica mi pago?", a: "Por lo general en pocos minutos. Recibe una confirmación en pantalla y por correo electrónico." },
+  { q: "Me cambié a Boost, ¿puedo pagar aquí?", a: "Sí. Si acaba de pasar su número a Boost, ingréselo y pague de la misma forma." },
+] : [
+  { q: "How do I pay my Boost Mobile bill online?", a: "Enter the Boost phone number, pick the amount for your plan, and pay. It takes about a minute." },
+  { q: "Can I pay Boost as a guest?", a: "Yes. No account or login. You only need the phone number." },
+  { q: "Can I pay without logging in to my Boost account?", a: "Yes. You don't need your Boost login or PIN. The phone number is enough." },
+  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en")}` },
+  { q: "When does my payment post?", a: "Usually within minutes. You get a confirmation on screen and by email." },
+  { q: "I switched to Boost — can I still pay here?", a: "Yes. If you just moved your number to Boost, enter it and pay the same way." },
+];
+
 export const BILL_PAGES: BillPage[] = [
   { // BILLPAY-METRO-1021
     ...esPage("/es/metropcs.html", "Metro PCS", ["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"]),
@@ -92,7 +110,28 @@ export const BILL_PAGES: BillPage[] = [
     faqs: metroFaqs("en"),
     guide: ["/how-to-pay/metro-pcs", "How to pay Metro by T-Mobile"],
   },
-  esPage("/es/boost.html", "Boost Mobile", ["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"]),
+  { // BILLPAY-BOOST-1022
+    ...esPage("/es/boost.html", "Boost Mobile", ["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"]),
+    title: "Pagar Factura Boost Mobile en Línea sin Cuenta | CellPay",
+    h1: "Pague su Factura de Boost Mobile en Línea",
+    sub: "Pague su plan de Boost como invitado, solo con el número. Sin cuenta.",
+    faqs: boostFaqs("es"),
+    more: [["/es/cambiaste-a-boost", "¿Se cambió a Boost Mobile?"], ["/es/paga-tu-factura", "Pague su factura de celular"]],
+  },
+  { // BILLPAY-BOOST-1022
+    path: "/boost.html", lang: "en", name: "Boost Mobile",
+    title: "Pay Boost Mobile Bill Online as a Guest – No Login | CellPay",
+    description: "Pay your Boost Mobile bill online as a guest with just the phone number. No login needed. Service fee shown before you pay.",
+    h1: "Pay Your Boost Mobile Bill Online",
+    sub: "Pay your Boost Mobile bill as a guest with just the phone number. No login needed.",
+    autoPayInfoLead: "Optional: Auto Pay so you never miss a payment.",
+    enterAmount: "Enter the amount you want to pay",
+    securePayment: "Secure payment. Your payment goes to the number you entered.",
+    faqTitle: "Common questions",
+    faqs: boostFaqs("en"),
+    guide: ["/how-to-pay/boost-mobile", "How to pay Boost Mobile"],
+    more: [["/switched-to-boost", "Switched to Boost Mobile?"], ["/pay-your-phone-bill", "Pay your phone bill"]],
+  },
   esPage("/es/topup-crc.html", "Cricket Wireless", ["/es/como-pagar/cricket", "Cómo pagar Cricket Wireless"]), // CRICKET-GUIDE-1014
   {
     path: "/topup-crc.html", lang: "en", name: "Cricket Wireless",
@@ -141,4 +180,5 @@ export const billStaticBlock = (pg: BillPage): string =>
   `<h2 class="text-2xl font-extrabold text-foreground mb-4 text-left">${esc(pg.faqTitle)}</h2>` +
   pg.faqs.map((f) => `<div class="mb-4 text-left"><h3 class="font-bold">${esc(f.q)}</h3><p class="text-sm text-muted-foreground mt-1">${esc(f.a)}</p></div>`).join("") +
   (pg.guide ? `<p class="text-sm mt-4"><a href="${pg.guide[0]}" class="underline">${esc(pg.guide[1])}</a></p>` : "") +
+  (pg.more ? pg.more.map(([href, label]) => `<p class="text-sm mt-2"><a href="${href}" class="underline">${esc(label)}</a></p>`).join("") : "") + // BILLPAY-BOOST-1022
   `</section>`;

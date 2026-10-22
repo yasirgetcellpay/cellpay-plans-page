@@ -391,8 +391,8 @@ const DynamicCarrier = ({
         // says "instantly" (removed site-wide by the claims rules).
         if (carrierSlug === "boost" && lang !== "es") {
           applySeoHead({
-            title: "Boost Mobile Bill Payment Online | CellPay",
-            description: feeCopy1019(carrierSlug, lang, "Recharge Boost Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay."), // METRO-FEECOPY-1019
+            title: "Pay Boost Mobile Bill Online as a Guest – No Login | CellPay", // BILLPAY-BOOST-1022
+            description: feeCopy1019(carrierSlug, lang, "Pay your Boost Mobile bill online as a guest with just the phone number. No login needed. Service fee shown before you pay."), // METRO-FEECOPY-1019 BILLPAY-BOOST-1022
           });
         }
 
@@ -448,6 +448,7 @@ const DynamicCarrier = ({
         }
         // SIMPLE-SPEC-3-1009: /guest-simple-mobile.html canonical = /s1.html (same as its raw HTML).
         if (window.location.pathname.replace(/\/+$/, "") === "/guest-simple-mobile.html") applySeoHead({ path: "/s1.html" });
+        if (window.location.pathname.replace(/\/+$/, "") === "/guest-boost.html") applySeoHead({ path: "/boost.html" }); // BILLPAY-BOOST-1022
         if (seoH1Override) setHeading(seoH1Override);
         if (seoIntroOverride) setSubheading(seoIntroOverride);
 
@@ -785,7 +786,7 @@ const DynamicCarrier = ({
               )}
               {phoneDigits.length === 10 && (
                 <p className="text-[10px] sm:text-xs text-cellpay-green font-semibold mb-2 -mt-1">
-                  ✓ {tr.refilling}: {phone}
+                  ✓ {bill && carrierSlug === "boost" ? (bill.lang === "es" ? "Pago para" : "Paying for") : tr.refilling}: {phone}{/* BILLPAY-BOOST-1022 */}
                 </p>
               )}
               {phoneDigits.length > 0 && phoneDigits.length < 10 && (
@@ -962,6 +963,9 @@ const DynamicCarrier = ({
                   <p className="text-sm text-muted-foreground mt-1">{f.a}</p>
                 </div>
               ))}
+              {bill.more?.map(([href, label]) => ( // BILLPAY-BOOST-1022
+                <p key={href} className="text-sm mt-2 text-left"><a href={href} className="underline">{label}</a></p>
+              ))}
             </section>
           ) : shownFaqs.length > 0 && (
             <DynamicFAQ faqs={shownFaqs} carrierName={faqName} brandColor={bc} lang={lang} />
@@ -997,6 +1001,9 @@ const DynamicCarrier = ({
                   : `How to pay your ${HTP_GUIDE_BY_SLUG[carrierSlug].name} bill online`}
               </a>
             </p>
+          )}
+          {window.location.pathname.replace(/\/+$/, "") === "/guest-boost.html" && ( // BILLPAY-BOOST-1022
+            <p className="max-w-3xl mx-auto px-4 py-2 text-sm text-center"><a href="/boost.html" className="underline">Pay your Boost Mobile bill online</a></p>
           )}
           {/* SIMPLE-SPEC-1-1009: language switch /s1.html <-> /es/s1.html */}
           {isSimple && (
