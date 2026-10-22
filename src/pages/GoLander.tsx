@@ -1,3 +1,4 @@
+import { tmoCapMax, tmoCapBlocked, tmoCapMsg } from "@/lib/tmoCap"; // TMO-CAP-200-1022
 import { useState, useCallback, useEffect, useRef } from "react"; // VZ-PREPAID-GUARD-1017
 import { Phone, DollarSign, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -72,7 +73,7 @@ const prRangeMsg = (slug: string, lang: string): string | null => // PLAN-RANGES
   : slug === "verizon" ? (lang === "es" ? "Pagos de Verizon: de $15 a $150" : "Verizon payments: $15 to $150")
   : null;
 const dropHiddenPlans = <T extends { plan_id: string; amount: number }>(slug: string, list: T[]): T[] => // PLAN-RANGES-1016
-  list.filter((p) => p.plan_id !== "8282" && p.plan_id !== "325635" && p.plan_id !== "547871" && p.plan_id !== "32993000" && p.plan_id !== "8947005" && !(PR_LIMITS[slug] && slug !== "boost" && p.amount > PR_LIMITS[slug].max)); // H2O-HIDE-325635-1017 // PLAN-BLOCK-CLEANUP-1017 // ULTRA64-HIDE-1017 // LYCA10-HIDE-1017
+  list.filter((p) => p.plan_id !== "8282" && p.plan_id !== "325635" && p.plan_id !== "547871" && p.plan_id !== "32993000" && p.plan_id !== "8947005" && !(PR_LIMITS[slug] && slug !== "boost" && p.amount > PR_LIMITS[slug].max) && !tmoCapBlocked(slug, p.amount)); /* TMO-CAP-200-1022 */ // H2O-HIDE-325635-1017 // PLAN-BLOCK-CLEANUP-1017 // ULTRA64-HIDE-1017 // LYCA10-HIDE-1017
 
 function normalizePlans(plans: Array<Record<string, unknown>>): NormalizedPlan[] {
   return plans.map((p) => {
@@ -297,7 +298,7 @@ const GoLander = ({
           setShowRange(true);
           setRangeMin(prMin(carrierSlug, cp.carrier?.rangeMin ?? 5)); // PLAN-RANGES-1016
           setRangeMax(
-            prMax(carrierSlug, cp.carrier?.rangeMax ?? 300), // PLAN-RANGES-1016: topup-at 100, verizon 150, boost 199
+            tmoCapMax(carrierSlug, prMax(carrierSlug, cp.carrier?.rangeMax ?? 300)), // TMO-CAP-200-1022 // PLAN-RANGES-1016: topup-at 100, verizon 150, boost 199
           );
           if (typeof cp.rangePlan === "string" && cp.rangePlan !== "") {
             setRangePlanId(cp.rangePlan);
@@ -380,7 +381,7 @@ const GoLander = ({
   const rangeAmountValid = amountProblem === null;
   const amountMessage =
     amountProblem === "range"
-      ? (carrierSlug === "boost" && amountNum > 199 ? (lang === "es" ? "Pagos de Boost: máximo $199" : "Boost payments max $199") : (prRangeMsg(carrierSlug, lang) ?? tr.invalidAmount(rangeMin, rangeMax))) // PLAN-RANGES-1016
+      ? tmoCapBlocked(carrierSlug, amountNum) ? tmoCapMsg(lang) /* TMO-CAP-200-1022 */ : (carrierSlug === "boost" && amountNum > 199 ? (lang === "es" ? "Pagos de Boost: máximo $199" : "Boost payments max $199") : (prRangeMsg(carrierSlug, lang) ?? tr.invalidAmount(rangeMin, rangeMax))) // PLAN-RANGES-1016
       : amountProblem === "step"
       ? wholeDollarMessage(lang, amountNum)
       : null;
