@@ -81,6 +81,7 @@ Deno.serve(async (req) => {
     if (isProfit) {
       // CP-PROFIT-1021: all successful web orders with a gclid (DB filters refunds, false successes, blocked fraud).
       // CP-PROFIT-PAGING-1021: PostgREST caps rpc at 1000 rows -> page with .range until a short page.
+      // CLICKID-GAP-1022: rows may carry gbraid/wbraid instead of gclid; exactly one click id per row.
       const PAGE = 1000;
       const data: unknown[] = [];
       for (let from = 0; from < 100000; from += PAGE) {
@@ -90,19 +91,21 @@ Deno.serve(async (req) => {
         data.push(...arr);
         if (arr.length < PAGE) break;
       }
-      const rows = data as Array<{ gclid: string; order_id: string; conv_time: string; value: number; email_sha256: string; phone_sha256: string }>;
+      const rows = data as Array<{ gclid: string; order_id: string; conv_time: string; value: number; email_sha256: string; phone_sha256: string; gbraid?: string; wbraid?: string }>;
       const CONV_NAME = "CP profit value";
       const seen = new Set<string>();
-      const lines = [HEADER + ",Event Source"]; // EVENT-SOURCE-1021: cp-profit only
+      const lines = [HEADER + ",Event Source,GBRAID,WBRAID"]; // EVENT-SOURCE-1021 + CLICKID-GAP-1022: cp-profit only
       let dropped = 0;
       for (const r of rows) {
         const gclid = clean(r.gclid);
+        const gbraid = gclid ? "" : clean(r.gbraid);
+        const wbraid = gclid || gbraid ? "" : clean(r.wbraid);
         const oid = clean(r.order_id);
-        if (!gclid || !oid || seen.has(oid)) continue;
+        if ((!gclid && !gbraid && !wbraid) || !oid || seen.has(oid)) continue;
         seen.add(oid);
         const v = Number(r.value);
         if (!Number.isFinite(v) || v <= 0) { dropped++; continue; }
-        lines.push([gclid, CONV_NAME, clean(r.conv_time), v.toFixed(2), "USD", oid, hashOnly(r.email_sha256), hashOnly(r.phone_sha256), "WEB"].join(","));
+        lines.push([gclid, CONV_NAME, clean(r.conv_time), v.toFixed(2), "USD", oid, hashOnly(r.email_sha256), hashOnly(r.phone_sha256), "WEB", gbraid, wbraid].join(","));
       }
       console.log(`cp-profit rows=${lines.length - 1} dropped_nonpositive=${dropped}`);
       return csv(lines, isHead);

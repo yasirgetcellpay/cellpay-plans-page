@@ -2899,10 +2899,12 @@ export type Database = {
         Returns: {
           conv_time: string
           email_sha256: string
+          gbraid: string
           gclid: string
           order_id: string
           phone_sha256: string
           value: number
+          wbraid: string
         }[]
       }
       cp_profit_value: {
