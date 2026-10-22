@@ -807,7 +807,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "topup-at.html":             { title: "AT&T Prepaid Refill — Online Top-Up | CellPay",        description: "Recharge your AT&T Prepaid phone online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       // EN-META-1007: boost / topup-crc / metropcs (+ metro-pcs variant) use the same title/description that
       // src/pages/DynamicCarrier.tsx sets at runtime for these pages (lang en). Keep in sync.
-      "boost.html":                { title: "Boost Mobile Bill Payment Online | CellPay", description: "Recharge Boost Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "boost.html":                { title: "Pay Boost Mobile Bill Online as a Guest – No Login | CellPay", description: "Pay your Boost Mobile bill online as a guest with just the phone number. No login needed. Service fee shown before you pay." }, // BILLPAY-BOOST-1022
       "topup-crc.html":            { title: "Cricket Quick Pay — Pay Your Cricket Bill Online | CellPay", description: "Cricket Quick Pay on CellPay: pay any Cricket Wireless bill online. No login needed. All major cards & wallets. Service fee shown before you pay." }, // SEO-CONTENT-1014
       "h2o.html":                  { title: "H2O Wireless Refill — Online Top-Up | CellPay",        description: "Recharge H2O Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "lyca.html":                 { title: "Lycamobile Refill — Online Top-Up | CellPay",          description: "Recharge Lycamobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
@@ -1682,6 +1682,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/total-wireless.html": "/es/total-wireless",
       // SIMPLE-SPEC-3-1009: one Simple Mobile page: the guest page stays live (index,follow) but points its canonical at /s1.html.
       "guest-simple-mobile.html": "/s1.html",
+      "guest-boost.html": "/boost.html", // BILLPAY-BOOST-1022
     };
     const routeToPath = (route: string): string => {
       const p = "/" + route.replace(/(^|\/)index\.html$/, "");
@@ -1995,6 +1996,7 @@ const htmlAliasPlugin = (): Plugin => ({
           `<h1 style="font-size:28px;line-height:1.25;font-weight:800;margin:0 0 16px">${escAttr(guest.h1)}</h1>` +
           `<p style="font-size:16px;line-height:1.55;margin:0;color:#334155">${escAttr(GO_SHELLS.has(route) ? goFeeCopy(guest.intro) : guest.intro)}</p>` +
           (route === "guest-boost.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/how-to-pay/boost-mobile" style="text-decoration:underline">How to pay Boost Mobile</a></p>` : "") + // SEO-CONTENT-1014
+          (route === "guest-boost.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/boost.html" style="text-decoration:underline">Pay your Boost Mobile bill online</a></p>` : "") + // BILLPAY-BOOST-1022
           (route === "guest-net10.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/how-to-pay/net10" style="text-decoration:underline">How to pay Net10 Wireless</a></p>` : "") + // AEO-09-NET10-1015
           (route === "guest-h2o.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/how-to-pay/h2o" style="text-decoration:underline">How to pay H2O</a></p>` : "") + // AEO-10-H2O-1016
           `</main>` +

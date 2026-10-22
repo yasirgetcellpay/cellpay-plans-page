@@ -963,6 +963,9 @@ const DynamicCarrier = ({
                   <p className="text-sm text-muted-foreground mt-1">{f.a}</p>
                 </div>
               ))}
+              {bill.more?.map(([href, label]) => ( // BILLPAY-BOOST-1022
+                <p key={href} className="text-sm mt-2 text-left"><a href={href} className="underline">{label}</a></p>
+              ))}
             </section>
           ) : shownFaqs.length > 0 && (
             <DynamicFAQ faqs={shownFaqs} carrierName={faqName} brandColor={bc} lang={lang} />
@@ -998,6 +1001,9 @@ const DynamicCarrier = ({
                   : `How to pay your ${HTP_GUIDE_BY_SLUG[carrierSlug].name} bill online`}
               </a>
             </p>
+          )}
+          {window.location.pathname.replace(/\/+$/, "") === "/guest-boost.html" && ( // BILLPAY-BOOST-1022
+            <p className="max-w-3xl mx-auto px-4 py-2 text-sm text-center"><a href="/boost.html" className="underline">Pay your Boost Mobile bill online</a></p>
           )}
           {/* SIMPLE-SPEC-1-1009: language switch /s1.html <-> /es/s1.html */}
           {isSimple && (

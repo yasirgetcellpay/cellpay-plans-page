@@ -34,7 +34,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [Verizon Prepaid refill](https://www.cellpay.us/verizon-wireless-flexi.html): Verizon prepaid plan refills.
 - [Metro by T-Mobile](https://www.cellpay.us/metropcs.html): Metro by T-Mobile monthly plan payments.
 - [Cricket Wireless](https://www.cellpay.us/topup-crc.html): Cricket prepaid plan refills.
-- [Boost Mobile](https://www.cellpay.us/boost.html): Boost Mobile prepaid refills.
+- [Pay Boost Mobile bill online as a guest](https://www.cellpay.us/boost.html)
 - [Straight Talk](https://www.cellpay.us/straight-talk.html): Straight Talk service plan refills.
 - [TracFone](https://www.cellpay.us/tracfone.html): TracFone airtime and plan refills.
 - [Total Wireless](https://www.cellpay.us/total-wireless): Total Wireless plan payments.
@@ -85,7 +85,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [Verizon Prepaid (español)](https://www.cellpay.us/es/verizon-wireless-flexi.html)
 - [Metro by T-Mobile (español)](https://www.cellpay.us/es/metropcs.html)
 - [Cricket Wireless (español)](https://www.cellpay.us/es/topup-crc.html)
-- [Boost Mobile (español)](https://www.cellpay.us/es/boost.html)
+- [Pague su factura de Boost Mobile en línea sin cuenta](https://www.cellpay.us/es/boost.html)
 - [Straight Talk (español)](https://www.cellpay.us/es/straight-talk.html)
 - [TracFone (español)](https://www.cellpay.us/es/tracfone.html)
 - [Total Wireless (español)](https://www.cellpay.us/es/total-wireless)
