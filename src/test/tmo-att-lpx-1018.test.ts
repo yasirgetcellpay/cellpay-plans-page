@@ -10,8 +10,8 @@ const tmo = {
     title: "Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay",
   },
   es: {
-    h1: "Pague su factura de T-Mobile sin iniciar sesión",
-    subline: "Pague el teléfono T-Mobile como invitado: solo su número, sin cuenta. Tarjeta de débito o crédito.",
+    h1: "Pago de T-Mobile en línea: pague su factura sin iniciar sesión",
+    subline: "Pago en línea como invitado: solo su número, sin cuenta. Tarjeta de débito o crédito.",
     title: "Pagar factura de T-Mobile en línea | CellPay",
   },
 };
