@@ -1766,7 +1766,7 @@ const htmlAliasPlugin = (): Plugin => ({
 
     // CRICKET-LCP-1020: defer only these four shells' app assets until after first paint.
     const cricketAfterPaint = (route: string, shell: string): string => {
-      if (!["go/cricket.html", "go/cricket/index.html", "es/go/cricket.html", "es/go/cricket/index.html", "go/boost.html", "go/boost/index.html", "es/go/boost.html", "es/go/boost/index.html", "es/go/tmobile.html", "es/go/tmobile/index.html", "es/go/metro.html", "es/go/metro/index.html", "es/go/pageplus.html", "es/go/pageplus/index.html"].includes(route)) return shell; // BOOST-LCP-1021: + 4 Boost shells // ES-GO-LCP-1021: + 6 ES T-Mobile/Metro/Page Plus shells
+      if (!["go/cricket.html", "go/cricket/index.html", "es/go/cricket.html", "es/go/cricket/index.html", "go/boost.html", "go/boost/index.html", "es/go/boost.html", "es/go/boost/index.html", "es/go/tmobile.html", "es/go/tmobile/index.html", "es/go/metro.html", "es/go/metro/index.html", "es/go/pageplus.html", "es/go/pageplus/index.html", "go/tmobile.html", "go/tmobile/index.html", "go/att.html", "go/att/index.html"].includes(route)) return shell; // BOOST-LCP-1021: + 4 Boost shells // ES-GO-LCP-1021: + 6 ES T-Mobile/Metro/Page Plus shells // GO-EN-LCP-1022: + 4 EN T-Mobile/AT&T shells
       try {
         const head = shell.match(/<head\b[^>]*>[\s\S]*?<\/head>/i);
         if (!head || !/<\/body>/i.test(shell)) return shell;
