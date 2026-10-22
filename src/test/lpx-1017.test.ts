@@ -35,7 +35,7 @@ describe("LPX-1017", () => {
     expect(copy?.subline).toContain("Tarjeta de débito");
   });
   it("sets T-Mobile's Spanish headline", () => {
-    expect(goLpxForCarrier("tmobile", "es")?.h1).toBe("Pague su factura de T-Mobile sin iniciar sesión"); // TMO-ATT-LPX-1018
+    expect(goLpxForCarrier("tmobile", "es")?.h1).toBe("Pago de T-Mobile en línea: pague su factura sin iniciar sesión"); // TMO-ATT-LPX-1018
   });
   it("sets T-Mobile's English subline and preserves its derived title", () => {
     const copy = goLpxForCarrier("tmobile", "en");
