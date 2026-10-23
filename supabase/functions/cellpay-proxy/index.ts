@@ -352,6 +352,29 @@ async function rpcSoon(name: string, args: Record<string, unknown>): Promise<voi
   }
 }
 
+// RAW-REPLY-LOG-1022: redacted, size-capped copy of CellPay's raw refill reply for failed / auto-refunded orders. Never throws.
+const RAW_SECRET_KEY_RE = /secret|api[_-]?key|apikey|token|password|passwd|auth|cvv|cvc|cvv2|card_?num|cardnumber|ccnum|cc_?number|pan$|^pan|expir|exp_?(month|year|date)|^exp$|security_?code|track_?data|nonce|cryptogram|signature/i; // RAW-REPLY-LOG-1022
+function redactRawReply(v: unknown, depth = 0): unknown { // RAW-REPLY-LOG-1022
+  if (depth > 12) return "[depth]";
+  if (Array.isArray(v)) return v.slice(0, 200).map((x) => redactRawReply(x, depth + 1));
+  if (v && typeof v === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, x] of Object.entries(v as Record<string, unknown>)) out[k] = RAW_SECRET_KEY_RE.test(k) ? "[redacted]" : redactRawReply(x, depth + 1);
+    return out;
+  }
+  if (typeof v === "string") return v.replace(/\b\d{13,19}\b/g, "[redacted]"); // card-number-like digit runs
+  return v;
+}
+function buildRawReplyPatch(data: unknown): Record<string, unknown> | null { // RAW-REPLY-LOG-1022
+  try {
+    const red = redactRawReply(data);
+    const s = JSON.stringify(red) ?? "null";
+    const CAP = 16 * 1024;
+    if (s.length <= CAP) return { cellpay_raw_reply: red };
+    return { cellpay_raw_reply: { truncated: true, original_length: s.length, json_prefix: s.slice(0, CAP - 200) } };
+  } catch { return null; }
+}
+
 // REFUNDED-STATE-1017: BAD_PHONE guard (digits must be a 10-digit US number).
 function phoneOk10(p: Record<string, unknown>): boolean {
   const d = String(p.phone_number ?? p.phoneNumber ?? "").replace(/\D/g, "");
