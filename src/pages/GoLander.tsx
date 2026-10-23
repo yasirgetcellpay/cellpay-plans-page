@@ -687,7 +687,7 @@ const GoLander = ({
               <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">
                 {stepsLine}
               </p>
-              {!metroFirstScreen && <> /* METRO-FIRSTSCREEN-1023b */}
+              {!metroFirstScreen && <>{/* // METRO-FIRSTSCREEN-1023b */}
               <label
                 htmlFor="go-phone-input"
                 className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2"
