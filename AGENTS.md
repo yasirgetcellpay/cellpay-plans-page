@@ -1,4 +1,5 @@
 # Project architecture rules
+- Keep Simple Mobile legacy ad-page aliases on the existing AliasRedirect component so English/Spanish destinations preserve search parameters and hashes without adding prerender shells. // SIMPLE-PUSH-1023
 - Keep Ultra refund-message selection local to checkout and receipt presentation, using existing error evidence and carrier navigation, so shared refund/payment rules remain unchanged. // ULTRA-FAIL-MSG-1022
 - Keep T-Mobile retry gating in a pure fail-open helper with injected lookup/events and customer wording in a frontend-only module so blocked attempts never reach payment or transaction logging. // TMO-LOOKUP-1020
 - Keep SMS legal copy in an import-free shared content source for runtime and static rendering, and SMS consent in the existing best-effort tracking queue outside payment validation and payloads. // SMS-34332-1020

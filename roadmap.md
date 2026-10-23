@@ -1,5 +1,5 @@
 # VZ-PREPAID-GUARD-1017
-- [ ] SIMPLE-PUSH-1023: requested guest copy, shared FAQ, six aliases and Verizon loading-list extension; run existing tests and verify public pages. // SIMPLE-PUSH-1023
+- [x] SIMPLE-PUSH-1023: guest copy, shared FAQ, six aliases and Verizon loading-list extension verified; build OK, six browser redirects preserve query/hash, EN/ES visible FAQ matches schema. Full suite: 484 passed, same 56 failures and one error verified before/after; unrelated fixes outside scope, nothing published. // SIMPLE-PUSH-1023
 - [x] CHECKOUT-TIMEOUT-1023: 120 s timeout on checkout/transaction only, outcome-unknown confirming message, lock kept, pay disabled, PII-free attempt log; build OK.
 - [x] ULTRA-FAIL-MSG-1022: Ultra refunded-result wording and existing amount-selection navigation verified in EN/ES with intercepted receipt responses; 10 new checks passed, 74/84 related checks passed (10 existing missing-fixture errors); preview build OK, no real payments or publishing.
 # TMO-LOOKUP-1020
