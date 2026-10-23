@@ -44,7 +44,7 @@ export const displayCarrierName = (name: string, lang: HeroLang = "en"): string 
 export const trademarkCarrierName = (name: string): string => DISPLAY_NAMES[name]?.brand ?? name;
 
 // TOP4-T2A-1009: customer-facing carrier name per slug, for the "active line" note under the number field and the
-// "Why was my payment refunded?" FAQ (carrier pages, /go landers, pay-bill guides). No refund-timing promise, no fee amount.
+// "What if my payment doesn't go through?" FAQ (carrier pages, /go landers, pay-bill guides). No refund-timing promise, no fee amount. // SIMPLE-PUSH-1023
 const TOP4_NAMES: Record<string, { en: string; es: string }> = {
   tmobile: { en: "T-Mobile Prepaid", es: "T-Mobile Prepago" },
   "topup-at": { en: "AT&T Prepaid", es: "AT&T Prepago" },
@@ -72,12 +72,12 @@ export const refundFaq = (slug: string, lang: HeroLang): { q: string; a: string 
   if (!c) return null;
   return lang === "es"
     ? {
-        q: "¿Por qué me devolvieron el pago?",
-        a: `A veces ${c} no puede agregar la recarga al número, por ejemplo si el número no es una línea activa de ${c} o si se eligió otra compañía. En ese caso el pago se devuelve automáticamente a la tarjeta o cuenta con la que pagó. Revise el número y la compañía, y vuelva a intentarlo.`,
+        q: "¿Qué pasa si mi pago no se completa?", // SIMPLE-PUSH-1023
+        a: `Si ${c} no puede aplicar el pago, por ejemplo cuando el número no es una línea activa de ${c} o se eligió otra compañía, el pago no se completa. Su banco libera cualquier retención en su tarjeta. Revise el número y la compañía, y vuelva a intentarlo. Si todavía necesita ayuda, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido.`, // SIMPLE-PUSH-1023
       }
     : {
-        q: "Why was my payment refunded?",
-        a: `Sometimes ${c} can't add the refill to the number, for example if the number is not an active ${c} line or the wrong carrier was picked. When that happens the payment is refunded automatically to the card or account you paid with. Check the number and the carrier, then try again.`,
+        q: "What if my payment doesn't go through?", // SIMPLE-PUSH-1023
+        a: `If ${c} can't apply the payment, for example when the number is not an active ${c} line or the wrong carrier was picked, the payment does not go through. Any hold on your card is released by your bank. Check the number and the carrier, then try again. If you still need help, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID.`, // SIMPLE-PUSH-1023
       };
 };
 
