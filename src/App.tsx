@@ -595,10 +595,10 @@ const App = () => (
               carrierId={15}
               brandColor="hsl(101,67%,44%)"
               logo={simpleMobileLogo}
-              seoTitleOverride="Simple Mobile Guest Payment — One-Time Refill | CellPay"
+              seoTitleOverride="Simple Mobile Guest Payment — Pay Your Bill, No Login | CellPay" // SIMPLE-PUSH-1023
               seoDescriptionOverride="Make a Simple Mobile guest payment online. No login needed — enter your phone number, choose your 30-day plan, and pay securely."
-              seoH1Override="Simple Mobile Guest Payment — One-Time Refill, No login needed"
-              seoIntroOverride="Pay your Simple Mobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment."
+              seoH1Override="Simple Mobile Guest Payment — No Login Needed" // SIMPLE-PUSH-1023
+              seoIntroOverride="Pay your Simple Mobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your payment is applied to your line after checkout." // SIMPLE-PUSH-1023
             />
           }
         />
@@ -1754,6 +1754,12 @@ const App = () => (
         <Route path="/es/login" element={<Login mode="login" />} />
         <Route path="/es/customer/account/login" element={<Login mode="login" />} />
 
+        <Route path="/go/simple" element={<AliasRedirect to="/go/simple-mobile" />} />{/* // SIMPLE-PUSH-1023 */}
+        <Route path="/go/simple.html" element={<AliasRedirect to="/go/simple-mobile" />} />{/* // SIMPLE-PUSH-1023 */}
+        <Route path="/go/simple/" element={<AliasRedirect to="/go/simple-mobile" />} />{/* // SIMPLE-PUSH-1023 */}
+        <Route path="/es/go/simple" element={<AliasRedirect to="/es/go/simple-mobile" />} />{/* // SIMPLE-PUSH-1023 */}
+        <Route path="/es/go/simple.html" element={<AliasRedirect to="/es/go/simple-mobile" />} />{/* // SIMPLE-PUSH-1023 */}
+        <Route path="/es/go/simple/" element={<AliasRedirect to="/es/go/simple-mobile" />} />{/* // SIMPLE-PUSH-1023 */}
         {/* Fallback: any unmatched /es/* path → strip /es and redirect to English. */}
         <Route path="/es/*" element={<EsFallback />} />
         <Route path="*" element={<CatchAll />} />

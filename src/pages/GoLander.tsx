@@ -489,7 +489,7 @@ const GoLander = ({
   const feeLine = feeCopy1019(carrierSlug, isEs ? "es" : "en", isEs ? "Cargo por servicio mostrado antes de pagar" : "Service fee shown before you pay"); // METRO-FEECOPY-1019
   const faqHeading = isEs ? "Preguntas frecuentes" : "Common questions";
   const faqName = GO_AD_NAMES[carrierSlug] ?? initialName; // ADS-FOLLOWUPS-1008: ad-style name in the FAQs only
-  // TOP4-T2A-1009: + "Why was my payment refunded?" (T-Mobile, AT&T, Simple Mobile, Verizon only); also in the FAQPage JSON-LD below.
+  // TOP4-T2A-1009: + "What if my payment doesn't go through?" (T-Mobile, AT&T, Simple Mobile, Verizon only); also in the FAQPage JSON-LD below. // SIMPLE-PUSH-1023
   const goRefundFaq = refundFaq(carrierSlug, isEs ? "es" : "en");
   const faqs = [...(isEs ? goFaqsEs(faqName, goUsesPayWording(carrierSlug)) : goFaqsEn(faqName, goUsesPayWording(carrierSlug))), ...(goRefundFaq ? [goRefundFaq] : [])]; // LPX-1017
   // TOP4-T2A-1009: "active line" note under the number field (same in the loading and loaded layouts, so nothing moves).
