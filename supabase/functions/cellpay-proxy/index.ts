@@ -3326,6 +3326,7 @@ serve(async (req) => {
             await rpcSoon("mark_order_refunded", { _id: id, _source: "reply", _reason: loadText ?? refundMarker ?? "reply_auto_refund" });
           }
           if (loadText) await rpcSoon("set_tx_load_text", { _id: id, _text: loadText }); // LOADTEXT-REASON-1017
+          try { if (refundAudit || autoRefundFailure(logWrapped) || (!memSuccess && !unconfirmedKind)) { const rp = buildRawReplyPatch(data); if (rp) await rpcSoon("tx_log_meta_merge", { _id: id, _patch: rp }); } } catch { /* RAW-REPLY-LOG-1022: logging never affects the order */ } // RAW-REPLY-LOG-1022
           if (loadText) { // LOADTEXT-PICK-1019: the category the site shows, for analytics; unknown parts kept so rules can be added
             const lt = categorizeLoadText(loadText);
             if (lt) {
