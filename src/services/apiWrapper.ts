@@ -307,16 +307,42 @@ export async function validateRecharge(
 
 // ADS-FOLLOWUPS-1008: Google Ads click IDs saved by the inline script in index.html (localStorage "cp_gclk": last click,
 // 90 days). Only well-formed gclid / gbraid / wbraid, nothing else; undefined when there are none (then nothing is sent).
-function adClickIds(): Record<string, string> | undefined {
+let clickIdSource: "url" | "cookie" | undefined; // CP-PROFIT-COVERAGE-1023: set by adClickIds(), read by storedVisitSource()
+// CP-PROFIT-COVERAGE-1023: Google conversion-linker cookies (_gcl_aw/_gcl_gb/_gcl_ag = GCL.<ts>.<id>) when nothing is stored.
+function gclCookieIds(): Record<string, string> {
+  const out: Record<string, string> = {};
   try {
-    const s = JSON.parse(localStorage.getItem("cp_gclk") || "null") as Record<string, unknown> | null;
-    if (!s || typeof s !== "object" || !(Date.now() - Number(s.t) < 90 * 864e5)) return undefined;
-    const out: Record<string, string> = {};
-    for (const k of ["gclid", "gbraid", "wbraid"]) {
-      const v = s[k];
-      if (typeof v === "string" && /^[\w.~-]{1,512}$/.test(v)) out[k] = v;
+    const map: Record<string, string> = { _gcl_aw: "gclid", _gcl_gb: "gbraid", _gcl_ag: "wbraid" };
+    for (const part of document.cookie.split(";")) {
+      const i = part.indexOf("=");
+      if (i < 0) continue;
+      const name = part.slice(0, i).trim();
+      const key = map[name];
+      if (!key || out[key]) continue;
+      const bits = decodeURIComponent(part.slice(i + 1).trim()).split(".");
+      const id = bits.length >= 3 ? bits.slice(2).join(".") : "";
+      if (bits[0] === "GCL" && /^[\w.~-]{1,512}$/.test(id)) out[key] = id;
     }
-    return Object.keys(out).length ? out : undefined;
+  } catch { /* ignore */ }
+  return out;
+}
+function adClickIds(): Record<string, string> | undefined {
+  clickIdSource = undefined; // CP-PROFIT-COVERAGE-1023
+  try {
+    const out: Record<string, string> = {};
+    try { // CP-PROFIT-COVERAGE-1023: storage read kept as before, now inside its own try so the cookie fallback still runs
+      const s = JSON.parse(localStorage.getItem("cp_gclk") || "null") as Record<string, unknown> | null;
+      if (s && typeof s === "object" && Date.now() - Number(s.t) < 90 * 864e5) {
+        for (const k of ["gclid", "gbraid", "wbraid"]) {
+          const v = s[k];
+          if (typeof v === "string" && /^[\w.~-]{1,512}$/.test(v)) out[k] = v;
+        }
+      }
+    } catch { /* ignore */ }
+    if (Object.keys(out).length) { clickIdSource = "url"; return out; } // CP-PROFIT-COVERAGE-1023
+    const c = gclCookieIds(); // CP-PROFIT-COVERAGE-1023
+    if (Object.keys(c).length) { clickIdSource = "cookie"; return c; } // CP-PROFIT-COVERAGE-1023
+    return undefined;
   } catch {
     return undefined;
   }
@@ -335,19 +361,21 @@ function pageLang(): "en" | "es" {
 // AI-REFERRALS-1010b: where this visit came from, saved at landing by src/lib/visitSource.ts (sessionStorage "cp_vs"): referrer host,
 // utm_source and landing path only (no query string, no click IDs, no PII). A synchronous storage read, no network call; undefined when
 // nothing was saved (then nothing is sent). Never throws, never blocks the payment.
-function storedVisitSource(): { ref_host?: string; utm_source?: string; landing_path?: string } | undefined {
+type VisitSource = { ref_host?: string; utm_source?: string; landing_path?: string; gad_source?: string; gad_campaignid?: string; click_id_source?: string }; // CP-PROFIT-COVERAGE-1023
+function storedVisitSource(): VisitSource | undefined {
+  const out: VisitSource = {};
   try {
     const s = JSON.parse(sessionStorage.getItem("cp_vs") || "null") as Record<string, unknown> | null;
-    if (!s || typeof s !== "object") return undefined;
-    const out: { ref_host?: string; utm_source?: string; landing_path?: string } = {};
-    for (const k of ["ref_host", "utm_source", "landing_path"] as const) {
-      const v = s[k];
-      if (typeof v === "string" && v.length > 0 && v.length <= 200) out[k] = v;
+    if (s && typeof s === "object") {
+      for (const k of ["ref_host", "utm_source", "landing_path", "gad_source", "gad_campaignid"] as const) { // CP-PROFIT-COVERAGE-1023
+        const v = s[k];
+        if (typeof v === "string" && v.length > 0 && v.length <= 200) out[k] = v;
+      }
     }
-    return Object.keys(out).length ? out : undefined;
-  } catch {
-    return undefined;
-  }
+  } catch { /* ignore */ }
+  try { if (clickIdSource) out.click_id_source = clickIdSource; } catch { /* ignore */ } // CP-PROFIT-COVERAGE-1023
+  return Object.keys(out).length ? out : undefined;
+}
 }
 
 // OURSIDE-RETRY-1012: retry context for this checkout session (sessionStorage "cp_ors:<kount_ssid>", written by Checkout after a
