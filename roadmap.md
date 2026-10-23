@@ -1,5 +1,5 @@
 # VZ-PREPAID-GUARD-1017
-- [ ] CHECKOUT-TIMEOUT-1023: awaiting permission for the transaction-only request interface change in apiWrapper; no payment changes made.
+- [x] CHECKOUT-TIMEOUT-1023: 120 s timeout on checkout/transaction only, outcome-unknown confirming message, lock kept, pay disabled, PII-free attempt log; build OK.
 - [x] ULTRA-FAIL-MSG-1022: Ultra refunded-result wording and existing amount-selection navigation verified in EN/ES with intercepted receipt responses; 10 new checks passed, 74/84 related checks passed (10 existing missing-fixture errors); preview build OK, no real payments or publishing.
 # TMO-LOOKUP-1020
 - [x] Add fail-open T-Mobile retry gating, matching checkout dialog and background last-four-only hint logging; 49 focused tests and preview build passed; intercepted checkout preserved card input and closed without retry; redeployed only cellpay-proxy and carrier-hint, no SQL or publishing.
