@@ -95,7 +95,8 @@ export const DECLINE_COPY = {
     details: "The card details didn't match what your bank has. Check the card number, expiry date, CVV (3 digits on the back) and the billing ZIP code, then try again.", // DECLINE-RECOVERY-1014
     invalid: "Some payment details couldn't be read. Check your name, email and billing ZIP code, then try again or use another card.", // DECLINE-RECOVERY-1014
     plan: "This payment didn't go through. Please check that you picked the right plan and amount for this number, then try again.", // DECLINE-RECOVERY-1014
-    capSession: "For your security, we've paused more tries on this order. Please pay with PayPal or contact support.", // DECLINE-RECOVERY-1014
+    capSession: "For your security, we paused more tries with this card. Please use another card, Apple Pay or PayPal, or contact support.", // APPLEPAY-PP-AB-1023
+    capBlocked: "For your security, we've paused more tries on this order. Please pay with PayPal or contact support.", // APPLEPAY-PP-AB-1023
     tryAgain: "Try again", // DECLINE-RECOVERY-1014
     useAnotherCard: "Use another card", // DECLINE-RECOVERY-1014
     usePayPal: "Pay with PayPal", // DECLINE-RECOVERY-1014
@@ -126,7 +127,8 @@ export const DECLINE_COPY = {
     details: "Los datos de la tarjeta no coinciden con los de su banco. Revise el número, la fecha de vencimiento, el CVV (3 dígitos al reverso) y el código postal de facturación, y vuelva a intentar.", // DECLINE-RECOVERY-1014
     invalid: "No pudimos leer algunos datos del pago. Revise su nombre, correo y código postal de facturación, y vuelva a intentar o use otra tarjeta.", // DECLINE-RECOVERY-1014
     plan: "Este pago no se completó. Verifique que eligió el plan y el monto correctos para este número, y vuelva a intentar.", // DECLINE-RECOVERY-1014
-    capSession: "Por su seguridad, pausamos más intentos en este pedido. Pague con PayPal o comuníquese con soporte.", // DECLINE-RECOVERY-1014
+    capSession: "Por su seguridad, pausamos más intentos con esta tarjeta. Use otra tarjeta, Apple Pay o PayPal, o comuníquese con soporte.", // APPLEPAY-PP-AB-1023
+    capBlocked: "Por su seguridad, pausamos más intentos en este pedido. Pague con PayPal o comuníquese con soporte.", // APPLEPAY-PP-AB-1023
     tryAgain: "Intentar de nuevo", // DECLINE-RECOVERY-1014
     useAnotherCard: "Usar otra tarjeta", // DECLINE-RECOVERY-1014
     usePayPal: "Pagar con PayPal", // DECLINE-RECOVERY-1014
@@ -193,7 +195,7 @@ export function declineHint(msg: string, lang: string): string | null {
   } catch { return null; }
 }
 
-// DECLINE-AB-1016: sticky 50/50 decline-dialog assignment (session first, then per-phone localStorage). Never re-rolls in a session.
+// DECLINE-AB-1016: sticky 50/50 decline-dialog assignment (per-phone localStorage first, then session). Never re-rolls in a session. // APPLEPAY-PP-AB-1023
 export type DeclineAb = "control" | "variant";
 export const DECLINE_AB_SESSION_KEY = "cp_decline_ab_v1";
 export const DECLINE_AB_PHONE_PREFIX = "cp_decline_ab_phone_v1:";
@@ -203,20 +205,25 @@ export function declineAbPhoneKey(phone?: string): string | null {
   return d.length >= 10 ? DECLINE_AB_PHONE_PREFIX + d : null;
 }
 export function readDeclineAb(phone?: string): DeclineAb | null {
-  try { const s = sessionStorage.getItem(DECLINE_AB_SESSION_KEY); if (isAb(s)) return s; } catch { /* ignore */ }
-  try { const k = declineAbPhoneKey(phone); if (k) { const p = localStorage.getItem(k); if (isAb(p)) return p; } } catch { /* ignore */ }
+  try { const k = declineAbPhoneKey(phone); if (k) { const p = localStorage.getItem(k); if (isAb(p)) return p; } } catch { /* ignore */ } // APPLEPAY-PP-AB-1023
+  try { const s = sessionStorage.getItem(DECLINE_AB_SESSION_KEY); if (isAb(s)) return s; } catch { /* ignore */ } // APPLEPAY-PP-AB-1023
   return null;
 }
+function evenAb(): DeclineAb { // APPLEPAY-PP-AB-1023
+  try { if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") { const b = new Uint8Array(1); crypto.getRandomValues(b); return b[0] < 128 ? "control" : "variant"; } } catch { /* ignore */ } // APPLEPAY-PP-AB-1023
+  return Math.random() < 0.5 ? "control" : "variant"; // APPLEPAY-PP-AB-1023
+} // APPLEPAY-PP-AB-1023
 export function getDeclineAb(phoneDigits?: string): DeclineAb {
   const k = declineAbPhoneKey(phoneDigits);
+  let p: string | null = null; // APPLEPAY-PP-AB-1023
+  try { p = k ? localStorage.getItem(k) : null; } catch { /* ignore */ } // APPLEPAY-PP-AB-1023
+  if (isAb(p)) { try { sessionStorage.setItem(DECLINE_AB_SESSION_KEY, p); } catch { /* ignore */ } return p; } // APPLEPAY-PP-AB-1023
   let s: string | null = null;
   try { s = sessionStorage.getItem(DECLINE_AB_SESSION_KEY); } catch { /* ignore */ }
-  if (isAb(s)) { try { if (k && localStorage.getItem(k) !== s) localStorage.setItem(k, s); } catch { /* ignore */ } return s; }
-  let p: string | null = null;
-  try { p = k ? localStorage.getItem(k) : null; } catch { /* ignore */ }
-  const v: DeclineAb = isAb(p) ? p : Math.random() < 0.5 ? "control" : "variant";
+  if (isAb(s)) { try { if (k) localStorage.setItem(k, s); } catch { /* ignore */ } return s; } // APPLEPAY-PP-AB-1023
+  const v: DeclineAb = evenAb(); // APPLEPAY-PP-AB-1023
   try { sessionStorage.setItem(DECLINE_AB_SESSION_KEY, v); } catch { /* ignore */ }
-  try { if (k && !isAb(p)) localStorage.setItem(k, v); } catch { /* ignore */ }
+  try { if (k) localStorage.setItem(k, v); } catch { /* ignore */ } // APPLEPAY-PP-AB-1023
   return v;
 }
 

@@ -3398,7 +3398,7 @@ const Checkout = () => {
               const showGp = !sessCap && offered.has("googlepay") && !walletBlocked.includes("googlepay") && !(noRetry && declineInfo.method === "googlepay") && !(walletFirst && isIOS && applePayAvailable && !isAndroidUA);
               const riskView = declineInfo.cls === "risk" && !sessCap && !nsfView; // DECLINE-REJECTED-1018
               const riskWallet: PaymentMethod | null = riskView ? (showAp ? "applepay" : showGp ? "googlepay" : null) : null; // DECLINE-REJECTED-1018
-              const hint = sessCap ? dc.capSession : capped && declineInfo.cls !== "blocked" ? dc.capReached : (declineHint(declineInfo.msg || "", lang) ?? (declineInfo.cls === "risk" ? riskWallet === "applepay" ? dc.riskAp : riskWallet === "googlepay" ? dc.riskGp : dc.risk : dc[declineInfo.cls])); // DECLINE-RECOVERY-1014 // DECLINE-MSGS-1016 // DECLINE-REJECTED-1018
+              const hint = sessCap ? (declineInfo.cls === "blocked" ? dc.capBlocked : dc.capSession) /* APPLEPAY-PP-AB-1023 */ : capped && declineInfo.cls !== "blocked" ? dc.capReached : (declineHint(declineInfo.msg || "", lang) ?? (declineInfo.cls === "risk" ? riskWallet === "applepay" ? dc.riskAp : riskWallet === "googlepay" ? dc.riskGp : dc.risk : dc[declineInfo.cls])); // DECLINE-RECOVERY-1014 // DECLINE-MSGS-1016 // DECLINE-REJECTED-1018
               const showPp = offered.has("paypal"); // DECLINE-LEVERS-1015-D1
               const showRetry = !sessCap && !(isCard && capped) && !noRetry; // DECLINE-LEVERS-1015-D1
               const showAnother = !sessCap && !(isCard && capped); // DECLINE-LEVERS-1015-D1
@@ -3433,6 +3433,12 @@ const Checkout = () => {
               const apAgainBtn = nsfView && declineInfo.method === "applepay" && !sessCap && applePayAvailable && offered.has("applepay") && !walletBlocked.includes("applepay") && ( // WALLET-NSF-1018
                 <button type="button" data-testid="funds-applepay-again" onClick={() => walletNow("applepay")} className="w-full px-4 py-3.5 rounded-lg font-bold text-base bg-black text-white">{lang === "es" ? "Usar otra tarjeta en Apple Pay" : "Use another card in Apple Pay"}</button>
               ); // WALLET-NSF-1018
+              const capApBtn = sessCap && declineInfo.cls !== "blocked" && applePayAvailable && offered.has("applepay") && !walletBlocked.includes("applepay") && declineInfo.method !== "applepay" && ( // APPLEPAY-PP-AB-1023
+                <button type="button" data-testid="decline-applepay" onClick={() => walletNow("applepay")} className={btn + " bg-black text-white"}>{dc.useApplePay}</button> // APPLEPAY-PP-AB-1023
+              ); // APPLEPAY-PP-AB-1023
+              const capCardBtn = sessCap && declineInfo.cls !== "blocked" && offered.has("card") && ( // APPLEPAY-PP-AB-1023
+                <button type="button" data-testid="decline-another-card" onClick={() => { if (declineInfo.method === "card") focusCardNumber(); else toMethod("card"); }} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.useAnotherCard}</button> // APPLEPAY-PP-AB-1023
+              ); // APPLEPAY-PP-AB-1023
               const bankBtn = !sessCap && offered.has("plaid") && plaidOn === true && (
                 <button type="button" data-testid="decline-paybybank" onClick={() => toMethod("plaid")} className={btn + " border-2 border-border text-foreground bg-background"}>{dc.usePayByBank}</button>
               );
@@ -3510,7 +3516,7 @@ const Checkout = () => {
                       {retryBtn}{anotherBtn}{cashBtn}{bankBtn}
                     </>
                   ) : (
-                    <>{retryBtn}{anotherBtn}{ppBtn}{apBtn}{gpBtn}{cashBtn}{bankBtn}</>
+                    <>{retryBtn}{anotherBtn}{capApBtn}{capCardBtn}{ppBtn}{apBtn}{gpBtn}{cashBtn}{bankBtn}</> /* APPLEPAY-PP-AB-1023: + capApBtn, capCardBtn */
                   )}
                   <button type="button" data-testid="decline-other" onClick={close} className="w-full text-xs underline text-muted-foreground pt-1">{sessCap ? dc.close : dc.otherMethod}</button>
                   {(sessCap || declineInfo.n >= 2) && <p className="text-xs text-muted-foreground text-center pt-1">{dc.help}</p>}
