@@ -376,7 +376,6 @@ function storedVisitSource(): VisitSource | undefined {
   try { if (clickIdSource) out.click_id_source = clickIdSource; } catch { /* ignore */ } // CP-PROFIT-COVERAGE-1023
   return Object.keys(out).length ? out : undefined;
 }
-}
 
 // OURSIDE-RETRY-1012: retry context for this checkout session (sessionStorage "cp_ors:<kount_ssid>", written by Checkout after a
 // data-error / refill-error reply). Booleans + method word only; undefined when nothing was recorded. Never throws.
