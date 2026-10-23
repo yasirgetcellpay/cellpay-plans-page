@@ -841,6 +841,7 @@ const Checkout = () => {
   const maybePaidKeyRef = useRef<string | null>(null); // DB-OUTAGE-TRACK-1017
   const [confirmingPay, setConfirmingPay] = useState(false); // CHECKOUT-TIMEOUT-1023: outcome unknown, pay button stays disabled
   const confirmingRef = useRef(false); // CHECKOUT-TIMEOUT-1023
+  useEffect(() => { if (!confirmingPay) return; const t = setTimeout(() => { confirmingRef.current = false; setConfirmingPay(false); }, PAYLOCK_UNKNOWN_MS); return () => clearTimeout(t); }, [confirmingPay]); // CHECKOUT-TIMEOUT-1023: re-enable only when the unknown-outcome lock window ends
   const showMaybePaid = (paused: boolean, until?: number) => { // DB-OUTAGE-TRACK-1017
     const key = lockKey(state?.phone, validation?.amount ?? state?.amount);
     maybePaidKeyRef.current = key;
