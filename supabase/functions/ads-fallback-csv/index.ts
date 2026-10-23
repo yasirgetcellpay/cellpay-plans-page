@@ -79,6 +79,21 @@ Deno.serve(async (req) => {
     if (ok !== true) return hasK ? empty(404) : unauthorized();
 
     if (isProfit) {
+      // CP-PROFIT-COVERAGE-1023: optional ?from=&to= (America/Chicago dates, inclusive, max 31 days). The rpc already clamps
+      // to its floor..(now - 30 min); rows are filtered by the Chicago date at the start of conv_time. No params -> unchanged.
+      let range: { from: string; to: string } | null = null; // CP-PROFIT-COVERAGE-1023
+      if (params.has("from") || params.has("to")) { // CP-PROFIT-COVERAGE-1023
+        const bad = (m: string) => new Response(m + "\n", { status: 400, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } }); // CP-PROFIT-COVERAGE-1023
+        const f = params.get("from") ?? "", t = params.get("to") ?? ""; // CP-PROFIT-COVERAGE-1023
+        if (!f || !t) return bad("from and to are both required"); // CP-PROFIT-COVERAGE-1023
+        const D = /^\d{4}-\d{2}-\d{2}$/; // CP-PROFIT-COVERAGE-1023
+        const ms = (s: string) => { const x = Date.parse(s + "T00:00:00Z"); return D.test(s) && Number.isFinite(x) && new Date(x).toISOString().slice(0, 10) === s ? x : NaN; }; // CP-PROFIT-COVERAGE-1023
+        const fm = ms(f), tm = ms(t); // CP-PROFIT-COVERAGE-1023
+        if (!Number.isFinite(fm) || !Number.isFinite(tm)) return bad("from/to must be YYYY-MM-DD"); // CP-PROFIT-COVERAGE-1023
+        if (fm > tm) return bad("from must be <= to"); // CP-PROFIT-COVERAGE-1023
+        if ((tm - fm) / 864e5 + 1 > 31) return bad("range must be at most 31 days"); // CP-PROFIT-COVERAGE-1023
+        range = { from: f, to: t }; // CP-PROFIT-COVERAGE-1023
+      }
       // CP-PROFIT-1021: all successful web orders with a gclid (DB filters refunds, false successes, blocked fraud).
       // CP-PROFIT-PAGING-1021: PostgREST caps rpc at 1000 rows -> page with .range until a short page.
       // CLICKID-GAP-1022: rows may carry gbraid/wbraid instead of gclid; exactly one click id per row.
@@ -97,6 +112,8 @@ Deno.serve(async (req) => {
       const lines = [HEADER + ",Event Source,GBRAID,WBRAID"]; // EVENT-SOURCE-1021 + CLICKID-GAP-1022: cp-profit only
       let dropped = 0;
       for (const r of rows) {
+        if (range) { const d = String(r.conv_time ?? "").slice(0, 10); if (d < range.from || d > range.to) continue; } // CP-PROFIT-COVERAGE-1023: conv_time is Chicago local
+
         const gclid = clean(r.gclid);
         const gbraid = gclid ? "" : clean(r.gbraid);
         const wbraid = gclid || gbraid ? "" : clean(r.wbraid);
