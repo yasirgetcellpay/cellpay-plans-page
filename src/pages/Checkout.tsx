@@ -69,14 +69,17 @@ interface LocationState {
 
 type PaymentMethod = "card" | "paypal" | "plaid" | "googlepay" | "applepay" | "klarna" | "cashapp";
 // ULTRA-FAIL-MSG-1022: presentation only; inspect existing refill errors, never alter payment decisions.
-function ultraRefundKind(value: unknown, depth = 0): "amount" | "generic" | null {
-  if (!value || typeof value !== "object" || depth > 5) return null;
+function ultraRefundKind(value: unknown): "amount" | "generic" | null {
   const messages: string[] = [];
-  for (const [key, field] of Object.entries(value)) {
-    if (/^(code|error_?code|response_?code)$/i.test(key) && String(field).trim() === "1065") return "amount";
-    if (/^(load_?text|loadmessage|msg|message|error|error_?message)$/i.test(key) && typeof field === "string") messages.push(field.trim());
-    if (field && typeof field === "object" && ultraRefundKind(field, depth + 1) === "amount") return "amount";
-  }
+  const scan = (node: unknown, depth = 0) => {
+    if (!node || typeof node !== "object" || depth > 5) return;
+    for (const [key, field] of Object.entries(node)) {
+      if (/^(code|error_?code|response_?code)$/i.test(key) && String(field).trim() === "1065") messages.push("1065");
+      if (/^(load_?text|loadmessage|msg|message|error|error_?message)$/i.test(key) && typeof field === "string") messages.push(field.trim());
+      if (field && typeof field === "object") scan(field, depth + 1);
+    }
+  };
+  scan(value);
   if (messages.some((text) => /invalid\s+amount|\b1065\b/i.test(text))) return "amount";
   // A specific LoadText takes precedence over a generic wrapper error.
   const load = loadTextFrom(value);
@@ -1747,7 +1750,7 @@ const Checkout = () => {
       if (paymentMethod !== "cashapp" && isBackendExcReply(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(false); setLock(lockKey(state?.phone, validation?.amount ?? state?.amount), "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); return; } // BACKEND-EXC-1019
       if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); return; } // REFUNDED-STATE-1017
       setLoadReason(loadTextPick(loadTextFrom(raw))); // LOADTEXT-PICK-1019
-      if (state.carrierSlug === "ultra") setUltraResultKind(ultraRefundKind(raw)); // ULTRA-FAIL-MSG-1022
+      if (state.carrierSlug === "ultra-mobile") setUltraResultKind(ultraRefundKind(raw)); // ULTRA-FAIL-MSG-1022
       const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Transaction failed"; // SUCCESS-FLAG-FIX-1016
       const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
       const autoRefund = /auto[\s-]?refund/i.test(msg);
@@ -2312,7 +2315,7 @@ const Checkout = () => {
           else if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); } // REFUNDED-STATE-1017
           else if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") {
             setLoadReason(loadTextPick(loadTextFrom(raw))); // LOADTEXT-PICK-1019
-            if (state.carrierSlug === "ultra") setUltraResultKind(ultraRefundKind(raw)); // ULTRA-FAIL-MSG-1022
+            if (state.carrierSlug === "ultra-mobile") setUltraResultKind(ultraRefundKind(raw)); // ULTRA-FAIL-MSG-1022
             const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Apple Pay transaction failed"; // SUCCESS-FLAG-FIX-1016
             const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
             const autoRefund = /auto[\s-]?refund/i.test(msg);
@@ -3580,7 +3583,7 @@ const Checkout = () => {
         const pickChoices = pick ? pickButtons(pick.category, lang, choices) : null; // LOADTEXT-PICK-1019: null for generic = existing buttons
         const es = lang === "es";
         const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`); // REFUND-WORDING-1016
-        const ultraKind = state.carrierSlug === "ultra" ? ultraResultKind : null; // ULTRA-FAIL-MSG-1022
+        const ultraKind = state.carrierSlug === "ultra-mobile" ? ultraResultKind : null; // ULTRA-FAIL-MSG-1022
         const amt = `$${Number(validation?.total ?? state.amount ?? 0).toFixed(2)}`; // REFUND-WORDING-1016
         const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); }; // LOADTEXT-REASON-1017: + loadReason reset
         const toCarrier = (ph: string) => { close(); navigate(carrierPageTarget(lang, state.carrierSlug, ph, undefined, location.search, location.hash)); };

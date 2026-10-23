@@ -13,7 +13,9 @@ import { ReminderOptIn } from "@/components/ReminderOptIn";
 import { AutoPayReceiptCard } from "@/components/AutoPayReceiptCard";
 import { NotWorkingYet } from "@/components/NotWorkingYet";
 import { supabase } from "@/integrations/supabase/client"; // AUTOPAY-POSTPURCHASE-1013
-import { carrierPagePath } from "@/lib/checkoutResume"; // AUTOPAY-POSTPURCHASE-1013
+import { carrierPagePath, carrierPageTarget } from "@/lib/checkoutResume"; // AUTOPAY-POSTPURCHASE-1013 // ULTRA-FAIL-MSG-1022
+import { Button } from "@/components/ui/button"; // ULTRA-FAIL-MSG-1022
+import { loadTextFrom } from "@/lib/loadTextPick"; // ULTRA-FAIL-MSG-1022
 import { trackFunnel } from "@/lib/funnelEvents"; // AUTOPAY-POSTPURCHASE-1013
 import { fetchRefundState, refundedPanelText, isPayWord, type RefundState } from "@/lib/orderRefundState"; // REFUNDED-STATE-1017
 import { retryCauseFor, retryReasonText } from "@/lib/refundRetry"; // REFUND-RETRY-LATE-1018
@@ -41,6 +43,24 @@ const parseAmount = (value: unknown): number => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 };
 
+// ULTRA-FAIL-MSG-1022: inspect received errors for display only, without changing refund detection.
+function ultraRefundKind(value: unknown): "amount" | "generic" | null {
+  const messages: string[] = [];
+  const scan = (node: unknown, depth = 0) => {
+    if (!node || typeof node !== "object" || depth > 5) return;
+    for (const [key, field] of Object.entries(node)) {
+      if (/^(code|error_?code|response_?code)$/i.test(key) && String(field).trim() === "1065") messages.push("1065");
+      if (/^(load_?text|loadmessage|msg|message|error|error_?message)$/i.test(key) && typeof field === "string") messages.push(field.trim());
+      if (field && typeof field === "object") scan(field, depth + 1);
+    }
+  };
+  scan(value);
+  if (messages.some((text) => /invalid\s+amount|\b1065\b/i.test(text))) return "amount";
+  const load = loadTextFrom(value);
+  const text = load || messages.find((message) => message && !/auto[\s-]?refund/i.test(message)) || messages.join(" ");
+  return !text.trim() || /error during refill/i.test(text) ? "generic" : null;
+}
+
 const OrderConfirmation = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -55,6 +75,7 @@ const OrderConfirmation = () => {
   const [error, setError] = useState<string | null>(null);
   const enhancedPushedRef = useRef(false);
   const [refunded, setRefunded] = useState<RefundState | null>(null); // REFUNDED-STATE-1017
+  const [ultraResultKind, setUltraResultKind] = useState<"amount" | "generic" | null>(null); // ULTRA-FAIL-MSG-1022
   const retryInfoRef = useRef<{ phone10: string; amount: number | null; email: string }>({ phone10: "", amount: null, email: "" }); // REFUND-RETRY-LATE-1018
   const thisDeviceRef = useRef(false); // REFUND-RETRY-LATE-1018
   const loadAtRef = useRef(Date.now()); // REFUND-RETRY-LATE-1018
@@ -142,6 +163,7 @@ const OrderConfirmation = () => {
       try { thisDeviceRef.current = sessionStorage.getItem("cp_purchase_pending") === hashid || localStorage.getItem(`cp_purchase_early:${hashid}`) !== null; } catch { /* ignore */ } // REFUND-RETRY-LATE-1018
       const refundP = fetchRefundState(hashid); // REFUNDED-STATE-1017: in parallel, 1500 ms cap, error = not refunded
       const raw = await callProxy({ endpoint: `transactions/view/${hashid}`, method: "GET" });
+      setUltraResultKind(ultraRefundKind(raw)); // ULTRA-FAIL-MSG-1022: keep error evidence for the refunded panel only.
       const rs = await refundP; // REFUNDED-STATE-1017: refunded -> no receipt, no purchase beacon
       if (rs) { try { const w = raw as Record<string, unknown>; let d = (w.data || w) as Record<string, unknown>; if (d.data && typeof d.data === "object" && !Array.isArray(d.data)) d = d.data as Record<string, unknown>; keepRetryInfo((d.transaction || d) as TransactionData); } catch { /* ignore */ } setRefunded(rs); return; } // REFUND-RETRY-LATE-1018
       const wrapper = raw as Record<string, unknown>;
@@ -317,6 +339,15 @@ const OrderConfirmation = () => {
           const pt = refundedPanelText(lang, isPayWord(`${slug} ${carrierName}`), refunded.total);
           const target = (slug && carrierPagePath(slug)) || home;
           const cause = retryCauseFor(slug); // REFUND-RETRY-LATE-1018
+          if (slug === "ultra-mobile" && ultraResultKind) return ( // ULTRA-FAIL-MSG-1022
+            <div className="text-center py-16" role="status" data-testid="order-refunded">
+              <h1 className="text-lg font-bold text-foreground">{pt.title}</h1>
+              <p className="text-sm text-muted-foreground mt-2">{ultraResultKind === "amount"
+                ? (lang === "es" ? "Este monto no está disponible para su plan Ultra. Su pago fue reembolsado. Por favor elija otro monto e intente de nuevo." : "This amount isn't available for your Ultra plan. Your payment was refunded. Please choose a different amount and try again.")
+                : (lang === "es" ? "Su recarga no se completó y su pago fue reembolsado. Por favor intente con otro monto o vuelva a intentarlo en unos minutos." : "Your refill didn't go through and your payment was refunded. Please try a different amount, or try again in a few minutes.")}</p>
+              <Button className="mt-4" data-testid="ultra-change-amount" onClick={() => navigate(carrierPageTarget(lang, slug, retryInfoRef.current.phone10, undefined, "", ""))}>{lang === "es" ? "Elegir otro monto" : "Choose another amount"}</Button>
+            </div>
+          ); // ULTRA-FAIL-MSG-1022
           if (cause) { const ri = retryInfoRef.current; const short = refundedPanelText(lang, isPayWord(`${slug} ${carrierName}`), refunded.total, true); return ( // REFUND-RETRY-LATE-1018
             <div className="text-center py-16" role="status" data-testid="order-refunded"> {/* REFUND-RETRY-LATE-1018 */}
               <h1 className="text-lg font-bold text-foreground">{short.title}</h1> {/* REFUND-RETRY-LATE-1018 */}
