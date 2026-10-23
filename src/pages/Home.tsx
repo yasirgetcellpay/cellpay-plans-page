@@ -33,6 +33,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useLang, t, langPath } from "@/lib/i18n";
+import { getHomeBadgeGroup, logHomeBadgeExposure, type HomeBadgeGroup } from "@/lib/homeBadgeAb"; // HOME-INSTANT-BADGE-1023
 
 /* ── API slug → local logo ── */
 const localLogos: Record<string, string> = {
@@ -203,6 +204,17 @@ const Home = () => {
     applySeoHead(HOME_SEO[lang === "es" ? "es" : "en"]);
   }, [lang]);
 
+  const [hbGroup, setHbGroup] = useState<HomeBadgeGroup | null>(null); // HOME-INSTANT-BADGE-1023
+  useEffect(() => { // HOME-INSTANT-BADGE-1023
+    try {
+      const r = getHomeBadgeGroup();
+      if (!r) return;
+      setHbGroup(r.group);
+      logHomeBadgeExposure(r.group, r.vid, lang);
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -350,6 +362,10 @@ const Home = () => {
             <div className="flex items-center gap-1.5">
               <Headphones className="h-4 w-4 text-cellpay-green" />
               <span className="font-semibold">{tr.supportLine}</span>
+            </div>
+            <div className={`flex items-center gap-1.5 ${hbGroup === "badge" ? "" : "invisible"}`} aria-hidden={hbGroup === "badge" ? undefined : true}>{/* // HOME-INSTANT-BADGE-1023 */}
+              <Zap className="h-4 w-4 text-cellpay-green" />
+              <span className="font-semibold">{tr.instantRefillShort}</span>
             </div>
             {/* Inline 'We accept' strip removed from top per feedback Page 6 (Non-blocker #1).
                 Payment logos are still shown via <PaymentBar /> at the bottom. */}

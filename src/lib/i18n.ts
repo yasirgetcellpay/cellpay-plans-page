@@ -148,6 +148,7 @@ export interface Translations {
   homeSubtitle: string;
   secureCheckout: string;
   feeShownShort: string;
+  instantRefillShort: string; // HOME-INSTANT-BADGE-1023
   refillNow: string;
   howItWorksTitle: string;
   howItWorksSubtitle: string;
@@ -312,6 +313,7 @@ const en: Translations = {
   homeSubtitle: "CellPay top-ups for 15+ US carriers · No login needed",
   secureCheckout: "Secure Checkout",
   feeShownShort: "Low service fee shown before you pay",
+  instantRefillShort: "Instant refill in most cases", // HOME-INSTANT-BADGE-1023
   refillNow: "Refill Now",
   howItWorksTitle: "How it works in 4 easy steps",
   howItWorksSubtitle: "Refill any prepaid line online. No login needed.",
@@ -471,6 +473,7 @@ const es: Translations = {
   homeSubtitle: "Recargas para más de 15 operadores · Sin necesidad de iniciar sesión",
   secureCheckout: "Pago Seguro",
   feeShownShort: "Cargo por servicio bajo, mostrado antes de pagar",
+  instantRefillShort: "Recarga instantánea en la mayoría de los casos", // HOME-INSTANT-BADGE-1023
   refillNow: "Recargar Ahora",
   howItWorksTitle: "Cómo funciona en 4 sencillos pasos",
   howItWorksSubtitle: "Recargue su teléfono prepagado en línea. Sin necesidad de iniciar sesión.",

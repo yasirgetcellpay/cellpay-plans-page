@@ -438,6 +438,8 @@ export type Database = {
           event: string
           fee: number | null
           gp_available: boolean | null
+          hb_group: string | null
+          hb_vid: string | null
           host: string | null
           id: number
           klarna_approved: boolean | null
@@ -474,6 +476,8 @@ export type Database = {
           event: string
           fee?: number | null
           gp_available?: boolean | null
+          hb_group?: string | null
+          hb_vid?: string | null
           host?: string | null
           id?: number
           klarna_approved?: boolean | null
@@ -510,6 +514,8 @@ export type Database = {
           event?: string
           fee?: number | null
           gp_available?: boolean | null
+          hb_group?: string | null
+          hb_vid?: string | null
           host?: string | null
           id?: number
           klarna_approved?: boolean | null
