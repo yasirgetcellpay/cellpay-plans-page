@@ -478,6 +478,10 @@ const Checkout = () => {
   // CM-WALLET-DEFAULT-1011: what was saved for this order when checkout opened, whether the customer tapped a method tile, and a once-only guard.
   const savedMethodSeenRef = useRef<string | null | undefined>(undefined);
   const methodTappedRef = useRef(false);
+  const selectMethodLikeTile = (key: string) => { // KLARNA-DECLINE-BTN-1022
+    methodTappedRef.current = true;
+    setPaymentMethod(key as PaymentMethod);
+  };
   const walletDefaultedRef = useRef(false);
   useEffect(() => {
     if (!state || methodRestoredRef.current) return;
@@ -607,6 +611,9 @@ const Checkout = () => {
   const [klarnaCountry, setKlarnaCountry] = useState("US");
   const [klarnaMissing, setKlarnaMissing] = useState<KlarnaField | null>(null); // KLARNA-OPEN-1019
   const klarnaValues = { firstName: klarnaFirstName, lastName: klarnaLastName, phone: klarnaPhone, address: klarnaAddress, city: klarnaCity, state: klarnaState, country: klarnaCountry, zip: klarnaZip }; // KLARNA-OPEN-1019
+  const klarnaValuesRef = useRef(klarnaValues); // KLARNA-DECLINE-BTN-1022: read the rendered prefills after the switch
+  klarnaValuesRef.current = klarnaValues;
+  const klarnaBillingRef = useRef<HTMLDivElement>(null); // KLARNA-DECLINE-BTN-1022
   const currentKlarnaMissing = firstMissingKlarnaField(klarnaValues); // KLARNA-OPEN-1019
   const isKlarnaValid = currentKlarnaMissing === null; // KLARNA-OPEN-1019
   const klarnaPendingRef = useRef<{ attempt: string; src: KlarnaSrc } | null>(null); // KLARNA-OPEN-1019
@@ -2722,7 +2729,7 @@ const Checkout = () => {
           {isVerizonSlug(state.carrierSlug) && Number(state.amount) > VZ_NOTICE_MIN && <p data-testid="vz-prepaid-notice" role="note" className="rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-900 text-xs p-3">{VZ_NOTE[lang === "es" ? "es" : "en"]}</p>}
           <div className={orsFailed ? "rounded-xl ring-2 ring-offset-2 ring-primary" : undefined} data-testid="ors-highlight" onMouseOver={kickGpay} onFocus={kickGpay}>{/* [OURSIDE-RETRY-1012] */}{/* GPAY-LAZY-1014: hover/focus on the method list starts pay.js */}
           <PaymentMethodPicker lang={lang === "es" ? "es" : "en"} methods={stepUp ? stepUpMethods : paymentMethods} selected={paymentMethod} brandColor={brandColor}
-            onSelect={(key) => { try { if (key === "klarna" && paymentMethod !== "klarna") trackKlarna("klarna_clicked", "method_list", `method_list|${declineSeqRef.current}`); } catch { /* ignore */ } if (key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); methodTappedRef.current = true; setPaymentMethod(key as PaymentMethod); }} /* KLARNA-FUNNEL-1017 */ />
+            onSelect={(key) => { try { if (key === "klarna" && paymentMethod !== "klarna") trackKlarna("klarna_clicked", "method_list", `method_list|${declineSeqRef.current}`); } catch { /* ignore */ } if (key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); selectMethodLikeTile(key); }} /* KLARNA-FUNNEL-1017 // KLARNA-DECLINE-BTN-1022 */ />
           </div>
 
           <div className="bg-card rounded-xl border border-border p-5">
@@ -2939,7 +2946,7 @@ const Checkout = () => {
 
           {/* Klarna Billing Details */}
           {paymentMethod === "klarna" && !stepUp && ( /* RISK-RULES-1020 */
-            <div className="bg-card rounded-xl border border-border p-5 space-y-4"
+            <div ref={klarnaBillingRef} /* KLARNA-DECLINE-BTN-1022 */ className="bg-card rounded-xl border border-border p-5 space-y-4"
               onFocusCapture={() => { try { trackKlarna("klarna_form_started", readKlarnaSrc(phone10), `form|${declineSeqRef.current}`); } catch { /* ignore */ } }} // KLARNA-FORM-1018
             >
               <h2 className="font-bold text-foreground mb-1 text-sm">{tr.billingDetails}</h2>
@@ -3352,6 +3359,21 @@ const Checkout = () => {
                   window.setTimeout(() => el.classList.remove("ring-4", "ring-offset-2"), 1500);
                 }, 120);
               };
+              const focusKlarnaBilling = () => { // KLARNA-DECLINE-BTN-1022
+                window.setTimeout(() => {
+                  const field = firstMissingKlarnaField(klarnaValuesRef.current);
+                  if (field) {
+                    klarnaBillingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    klarnaBillingRef.current?.querySelector<HTMLInputElement>(`[data-klarna-field="${field}"]`)?.focus({ preventScroll: true });
+                    return;
+                  }
+                  const el = inlinePayRef.current;
+                  if (!el) return;
+                  el.scrollIntoView({ behavior: "smooth", block: "center" });
+                  el.classList.add("ring-4", "ring-offset-2");
+                  window.setTimeout(() => el.classList.remove("ring-4", "ring-offset-2"), 1500);
+                }, 150);
+              };
               const walletNow = (m: PaymentMethod) => { // DECLINE-ONETAP-1017: one tap opens the wallet sheet; otherwise today's behavior
                 const avail = m === "applepay" ? (typeof window !== "undefined" && !!window.ApplePaySession && applePayAvailable) // DECLINE-ONETAP-1017
                   : m === "googlepay" ? (!gpayFailed && typeof window !== "undefined" && !!(window as unknown as { google?: { payments?: { api?: { PaymentsClient?: unknown } } } }).google?.payments?.api?.PaymentsClient) : false; // DECLINE-ONETAP-1017
@@ -3441,7 +3463,7 @@ const Checkout = () => {
                             if (!klarnaFirstName.trim()) setKlarnaFirstName(firstName);
                             if (!klarnaLastName.trim()) setKlarnaLastName(lastName);
                             if (!klarnaPhone.trim()) setKlarnaPhone(state.phone);
-                            toMethod("klarna");
+                            rec(); close(); selectMethodLikeTile("klarna"); focusKlarnaBilling(); // KLARNA-DECLINE-BTN-1022
                           }}>{fc.klarna.replace("{x}", klarnaQuarter(total))}</button>
                         <p className="text-xs text-muted-foreground" data-testid="funds-klarna-approval">{fc.approval}</p>
                         <p className="text-[11px] leading-snug text-muted-foreground" data-testid="funds-klarna-disclosure">{fc.disclosure} <a href="https://www.klarna.com/us/terms-and-conditions/" target="_blank" rel="noopener" className="underline">{fc.terms}</a></p>
@@ -3472,7 +3494,7 @@ const Checkout = () => {
                           if (!klarnaFirstName.trim()) setKlarnaFirstName(firstName); // KLARNA-DECLINE-OTHER-1020
                           if (!klarnaLastName.trim()) setKlarnaLastName(lastName); // KLARNA-DECLINE-OTHER-1020
                           if (!klarnaPhone.trim()) setKlarnaPhone(state.phone); // KLARNA-DECLINE-OTHER-1020
-                          toMethod("klarna"); }} /* KLARNA-FUNNEL-1017 */ className={btn + " border-2 text-foreground bg-background"} style={{ borderColor: "#FFA8CD" }}>{dc.abKlarna}</button>
+                          rec(); close(); selectMethodLikeTile("klarna"); focusKlarnaBilling(); }} /* KLARNA-FUNNEL-1017 // KLARNA-DECLINE-BTN-1022 */ className={btn + " border-2 text-foreground bg-background"} style={{ borderColor: "#FFA8CD" }}>{dc.abKlarna}</button>
                       )}
                       {ppBtn}{primaryWallet === "applepay" ? gpBtn : null}
                       {(showRetry || showAnother) && <p className="text-xs text-muted-foreground pt-1">{dc.orCard}</p>}
