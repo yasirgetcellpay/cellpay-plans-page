@@ -68,6 +68,24 @@ interface LocationState {
 }
 
 type PaymentMethod = "card" | "paypal" | "plaid" | "googlepay" | "applepay" | "klarna" | "cashapp";
+// ULTRA-FAIL-MSG-1022: presentation only; inspect existing refill errors, never alter payment decisions.
+function ultraRefundKind(value: unknown): "amount" | "generic" | null {
+  const messages: string[] = [];
+  const scan = (node: unknown, depth = 0) => {
+    if (!node || typeof node !== "object" || depth > 5) return;
+    for (const [key, field] of Object.entries(node)) {
+      if (/^(code|error_?code|response_?code)$/i.test(key) && String(field).trim() === "1065") messages.push("1065");
+      if (/^(load_?text|loadmessage|msg|message|error|error_?message)$/i.test(key) && typeof field === "string") messages.push(field.trim());
+      if (field && typeof field === "object") scan(field, depth + 1);
+    }
+  };
+  scan(value);
+  if (messages.some((text) => /invalid\s+amount|\b1065\b/i.test(text))) return "amount";
+  // A specific LoadText takes precedence over a generic wrapper error.
+  const load = loadTextFrom(value);
+  const text = load || messages.find((message) => message && !/auto[\s-]?refund/i.test(message)) || messages.join(" ");
+  return !text.trim() || /error during refill/i.test(text) ? "generic" : null;
+}
 const STEPUP_WALLETS: PaymentMethod[] = ["applepay", "googlepay", "paypal"]; // RISK-RULES-1020: step-up = wallets only (enforce mode only)
 
 // Normalize a US phone number for the carrier API: strip non-digits and any
@@ -798,6 +816,7 @@ const Checkout = () => {
   }, [declineInfo]);
   // TOP4-T2B-1009: the provider auto-refunded this payment -> show the refund card instead of the raw provider sentence.
   const [refundCard, setRefundCard] = useState(false);
+  const [ultraResultKind, setUltraResultKind] = useState<"amount" | "generic" | null>(null); // ULTRA-FAIL-MSG-1022
   const [retryResolving, setRetryResolving] = useState<string | null>(null); // REFUND-RETRY-1018
   const [retryNow, setRetryNow] = useState(Date.now()); // REFUND-RETRY-1018
   const refundRecordedRef = useRef(false); // REFUND-RETRY-1018
@@ -1731,6 +1750,7 @@ const Checkout = () => {
       if (paymentMethod !== "cashapp" && isBackendExcReply(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(false); setLock(lockKey(state?.phone, validation?.amount ?? state?.amount), "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); return; } // BACKEND-EXC-1019
       if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); return; } // REFUNDED-STATE-1017
       setLoadReason(loadTextPick(loadTextFrom(raw))); // LOADTEXT-PICK-1019
+      if (state.carrierSlug === "ultra-mobile") setUltraResultKind(ultraRefundKind(raw)); // ULTRA-FAIL-MSG-1022
       const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Transaction failed"; // SUCCESS-FLAG-FIX-1016
       const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
       const autoRefund = /auto[\s-]?refund/i.test(msg);
@@ -2295,6 +2315,7 @@ const Checkout = () => {
           else if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); } // REFUNDED-STATE-1017
           else if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") {
             setLoadReason(loadTextPick(loadTextFrom(raw))); // LOADTEXT-PICK-1019
+            if (state.carrierSlug === "ultra-mobile") setUltraResultKind(ultraRefundKind(raw)); // ULTRA-FAIL-MSG-1022
             const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Apple Pay transaction failed"; // SUCCESS-FLAG-FIX-1016
             const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
             const autoRefund = /auto[\s-]?refund/i.test(msg);
@@ -3562,6 +3583,7 @@ const Checkout = () => {
         const pickChoices = pick ? pickButtons(pick.category, lang, choices) : null; // LOADTEXT-PICK-1019: null for generic = existing buttons
         const es = lang === "es";
         const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`); // REFUND-WORDING-1016
+        const ultraKind = state.carrierSlug === "ultra-mobile" ? ultraResultKind : null; // ULTRA-FAIL-MSG-1022
         const amt = `$${Number(validation?.total ?? state.amount ?? 0).toFixed(2)}`; // REFUND-WORDING-1016
         const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); }; // LOADTEXT-REASON-1017: + loadReason reset
         const toCarrier = (ph: string) => { close(); navigate(carrierPageTarget(lang, state.carrierSlug, ph, undefined, location.search, location.hash)); };
@@ -3598,7 +3620,9 @@ const Checkout = () => {
               {/* SUCCESS-FLAG-FIX-1016: owner-approved refund-card title and text only. */}
               {/* REFUND-WORDING-1016: wording only; refund behavior and buttons unchanged. */}
               <h3 className="text-xl font-bold text-foreground mb-2">{es ? (payWord ? "Pago no completado" : "Recarga no completada") : (payWord ? "Payment not completed" : "Refill not completed")}</h3>
-              {pick ? (<> {/* LOADTEXT-PICK-1019: picked reason + refund line */}
+              {ultraKind ? <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">{ultraKind === "amount" // ULTRA-FAIL-MSG-1022
+                ? (es ? "Este monto no está disponible para su plan Ultra. Su pago fue reembolsado. Por favor elija otro monto e intente de nuevo." : "This amount isn't available for your Ultra plan. Your payment was refunded. Please choose a different amount and try again.") // ULTRA-FAIL-MSG-1022
+                : (es ? "Su recarga no se completó y su pago fue reembolsado. Por favor intente con otro monto o vuelva a intentarlo en unos minutos." : "Your refill didn't go through and your payment was refunded. Please try a different amount, or try again in a few minutes.")}</p> : pick ? (<> {/* ULTRA-FAIL-MSG-1022 */} {/* LOADTEXT-PICK-1019: picked reason + refund line */}
                 <p className="text-sm text-muted-foreground mb-2" data-testid="pick-reason" data-pick={pick.category}>{pickReasonText(pick.category, lang, state.carrierName, state.carrierSlug, pick.category === "generic" && cause ? retryReasonText(cause, lang, phone10) : null)}</p>
                 <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">{pickRefundLine(lang)}</p>
               </>) : cause ? (<> {/* LOADTEXT-REASON-1017: refund sentence ends after bank timing; reason paragraph added */} {/* // REFUND-RETRY-1018 */}
@@ -3616,7 +3640,7 @@ const Checkout = () => {
               </p>
               )}
               <div className="space-y-2">
-                {pickChoices ? pickChoices.map((b, index) => { // LOADTEXT-PICK-1019: buttons point at the matched reason
+                {ultraKind ? <Button type="button" data-testid="ultra-change-amount" className="w-full" onClick={() => toCarrier(state.phone)}>{es ? "Elegir otro monto" : "Choose another amount"}</Button> : pickChoices ? pickChoices.map((b, index) => { // ULTRA-FAIL-MSG-1022 // LOADTEXT-PICK-1019: buttons point at the matched reason
                   const key = `${b.action}${b.action === "to_carrier" ? "-" + b.to_carrier : ""}`; // LOADTEXT-PICK-1019
                   return <Button key={`pick-${key}`} type="button" data-testid={`pick-btn-${key}`} disabled={!!retryResolving} onClick={() => { if (b.action === "ok") close(); else void retry({ label: b.label, action: b.action, ...(b.to_carrier ? { to_carrier: b.to_carrier } : {}) }); }} className={btn + (index === 0 ? " text-primary-foreground" : " border-2 border-border text-foreground bg-background hover:bg-muted")} style={index === 0 ? { backgroundColor: brandColor } : undefined}>{retryResolving === key ? "…" : b.label}</Button>; // LOADTEXT-PICK-1019
                 }) : cause ? choices.map((choice, index) => { // REFUND-RETRY-1018
