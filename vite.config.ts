@@ -808,7 +808,7 @@ const htmlAliasPlugin = (): Plugin => ({
       // EN-META-1007: boost / topup-crc / metropcs (+ metro-pcs variant) use the same title/description that
       // src/pages/DynamicCarrier.tsx sets at runtime for these pages (lang en). Keep in sync.
       "boost.html":                { title: "Pay Boost Mobile Bill Online as a Guest – No Login | CellPay", description: "Pay your Boost Mobile bill online as a guest with just the phone number. No login needed. Service fee shown before you pay." }, // BILLPAY-BOOST-1022
-      "topup-crc.html":            { title: "Cricket Quick Pay — Pay Your Cricket Bill Online | CellPay", description: "Cricket Quick Pay on CellPay: pay any Cricket Wireless bill online. No login needed. All major cards & wallets. Service fee shown before you pay." }, // SEO-CONTENT-1014
+      "topup-crc.html":            { title: "Pay Cricket Bill Online – Quick Pay as a Guest | CellPay", description: "Cricket Quick Pay on CellPay: pay any Cricket Wireless bill online. No login needed. All major cards & wallets. Service fee shown before you pay." }, // BILLPAY-CRICKET-1023
       "h2o.html":                  { title: "H2O Wireless Refill — Online Top-Up | CellPay",        description: "Recharge H2O Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "lyca.html":                 { title: "Lycamobile Refill — Online Top-Up | CellPay",          description: "Recharge Lycamobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "metropcs.html":             { title: "Pay Metro PCS Bill Online as a Guest – No Login | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." }, // GSC-MAULIK-1014
@@ -1953,6 +1953,10 @@ const htmlAliasPlugin = (): Plugin => ({
       }
       // SEO-CONTENT-1014: es Metro / es Boost / en+es Cricket: FAQPage + BreadcrumbList JSON-LD (same FAQ text as the page).
       const billPg = billPageByPath("/" + route);
+      if (billPg && (route === "topup-crc.html" || route === "es/topup-crc.html")) { // BILLPAY-CRICKET-1023
+        out = out.replace(/\s*<meta name="keywords"[^>]*>/i, ""); // BILLPAY-CRICKET-1023: omit global refill keywords only on these pages
+        out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${escAttr(billPg.title || billPg.h1)}"`); // BILLPAY-CRICKET-1023
+      } // BILLPAY-CRICKET-1023
       if (billPg) {
         try {
           const ld = `<script type="application/ld+json" data-bill="1">${billJsonLd(billPg)}</script>`;
