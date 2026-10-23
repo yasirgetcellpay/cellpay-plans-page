@@ -400,9 +400,10 @@ function storedRetryMeta(payload: Record<string, unknown>): Record<string, unkno
 
 export async function submitTransaction(
   payload: Record<string, unknown>,
-  bearerToken?: string
+  bearerToken?: string,
+  opts?: ProxyCallOptions, // CHECKOUT-TIMEOUT-1023: optional; omitted = unchanged behavior
 ): Promise<unknown> {
-  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds(), lang: pageLang(), visit_source: storedVisitSource(), retry_meta: storedRetryMeta(payload) });
+  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds(), lang: pageLang(), visit_source: storedVisitSource(), retry_meta: storedRetryMeta(payload) }, opts); // CHECKOUT-TIMEOUT-1023
 }
 
 export async function fetchCheckoutConfig(): Promise<Record<string, unknown>> {
