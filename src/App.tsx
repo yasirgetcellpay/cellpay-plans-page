@@ -673,6 +673,7 @@ const App = () => (
           path="/go/metro"
           element={
             <GoLander
+              metroFirstScreen={true} // METRO-FIRSTSCREEN-1023b
               carrierName="Metro PCS"
               carrierSlug="metropcs"
               carrierId={38}
@@ -688,6 +689,7 @@ const App = () => (
           path="/go/metro.html"
           element={
             <GoLander
+              metroFirstScreen={true} // METRO-FIRSTSCREEN-1023b
               carrierName="Metro PCS"
               carrierSlug="metropcs"
               carrierId={38}
@@ -825,6 +827,7 @@ const App = () => (
           path="/es/go/metro"
           element={
             <GoLander
+              metroFirstScreen={true} // METRO-FIRSTSCREEN-1023b
               lang="es"
               carrierName="Metro PCS"
               carrierSlug="metropcs"
@@ -841,6 +844,7 @@ const App = () => (
           path="/es/go/metro.html"
           element={
             <GoLander
+              metroFirstScreen={true} // METRO-FIRSTSCREEN-1023b
               lang="es"
               carrierName="Metro PCS"
               carrierSlug="metropcs"

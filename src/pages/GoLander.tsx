@@ -13,6 +13,7 @@ import { displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq } f
 // LPX-1010: guest/phone wording for the H1, title and subline (same table the static shell uses).
 import { goLpxForCarrier } from "@/content/goCopy";
 import { PlanGrid } from "@/components/PlanGrid";
+import { Button } from "@/components/ui/button"; // METRO-FIRSTSCREEN-1023b
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
 import { feeCopy1019 } from "@/lib/feeCopy1019"; // METRO-FEECOPY-1019
@@ -180,6 +181,7 @@ export interface GoLanderProps {
   title: string;
   description: string;
   lang?: Language;
+  metroFirstScreen?: boolean; // METRO-FIRSTSCREEN-1023b
 }
 
 const GoLander = ({
@@ -192,6 +194,7 @@ const GoLander = ({
   title,
   description,
   lang = "en",
+  metroFirstScreen = false, // METRO-FIRSTSCREEN-1023b
 }: GoLanderProps) => {
   const navigate = useNavigate();
   const location = useLocation(); // VZ-PREPAID-GUARD-1017
@@ -550,6 +553,17 @@ const GoLander = ({
         <div className="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">
           <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">{lpx?.h1 ?? h1}</h1>
           <p className="text-xs sm:text-sm opacity-90 mt-1">{tagline}</p>
+          {metroFirstScreen && ( // METRO-FIRSTSCREEN-1023b
+            <div className="max-w-[280px] sm:max-w-[420px] mx-auto mt-3 text-center">{/* // METRO-FIRSTSCREEN-1023b */}
+              <label htmlFor="go-phone-input" className="block text-xs sm:text-sm font-bold mb-1.5">{/* // METRO-FIRSTSCREEN-1023b */}
+                {isEs ? "Ingrese su número de teléfono de Metro PCS" : "Enter Your Metro PCS Phone Number"}{/* // METRO-FIRSTSCREEN-1023b */}
+              </label>{/* // METRO-FIRSTSCREEN-1023b */}
+              <div className="relative">{/* // METRO-FIRSTSCREEN-1023b */}
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />{/* // METRO-FIRSTSCREEN-1023b */}
+                <input id="go-phone-input" name="phone" type="tel" value={phone} onChange={handlePhoneChange} placeholder={tr.phonePlaceholder} aria-label={isEs ? "Ingrese su número de teléfono de Metro PCS" : "Enter Your Metro PCS Phone Number"} className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" />{/* // METRO-FIRSTSCREEN-1023b */}
+              </div>{/* // METRO-FIRSTSCREEN-1023b */}
+            </div> // METRO-FIRSTSCREEN-1023b
+          )}
           <p className="text-xs sm:text-sm opacity-90 mt-1">{goCarrierSentence(carrierSlug, isEs ? "es" : "en", faqName)}</p>
           {noCallLine && <p className="text-xs sm:text-sm font-bold mt-1">{noCallLine}</p>}
           {esHref && (
@@ -673,6 +687,7 @@ const GoLander = ({
               <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">
                 {stepsLine}
               </p>
+              {!metroFirstScreen && <>{/* // METRO-FIRSTSCREEN-1023b */}
               <label
                 htmlFor="go-phone-input"
                 className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2"
@@ -693,6 +708,7 @@ const GoLander = ({
                   style={{ "--tw-ring-color": bc } as React.CSSProperties}
                 />
               </div>
+              </>}{/* // METRO-FIRSTSCREEN-1023b */}
               {lineNote && <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 -mt-2">{lineNote}</p>}
               {phoneDigits.length === 10 && (
                 <p className="text-[10px] sm:text-xs text-cellpay-green font-semibold mb-2 -mt-1">
@@ -739,7 +755,7 @@ const GoLander = ({
                       {amountMessage}
                     </p>
                   )}
-                  {rangeAmountValid && (
+                  {rangeAmountValid && !metroFirstScreen && ( // METRO-FIRSTSCREEN-1023b
                     <button
                       type="button"
                       onClick={handlePay}
@@ -757,6 +773,12 @@ const GoLander = ({
                 </>
               )}
 
+              {metroFirstScreen && ( // METRO-FIRSTSCREEN-1023b
+                <Button type="button" onClick={handlePay} disabled={loading || verifying} className="mt-3 w-full h-10 sm:h-11 whitespace-normal font-bold text-sm sm:text-base">{/* // METRO-FIRSTSCREEN-1023b */}
+                  {verifying && <Loader2 className="h-4 w-4 animate-spin" />}{/* // METRO-FIRSTSCREEN-1023b */}
+                  {verifying ? tr.verifying : isEs ? "Pague su factura de Metro PCS" : "Pay Metro PCS Bill"}{/* // METRO-FIRSTSCREEN-1023b */}
+                </Button> // METRO-FIRSTSCREEN-1023b
+              )}
               {inlineError && (
                 <div
                   role="alert"
