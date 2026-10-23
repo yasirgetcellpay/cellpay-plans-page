@@ -89,6 +89,24 @@ const boostFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [
   { q: "I switched to Boost — can I still pay here?", a: "Yes. If you just moved your number to Boost, enter it and pay the same way." },
 ];
 
+const cricketFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-CRICKET-1023
+  { q: "¿Cómo pago mi factura de Cricket en línea?", a: "Ingrese el número de teléfono de Cricket, elija su plan o monto y complete el pago en línea." }, // BILLPAY-CRICKET-1023
+  { q: "¿Puedo pagar Cricket como invitado, al estilo Quick Pay?", a: "Sí. Puede pagar como invitado solo con el número de teléfono de Cricket. No necesita una cuenta." }, // BILLPAY-CRICKET-1023
+  { q: "¿Puedo pagar sin iniciar sesión en Cricket?", a: "Sí. No necesita su usuario ni su contraseña de Cricket. Ingrese el número de la línea que desea pagar." }, // BILLPAY-CRICKET-1023
+  { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es")}` }, // BILLPAY-CRICKET-1023
+  { q: "¿Cuándo se aplica mi pago?", a: "Puede tardar hasta 30 minutos en verse reflejado en su cuenta." }, // BILLPAY-CRICKET-1023
+  { q: "¿Puedo pagar la línea de Cricket de un familiar?", a: "Sí. Ingrese el número de Cricket de su familiar y revise que sea correcto antes de pagar. El pago se aplica a esa línea." }, // BILLPAY-CRICKET-1023
+  faqsEs("Cricket Wireless")[3], // BILLPAY-CRICKET-1023: preserve the existing fee question and answer exactly
+] : [ // BILLPAY-CRICKET-1023
+  { q: "How do I pay my Cricket bill online?", a: "Enter the Cricket phone number, choose your plan or amount, and complete your payment online." }, // BILLPAY-CRICKET-1023
+  { q: "Can I pay Cricket as a guest (Quick Pay style)?", a: "Yes. You can pay as a guest with just the Cricket phone number. No account is needed." }, // BILLPAY-CRICKET-1023
+  { q: "Can I pay without my Cricket login?", a: "Yes. You don't need your Cricket username or password. Enter the number of the line you want to pay." }, // BILLPAY-CRICKET-1023
+  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-CRICKET-1023
+  { q: "When does my payment post?", a: "It can take up to 30 min for a payment to reflect on your account." }, // BILLPAY-CRICKET-1023
+  { q: "Can I pay a family member's Cricket line?", a: "Yes. Enter your family member's Cricket number and double-check it before paying. The payment applies to their line." }, // BILLPAY-CRICKET-1023
+  faqsEn("Cricket Wireless")[3], // BILLPAY-CRICKET-1023: preserve the existing fee question and answer exactly
+]; // BILLPAY-CRICKET-1023
+
 export const BILL_PAGES: BillPage[] = [
   { // BILLPAY-METRO-1021
     ...esPage("/es/metropcs.html", "Metro PCS", ["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"]),
@@ -132,19 +150,27 @@ export const BILL_PAGES: BillPage[] = [
     guide: ["/how-to-pay/boost-mobile", "How to pay Boost Mobile"],
     more: [["/switched-to-boost", "Switched to Boost Mobile?"], ["/pay-your-phone-bill", "Pay your phone bill"]],
   },
-  esPage("/es/topup-crc.html", "Cricket Wireless", ["/es/como-pagar/cricket", "Cómo pagar Cricket Wireless"]), // CRICKET-GUIDE-1014
-  {
+  { // BILLPAY-CRICKET-1023
+    ...esPage("/es/topup-crc.html", "Cricket Wireless", ["/es/como-pagar/cricket", "Cómo pagar Cricket Wireless"]), // BILLPAY-CRICKET-1023
+    title: "Pagar Factura Cricket en Línea sin Cuenta | CellPay", // BILLPAY-CRICKET-1023
+    h1: "Pague su Factura de Cricket Wireless en Línea", // BILLPAY-CRICKET-1023
+    sub: "Pague su línea o plan de Cricket solo con el número. Sin cuenta.", // BILLPAY-CRICKET-1023
+    faqs: cricketFaqs("es"), // BILLPAY-CRICKET-1023
+    more: [["/es/paga-tu-factura", "Pague su factura de celular"]], // BILLPAY-CRICKET-1023
+  }, // BILLPAY-CRICKET-1023
+  { // BILLPAY-CRICKET-1023
     path: "/topup-crc.html", lang: "en", name: "Cricket Wireless",
-    // title kept: "Cricket Quick Pay — Pay Your Cricket Bill Online | CellPay"
+    title: "Pay Cricket Bill Online – Quick Pay as a Guest | CellPay", // BILLPAY-CRICKET-1023
     description: "Cricket Quick Pay on CellPay: pay any Cricket Wireless bill online. No login needed. All major cards & wallets. Service fee shown before you pay.",
-    h1: "Pay Your Cricket Wireless Bill Online—Fast & Secure",
-    sub: "No login needed. Enter your phone number, choose your plan, and pay.",
+    h1: "Pay Your Cricket Wireless Bill Online", // BILLPAY-CRICKET-1023
+    sub: "Pay your Cricket bill with just the phone number. No login, no account.", // BILLPAY-CRICKET-1023
     autoPayInfoLead: "Optional: Auto Pay so you never miss a payment.",
     enterAmount: "Enter the amount you want to pay",
     securePayment: "Secure payment. Your payment goes to the number you entered.",
     faqTitle: "Common questions",
-    faqs: faqsEn("Cricket Wireless"),
+    faqs: cricketFaqs("en"), // BILLPAY-CRICKET-1023
     guide: ["/how-to-pay/cricket", "How to pay Cricket Wireless"], // CRICKET-GUIDE-1014
+    more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-CRICKET-1023
   },
 ];
 
