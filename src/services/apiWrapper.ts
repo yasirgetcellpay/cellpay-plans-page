@@ -21,9 +21,20 @@ interface ProxyRequest {
   klarna_log?: { lang?: "en" | "es"; src?: string }; // KLARNA-LOG-1017
 }
 
-export async function callProxy(req: ProxyRequest): Promise<unknown> {
+/** CHECKOUT-TIMEOUT-1023: optional; when omitted the call behaves exactly as before (no signal, no extra timeout). */
+export interface ProxyCallOptions { signal?: AbortSignal; timeoutMs?: number }
+
+export async function callProxy(req: ProxyRequest, opts?: ProxyCallOptions): Promise<unknown> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  // CHECKOUT-TIMEOUT-1023: only callers passing opts get an abort signal.
+  let optController: AbortController | undefined; // CHECKOUT-TIMEOUT-1023
+  let optTimer: ReturnType<typeof setTimeout> | undefined; // CHECKOUT-TIMEOUT-1023
+  if (opts && (opts.signal || opts.timeoutMs)) { // CHECKOUT-TIMEOUT-1023
+    optController = new AbortController();
+    if (opts.signal) { if (opts.signal.aborted) optController.abort(); else opts.signal.addEventListener("abort", () => optController?.abort(), { once: true }); }
+    if (opts.timeoutMs && opts.timeoutMs > 0) optTimer = setTimeout(() => optController?.abort(), opts.timeoutMs);
+  }
 
   // Auto-inject bearer token from localStorage if not explicitly provided
   if (!req.bearerToken) {
@@ -44,7 +55,9 @@ export async function callProxy(req: ProxyRequest): Promise<unknown> {
   try {
     const { data, error } = await supabase.functions.invoke("cellpay-proxy", {
       body: { ...req, callerHost },
+      ...(optController ? { signal: optController.signal } : {}), // CHECKOUT-TIMEOUT-1023
     });
+
 
     if (error) { // PLAN-BLOCK-CLEANUP-1017
       const context = (error as { context?: unknown }).context; // DB-OUTAGE-TRACK-1017
