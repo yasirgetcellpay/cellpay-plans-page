@@ -11,3 +11,4 @@
 - Keep carrier refund retry policy and browser-only context in a pure frontend helper, and retry analytics in an independent edge batch, so retries cannot bypass payment guards or disrupt legacy logging. // REFUND-RETRY-1018
 - Keep carrier email token handling in one once-ready hook with a current callback ref so carrier pages share resolution and cleanup without overwriting typed input. // ST-PREFILL-1018
 - Keep late-refund receipt retries in a shared RefundRetryButtons component over the pure refundRetry helpers, and the retry cap as a fail-open gate before any log/dedupe/CellPay call, so receipt and checkout retries stay identical and the cap can never block a normal order. // REFUND-RETRY-LATE-1018
+- Keep checkout transaction timeout, outcome-unknown classification and attempt logging in a pure checkoutTimeout helper, passed to apiWrapper only via optional call options, so other proxy callers keep default behavior. // CHECKOUT-TIMEOUT-1023

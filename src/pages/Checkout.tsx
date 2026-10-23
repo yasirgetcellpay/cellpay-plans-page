@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { CHECKOUT_TIMEOUT_MS, newAttemptId, outcomeOfError, isOutcomeUnknown, logAttempt, confirmingMessage } from "@/lib/checkoutTimeout"; // CHECKOUT-TIMEOUT-1023
 import { Footer } from "@/components/Footer";
 import { LegalBar } from "@/components/LegalBar";
 import { PaymentBar } from "@/components/PaymentBar";
@@ -573,7 +574,18 @@ const Checkout = () => {
     } catch { /* empty cp_dev */ }
     const withDev = { ...p, cp_dev: cpDev };
     const raw = await runPayLocked(key, skipLock, // DB-OUTAGE-TRACK-1017
-      () => submitTransactionRaw(confirmed ? { ...withDev, dup_confirm: true } : withDev),
+      async () => { // CHECKOUT-TIMEOUT-1023: 120 s client timeout + PII-free attempt log; same request body, never re-sent
+        const attemptId = newAttemptId(); const started = Date.now(); const ac = new AbortController(); let timedOut = false; // CHECKOUT-TIMEOUT-1023
+        const tm = setTimeout(() => { timedOut = true; ac.abort(); }, CHECKOUT_TIMEOUT_MS); // CHECKOUT-TIMEOUT-1023
+        try { // CHECKOUT-TIMEOUT-1023
+          const out = await submitTransactionRaw(confirmed ? { ...withDev, dup_confirm: true } : withDev, undefined, { signal: ac.signal }); // CHECKOUT-TIMEOUT-1023
+          logAttempt(attemptId, 200, Date.now() - started); return out; // CHECKOUT-TIMEOUT-1023
+        } catch (err) { // CHECKOUT-TIMEOUT-1023
+          const outcome = outcomeOfError(err, timedOut); logAttempt(attemptId, outcome, Date.now() - started); // CHECKOUT-TIMEOUT-1023
+          if (isOutcomeUnknown(outcome)) { confirmingRef.current = true; setConfirmingPay(true); } // CHECKOUT-TIMEOUT-1023
+          throw err; // CHECKOUT-TIMEOUT-1023: runPayLocked keeps the lock engaged (unknown) and returns MAYBE_PAID
+        } finally { clearTimeout(tm); } // CHECKOUT-TIMEOUT-1023
+      },
       (value) => {
         const rawReply = value && typeof value === "object" ? value as Record<string, unknown> : {};
         let result = rawReply;
@@ -827,6 +839,9 @@ const Checkout = () => {
   const [maybePaid, setMaybePaid] = useState<{ until: number } | null>(null); // DB-OUTAGE-TRACK-1017
   const [maybePaidPaused, setMaybePaidPaused] = useState(false); // DB-OUTAGE-TRACK-1017
   const maybePaidKeyRef = useRef<string | null>(null); // DB-OUTAGE-TRACK-1017
+  const [confirmingPay, setConfirmingPay] = useState(false); // CHECKOUT-TIMEOUT-1023: outcome unknown, pay button stays disabled
+  const confirmingRef = useRef(false); // CHECKOUT-TIMEOUT-1023
+  useEffect(() => { if (!confirmingPay) return; const t = setTimeout(() => { confirmingRef.current = false; setConfirmingPay(false); }, PAYLOCK_UNKNOWN_MS); return () => clearTimeout(t); }, [confirmingPay]); // CHECKOUT-TIMEOUT-1023: re-enable only when the unknown-outcome lock window ends
   const showMaybePaid = (paused: boolean, until?: number) => { // DB-OUTAGE-TRACK-1017
     const key = lockKey(state?.phone, validation?.amount ?? state?.amount);
     maybePaidKeyRef.current = key;
@@ -1679,7 +1694,8 @@ const Checkout = () => {
     default: methodValid = true;
   }
 
-  const canSubmit = agreedTerms && !submitting && isEmailValid && methodValid && (!autoPay || autoPayTerms);
+  const canSubmit = agreedTerms && !submitting && !confirmingPay && // CHECKOUT-TIMEOUT-1023
+     isEmailValid && methodValid && (!autoPay || autoPayTerms);
 
   // [OURSIDE-RETRY-1012] Data-error fallback (never resends) + flagged single Retry. Per-session record in sessionStorage
   // "cp_ors:<checkout session id>" ({ fallback_shown, failed_method, retry_offered, retry_clicked }); read by submitTransaction.
@@ -3698,6 +3714,7 @@ const Checkout = () => {
           <div className="fixed inset-0 z-[100] bg-foreground/50 flex items-center justify-center p-4" onClick={close}>
             <div role="dialog" aria-modal="true" aria-labelledby="maybe-paid-title" className="bg-card rounded-2xl p-5 max-w-sm w-full max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain text-center shadow-xl" onClick={(e) => e.stopPropagation()} data-testid="maybe-paid-card">
               <h3 id="maybe-paid-title" className="text-xl font-bold text-foreground mb-2">{es ? `Es posible que su ${payWord ? "pago" : "recarga"} se haya realizado` : `Your ${payWord ? "payment" : "refill"} may have gone through`}</h3>
+              {confirmingPay && <p className="text-sm font-semibold text-foreground mb-2" data-testid="confirming-pay">{confirmingMessage(es ? "es" : "en")}</p>/* CHECKOUT-TIMEOUT-1023 */}
               <p className="text-sm text-muted-foreground mb-4">{es ? "Por favor, no vuelva a pagar. Revise su recibo por mensaje de texto o correo electrónico en los próximos minutos, o comuníquese con support@getcellpay.com." : "Please don't pay again. Check your text or email receipt in the next few minutes, or contact support@getcellpay.com."}</p>
               {maybePaidPaused && <p className="text-sm text-muted-foreground mb-4" data-testid="maybe-paid-pause">{es ? `Para evitarle un cobro doble, este número y este monto quedan en pausa hasta las ${time}.` : `To protect you from a double charge, this number and amount are paused until ${time}.`}</p>}
               <div className="space-y-2">

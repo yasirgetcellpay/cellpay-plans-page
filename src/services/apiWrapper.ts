@@ -21,9 +21,20 @@ interface ProxyRequest {
   klarna_log?: { lang?: "en" | "es"; src?: string }; // KLARNA-LOG-1017
 }
 
-export async function callProxy(req: ProxyRequest): Promise<unknown> {
+/** CHECKOUT-TIMEOUT-1023: optional; when omitted the call behaves exactly as before (no signal, no extra timeout). */
+export interface ProxyCallOptions { signal?: AbortSignal; timeoutMs?: number }
+
+export async function callProxy(req: ProxyRequest, opts?: ProxyCallOptions): Promise<unknown> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  // CHECKOUT-TIMEOUT-1023: only callers passing opts get an abort signal.
+  let optController: AbortController | undefined; // CHECKOUT-TIMEOUT-1023
+  let optTimer: ReturnType<typeof setTimeout> | undefined; // CHECKOUT-TIMEOUT-1023
+  if (opts && (opts.signal || opts.timeoutMs)) { // CHECKOUT-TIMEOUT-1023
+    optController = new AbortController();
+    if (opts.signal) { if (opts.signal.aborted) optController.abort(); else opts.signal.addEventListener("abort", () => optController?.abort(), { once: true }); }
+    if (opts.timeoutMs && opts.timeoutMs > 0) optTimer = setTimeout(() => optController?.abort(), opts.timeoutMs);
+  }
 
   // Auto-inject bearer token from localStorage if not explicitly provided
   if (!req.bearerToken) {
@@ -44,7 +55,9 @@ export async function callProxy(req: ProxyRequest): Promise<unknown> {
   try {
     const { data, error } = await supabase.functions.invoke("cellpay-proxy", {
       body: { ...req, callerHost },
+      ...(optController ? { signal: optController.signal } : {}), // CHECKOUT-TIMEOUT-1023
     });
+
 
     if (error) { // PLAN-BLOCK-CLEANUP-1017
       const context = (error as { context?: unknown }).context; // DB-OUTAGE-TRACK-1017
@@ -57,14 +70,15 @@ export async function callProxy(req: ProxyRequest): Promise<unknown> {
           if (b && b.code === "PLAN_GUARD" && typeof b.message === "string") politeMsg = b.message.trim(); // PLAN-BLOCK-CLEANUP-1017
         } // PLAN-BLOCK-CLEANUP-1017
       } catch { /* keep the original message */ } // PLAN-BLOCK-CLEANUP-1017
-      if (politeMsg) { const pe = new Error(politeMsg) as Error & { cpStatus?: number }; pe.name = "PlanGuardError"; if (cpStatus !== undefined) pe.cpStatus = cpStatus; throw pe; } // PLAN-BLOCK-CLEANUP-1017 // DB-OUTAGE-TRACK-1017
-      const thrownError = new Error(error.message || "Proxy call failed") as Error & { cpStatus?: number }; // PLAN-BLOCK-CLEANUP-1017 // DB-OUTAGE-TRACK-1017
-      if (cpStatus !== undefined) thrownError.cpStatus = cpStatus; // DB-OUTAGE-TRACK-1017
+      if (politeMsg) { const pe = new Error(politeMsg) as Error & { cpStatus?: number; status?: number }; pe.name = "PlanGuardError"; if (cpStatus !== undefined) { pe.cpStatus = cpStatus; pe.status = cpStatus; } throw pe; } // PLAN-BLOCK-CLEANUP-1017 // DB-OUTAGE-TRACK-1017 // CHECKOUT-TIMEOUT-1023
+      const thrownError = new Error(error.message || "Proxy call failed") as Error & { cpStatus?: number; status?: number }; // PLAN-BLOCK-CLEANUP-1017 // DB-OUTAGE-TRACK-1017 // CHECKOUT-TIMEOUT-1023
+      if (cpStatus !== undefined) { thrownError.cpStatus = cpStatus; thrownError.status = cpStatus; } // DB-OUTAGE-TRACK-1017 // CHECKOUT-TIMEOUT-1023
       throw thrownError; // DB-OUTAGE-TRACK-1017
     } // PLAN-BLOCK-CLEANUP-1017
     return data;
   } finally {
     clearTimeout(timer);
+    if (optTimer) clearTimeout(optTimer); // CHECKOUT-TIMEOUT-1023
   }
 }
 
@@ -386,9 +400,10 @@ function storedRetryMeta(payload: Record<string, unknown>): Record<string, unkno
 
 export async function submitTransaction(
   payload: Record<string, unknown>,
-  bearerToken?: string
+  bearerToken?: string,
+  opts?: ProxyCallOptions, // CHECKOUT-TIMEOUT-1023: optional; omitted = unchanged behavior
 ): Promise<unknown> {
-  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds(), lang: pageLang(), visit_source: storedVisitSource(), retry_meta: storedRetryMeta(payload) });
+  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds(), lang: pageLang(), visit_source: storedVisitSource(), retry_meta: storedRetryMeta(payload) }, opts); // CHECKOUT-TIMEOUT-1023
 }
 
 export async function fetchCheckoutConfig(): Promise<Record<string, unknown>> {

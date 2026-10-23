@@ -6,6 +6,7 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { raceNull } from "../../supabase/functions/_shared/raceNull";
 import { memdupKey, memdupCheck, memdupUpdate, MEMDUP_UNKNOWN_MS, type MemdupEntry } from "../../supabase/functions/_shared/memdup";
+import * as checkoutTimeout from "@/lib/checkoutTimeout"; // CHECKOUT-TIMEOUT-1023
 import { lockKey, activeLock, setLock, clearLock, PAYLOCK_MS, PAYLOCK_UNKNOWN_MS, runPayLocked } from "@/lib/payLock";
 
 const source = readFileSync("src/pages/Checkout.tsx", "utf8");
@@ -33,6 +34,7 @@ function wrapper(raw: () => Promise<unknown>, phone = "5552010000", amount = 50)
     hasRefundSignal: (r: Record<string, unknown>) => r.refund_signal === true,
     maybePaidKeyRef: { current: null }, showMaybePaid: (_: boolean, time: number) => until.push(time), setMaybePaid: vi.fn(), setMaybePaidPaused: vi.fn(),
     setStepUp: vi.fn(), setDupAsk: vi.fn(), setInFlightNote: vi.fn(),
+    ...checkoutTimeout, confirmingRef: { current: false }, setConfirmingPay: vi.fn(), // CHECKOUT-TIMEOUT-1023
   }) as (p: Record<string, unknown>) => Promise<unknown>;
   return { fn, until };
 }
@@ -143,7 +145,7 @@ describe("maybe-paid card", () => {
     const start = source.indexOf("{maybePaid && (() => {"); const end = source.indexOf("      {showSaveInfoTip", start);
     const jsx = source.slice(start, end).trim();
     for (const carrierSlug of ["metropcs", "boost", "topup-crc", "tmobile"]) for (const paused of [false, true]) {
-      const card = compile(`return (${jsx.slice(1, -1)});`, { React, maybePaid: { until: Date.now() + 180000 }, lang, state: { carrierSlug, carrierName: carrierSlug === "topup-crc" ? "Cricket Wireless" : carrierSlug }, maybePaidPaused: paused, setMaybePaid: vi.fn(), setMaybePaidPaused: vi.fn(), Button: (props: Record<string, unknown>) => React.createElement("button", { onClick: props.onClick, children: props.children }) }, true) as React.ReactElement;
+      const card = compile(`return (${jsx.slice(1, -1)});`, { React, maybePaid: { until: Date.now() + 180000 }, lang, state: { carrierSlug, carrierName: carrierSlug === "topup-crc" ? "Cricket Wireless" : carrierSlug }, maybePaidPaused: paused, confirmingPay: false, confirmingMessage: checkoutTimeout.confirmingMessage, setMaybePaid: vi.fn(), setMaybePaidPaused: vi.fn(), Button: (props: Record<string, unknown>) => React.createElement("button", { onClick: props.onClick, children: props.children }) }, true) as React.ReactElement;
       const view = render(card); const text = view.getByTestId("maybe-paid-card").textContent || ""; const payment = carrierSlug !== "tmobile";
       expect(text).toContain(lang === "es" ? `Es posible que su ${payment ? "pago" : "recarga"} se haya realizado` : `Your ${payment ? "payment" : "refill"} may have gone through`);
       expect(text).toContain(lang === "es" ? "Por favor, no vuelva a pagar. Revise su recibo por mensaje de texto o correo electrónico en los próximos minutos, o comuníquese con support@getcellpay.com." : "Please don't pay again. Check your text or email receipt in the next few minutes, or contact support@getcellpay.com.");
