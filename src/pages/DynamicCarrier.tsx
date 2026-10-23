@@ -426,7 +426,7 @@ const DynamicCarrier = ({
           applySeoHead({
             ...(billPg.title ? { title: billPg.title } : {}),
             description: billPg.description,
-            ...(billPg.path === "/topup-crc.html" ? { keywords: "cricket quick pay, cricket wireless quick pay, pay cricket bill online, cricket bill pay, cricket wireless payment" } : {}), // BILLPAY-METRO-1021
+            ...(["/topup-crc.html", "/es/topup-crc.html"].includes(billPg.path) ? { keywords: billPg.lang === "es" ? "pagar factura Cricket en línea, pago Cricket sin cuenta, Cricket Quick Pay" : "cricket quick pay, cricket wireless quick pay, pay cricket bill online, cricket bill pay, cricket wireless payment" } : {}), // BILLPAY-CRICKET-1023
             schema: hasStatic ? "" : billJsonLd(billPg),
             schemaSecondary: "",
           });
@@ -926,7 +926,7 @@ const DynamicCarrier = ({
           {/* Cricket-only long-form content: payment steps + extended FAQ.
               Rendered above the API FAQ block to give the page the depth
               required to outrank competing Cricket Quick Pay results. */}
-          {carrierSlug === "topup-crc" && lang !== "es" && (
+          {carrierSlug === "topup-crc" && lang !== "es" && !bill && ( // BILLPAY-CRICKET-1023: these bill pages show only their matching FAQ
             <CricketQuickPayContent brandColor={bc} />
           )}
 
