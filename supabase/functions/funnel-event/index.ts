@@ -9,6 +9,8 @@ for (const event of RETRY_EVENTS) EVENTS.add(event); // REFUND-RETRY-1018
 
 const DECLINE_EVENTS = new Set(["decline_screen_shown", "decline_action"]); // DECLINE-REJECTED-1018
 for (const event of DECLINE_EVENTS) EVENTS.add(event); // DECLINE-REJECTED-1018
+const HOME_EVENTS = new Set(["home_badge_exposure"]); // HOME-INSTANT-BADGE-1023
+for (const event of HOME_EVENTS) EVENTS.add(event); // HOME-INSTANT-BADGE-1023
 
 function cors(origin: string | null): Record<string, string> {
   const h: Record<string, string> = {
@@ -62,6 +64,10 @@ function clean(o: unknown, host: string | null): Record<string, unknown> | null 
       decline_buttons: typeof r.decline_buttons === "string" && /^[a-z_,]{1,80}$/.test(r.decline_buttons) ? r.decline_buttons : null, // DECLINE-REJECTED-1018
       decline_action: typeof r.decline_action === "string" && /^(applepay|applepay_again|googlepay|paypal|cashapp|bank|another_card|retry_same|klarna|close)$/.test(r.decline_action) ? r.decline_action : null, // DECLINE-REJECTED-1018
     } : {}), // DECLINE-REJECTED-1018
+    ...(HOME_EVENTS.has(event) ? { // HOME-INSTANT-BADGE-1023
+      hb_group: r.hb_group === "badge" || r.hb_group === "control" ? r.hb_group : null, // HOME-INSTANT-BADGE-1023
+      hb_vid: typeof r.hb_vid === "string" && /^[0-9a-z-]{8,64}$/i.test(r.hb_vid) ? r.hb_vid.toLowerCase() : null, // HOME-INSTANT-BADGE-1023
+    } : {}), // HOME-INSTANT-BADGE-1023
     ...(RETRY_EVENTS.has(event) ? { // REFUND-RETRY-1018
       retry_cause: typeof r.retry_cause === "string" && /^(tmo_plan_mismatch|simple_not_found|metro_invalid_number|boost_blank)$/.test(r.retry_cause) ? r.retry_cause : null, // REFUND-RETRY-1018
       retry_action: typeof r.retry_action === "string" && /^[a-z0-9_,]{1,80}$/.test(r.retry_action) ? r.retry_action : null, // REFUND-RETRY-1018 // REFUND-RETRY-LATE-1018
