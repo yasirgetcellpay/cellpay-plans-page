@@ -1,4 +1,5 @@
 # VZ-PREPAID-GUARD-1017
+- [ ] METRO-FIRSTSCREEN-1023b: Metro-only phone placement and CTA; verify six route forms, mobile positioning, original validation/navigation and unchanged other-carrier rendering; no publishing. // METRO-FIRSTSCREEN-1023b
 - [x] BILLPAY-CRICKET-1023: EN/ES bill copy, matching FAQ schema, links, AI index and page-specific sitemap lastmod updated; browser verified, build OK; existing suite 484 passed/56 failed plus one error; live host checks blocked by Cloudflare 403, nothing published. // BILLPAY-CRICKET-1023
 - [x] SIMPLE-PUSH-1023: guest copy, shared FAQ, six aliases and Verizon loading-list extension verified; build OK, six browser redirects preserve query/hash, EN/ES visible FAQ matches schema. Full suite: 484 passed, same 56 failures and one error verified before/after; unrelated fixes outside scope, nothing published. // SIMPLE-PUSH-1023
 - [x] CHECKOUT-TIMEOUT-1023: 120 s timeout on checkout/transaction only, outcome-unknown confirming message, lock kept, pay disabled, PII-free attempt log; build OK.
