@@ -964,7 +964,7 @@ const DynamicCarrier = ({
                 </div>
               ))}
               {carrierSlug === "topup-crc" && bill.guide && ( // BILLPAY-CRICKET-1023
-                <p className="text-sm mt-4 text-left"><a href={bill.guide[0]} className="underline">{bill.guide[1]}</a></p> // BILLPAY-CRICKET-1023
+                <p className="text-sm mt-4 text-left"><a href={bill.guide[0]} className="underline">{bill.guide[1]}</a></p> /* BILLPAY-CRICKET-1023 */
               )} {/* BILLPAY-CRICKET-1023 */}
               {bill.more?.map(([href, label]) => ( // BILLPAY-BOOST-1022
                 <p key={href} className="text-sm mt-2 text-left"><a href={href} className="underline">{label}</a></p>
