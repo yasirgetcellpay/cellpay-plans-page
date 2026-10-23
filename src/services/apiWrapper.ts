@@ -14,7 +14,7 @@ interface ProxyRequest {
   /** DECLINE-DIALOG-1008: top-level page language ("en" | "es"); cellpay-proxy stores it as transaction_logs.metadata.lang only. Never sent to CellPay. */
   lang?: "en" | "es";
   /** AI-REFERRALS-1010b: top-level; cellpay-proxy stores it in transaction_logs.metadata only (ref_host, utm_source, landing_path). Never sent to CellPay. */
-  visit_source?: { ref_host?: string; utm_source?: string; landing_path?: string };
+  visit_source?: { ref_host?: string; utm_source?: string; landing_path?: string; gad_source?: string; gad_campaignid?: string; click_id_source?: string }; // CP-PROFIT-COVERAGE-1023
   /** OURSIDE-RETRY-1012: top-level; cellpay-proxy stores it in transaction_logs.metadata only. Never sent to CellPay. */
   retry_meta?: Record<string, unknown>;
   /** KLARNA-LOG-1017: top-level; cellpay-proxy uses it only for a PII-free log row. Never sent to CellPay. */ // KLARNA-LOG-1017
