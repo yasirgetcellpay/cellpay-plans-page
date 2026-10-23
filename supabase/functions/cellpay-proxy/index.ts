@@ -127,6 +127,8 @@ function visitSourceMeta(v: unknown): Record<string, string> {
     if (typeof r.ref_host === "string" && VS_HOST_RE.test(r.ref_host)) out.ref_host = r.ref_host;
     if (typeof r.utm_source === "string" && VS_SRC_RE.test(r.utm_source)) out.utm_source = r.utm_source;
     if (typeof r.landing_path === "string" && VS_PATH_RE.test(r.landing_path)) out.landing_path = r.landing_path;
+    for (const k of ["gad_source", "gad_campaignid"]) { const x = r[k]; if (typeof x === "string" && /^[A-Za-z0-9_-]{1,40}$/.test(x)) out[k] = x; } // CP-PROFIT-COVERAGE-1023
+    if (r.click_id_source === "url" || r.click_id_source === "cookie") out.click_id_source = r.click_id_source; // CP-PROFIT-COVERAGE-1023
     return out;
   } catch {
     return {};

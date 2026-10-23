@@ -38,6 +38,11 @@ export function recordVisitSource(): void {
     };
     // AI-REFERRALS-1010b: keep the same three values for this tab so the order row can carry them (read by apiWrapper.submitTransaction).
     try { sessionStorage.setItem("cp_vs", JSON.stringify({ ref_host: refHost, utm_source: args._utm_source, landing_path: args._landing_path })); } catch { /* ignore */ }
+    try { // CP-PROFIT-COVERAGE-1023: also keep gad_source / gad_campaignid from the landing URL (order metadata only)
+      const vs = JSON.parse(sessionStorage.getItem("cp_vs") || "{}"); // CP-PROFIT-COVERAGE-1023
+      for (const k of ["gad_source", "gad_campaignid"]) { const v = q.get(k); if (v && /^[A-Za-z0-9_-]{1,40}$/.test(v)) vs[k] = v; } // CP-PROFIT-COVERAGE-1023
+      sessionStorage.setItem("cp_vs", JSON.stringify(vs)); // CP-PROFIT-COVERAGE-1023
+    } catch { /* ignore */ }
     const send = () => {
       try {
         const c = supabase as unknown as { rpc: (fn: string, a: Record<string, unknown>) => Promise<unknown> };
