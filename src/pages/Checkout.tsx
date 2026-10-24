@@ -42,6 +42,8 @@ import {
   type ValidationResult,
 } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
+import { RP_P2_RETRY_BLOCK, RP_P6_ST_PASTDUE } from "@/lib/refillPreventFlags"; // REFILL-PREVENT-1024
+import { recordRetryBlock, isPlanMismatchLoadText, isStPastDue, stPastDueText } from "@/lib/refillPrevent"; // REFILL-PREVENT-1024
 import { loadTextFrom, loadTextPick, isCcRefund, pickReasonText, pickRefundLine, pickButtons, type LoadPick } from "@/lib/loadTextPick"; // LOADTEXT-PICK-1019 (replaces the LOADTEXT-REASON-1017 import here; src/lib/loadTextReason.ts stays)
 import { isVerizonSlug, VZ_NOTE, VZ_NOTICE_MIN, vzBlockText } from "@/lib/vzPrepaid"; // VZ-PREPAID-GUARD-1017
 import { tmoRetryText } from "@/lib/tmoRetry"; // TMO-LOOKUP-1020
@@ -1795,6 +1797,7 @@ const Checkout = () => {
       if (paymentMethod !== "cashapp" && isBackendExcReply(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(false); setLock(lockKey(state?.phone, validation?.amount ?? state?.amount), "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); return; } // BACKEND-EXC-1019
       if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); return; } // REFUNDED-STATE-1017
       setLoadReason(loadTextPick(loadTextFrom(raw))); // LOADTEXT-PICK-1019
+      try { const lt = loadTextFrom(raw); if (RP_P2_RETRY_BLOCK && lt && isPlanMismatchLoadText(lt)) void recordRetryBlock(state.phone, state.carrierSlug, state.planId); } catch { /* REFILL-PREVENT-1024: fail open */ }
       if (state.carrierSlug === "ultra-mobile") setUltraResultKind(ultraRefundKind(raw)); // ULTRA-FAIL-MSG-1022
       const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Transaction failed"; // SUCCESS-FLAG-FIX-1016
       const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
@@ -2360,6 +2363,7 @@ const Checkout = () => {
           else if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); } // REFUNDED-STATE-1017
           else if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") {
             setLoadReason(loadTextPick(loadTextFrom(raw))); // LOADTEXT-PICK-1019
+            try { const lt = loadTextFrom(raw); if (RP_P2_RETRY_BLOCK && lt && isPlanMismatchLoadText(lt)) void recordRetryBlock(state.phone, state.carrierSlug, state.planId); } catch { /* REFILL-PREVENT-1024: fail open */ }
             if (state.carrierSlug === "ultra-mobile") setUltraResultKind(ultraRefundKind(raw)); // ULTRA-FAIL-MSG-1022
             const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Apple Pay transaction failed"; // SUCCESS-FLAG-FIX-1016
             const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
@@ -3624,7 +3628,8 @@ const Checkout = () => {
       {errorMsg && refundCard && (() => {
         const cause = retryCauseFor(state.carrierSlug); // REFUND-RETRY-1018
         const choices = cause ? retryButtons(state.carrierSlug, lang, phone10, retryNow) : []; // REFUND-RETRY-1018
-        const pick = state.carrierSlug === "ultra-mobile" && loadReason ? loadTextPick(loadReason.parts.join(" | "), state.carrierSlug) : loadReason; // LOADTEXT-PICK-1019 // ULTRA-MSG-1024: refund display only
+        const stPastDue = RP_P6_ST_PASTDUE && !!loadReason && isStPastDue(state.carrierSlug, loadReason.parts.join(" | ")); // REFILL-PREVENT-1024
+        const pick = stPastDue && loadReason ? { ...loadReason, category: "plan" as const } : state.carrierSlug === "ultra-mobile" && loadReason ? loadTextPick(loadReason.parts.join(" | "), state.carrierSlug) : loadReason; // LOADTEXT-PICK-1019 // ULTRA-MSG-1024: refund display only // REFILL-PREVENT-1024
         const pickChoices = pick ? pickButtons(pick.category, lang, choices) : null; // LOADTEXT-PICK-1019: null for generic = existing buttons
         const es = lang === "es";
         const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`); // REFUND-WORDING-1016
@@ -3668,7 +3673,7 @@ const Checkout = () => {
               {ultraKind ? <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">{ultraKind === "amount" // ULTRA-FAIL-MSG-1022
                 ? (es ? "Este monto no está disponible para su plan Ultra. Su pago fue reembolsado. Por favor elija otro monto e intente de nuevo." : "This amount isn't available for your Ultra plan. Your payment was refunded. Please choose a different amount and try again.") // ULTRA-FAIL-MSG-1022
                 : (es ? "Su recarga no se completó y su pago fue reembolsado. Por favor intente con otro monto o vuelva a intentarlo en unos minutos." : "Your refill didn't go through and your payment was refunded. Please try a different amount, or try again in a few minutes.")}</p> : pick ? (<> {/* ULTRA-FAIL-MSG-1022 */} {/* LOADTEXT-PICK-1019: picked reason + refund line */}
-                <p className="text-sm text-muted-foreground mb-2" data-testid="pick-reason" data-pick={pick.category}>{pickReasonText(pick.category, lang, state.carrierName, state.carrierSlug, pick.category === "generic" && cause ? retryReasonText(cause, lang, phone10) : null, pick.parts.join(" | "))}</p>
+                <p className="text-sm text-muted-foreground mb-2" data-testid="pick-reason" data-pick={pick.category}>{stPastDue ? stPastDueText(lang) /* REFILL-PREVENT-1024 */ : pickReasonText(pick.category, lang, state.carrierName, state.carrierSlug, pick.category === "generic" && cause ? retryReasonText(cause, lang, phone10) : null, pick.parts.join(" | "))}</p>
                 <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">{pickRefundLine(lang, pick.category)}</p>
               </>) : cause ? (<> {/* LOADTEXT-REASON-1017: refund sentence ends after bank timing; reason paragraph added */} {/* // REFUND-RETRY-1018 */}
                 <p className="text-sm text-muted-foreground mb-2" data-testid="refund-card-text">
