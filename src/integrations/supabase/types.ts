@@ -644,6 +644,36 @@ export type Database = {
         }
         Relationships: []
       }
+      dead_amounts: {
+        Row: {
+          amount: number
+          carrier_slug: string
+          hidden_at: string
+          id: number
+          plan_id: string
+          reason: string
+          restored_at: string | null
+        }
+        Insert: {
+          amount: number
+          carrier_slug: string
+          hidden_at?: string
+          id?: never
+          plan_id: string
+          reason?: string
+          restored_at?: string | null
+        }
+        Update: {
+          amount?: number
+          carrier_slug?: string
+          hidden_at?: string
+          id?: never
+          plan_id?: string
+          reason?: string
+          restored_at?: string | null
+        }
+        Relationships: []
+      }
       email_prefill_tokens: {
         Row: {
           amount: number | null
