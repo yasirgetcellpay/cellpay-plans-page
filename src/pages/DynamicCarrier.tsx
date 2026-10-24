@@ -12,6 +12,7 @@ import { weAcceptLine } from "@/content/paymentMethods";
 // TOP4-T1-1009: first screen in the searcher's words + customer-facing carrier names (display only)
 import { top4Hero, displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq, top4Name, esCarrierFaqs, searchFaqs, usCellularNote } from "@/content/carrierHero"; // BATCH3-1014
 import { PlanGrid } from "@/components/PlanGrid";
+import { ultraPlanLabel } from "@/content/ultraPlanLabel"; // ULTRA-MSG-1024
 // SIMPLE-SPEC-1-1009: Simple Mobile answer page text (same source as the raw HTML in vite.config.ts)
 import { SIMPLE_META, SIMPLE_ANSWER, SIMPLE_FAQ_TITLE, SIMPLE_LINKS, simpleFaqs, simpleGridPlans } from "@/content/simplePage";
 import { FAQSection } from "@/components/FAQSection";
@@ -686,7 +687,7 @@ const DynamicCarrier = ({
   const isSimple = carrierSlug === "s1";
   const bill = billPageByPath(typeof window !== "undefined" ? window.location.pathname : ""); // SEO-CONTENT-1014
   const sl = lang === "es" ? "es" : "en";
-  const gridPlans = plans.map((p) => ({ price: p.price, highlight: p.highlight }));
+  const gridPlans = plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, p.highlight) })); // ULTRA-MSG-1024
   const shownGrid = isSimple ? simpleGridPlans(gridPlans, sl) : { plans: gridPlans, popular: Math.min(plans.length - 1, Math.floor(plans.length / 2)) };
 
   return (

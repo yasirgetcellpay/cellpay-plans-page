@@ -21,7 +21,7 @@ export function splitLoadText(text: unknown): string[] {
     .slice(0, 20);
 }
 
-export function categorizeLoadText(text: unknown): { category: LoadTextCategory; unknown: boolean; unknownParts: string[]; parts: string[] } | null {
+export function categorizeLoadText(text: unknown, carrierSlug?: string): { category: LoadTextCategory; unknown: boolean; unknownParts: string[]; parts: string[] } | null { // ULTRA-MSG-1024
   const parts = splitLoadText(text);
   if (!parts.length) return null;
   let best = ORDER.length - 1;
@@ -36,7 +36,8 @@ export function categorizeLoadText(text: unknown): { category: LoadTextCategory;
     }
     else if (!GENERIC_RE.test(part) && unknownParts.length < 5) unknownParts.push(part.slice(0, 80));
   }
-  return { category: productUnavailable ? "amount" : invalidState && best >= ORDER.indexOf("amount") ? "system" : ORDER[best], unknown: unknownParts.length > 0, unknownParts, parts };
+  const ultraAmount = carrierSlug === "ultra-mobile" && parts.some((part) => /1065|invalid amount/i.test(part)); // ULTRA-MSG-1024
+  return { category: ultraAmount || productUnavailable ? "amount" : invalidState && best >= ORDER.indexOf("amount") ? "system" : ORDER[best], unknown: unknownParts.length > 0, unknownParts, parts }; // ULTRA-MSG-1024
 }
 
 
