@@ -4,9 +4,51 @@ import { readFileSync } from "node:fs";
 import ts from "typescript"; // REFILL-ERROR-MSG-1024
 import { splitLoadText, loadTextPick, loadTextFrom, isCcRefund, pickReasonText, pickFullText, pickRefundLine, pickButtons, isPayWordCarrier } from "@/lib/loadTextPick";
 import { categorizeLoadText as proxyCategorize, isCcRefundBody } from "../../supabase/functions/_shared/loadTextCategory";
+import { ultraPlanLabel } from "@/content/ultraPlanLabel"; // ULTRA-MSG-1024
 
 const EXAMPLE = "Invalid Request | Invalid Request & Unprocessable Transaction | Resource not found";
 const RAW = { Result: "Error", TransResult: "ccRefund", LoadText: EXAMPLE };
+
+// ULTRA-MSG-1024: carrier-scoped display selection preserves payment inputs and generic recovery.
+describe("ULTRA-MSG-1024", () => {
+  it("overrides only Ultra 8279's display label without mutating plan values", () => {
+    const plan = Object.freeze({ plan_id: "8279", amount: 29, price: "$29", name: "$29 Unlimited" });
+    expect(ultraPlanLabel("ultra-mobile", plan.plan_id, plan.name)).toBe("$24 · 8GB");
+    expect(plan).toEqual({ plan_id: "8279", amount: 29, price: "$29", name: "$29 Unlimited" });
+    expect(ultraPlanLabel("ultra-mobile", 8278, plan.name)).toBe(plan.name);
+    expect(ultraPlanLabel("tmobile", 8279, plan.name)).toBe(plan.name);
+  });
+  it.each(["1065", "Invalid Amount", "TXN Error: 1065 Invalid transaction state | Invalid Amount"])("Ultra %s selects existing amount recovery", (text) => {
+    const pick = loadTextPick(text, "ultra-mobile");
+    expect(pick?.category).toBe("amount");
+    expect(proxyCategorize(text, "ultra-mobile")).toEqual(pick);
+    expect(pickButtons("amount", "en")?.map((b) => b.action)).toEqual(["amount"]);
+    expect(pickReasonText("amount", "en", "Ultra Mobile", "ultra-mobile", null, text)).toBe("This amount doesn't match your Ultra plan. Pick the plan your line has now.");
+    expect(pickReasonText("amount", "es", "Ultra Mobile", "ultra-mobile", null, text)).toBe("Este monto no coincide con su plan de Ultra. Elija el plan que tiene su línea ahora.");
+    expect(pickRefundLine("en", "amount")).toBe("You were not charged. Your payment was refunded.");
+    expect(pickRefundLine("es", "amount")).toBe("No se le cobró. Su pago fue reembolsado.");
+  });
+  it("Ultra subscriber failure retains the existing edit-number action", () => {
+    const text = "Subscriber not found";
+    expect(loadTextPick(text, "ultra-mobile")?.category).toBe("number");
+    expect(proxyCategorize(text, "ultra-mobile")).toEqual(loadTextPick(text, "ultra-mobile"));
+    expect(pickButtons("number", "en")?.[0].action).toBe("number");
+    expect(pickReasonText("number", "en", "Ultra Mobile", "ultra-mobile", null, text)).toBe("Ultra couldn't find this number. Please check the number and try again.");
+    expect(pickReasonText("number", "es", "Ultra Mobile", "ultra-mobile", null, text)).toBe("Ultra no encontró este número. Revise el número e inténtelo de nuevo.");
+  });
+  it("preserves other carriers, other Ultra errors and generic/no-LoadText recovery", () => {
+    const text = "TXN Error: 1065 Invalid transaction state | Invalid Amount";
+    for (const slug of ["tmobile", "s1", "metropcs", "boost", undefined]) {
+      expect(loadTextPick(text, slug)?.category).toBe("system");
+      expect(proxyCategorize(text, slug)).toEqual(loadTextPick(text, slug));
+    }
+    expect(pickReasonText("amount", "en", "Ultra Mobile", "ultra-mobile", null, "Resource not found")).toBe(pickReasonText("amount", "en", "Other", "other"));
+    expect(loadTextPick(null, "ultra-mobile")).toBeNull();
+    expect(loadTextPick("Invalid Card", "ultra-mobile")?.category).toBe("generic");
+    expect(pickButtons("generic", "en")).toBeNull();
+    expect(pickButtons("generic", "es")).toBeNull();
+  });
+});
 
  describe("LOADTEXT-PICK-1019 split + categories", () => {
   it("splits the example on ' | ' and ' & '", () => {

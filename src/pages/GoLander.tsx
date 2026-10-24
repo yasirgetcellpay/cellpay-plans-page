@@ -796,7 +796,7 @@ const GoLander = ({
           {showFixedPlans && plans.length > 0 && (
             <div className="pt-1 sm:pt-2">
               <PlanGrid
-                plans={plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, goTileName(carrierSlug, isEs ? "es" : "en", p.highlight)) }))} // ULTRA-MSG-1024
+                plans={plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, goTileName(carrierSlug, isEs ? "es" : "en", p.highlight)) }))}
                 brandColor={bc}
                 onSelect={handlePlanPayNow}
                 popularIndex={Math.min(plans.length - 1, Math.floor(plans.length / 2))}
