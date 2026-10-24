@@ -13,6 +13,7 @@ import { displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq } f
 // LPX-1010: guest/phone wording for the H1, title and subline (same table the static shell uses).
 import { goLpxForCarrier } from "@/content/goCopy";
 import { PlanGrid } from "@/components/PlanGrid";
+import { ultraPlanLabel } from "@/content/ultraPlanLabel"; // ULTRA-MSG-1024
 import { Button } from "@/components/ui/button"; // METRO-FIRSTSCREEN-1023b
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
@@ -795,7 +796,7 @@ const GoLander = ({
           {showFixedPlans && plans.length > 0 && (
             <div className="pt-1 sm:pt-2">
               <PlanGrid
-                plans={plans.map((p) => ({ price: p.price, highlight: goTileName(carrierSlug, isEs ? "es" : "en", p.highlight) }))}
+                plans={plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, goTileName(carrierSlug, isEs ? "es" : "en", p.highlight)) }))}
                 brandColor={bc}
                 onSelect={handlePlanPayNow}
                 popularIndex={Math.min(plans.length - 1, Math.floor(plans.length / 2))}

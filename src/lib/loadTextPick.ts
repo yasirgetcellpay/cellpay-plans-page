@@ -30,7 +30,7 @@ export function splitLoadText(text: unknown): string[] {
 }
 
 /** Category for every part; a part that matches no rule (not even a known generic one) is "unknown" and counts as generic. */
-export function categorizeLoadText(text: unknown): { category: LoadTextCategory; unknown: boolean; unknownParts: string[]; parts: string[] } | null {
+export function categorizeLoadText(text: unknown, carrierSlug?: string): { category: LoadTextCategory; unknown: boolean; unknownParts: string[]; parts: string[] } | null { // ULTRA-MSG-1024
   const parts = splitLoadText(text);
   if (!parts.length) return null;
   let best = ORDER.length - 1;
@@ -45,11 +45,12 @@ export function categorizeLoadText(text: unknown): { category: LoadTextCategory;
     }
     else if (!GENERIC_RE.test(part) && unknownParts.length < 5) unknownParts.push(part.slice(0, 80));
   }
-  return { category: productUnavailable ? "amount" : invalidState && best >= ORDER.indexOf("amount") ? "system" : ORDER[best], unknown: unknownParts.length > 0, unknownParts, parts };
+  const ultraAmount = carrierSlug === "ultra-mobile" && parts.some((part) => /1065|invalid amount/i.test(part)); // ULTRA-MSG-1024
+  return { category: ultraAmount || productUnavailable ? "amount" : invalidState && best >= ORDER.indexOf("amount") ? "system" : ORDER[best], unknown: unknownParts.length > 0, unknownParts, parts }; // ULTRA-MSG-1024
 }
 
-export function loadTextPick(text: unknown): LoadPick | null {
-  try { return categorizeLoadText(text); } catch { return null; }
+export function loadTextPick(text: unknown, carrierSlug?: string): LoadPick | null { // ULTRA-MSG-1024
+  try { return categorizeLoadText(text, carrierSlug); } catch { return null; } // ULTRA-MSG-1024
 }
 
 const KEY_RE = /^(loadtext|load_text|loadmessage)$/i;
@@ -99,8 +100,10 @@ const GENERIC = {
 export const PICK_REFUND_LINE = { en: "You have not been charged. Your payment was refunded.", es: "No se le ha cobrado. Su pago fue reembolsado." };
 
 /** The reason sentence for a category (no refund line). `genericText` replaces the generic sentence when given (e.g. a carrier-specific reason). */
-export function pickReasonText(category: LoadTextCategory, lang: string, carrierName: string, carrierSlug: string, genericText?: string | null): string {
+export function pickReasonText(category: LoadTextCategory, lang: string, carrierName: string, carrierSlug: string, genericText?: string | null, loadText?: string): string { // ULTRA-MSG-1024
   const l = lang === "es" ? "es" : "en";
+  if (carrierSlug === "ultra-mobile" && category === "amount" && /1065|invalid amount/i.test(loadText || "")) return l === "es" ? "Este monto no coincide con su plan de Ultra. Elija el plan que tiene su línea ahora." : "This amount doesn't match your Ultra plan. Pick the plan your line has now."; // ULTRA-MSG-1024
+  if (carrierSlug === "ultra-mobile" && category === "number" && /subscriber not found/i.test(loadText || "")) return l === "es" ? "Ultra no encontró este número. Revise el número e inténtelo de nuevo." : "Ultra couldn't find this number. Please check the number and try again."; // ULTRA-MSG-1024
   const w = isPayWordCarrier(carrierSlug, carrierName) ? "pay" : "refill";
   if (category === "cooldown") return COOLDOWN[w][l];
   if (category === "generic") return genericText || GENERIC[w][l];

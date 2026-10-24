@@ -3624,7 +3624,7 @@ const Checkout = () => {
       {errorMsg && refundCard && (() => {
         const cause = retryCauseFor(state.carrierSlug); // REFUND-RETRY-1018
         const choices = cause ? retryButtons(state.carrierSlug, lang, phone10, retryNow) : []; // REFUND-RETRY-1018
-        const pick = loadReason; // LOADTEXT-PICK-1019
+        const pick = state.carrierSlug === "ultra-mobile" && loadReason ? loadTextPick(loadReason.parts.join(" | "), state.carrierSlug) : loadReason; // LOADTEXT-PICK-1019 // ULTRA-MSG-1024: refund display only
         const pickChoices = pick ? pickButtons(pick.category, lang, choices) : null; // LOADTEXT-PICK-1019: null for generic = existing buttons
         const es = lang === "es";
         const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`); // REFUND-WORDING-1016
@@ -3668,7 +3668,7 @@ const Checkout = () => {
               {ultraKind ? <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">{ultraKind === "amount" // ULTRA-FAIL-MSG-1022
                 ? (es ? "Este monto no está disponible para su plan Ultra. Su pago fue reembolsado. Por favor elija otro monto e intente de nuevo." : "This amount isn't available for your Ultra plan. Your payment was refunded. Please choose a different amount and try again.") // ULTRA-FAIL-MSG-1022
                 : (es ? "Su recarga no se completó y su pago fue reembolsado. Por favor intente con otro monto o vuelva a intentarlo en unos minutos." : "Your refill didn't go through and your payment was refunded. Please try a different amount, or try again in a few minutes.")}</p> : pick ? (<> {/* ULTRA-FAIL-MSG-1022 */} {/* LOADTEXT-PICK-1019: picked reason + refund line */}
-                <p className="text-sm text-muted-foreground mb-2" data-testid="pick-reason" data-pick={pick.category}>{pickReasonText(pick.category, lang, state.carrierName, state.carrierSlug, pick.category === "generic" && cause ? retryReasonText(cause, lang, phone10) : null)}</p>
+                <p className="text-sm text-muted-foreground mb-2" data-testid="pick-reason" data-pick={pick.category}>{pickReasonText(pick.category, lang, state.carrierName, state.carrierSlug, pick.category === "generic" && cause ? retryReasonText(cause, lang, phone10) : null, pick.parts.join(" | "))}</p>
                 <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">{pickRefundLine(lang, pick.category)}</p>
               </>) : cause ? (<> {/* LOADTEXT-REASON-1017: refund sentence ends after bank timing; reason paragraph added */} {/* // REFUND-RETRY-1018 */}
                 <p className="text-sm text-muted-foreground mb-2" data-testid="refund-card-text">
