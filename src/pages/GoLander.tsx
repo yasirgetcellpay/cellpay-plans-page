@@ -15,6 +15,7 @@ import { goLpxForCarrier } from "@/content/goCopy";
 import { PlanGrid } from "@/components/PlanGrid";
 import { ultraPlanLabel } from "@/content/ultraPlanLabel"; // ULTRA-MSG-1024
 import { useUltraSmart } from "@/hooks/useUltraSmart"; // ULTRA-SMART-PREVENT-1024
+import { ultraHealthText } from "@/lib/ultraSmart"; // ULTRA-SMART-PREVENT-1024
 import { UltraSmartNotice } from "@/components/UltraSmartNotice"; // ULTRA-SMART-PREVENT-1024
 import { RP_P4_DEAD_AMOUNTS, RP_P2c_DISC_24H } from "@/lib/refillPreventFlags"; // LYCA-SKU-FIX-1024
 import { fetchDeadAmounts, isDeadAmount, deadLabel, type DeadAmount, checkDiscBlock, discBlockText, withTimeout, rpEvent, rpVariant } from "@/lib/refillPrevent"; // LYCA-SKU-FIX-1024
