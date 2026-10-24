@@ -21,6 +21,7 @@ export type BillPage = {
   faqs: BillFaq[];
   guide?: [string, string]; // how-to-pay guide link (Metro, Boost; CRICKET-GUIDE-1014: + Cricket)
   more?: [string, string][]; // BILLPAY-BOOST-1022 extra internal links [href, label]
+  faqOnly?: boolean; // BILLPAY-TMOBILE-1024: JSON-LD = FAQPage only (no BreadcrumbList)
 };
 
 const WWW = "https://www.cellpay.us";
@@ -107,6 +108,22 @@ const cricketFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-
   faqsEn("Cricket Wireless")[3], // BILLPAY-CRICKET-1023: preserve the existing fee question and answer exactly
 ]; // BILLPAY-CRICKET-1023
 
+const tmobileFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-TMOBILE-1024
+  { q: "¿Cómo pago mi factura de T-Mobile Prepago como invitado?", a: "Ingrese el número de teléfono de T-Mobile, elija su plan o monto y pague. No necesita una cuenta." }, // BILLPAY-TMOBILE-1024
+  { q: "¿Puedo pagar mi factura de T-Mobile sin iniciar sesión?", a: "Sí. No necesita iniciar sesión en T-Mobile. El número de teléfono es suficiente." }, // BILLPAY-TMOBILE-1024
+  { q: "¿Puedo pagar la línea de T-Mobile de otra persona?", a: "Sí. Ingrese su número de T-Mobile y revíselo bien antes de pagar." }, // BILLPAY-TMOBILE-1024
+  { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es")}` }, // BILLPAY-TMOBILE-1024
+  { q: "¿Cuándo se aplica mi pago?", a: "Por lo general en pocos minutos. Recibe una confirmación en pantalla y por correo electrónico." }, // BILLPAY-TMOBILE-1024
+  { q: "Me cambié de UScellular a T-Mobile, ¿puedo pagar aquí?", a: "Sí. Los clientes de UScellular que pasaron a T-Mobile pueden pagar aquí con el número de T-Mobile." }, // BILLPAY-TMOBILE-1024
+] : [ // BILLPAY-TMOBILE-1024
+  { q: "How do I pay my T-Mobile Prepaid bill as a guest?", a: "Enter the T-Mobile phone number, pick your plan or amount, and pay. No account needed." }, // BILLPAY-TMOBILE-1024
+  { q: "Can I pay my T-Mobile bill without logging in?", a: "Yes. You don't need a T-Mobile login. The phone number is enough." }, // BILLPAY-TMOBILE-1024
+  { q: "Can I pay someone else's T-Mobile line?", a: "Yes. Enter their T-Mobile number and double-check it before you pay." }, // BILLPAY-TMOBILE-1024
+  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-TMOBILE-1024
+  { q: "When does my payment post?", a: "Usually within minutes. You get a confirmation on screen and by email." }, // BILLPAY-TMOBILE-1024
+  { q: "I moved from UScellular to T-Mobile. Can I pay here?", a: "Yes. UScellular customers moved to T-Mobile can pay here with the T-Mobile phone number." }, // BILLPAY-TMOBILE-1024
+]; // BILLPAY-TMOBILE-1024
+
 export const BILL_PAGES: BillPage[] = [
   { // BILLPAY-METRO-1021
     ...esPage("/es/metropcs.html", "Metro PCS", ["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"]),
@@ -172,6 +189,36 @@ export const BILL_PAGES: BillPage[] = [
     guide: ["/how-to-pay/cricket", "How to pay Cricket Wireless"], // CRICKET-GUIDE-1014
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-CRICKET-1023
   },
+  { // BILLPAY-TMOBILE-1024
+    path: "/es/tmobile-flexi.html", lang: "es", name: "T-Mobile Prepago", // BILLPAY-TMOBILE-1024
+    title: "Pagar Factura T-Mobile como Invitado sin Cuenta | CellPay", // BILLPAY-TMOBILE-1024
+    description: "Pague su factura de T-Mobile Prepago en línea como invitado, solo con el número. Sin cuenta y sin iniciar sesión. Verá el cargo por servicio antes de pagar.", // BILLPAY-TMOBILE-1024
+    h1: "Pague su Factura de T-Mobile Prepago como Invitado", // BILLPAY-TMOBILE-1024
+    sub: "Sin cuenta y sin iniciar sesión. Solo necesita el número de teléfono. Pague por usted o por otra persona.", // BILLPAY-TMOBILE-1024
+    autoPayInfoLead: "Opcional: Auto Pago para no olvidar su pago.", // BILLPAY-TMOBILE-1024
+    enterAmount: "Ingrese el monto que desea recargar", // BILLPAY-TMOBILE-1024
+    securePayment: "Pago seguro. Su recarga se envía directamente a su teléfono.", // BILLPAY-TMOBILE-1024
+    faqTitle: "Preguntas frecuentes", // BILLPAY-TMOBILE-1024
+    faqs: tmobileFaqs("es"), // BILLPAY-TMOBILE-1024
+    guide: ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepago"], // BILLPAY-TMOBILE-1024
+    more: [["/es/paga-tu-factura", "Pague su factura de celular"]], // BILLPAY-TMOBILE-1024
+    faqOnly: true, // BILLPAY-TMOBILE-1024
+  }, // BILLPAY-TMOBILE-1024
+  { // BILLPAY-TMOBILE-1024
+    path: "/tmobile-flexi.html", lang: "en", name: "T-Mobile Prepaid", // BILLPAY-TMOBILE-1024
+    title: "Pay T-Mobile Bill as a Guest – Prepaid, No Login | CellPay", // BILLPAY-TMOBILE-1024
+    description: "Pay your T-Mobile Prepaid bill online as a guest with just the phone number. No login, no account. Pay for yourself or someone else. Low service fee shown before you pay.", // BILLPAY-TMOBILE-1024
+    h1: "Pay Your T-Mobile Prepaid Bill as a Guest", // BILLPAY-TMOBILE-1024
+    sub: "No login. Just the phone number. Pay for yourself or someone else.", // BILLPAY-TMOBILE-1024
+    autoPayInfoLead: "Optional: Auto Pay so you never miss a refill.", // BILLPAY-TMOBILE-1024
+    enterAmount: "Enter the amount you want to recharge", // BILLPAY-TMOBILE-1024
+    securePayment: "Secure payment. Your refill is sent directly to your phone.", // BILLPAY-TMOBILE-1024
+    faqTitle: "Common questions", // BILLPAY-TMOBILE-1024
+    faqs: tmobileFaqs("en"), // BILLPAY-TMOBILE-1024
+    guide: ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], // BILLPAY-TMOBILE-1024
+    more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-TMOBILE-1024
+    faqOnly: true, // BILLPAY-TMOBILE-1024
+  }, // BILLPAY-TMOBILE-1024
 ];
 
 export const billPageByPath = (pathname: string): BillPage | undefined => {
@@ -196,7 +243,7 @@ export const billJsonLd = (pg: BillPage): string => {
           { "@type": "ListItem", position: 2, name: pg.name, item: url },
         ],
       },
-    ],
+    ].filter((_, index) => !pg.faqOnly || index === 0), // BILLPAY-TMOBILE-1024
   }).replace(/</g, "\\u003c");
 };
 
