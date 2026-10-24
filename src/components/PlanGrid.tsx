@@ -2,7 +2,7 @@
 // POPULAR-BADGE-1017: centered white pill on top edge, carrier-colored outline (no theme ring), no white spacer.
 import { t, useLang } from "@/lib/i18n";
 
-interface Plan { price: string; highlight: string; popular?: boolean; }
+interface Plan { price: string; highlight: string; popular?: boolean; unavailable?: string; } // REFILL-PREVENT-1024: optional label; absent = unchanged
 
 interface PlanGridProps {
   plans: Plan[];
@@ -23,6 +23,17 @@ export const PlanGrid = ({
   const Card = ({ plan, idx, fullRow }: { plan: Plan; idx: number; fullRow?: boolean }) => {
     const isPopular = plan.popular || idx === popularIndex;
     const handleClick = () => onSelect?.(plan);
+    if (plan.unavailable) return ( // REFILL-PREVENT-1024: still visible, not selectable
+      <div className="relative bg-card border border-border rounded-lg sm:rounded-xl flex flex-col opacity-60 cursor-not-allowed" aria-disabled="true" data-rp-dead="1">
+        <div className={`px-2 py-1.5 sm:p-6 ${textOnBrand} text-center rounded-t-[inherit]`} style={{ backgroundColor: brandColor }}>
+          <span className="text-base sm:text-4xl font-extrabold">{plan.price}</span>
+        </div>
+        <div className="p-1.5 sm:p-6 flex-grow flex flex-col">
+          <div className="bg-muted p-1 sm:p-3 rounded text-center font-bold text-[10px] sm:text-base mb-1.5 sm:mb-3 text-foreground">{plan.highlight}</div>
+          <p className="text-[10px] sm:text-sm text-muted-foreground text-center mt-auto font-semibold">{plan.unavailable}</p>
+        </div>
+      </div>
+    );
     return (
       <div
         className={`relative bg-card border rounded-lg sm:rounded-xl flex flex-col transition-all ${
