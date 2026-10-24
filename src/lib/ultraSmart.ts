@@ -1,4 +1,5 @@
 import { ULTRA_LAST_PLAN } from "./ultraSmartFlags"; // ULTRA-SMART-PREVENT-1024
+import { fetchCarrierView } from "@/services/apiWrapper"; // ULTRA-SMART-PREVENT-1024
 export type UltraLastPlan = { amount: number; plan_id: string; date: string }; // ULTRA-SMART-PREVENT-1024
 export type UltraHealth = { tier: "off" | "warn" | "pause"; retry_after?: number; probe_available?: boolean }; // ULTRA-SMART-PREVENT-1024
 export type UltraPlan = { plan_id: string; amount: number; name?: string; carrierId?: number }; // ULTRA-SMART-PREVENT-1024
@@ -24,6 +25,21 @@ export async function readUltraLastPlan(phone: string, fetcher: typeof fetch = f
 } // ULTRA-SMART-PREVENT-1024
 export function currentUltraPlan(last: UltraLastPlan | null, plans: UltraPlan[]): UltraPlan | null { // ULTRA-SMART-PREVENT-1024
   return last ? plans.find((p) => String(p.plan_id) === last.plan_id && Number(p.amount) === last.amount) ?? null : null; // ULTRA-SMART-PREVENT-1024
+} // ULTRA-SMART-PREVENT-1024
+export async function readUltraPlans(): Promise<UltraPlan[]> { // ULTRA-SMART-PREVENT-1024
+  let timer: ReturnType<typeof setTimeout> | undefined; // ULTRA-SMART-PREVENT-1024
+  try { // ULTRA-SMART-PREVENT-1024
+    const data = await Promise.race([fetchCarrierView("ultra-mobile").catch(() => null), new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), 2000); })]); // ULTRA-SMART-PREVENT-1024
+    if (!data) return []; // ULTRA-SMART-PREVENT-1024
+    const cp = data.carrier_plans as unknown; const record = cp && typeof cp === "object" && !Array.isArray(cp) ? cp as Record<string, unknown> : {}; // ULTRA-SMART-PREVENT-1024
+    const fixed = (data as Record<string, unknown>).fixed_plans ?? record.fixed_plans; // ULTRA-SMART-PREVENT-1024
+    const rows = Array.isArray(fixed) ? fixed : fixed && typeof fixed === "object" && Array.isArray((fixed as Record<string, unknown>).plans) ? (fixed as { plans: unknown[] }).plans : Array.isArray(cp) ? cp : Array.isArray(record.plans) ? record.plans : []; // ULTRA-SMART-PREVENT-1024
+    return rows.flatMap((item) => { // ULTRA-SMART-PREVENT-1024
+      if (!item || typeof item !== "object") return []; const p = item as Record<string, unknown>; // ULTRA-SMART-PREVENT-1024
+      const id = String(p.plan_id || p.planId || p.id || p.ID || ""), amount = Number(p.amount || p.price || p.Amount || 0), carrierId = Number(p.carrier); // ULTRA-SMART-PREVENT-1024
+      return id && id !== "32993000" && Number.isFinite(amount) && amount > 0 ? [{ plan_id: id, amount, name: String(p.name || p.Name || p.description || ""), ...(Number.isFinite(carrierId) && carrierId > 0 ? { carrierId } : {}) }] : []; // ULTRA-SMART-PREVENT-1024
+    }); // ULTRA-SMART-PREVENT-1024
+  } catch { return []; } finally { if (timer) clearTimeout(timer); } // ULTRA-SMART-PREVENT-1024
 } // ULTRA-SMART-PREVENT-1024
 export const ultra1065 = (slug: string, text: unknown) => slug === "ultra-mobile" && /1065|invalid\s+amount/i.test(String(text ?? "")); // ULTRA-SMART-PREVENT-1024
 export function ultraEvent(event: "ultra_plan_mismatch_shown" | "ultra_plan_mismatch_accepted" | "ultra_plan_mismatch_overridden"): void { // ULTRA-SMART-PREVENT-1024

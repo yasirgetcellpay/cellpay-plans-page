@@ -1,6 +1,11 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { CHECKOUT_TIMEOUT_MS, newAttemptId, outcomeOfError, isOutcomeUnknown, logAttempt, confirmingMessage } from "@/lib/checkoutTimeout"; // CHECKOUT-TIMEOUT-1023
 import { Footer } from "@/components/Footer";
+import { useUltraSmart } from "@/hooks/useUltraSmart"; // ULTRA-SMART-PREVENT-1024
+import { UltraSmartNotice } from "@/components/UltraSmartNotice"; // ULTRA-SMART-PREVENT-1024
+import { UltraRefundRecovery } from "@/components/UltraRefundRecovery"; // ULTRA-SMART-PREVENT-1024
+import { readUltraPlans, ultra1065, ultraHealthText, type UltraPlan } from "@/lib/ultraSmart"; // ULTRA-SMART-PREVENT-1024
+import { ULTRA_1065_ONETAP } from "@/lib/ultraSmartFlags"; // ULTRA-SMART-PREVENT-1024
 import { LegalBar } from "@/components/LegalBar";
 import { PaymentBar } from "@/components/PaymentBar";
 import { AccountDropdown } from "@/components/AccountDropdown";
@@ -361,6 +366,10 @@ const Checkout = () => {
   // REFUNDED-STATE-1017: never charge a phone that isn't a valid 10-digit US number.
   const phone10 = normalizePhone(String(state?.phone || ""));
   const phoneOk = /^[2-9]\d{9}$/.test(phone10);
+  const [ultraPlans, setUltraPlans] = useState<UltraPlan[]>([]); // ULTRA-SMART-PREVENT-1024
+  useEffect(() => { if (state?.carrierSlug !== "ultra-mobile") return; let cancelled = false; void readUltraPlans().then((plans) => { if (!cancelled) setUltraPlans(plans); }); return () => { cancelled = true; }; }, [state?.carrierSlug]); // ULTRA-SMART-PREVENT-1024
+  const ultraSmart = useUltraSmart(state?.carrierSlug || "", phone10, phoneOk, ultraPlans); // ULTRA-SMART-PREVENT-1024
+  const goUltraPlan = (plan: UltraPlan) => { if (!state) return; const next = { ...state, amount: String(plan.amount), planId: plan.plan_id, planName: plan.name, ...(plan.carrierId ? { carrierId: plan.carrierId } : {}) }; writeCheckoutCtx(next); navigate(`${lang === "es" ? "/es" : ""}/checkout${location.search}${location.hash}`, { state: next }); }; // ULTRA-SMART-PREVENT-1024
   const badPhoneGo = () => {
     toast({ title: lang === "es" ? "Ingrese el número de teléfono completo de 10 dígitos." : "Please enter the full 10-digit phone number.", variant: "destructive" });
     if (state) navigate(carrierPageTarget(lang, state.carrierSlug, "", state.amount, location.search, location.hash));
@@ -583,6 +592,7 @@ const Checkout = () => {
   // FRAUD-MULTIBLOCK-1012 5c: the proxy sets risk_action "step_up" only in enforce mode; in shadow this never turns on.
   const [stepUp, setStepUp] = useState(false);
   const submitTransaction = async (p: Record<string, unknown>): Promise<unknown> => {
+    if (!ultraSmart.gate(Number(state?.amount))) return { success: false, code: "ULTRA_CONFIRM", message: ultraSmart.paused ? ultraHealthText("pause", lang) : "" }; // ULTRA-SMART-PREVENT-1024
     if (!phoneOk) { badPhoneGo(); return { success: false, code: "BAD_PHONE", error: "Please enter the full 10-digit phone number." }; } // REFUNDED-STATE-1017
     const key = lockKey(state?.phone, validation?.amount ?? state?.amount); // DB-OUTAGE-TRACK-1017
     const skipLock = String(p.payment_method || "").toLowerCase() === "pockyt"; // DB-OUTAGE-TRACK-1017
@@ -1737,7 +1747,7 @@ const Checkout = () => {
   }
 
   const canSubmit = agreedTerms && !submitting && !confirmingPay && // CHECKOUT-TIMEOUT-1023
-     isEmailValid && methodValid && (!autoPay || autoPayTerms);
+     isEmailValid && methodValid && (!autoPay || autoPayTerms) && !ultraSmart.paused && !(ultraSmart.noHistory && !ultraSmart.acknowledged); // ULTRA-SMART-PREVENT-1024
 
   // [OURSIDE-RETRY-1012] Data-error fallback (never resends) + flagged single Retry. Per-session record in sessionStorage
   // "cp_ors:<checkout session id>" ({ fallback_shown, failed_method, retry_offered, retry_clicked }); read by submitTransaction.
@@ -1765,6 +1775,8 @@ const Checkout = () => {
     return msg;
   };
   const handleResult = (raw: Record<string, unknown>) => {
+    if (raw.code === "ULTRA_CONFIRM") { if (ultraSmart.paused) setErrorMsg(ultraHealthText("pause", lang)); return; } // ULTRA-SMART-PREVENT-1024
+    if (raw.code === "ULTRA_PAUSED") { setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setShowNotChargedNote(false); setErrorMsg(ultraHealthText("pause", lang)); return; } // ULTRA-SMART-PREVENT-1024
     if (raw.code === "VZ_NOT_PREPAID") { showVzBlock(paymentMethod); return; } // VZ-PREPAID-GUARD-1017: before success/decline side effects.
     if (raw.code === "TMO_RETRY_24H") { showTmoBlock(raw.retry_after); return; } // TMO-LOOKUP-1020
     // Unwrap double-nested { data: { data: { status, message, transactionId } } }
@@ -2367,7 +2379,8 @@ const Checkout = () => {
           console.error("[ApplePay] transaction failed", result);
           try { session.completePayment({ status: session.STATUS_FAILURE }); } catch (e) { console.warn("[ApplePay] completePayment(failure) after the sheet closed", e); } // DUPCHARGE-1008
           // DUPCHARGE-FOLLOWUPS-1008: DUP_CONFIRM / IN_FLIGHT already opened our own dialog (submitTransaction wrapper): no error box.
-          if (raw.code === "MAYBE_PAID" || raw.code === "MAYBE_PAID_LOCK") { showMaybePaid(raw.code === "MAYBE_PAID_LOCK"); } // DB-OUTAGE-TRACK-1017
+          if (raw.code === "ULTRA_CONFIRM" || raw.code === "ULTRA_PAUSED") { if (raw.code === "ULTRA_PAUSED") setErrorMsg(ultraHealthText("pause", lang)); } // ULTRA-SMART-PREVENT-1024
+          else if (raw.code === "MAYBE_PAID" || raw.code === "MAYBE_PAID_LOCK") { showMaybePaid(raw.code === "MAYBE_PAID_LOCK"); } // DB-OUTAGE-TRACK-1017
           else if (raw.code === "BAD_PHONE") { /* REFUNDED-STATE-1017: wrapper already navigated */ }
           else if (raw.code === "RETRY_CAP" || raw.code === "RETRY_WAIT") { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(String(raw.message || "")); } // REFUND-RETRY-LATE-1018
           else if (isDbFormatUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(false); setLock(lockKey(state?.phone, validation?.amount ?? state?.amount), "unknown", PAYLOCK_UNKNOWN_MS); showMaybePaid(false); } // NAME-SANITIZE-1018B
@@ -2676,6 +2689,7 @@ const Checkout = () => {
 
   // ─── Main handler ───
   const handlePlaceOrder = async () => {
+    if (!ultraSmart.gate(Number(state?.amount))) return; // ULTRA-SMART-PREVENT-1024
     const key = lockKey(state?.phone, validation?.amount ?? state?.amount); // DB-OUTAGE-TRACK-1017
     const current = activeLock(key); // DB-OUTAGE-TRACK-1017
     if (current) { setLock(key, current.s, PAYLOCK_MS); showMaybePaid(true); return; } // DB-OUTAGE-TRACK-1017: before wallet sheets
@@ -2785,6 +2799,8 @@ const Checkout = () => {
         </div>
       ) : (
         <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+          {state.carrierSlug === "ultra-mobile" && <UltraSmartNotice smart={ultraSmart} lang={lang} />}{/* // ULTRA-SMART-PREVENT-1024 */}
+          {state.carrierSlug === "ultra-mobile" && ultraSmart.pending !== null && ultraSmart.usual && <Button type="button" className="w-full" onClick={() => { ultraSmart.accept(); if (ultraSmart.usual) goUltraPlan(ultraSmart.usual); }}>{lang === "es" ? `Continuar con $${ultraSmart.usual.amount}` : `Continue with $${ultraSmart.usual.amount}`}</Button>}{/* // ULTRA-SMART-PREVENT-1024 */}
           {/* Order summary */}
           <div className="bg-card rounded-xl border border-border p-5">
             <h2 className="font-bold text-foreground mb-3 text-sm">{tr.orderSummary}</h2>
@@ -3647,6 +3663,7 @@ const Checkout = () => {
         const es = lang === "es";
         const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`); // REFUND-WORDING-1016
         const ultraKind = (!pick || pick.category === "generic") && state.carrierSlug === "ultra-mobile" ? ultraResultKind : null; // REFILL-ERROR-MSG-1024: matched LoadText takes precedence // ULTRA-FAIL-MSG-1022
+        const smartUltraRefund = ULTRA_1065_ONETAP && ultra1065(state.carrierSlug, loadReason?.parts.join(" | ")); // ULTRA-SMART-PREVENT-1024
         const amt = `$${Number(validation?.total ?? state.amount ?? 0).toFixed(2)}`; // REFUND-WORDING-1016
         const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); }; // LOADTEXT-REASON-1017: + loadReason reset
         const toCarrier = (ph: string) => { close(); navigate(carrierPageTarget(lang, state.carrierSlug, ph, undefined, location.search, location.hash)); };
@@ -3683,7 +3700,7 @@ const Checkout = () => {
               {/* SUCCESS-FLAG-FIX-1016: owner-approved refund-card title and text only. */}
               {/* REFUND-WORDING-1016: wording only; refund behavior and buttons unchanged. */}
               <h3 className="text-xl font-bold text-foreground mb-2">{es ? (payWord ? "Pago no completado" : "Recarga no completada") : (payWord ? "Payment not completed" : "Refill not completed")}</h3>
-              {ultraKind ? <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">{ultraKind === "amount" // ULTRA-FAIL-MSG-1022
+              {smartUltraRefund ? <UltraRefundRecovery amount={Number(state.amount)} total={Number(validation?.total ?? state.amount)} last={ultraSmart.last} plans={ultraPlans} lang={lang} onPlan={(plan) => { close(); goUltraPlan(plan); }} onList={() => toCarrier(state.phone)} /> : ultraKind ? <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">{ultraKind === "amount" // ULTRA-SMART-PREVENT-1024
                 ? (es ? "Este monto no está disponible para su plan Ultra. Su pago fue reembolsado. Por favor elija otro monto e intente de nuevo." : "This amount isn't available for your Ultra plan. Your payment was refunded. Please choose a different amount and try again.") // ULTRA-FAIL-MSG-1022
                 : (es ? "Su recarga no se completó y su pago fue reembolsado. Por favor intente con otro monto o vuelva a intentarlo en unos minutos." : "Your refill didn't go through and your payment was refunded. Please try a different amount, or try again in a few minutes.")}</p> : pick ? (<> {/* ULTRA-FAIL-MSG-1022 */} {/* LOADTEXT-PICK-1019: picked reason + refund line */}
                 <p className="text-sm text-muted-foreground mb-2" data-testid="pick-reason" data-pick={pick.category}>{stPastDue ? stPastDueText(lang) /* REFILL-PREVENT-1024 */ : pickReasonText(pick.category, lang, state.carrierName, state.carrierSlug, pick.category === "generic" && cause ? retryReasonText(cause, lang, phone10) : null, pick.parts.join(" | "))}</p>
@@ -3707,7 +3724,7 @@ const Checkout = () => {
                 <Button variant="ghost" onClick={() => setRefillCarrierPicker(null)}>{es ? "Cerrar" : "Close"}</Button>
               </div>}
               <div className="space-y-2">
-                {ultraKind ? <Button type="button" data-testid="ultra-change-amount" className="w-full" onClick={() => toCarrier(state.phone)}>{es ? "Elegir otro monto" : "Choose another amount"}</Button> : pickChoices ? pickChoices.map((b, index) => { // ULTRA-FAIL-MSG-1022 // LOADTEXT-PICK-1019: buttons point at the matched reason
+                {smartUltraRefund ? null : ultraKind ? <Button type="button" data-testid="ultra-change-amount" className="w-full" onClick={() => toCarrier(state.phone)}>{es ? "Elegir otro monto" : "Choose another amount"}</Button> : pickChoices ? pickChoices.map((b, index) => { // ULTRA-SMART-PREVENT-1024
                   const key = `${b.action}${b.action === "to_carrier" ? "-" + b.to_carrier : ""}`; // LOADTEXT-PICK-1019
                   return <Button key={`pick-${key}`} type="button" data-testid={`pick-btn-${key}`} disabled={!!retryResolving || refillCarrierLoading} onClick={() => { if (b.action === "ok") close(); else if (b.action === "other_carrier") { setRefillCarrierLoading(true); void import("@/services/apiWrapper").then(({ fetchCarriers }) => fetchCarriers()).then(({ carriers }) => setRefillCarrierPicker(carriers.filter((carrier) => carrier.slug && carrier.name && !/xbox/i.test(carrier.name)).map(({ slug, name }) => ({ slug, name })))).catch(() => toast({ title: es ? "No pudimos cargar las compañías. Inténtelo de nuevo." : "We couldn't load carriers. Please try again.", variant: "destructive" })).finally(() => setRefillCarrierLoading(false)); } else void retry({ label: b.label, action: b.action, ...(b.to_carrier ? { to_carrier: b.to_carrier } : {}) }); }} className={btn + (index === 0 ? " text-primary-foreground" : " border-2 border-border text-foreground bg-background hover:bg-muted")} style={index === 0 ? { backgroundColor: brandColor } : undefined}>{retryResolving === key ? "…" : b.label}</Button>; // LOADTEXT-PICK-1019
                 }) : cause ? choices.map((choice, index) => { // REFUND-RETRY-1018
