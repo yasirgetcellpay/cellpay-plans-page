@@ -14,6 +14,8 @@ import { displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq } f
 import { goLpxForCarrier } from "@/content/goCopy";
 import { PlanGrid } from "@/components/PlanGrid";
 import { ultraPlanLabel } from "@/content/ultraPlanLabel"; // ULTRA-MSG-1024
+import { RP_P4_DEAD_AMOUNTS, RP_P2c_DISC_24H } from "@/lib/refillPreventFlags"; // LYCA-SKU-FIX-1024
+import { fetchDeadAmounts, isDeadAmount, deadLabel, type DeadAmount, checkDiscBlock, discBlockText, withTimeout, rpEvent, rpVariant } from "@/lib/refillPrevent"; // LYCA-SKU-FIX-1024
 import { Button } from "@/components/ui/button"; // METRO-FIRSTSCREEN-1023b
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
 import { applySeoHead } from "@/lib/seo";
@@ -226,6 +228,14 @@ const GoLander = ({
   const [rangePlanId, setRangePlanId] = useState<string>("");
   const [rangeCarrierId, setRangeCarrierId] = useState<number | undefined>(undefined);
   const [plans, setPlans] = useState<NormalizedPlan[]>([]);
+  const [deadList, setDeadList] = useState<DeadAmount[]>([]); // LYCA-SKU-FIX-1024
+  useEffect(() => { // LYCA-SKU-FIX-1024
+    if (!RP_P4_DEAD_AMOUNTS || carrierSlug === "ultra-mobile") return; // LYCA-SKU-FIX-1024
+    let cancelled = false; void fetchDeadAmounts().then((items) => { if (!cancelled) setDeadList(items); }).catch(() => {}); return () => { cancelled = true; }; // LYCA-SKU-FIX-1024
+  }, [carrierSlug]); // LYCA-SKU-FIX-1024
+  const deadShown = RP_P4_DEAD_AMOUNTS && plans.some((p) => isDeadAmount(deadList, carrierSlug, p.plan_id, p.amount)); // LYCA-SKU-FIX-1024
+  const deadLogged = useRef(false); // LYCA-SKU-FIX-1024
+  useEffect(() => { if (deadShown && !deadLogged.current) { deadLogged.current = true; rpEvent("rp_dead_amount_shown", carrierSlug, rpVariant()); } }, [deadShown, carrierSlug]); // LYCA-SKU-FIX-1024
 
   // noindex + ads SEO (static shells also ship noindex)
   useEffect(() => {
@@ -394,6 +404,17 @@ const GoLander = ({
   const VERIZON_CARRIER_ID = 14;
   const isVerizonRange = (amt: number) =>
     carrierSlug === "verizon" && rangePlanId !== "" && amt >= rangeMin && amt <= rangeMax;
+  const rpGate = async (planId: unknown, amt: unknown): Promise<boolean> => { // LYCA-SKU-FIX-1024
+    try { // LYCA-SKU-FIX-1024
+      if (carrierSlug === "ultra-mobile") return true; // LYCA-SKU-FIX-1024
+      if (RP_P4_DEAD_AMOUNTS && isDeadAmount(deadList, carrierSlug, planId, amt)) { setInlineError(deadLabel(lang)); return false; } // LYCA-SKU-FIX-1024
+      if (RP_P2c_DISC_24H && await withTimeout(checkDiscBlock(phoneDigits, carrierSlug, planId), 1000, false)) { // LYCA-SKU-FIX-1024
+        rpEvent("rp_retry_blocked", carrierSlug, "disc24h"); // LYCA-SKU-FIX-1024
+        const msg = discBlockText(lang); setInlineError(msg); toast({ title: msg, description: msg, variant: "destructive" }); return false; // LYCA-SKU-FIX-1024
+      } // LYCA-SKU-FIX-1024
+    } catch { /* fail open */ } // LYCA-SKU-FIX-1024
+    return true; // LYCA-SKU-FIX-1024
+  }; // LYCA-SKU-FIX-1024
 
   const goCheckout = (planAmount: number, planId?: string, planName?: string, planCarrierId?: number) => {
     const vzRange = isVerizonRange(planAmount);
@@ -415,6 +436,7 @@ const GoLander = ({
   };
 
   const handlePlanPayNow = async (plan: { price: string; highlight: string }) => {
+    { const pa = Number(plan.price.replace("$", "")); if (!(await rpGate(isVerizonRange(pa) ? rangePlanId : plans.find((p) => p.amount === pa)?.plan_id, pa))) return; } // LYCA-SKU-FIX-1024
     if (phoneDigits.length !== 10) {
       toast({ title: tr.phoneRequired, description: tr.phoneRequired, variant: "destructive" });
       return;
@@ -443,6 +465,7 @@ const GoLander = ({
 
   const handlePay = async () => {
     setInlineError(null);
+    if (!(await rpGate(isVerizonRange(amountNum) ? rangePlanId : (plans.find((p) => p.amount === amountNum)?.plan_id || rangePlanId), amountNum))) return; // LYCA-SKU-FIX-1024
     if (phoneDigits.length !== 10) {
       const msg = tr.phoneRequired;
       setInlineError(msg);
@@ -796,7 +819,7 @@ const GoLander = ({
           {showFixedPlans && plans.length > 0 && (
             <div className="pt-1 sm:pt-2">
               <PlanGrid
-                plans={plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, goTileName(carrierSlug, isEs ? "es" : "en", p.highlight)) }))}
+                plans={plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, goTileName(carrierSlug, isEs ? "es" : "en", p.highlight)), ...(RP_P4_DEAD_AMOUNTS && isDeadAmount(deadList, carrierSlug, p.plan_id, p.amount) ? { unavailable: deadLabel(lang) } : {}) }))} // LYCA-SKU-FIX-1024
                 brandColor={bc}
                 onSelect={handlePlanPayNow}
                 popularIndex={Math.min(plans.length - 1, Math.floor(plans.length / 2))}

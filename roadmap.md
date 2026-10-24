@@ -1,4 +1,5 @@
 # VZ-PREPAID-GUARD-1017
+- [ ] LYCA-SKU-FIX-1024: seed three unavailable Lyca plans; wire lists, saved-cart redirect and isolated 24-hour block; test and redeploy only cellpay-proxy/dead-amounts. // LYCA-SKU-FIX-1024
 - [x] REFILL-PREVENT-1024: P1/P2/P2b/P4/P6 behind own switches, A/B cookie cp_rp; dead-amounts function written, not deployed.
 - [x] ULTRA-MSG-1024: Ultra 8279 display label and EN/ES refund overrides verified with intercepted replies; original $29 price, payment values, retry handler and REFUND-RETRY buttons unchanged; 68 focused tests passed, five existing legacy fixture failures remain; preview build OK, no publishing or deployment.
 - [x] METRO-FIRSTSCREEN-1023b: Metro-only phone placement and CTA verified on six route forms; CTA bottoms 748/760 px at 390×844; other carrier DOM/config unchanged, original validation and mocked-verification checkout handoff checked; build OK, two new Auto Pay tests passed, full suite 486 passed/same 56 failures and one error; no publishing. // METRO-FIRSTSCREEN-1023b

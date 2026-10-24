@@ -14,6 +14,8 @@ import { top4Hero, displayCarrierName, trademarkCarrierName, activeLineNote, ref
 import { PlanGrid } from "@/components/PlanGrid";
 import { ultraPlanLabel } from "@/content/ultraPlanLabel"; // ULTRA-MSG-1024
 import { RP_P1_FORMAT, RP_P2_RETRY_BLOCK, RP_P2_GUIDANCE, RP_P4_DEAD_AMOUNTS } from "@/lib/refillPreventFlags"; // REFILL-PREVENT-1024
+import { RP_P2c_DISC_24H } from "@/lib/refillPreventFlags"; // LYCA-SKU-FIX-1024
+import { checkDiscBlock, discBlockText } from "@/lib/refillPrevent"; // LYCA-SKU-FIX-1024
 import { rpVariant, rpEvent, phoneFormatBad, formatErrorText, confirmLabel, checkRetryBlock, retryBlockText, withTimeout, guidanceText, fetchDeadAmounts, isDeadAmount, deadLabel, type DeadAmount } from "@/lib/refillPrevent"; // REFILL-PREVENT-1024
 // SIMPLE-SPEC-1-1009: Simple Mobile answer page text (same source as the raw HTML in vite.config.ts)
 import { SIMPLE_META, SIMPLE_ANSWER, SIMPLE_FAQ_TITLE, SIMPLE_LINKS, simpleFaqs, simpleGridPlans } from "@/content/simplePage";
@@ -602,6 +604,10 @@ const DynamicCarrier = ({
         const msg = formatErrorText(lang); setInlineError(msg); return false;
       }
       if (RP_P4_DEAD_AMOUNTS && isDeadAmount(deadList, carrierSlug, planId, amt)) { setInlineError(deadLabel(lang)); return false; }
+      if (RP_P2c_DISC_24H && carrierSlug !== "ultra-mobile" && await withTimeout(checkDiscBlock(phoneDigits, carrierSlug, planId), 1000, false)) { // LYCA-SKU-FIX-1024
+        rpEvent("rp_retry_blocked", carrierSlug, "disc24h"); // LYCA-SKU-FIX-1024
+        const msg = discBlockText(lang); setInlineError(msg); toast({ title: msg, description: msg, variant: "destructive" }); return false; // LYCA-SKU-FIX-1024
+      } // LYCA-SKU-FIX-1024
       if (RP_P2_RETRY_BLOCK && rpV === "rp" && await withTimeout(checkRetryBlock(phoneDigits, carrierSlug, planId), 1000, false)) {
         rpEvent("rp_retry_blocked", carrierSlug, rpV);
         const msg = retryBlockText(lang); setInlineError(msg); toast({ title: msg, description: msg, variant: "destructive" }); return false;

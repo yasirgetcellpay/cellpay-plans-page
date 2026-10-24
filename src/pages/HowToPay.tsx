@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { fetchCarrierView } from "@/services/apiWrapper";
+import { RP_P4_DEAD_AMOUNTS } from "@/lib/refillPreventFlags"; // LYCA-SKU-FIX-1024
+import { fetchDeadAmounts, isDeadAmount, withTimeout, type DeadAmount } from "@/lib/refillPrevent"; // LYCA-SKU-FIX-1024
 import { applySeoHead } from "@/lib/seo";
 import { howToPayByPath, howToPayJsonLd, htpPlanNames, htpPlansNote, htpCommonAmounts } from "@/content/howToPay"; // AI-ANSWERS-1014: + htpCommonAmounts
 import NotFound from "./NotFound.tsx";
@@ -12,7 +14,7 @@ type LivePlan = { label: string };
 const money = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 
 // Reads whatever plan shape carriers/view returns (array of plans, or a range-plan object) without inventing prices.
-function extractPlans(data: unknown, slug: string, es: boolean): LivePlan[] {
+function extractPlans(data: unknown, slug: string, es: boolean, dead: DeadAmount[] = []): LivePlan[] { // LYCA-SKU-FIX-1024
   const out: LivePlan[] = [];
   const d = (data ?? {}) as Record<string, unknown>;
   const lists = [d.carrier_plans, d.fixed_plans, (d.carrier_plans as Record<string, unknown> | undefined)?.fixed_plans];
@@ -22,6 +24,7 @@ function extractPlans(data: unknown, slug: string, es: boolean): LivePlan[] {
       const o = (p ?? {}) as Record<string, unknown>;
       if (["325635", "8282", "547871", "32993000", "8947005"].includes(String(o.planId ?? o.plan_id ?? "").trim())) continue; // H2O-HIDE-325635-1017 // PLAN-BLOCK-CLEANUP-1017 // ULTRA64-HIDE-1017 // LYCA10-HIDE-1017
       const amount = Number(o.amount ?? o.price ?? 0);
+      if (RP_P4_DEAD_AMOUNTS && slug === "lyca" && isDeadAmount(dead, slug, String(o.planId ?? o.plan_id ?? "").trim(), amount)) continue; // LYCA-SKU-FIX-1024
       if (!(amount > 0)) continue;
       const desc = String(o.description ?? o.name ?? "").split(",")[0].trim();
       out.push({ label: desc ? `${money(amount)} — ${desc}` : money(amount) });
@@ -52,7 +55,7 @@ const HowToPay = () => {
     setPlans(null);
     if (pg.amount) return; // AI-ANSWERS-1014: amount pages show no plan list
     fetchCarrierView(pg.carrierSlug)
-      .then((data) => { if (!cancelled) setPlans(extractPlans(data, pg.carrierSlug, pg.lang === "es")); })
+      .then(async (data) => { const dead = RP_P4_DEAD_AMOUNTS && pg.carrierSlug === "lyca" ? await withTimeout(fetchDeadAmounts(), 1500, []) : []; if (!cancelled) setPlans(extractPlans(data, pg.carrierSlug, pg.lang === "es", dead)); }) // LYCA-SKU-FIX-1024
       .catch(() => { if (!cancelled) setPlans([]); });
     return () => { cancelled = true; };
   }, [pg]);
