@@ -4,6 +4,7 @@ import { scoreRisk, riskEngineMode } from "../_shared/riskLogic.ts"; // FRAUD-MU
 import { vzGuardGate } from "../_shared/vzPrepaidGuard.ts"; // VZ-PREPAID-GUARD-1017
 import { tmoGuardGate } from "../_shared/tmoRetryGuard.ts"; // TMO-LOOKUP-1020
 import { raceNull } from "../_shared/raceNull.ts"; // DB-OUTAGE-TRACK-1017
+import { ultraHealth } from "../_shared/ultraSmart.ts"; // ULTRA-SMART-PREVENT-1024
 import { memdupKey, memdupCheck, memdupUpdate, type MemdupEntry } from "../_shared/memdup.ts"; // DB-OUTAGE-TRACK-1017
 import { categorizeLoadText, isCcRefundBody } from "../_shared/loadTextCategory.ts"; // LOADTEXT-PICK-1019
 const MEMDUP = new Map<string, MemdupEntry>(); // DB-OUTAGE-TRACK-1017
@@ -3224,6 +3225,10 @@ serve(async (req) => {
         return new Response(JSON.stringify({ success: false, blocked: true, code: "IN_FLIGHT", message: "Your payment is still processing. Please wait a moment; you were not charged again." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
+    if (shouldLogTransaction && String(payloadRecord.carrier_slug ?? payloadRecord.carrierSlug ?? "").trim().toLowerCase() === "ultra-mobile") { // ULTRA-SMART-PREVENT-1024
+      const health = await ultraHealth(true); // ULTRA-SMART-PREVENT-1024
+      if (health?.allowed === false) return new Response(JSON.stringify({ success: false, blocked: true, code: "ULTRA_PAUSED", message: body.lang === "es" ? "Las recargas de Ultra no están disponibles temporalmente. Volverán pronto. Inténtelo de nuevo en unos 20 minutos." : "Ultra refills are temporarily unavailable — back shortly. Please try again in about 20 minutes." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); // ULTRA-SMART-PREVENT-1024
+    } // ULTRA-SMART-PREVENT-1024
     const createP: Promise<string | null> = shouldLogTransaction
       ? createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...retryMetaFrom(body.retry_meta), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}), ...namesSentMeta(payloadRecord) /* ACCENT-FOLD-1015C */ }, clickIdsFrom(body.click_ids),
           mf ? await mfLogMeta(mf, null) : {}, 20000)

@@ -14,6 +14,8 @@ import { displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq } f
 import { goLpxForCarrier } from "@/content/goCopy";
 import { PlanGrid } from "@/components/PlanGrid";
 import { ultraPlanLabel } from "@/content/ultraPlanLabel"; // ULTRA-MSG-1024
+import { useUltraSmart } from "@/hooks/useUltraSmart"; // ULTRA-SMART-PREVENT-1024
+import { UltraSmartNotice } from "@/components/UltraSmartNotice"; // ULTRA-SMART-PREVENT-1024
 import { RP_P4_DEAD_AMOUNTS, RP_P2c_DISC_24H } from "@/lib/refillPreventFlags"; // LYCA-SKU-FIX-1024
 import { fetchDeadAmounts, isDeadAmount, deadLabel, type DeadAmount, checkDiscBlock, discBlockText, withTimeout, rpEvent, rpVariant } from "@/lib/refillPrevent"; // LYCA-SKU-FIX-1024
 import { Button } from "@/components/ui/button"; // METRO-FIRSTSCREEN-1023b
@@ -390,6 +392,7 @@ const GoLander = ({
   }, [loading]);
 
   const phoneDigits = phone.replace(/\D/g, "");
+  const ultraSmart = useUltraSmart(carrierSlug, phoneDigits, true, plans, (plan) => setAmount(String(plan.amount))); // ULTRA-SMART-PREVENT-1024
   const amountNum = parseAmountDollars(amount) || 0;
   const amountProblem = getAmountProblem(amount, amountNum, rangeMin, rangeMax);
   const rangeAmountValid = amountProblem === null;
@@ -406,6 +409,7 @@ const GoLander = ({
     carrierSlug === "verizon" && rangePlanId !== "" && amt >= rangeMin && amt <= rangeMax;
   const rpGate = async (planId: unknown, amt: unknown): Promise<boolean> => { // LYCA-SKU-FIX-1024
     try { // LYCA-SKU-FIX-1024
+      if (!ultraSmart.gate(Number(amt))) return false; // ULTRA-SMART-PREVENT-1024
       if (carrierSlug === "ultra-mobile") return true; // LYCA-SKU-FIX-1024
       if (RP_P4_DEAD_AMOUNTS && isDeadAmount(deadList, carrierSlug, planId, amt)) { setInlineError(deadLabel(lang)); return false; } // LYCA-SKU-FIX-1024
       if (RP_P2c_DISC_24H && await withTimeout(checkDiscBlock(phoneDigits, carrierSlug, planId), 1000, false)) { // LYCA-SKU-FIX-1024
@@ -816,6 +820,7 @@ const GoLander = ({
             </div>
           </div>
 
+          {carrierSlug === "ultra-mobile" && <div className="max-w-[420px] mx-auto px-4 pb-4"><UltraSmartNotice smart={ultraSmart} lang={lang} onContinue={() => { if (ultraSmart.usual) void handlePlanPayNow({ price: `$${ultraSmart.usual.amount}`, highlight: ultraSmart.usual.name || "" }); }} /></div>}{/* // ULTRA-SMART-PREVENT-1024 */}
           {showFixedPlans && plans.length > 0 && (
             <div className="pt-1 sm:pt-2">
               <PlanGrid
