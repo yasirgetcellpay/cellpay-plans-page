@@ -2538,6 +2538,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ultra_breaker_state: {
+        Row: {
+          attempts: number
+          failures: number
+          id: number
+          measured_at: string | null
+          pause_until: string | null
+          probe_started: string | null
+          tier: string
+        }
+        Insert: {
+          attempts?: number
+          failures?: number
+          id?: number
+          measured_at?: string | null
+          pause_until?: string | null
+          probe_started?: string | null
+          tier?: string
+        }
+        Update: {
+          attempts?: number
+          failures?: number
+          id?: number
+          measured_at?: string | null
+          pause_until?: string | null
+          probe_started?: string | null
+          tier?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -3456,6 +3486,10 @@ export type Database = {
       tx_log_meta_merge: {
         Args: { _id: string; _patch: Json }
         Returns: undefined
+      }
+      ultra_breaker_check: {
+        Args: { _claim?: boolean; _mode?: string }
+        Returns: Json
       }
       vel1_enforce_check: {
         Args: {

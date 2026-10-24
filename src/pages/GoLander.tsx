@@ -14,6 +14,9 @@ import { displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq } f
 import { goLpxForCarrier } from "@/content/goCopy";
 import { PlanGrid } from "@/components/PlanGrid";
 import { ultraPlanLabel } from "@/content/ultraPlanLabel"; // ULTRA-MSG-1024
+import { useUltraSmart } from "@/hooks/useUltraSmart"; // ULTRA-SMART-PREVENT-1024
+import { ultraHealthText } from "@/lib/ultraSmart"; // ULTRA-SMART-PREVENT-1024
+import { UltraSmartNotice } from "@/components/UltraSmartNotice"; // ULTRA-SMART-PREVENT-1024
 import { RP_P4_DEAD_AMOUNTS, RP_P2c_DISC_24H } from "@/lib/refillPreventFlags"; // LYCA-SKU-FIX-1024
 import { fetchDeadAmounts, isDeadAmount, deadLabel, type DeadAmount, checkDiscBlock, discBlockText, withTimeout, rpEvent, rpVariant } from "@/lib/refillPrevent"; // LYCA-SKU-FIX-1024
 import { Button } from "@/components/ui/button"; // METRO-FIRSTSCREEN-1023b
@@ -390,6 +393,7 @@ const GoLander = ({
   }, [loading]);
 
   const phoneDigits = phone.replace(/\D/g, "");
+  const ultraSmart = useUltraSmart(carrierSlug, phoneDigits, true, plans, (plan) => setAmount(String(plan.amount))); // ULTRA-SMART-PREVENT-1024
   const amountNum = parseAmountDollars(amount) || 0;
   const amountProblem = getAmountProblem(amount, amountNum, rangeMin, rangeMax);
   const rangeAmountValid = amountProblem === null;
@@ -406,6 +410,7 @@ const GoLander = ({
     carrierSlug === "verizon" && rangePlanId !== "" && amt >= rangeMin && amt <= rangeMax;
   const rpGate = async (planId: unknown, amt: unknown): Promise<boolean> => { // LYCA-SKU-FIX-1024
     try { // LYCA-SKU-FIX-1024
+      if (!ultraSmart.gate(Number(amt))) return false; // ULTRA-SMART-PREVENT-1024
       if (carrierSlug === "ultra-mobile") return true; // LYCA-SKU-FIX-1024
       if (RP_P4_DEAD_AMOUNTS && isDeadAmount(deadList, carrierSlug, planId, amt)) { setInlineError(deadLabel(lang)); return false; } // LYCA-SKU-FIX-1024
       if (RP_P2c_DISC_24H && await withTimeout(checkDiscBlock(phoneDigits, carrierSlug, planId), 1000, false)) { // LYCA-SKU-FIX-1024
@@ -783,7 +788,7 @@ const GoLander = ({
                     <button
                       type="button"
                       onClick={handlePay}
-                      disabled={verifying}
+                      disabled={verifying || ultraSmart.paused || (ultraSmart.noHistory && !ultraSmart.acknowledged)} // ULTRA-SMART-PREVENT-1024
                       className="mt-3 w-full h-10 sm:h-11 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm sm:text-base transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                       style={{ backgroundColor: bc }}
                     >
@@ -816,10 +821,11 @@ const GoLander = ({
             </div>
           </div>
 
+          {carrierSlug === "ultra-mobile" && <div className="max-w-[420px] mx-auto px-4 pb-4"><UltraSmartNotice smart={ultraSmart} lang={lang} onContinue={() => { if (ultraSmart.usual) void handlePlanPayNow({ price: `$${ultraSmart.usual.amount}`, highlight: ultraSmart.usual.name || "" }); }} /></div>}{/* // ULTRA-SMART-PREVENT-1024 */}
           {showFixedPlans && plans.length > 0 && (
             <div className="pt-1 sm:pt-2">
               <PlanGrid
-                plans={plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, goTileName(carrierSlug, isEs ? "es" : "en", p.highlight)), ...(RP_P4_DEAD_AMOUNTS && isDeadAmount(deadList, carrierSlug, p.plan_id, p.amount) ? { unavailable: deadLabel(lang) } : {}) })) /* // LYCA-SKU-FIX-1024 */}
+                plans={plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, goTileName(carrierSlug, isEs ? "es" : "en", p.highlight)), ...(ultraSmart.paused ? { unavailable: ultraHealthText("pause", lang) } : RP_P4_DEAD_AMOUNTS && isDeadAmount(deadList, carrierSlug, p.plan_id, p.amount) ? { unavailable: deadLabel(lang) } : {}) })) /* // LYCA-SKU-FIX-1024 // ULTRA-SMART-PREVENT-1024 */}
                 brandColor={bc}
                 onSelect={handlePlanPayNow}
                 popularIndex={Math.min(plans.length - 1, Math.floor(plans.length / 2))}
@@ -833,7 +839,7 @@ const GoLander = ({
                 <button
                   type="button"
                   onClick={handlePay}
-                  disabled={verifying || !rangeAmountValid}
+                  disabled={verifying || !rangeAmountValid || ultraSmart.paused || (ultraSmart.noHistory && !ultraSmart.acknowledged)} // ULTRA-SMART-PREVENT-1024
                   className="h-[48px] px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                   style={{ backgroundColor: bc }}
                 >
@@ -859,7 +865,7 @@ const GoLander = ({
               <button
                 type="button"
                 onClick={handlePay}
-                disabled={verifying || !rangeAmountValid}
+                disabled={verifying || !rangeAmountValid || ultraSmart.paused || (ultraSmart.noHistory && !ultraSmart.acknowledged)} // ULTRA-SMART-PREVENT-1024
                 className="flex-[2] h-[46px] rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: bc }}
               >
