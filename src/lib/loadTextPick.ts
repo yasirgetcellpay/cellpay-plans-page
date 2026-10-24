@@ -4,20 +4,21 @@
 // The category rules (RULES, GENERIC_RE, splitLoadText, categorizeLoadText) are copied in
 // supabase/functions/_shared/loadTextCategory.ts for the proxy's logging; keep both copies identical.
 
-export type LoadTextCategory = "number" | "plan" | "amount" | "cooldown" | "generic";
+export type LoadTextCategory = "number" | "plan" | "amount" | "cooldown" | "system" | "generic"; // REFILL-ERROR-MSG-1024
 export type LoadPick = { category: LoadTextCategory; unknown: boolean; unknownParts: string[]; parts: string[] };
-export type PickAction = "number" | "to_carrier" | "other_carrier" | "amount" | "ok";
+export type PickAction = "number" | "to_carrier" | "other_carrier" | "amount" | "plan" | "try_again" | "ok"; // REFILL-ERROR-MSG-1024
 export type PickButton = { label: string; action: PickAction; to_carrier?: string };
 
 // Most specific first. First matching rule wins for a part; the lowest-numbered category across all parts is shown.
 const RULES: Array<[Exclude<LoadTextCategory, "generic">, RegExp]> = [
-  ["number", /resource not found|invalid\s*(phone\s*)?number|invalid\s*(min|mdn)\b|not a valid|suspended|not found/i],
+  ["amount", /product not sold|resource not found|discontinued|denomination|invalid amount/i], // REFILL-ERROR-MSG-1024
+  ["number", /subscriber not found|invalid\s*(phone\s*)?number|invalid\s*(min|mdn)\b|not a valid|phone number not found with the selected carrier|suspended|not found/i], // REFILL-ERROR-MSG-1024
   ["plan", /plan does not match|not eligible|does not qualify/i],
-  ["amount", /discontinued|amount|denomination/i],
-  ["cooldown", /recent|already refilled|too soon/i],
+  ["cooldown", /refill was completed on this line recently|recent|already refilled|too soon/i], // REFILL-ERROR-MSG-1024
+  ["system", /invalid transaction state|error on params|vendor system error|time\s*out|timed out|terminal refused/i], // REFILL-ERROR-MSG-1024
 ];
-const GENERIC_RE = /invalid request|unprocessable|time\s*out|timed out|not approved/i;
-const ORDER: LoadTextCategory[] = ["number", "plan", "amount", "cooldown", "generic"];
+const GENERIC_RE = /invalid request|unprocessable|not approved/i; // REFILL-ERROR-MSG-1024
+const ORDER: LoadTextCategory[] = ["number", "plan", "amount", "cooldown", "system", "generic"]; // REFILL-ERROR-MSG-1024
 
 /** Split on " | " (also a bare "|") and " & "; trimmed, empty parts dropped, max 20 parts of 200 chars. */
 export function splitLoadText(text: unknown): string[] {
@@ -33,13 +34,19 @@ export function categorizeLoadText(text: unknown): { category: LoadTextCategory;
   const parts = splitLoadText(text);
   if (!parts.length) return null;
   let best = ORDER.length - 1;
+  let productUnavailable = false, invalidState = false; // REFILL-ERROR-MSG-1024
   const unknownParts: string[] = [];
   for (const part of parts) {
     const hit = RULES.find(([, re]) => re.test(part));
-    if (hit) best = Math.min(best, ORDER.indexOf(hit[0]));
+    if (hit) { // REFILL-ERROR-MSG-1024
+      best = Math.min(best, ORDER.indexOf(hit[0])); // REFILL-ERROR-MSG-1024
+      if (hit[0] === "amount" && /product not sold|resource not found/i.test(part)) productUnavailable = true; // REFILL-ERROR-MSG-1024
+      if (hit[0] === "system" && /invalid transaction state/i.test(part)) invalidState = true; // REFILL-ERROR-MSG-1024
+    } // REFILL-ERROR-MSG-1024
     else if (!GENERIC_RE.test(part) && unknownParts.length < 5) unknownParts.push(part.slice(0, 80));
   }
-  return { category: ORDER[best], unknown: unknownParts.length > 0, unknownParts, parts };
+  // The supplied 1065 example is a system error even beside Invalid Amount; number/plan still precede it. // REFILL-ERROR-MSG-1024
+  return { category: productUnavailable ? "amount" : invalidState && best >= ORDER.indexOf("amount") ? "system" : ORDER[best], unknown: unknownParts.length > 0, unknownParts, parts }; // REFILL-ERROR-MSG-1024
 }
 
 export function loadTextPick(text: unknown): LoadPick | null {
@@ -75,19 +82,20 @@ export function isCcRefund(reply: unknown): boolean {
 export const isPayWordCarrier = (slug: unknown, name: unknown): boolean => /metro|boost|cricket/i.test(`${slug ?? ""} ${name ?? ""}`);
 
 const TEXTS: Record<Exclude<LoadTextCategory, "cooldown" | "generic">, { en: string; es: string }> = {
-  number: { en: "We couldn't find this number with {carrier}. Please double-check the number and carrier.", es: "No encontramos este número con {carrier}. Verifique el número y la compañía." },
-  plan: { en: "This number is on a different plan type. Please check you picked the right carrier/plan.", es: "Este número tiene otro tipo de plan. Verifique que eligió la compañía y el plan correctos." },
-  amount: { en: "This amount isn't available right now. Please try a different amount.", es: "Este monto no está disponible en este momento. Elija otro monto." },
+  number: { en: "This number isn't active on {carrier}. Check the number or pick a different carrier.", es: "Este número no está activo con {carrier}. Revise el número o elija otra compañía." }, // REFILL-ERROR-MSG-1024
+  plan: { en: "This plan doesn't match your line's plan. Pick your current plan.", es: "Este plan no coincide con el plan de su línea. Elija su plan actual." }, // REFILL-ERROR-MSG-1024
+  amount: { en: "This amount isn't available right now. Pick another amount.", es: "Este monto no está disponible ahora. Elija otro monto." }, // REFILL-ERROR-MSG-1024
+  system: { en: "The carrier's system had a problem. You weren't charged. Please try again in a few minutes.", es: "El sistema de la compañía tuvo un problema. No se le cobró. Inténtelo de nuevo en unos minutos." }, // REFILL-ERROR-MSG-1024
 };
 const COOLDOWN = {
-  refill: { en: "This number was just refilled. Please try again later.", es: "Este número acaba de recibir una recarga. Inténtelo de nuevo más tarde." },
-  pay: { en: "A payment was just made on this number. Please try again later.", es: "Se acaba de hacer un pago en este número. Inténtelo de nuevo más tarde." },
+  refill: { en: "This line was just refilled. Check your balance before paying again.", es: "Esta línea acaba de recibir una recarga. Revise su saldo antes de pagar otra vez." }, // REFILL-ERROR-MSG-1024
+  pay: { en: "This line was just refilled. Check your balance before paying again.", es: "Esta línea acaba de recibir una recarga. Revise su saldo antes de pagar otra vez." }, // REFILL-ERROR-MSG-1024
 };
 const GENERIC = {
   refill: { en: "Your refill didn't go through. Please check the number and plan and try again.", es: "Su recarga no se completó. Revise el número y el plan e inténtelo de nuevo." },
   pay: { en: "Your payment didn't go through. Please check the number and plan and try again.", es: "Su pago no se completó. Revise el número y el plan e inténtelo de nuevo." },
 };
-export const PICK_REFUND_LINE = { en: "You have not been charged. Your payment was refunded.", es: "No se le ha cobrado. Su pago fue reembolsado." };
+export const PICK_REFUND_LINE = { en: "You were not charged. Your payment was refunded.", es: "No se le cobró. Su pago fue reembolsado." }; // REFILL-ERROR-MSG-1024
 
 /** The reason sentence for a category (no refund line). `genericText` replaces the generic sentence when given (e.g. a carrier-specific reason). */
 export function pickReasonText(category: LoadTextCategory, lang: string, carrierName: string, carrierSlug: string, genericText?: string | null): string {
@@ -113,12 +121,9 @@ export function pickFullText(category: LoadTextCategory, lang: string, carrierNa
  */
 export function pickButtons(category: LoadTextCategory, lang: string, base: Array<{ label: string; action: string; to_carrier?: string }> = []): PickButton[] | null {
   const es = lang === "es";
-  const carriers: PickButton[] = base.filter((b) => b.action === "to_carrier" && b.to_carrier).map((b) => ({ label: b.label, action: "to_carrier", to_carrier: b.to_carrier }));
-  const switchCarrier: PickButton[] = carriers.length ? carriers : [{ label: es ? "Elegir otra compañía" : "Choose another carrier", action: "other_carrier" }];
-  const changeNumber: PickButton = { label: es ? "Cambiar número" : "Change number", action: "number" };
-  if (category === "number") return [{ label: es ? "Corregir número" : "Edit number", action: "number" }, ...switchCarrier];
-  if (category === "plan") return [...switchCarrier, changeNumber];
-  if (category === "amount") return [{ label: es ? "Elegir otro monto" : "Choose another amount", action: "amount" }, changeNumber];
+  if (category === "number") return [{ label: es ? "Corregir número" : "Edit number", action: "number" }, { label: es ? "Elegir otra compañía" : "Choose another carrier", action: "other_carrier" }]; // REFILL-ERROR-MSG-1024
+  if (category === "plan") return [{ label: es ? "Elegir plan" : "Choose plan", action: "plan" }]; // REFILL-ERROR-MSG-1024
+  if (category === "amount") return [{ label: es ? "Elegir otro monto" : "Choose another amount", action: "amount" }]; // REFILL-ERROR-MSG-1024
   if (category === "cooldown") return [{ label: es ? "Entendido" : "OK", action: "ok" }];
-  return null;
+  return [{ label: es ? "Intentar de nuevo" : "Try again", action: "try_again" }]; // REFILL-ERROR-MSG-1024
 }
