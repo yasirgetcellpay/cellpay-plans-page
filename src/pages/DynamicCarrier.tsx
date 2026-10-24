@@ -890,7 +890,7 @@ const DynamicCarrier = ({
                     <button
                       type="button"
                       onClick={handlePay}
-                      disabled={verifying || rpPhoneBlock /* REFILL-PREVENT-1024 */}
+                      disabled={verifying || rpPhoneBlock || ultraSmart.paused || (ultraSmart.noHistory && !ultraSmart.acknowledged) /* REFILL-PREVENT-1024 // ULTRA-SMART-PREVENT-1024 */}
                       className="mt-3 w-full h-10 sm:h-11 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm sm:text-base transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                       style={{ backgroundColor: bc }}
                     >
@@ -921,7 +921,7 @@ const DynamicCarrier = ({
           {/* Plan grid (fixed_plans) */}
           {showFixedPlans && plans.length > 0 && (
             <PlanGrid
-              plans={shownGrid.plans}
+              plans={ultraSmart.paused ? shownGrid.plans.map((plan) => ({ ...plan, unavailable: ultraHealthText("pause", lang) })) : shownGrid.plans} // ULTRA-SMART-PREVENT-1024
               brandColor={bc}
               onSelect={handlePlanPayNow}
               popularIndex={shownGrid.popular}
@@ -947,7 +947,7 @@ const DynamicCarrier = ({
               <button
                 type="button"
                 onClick={handlePay}
-                disabled={verifying || !rangeAmountValid || rpPhoneBlock /* REFILL-PREVENT-1024 */}
+                disabled={verifying || !rangeAmountValid || rpPhoneBlock || ultraSmart.paused || (ultraSmart.noHistory && !ultraSmart.acknowledged) /* REFILL-PREVENT-1024 // ULTRA-SMART-PREVENT-1024 */}
                 className="h-[48px] px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: bc }}
               >
@@ -976,7 +976,7 @@ const DynamicCarrier = ({
               <button
                 type="button"
                 onClick={handlePay}
-                disabled={verifying || !rangeAmountValid || rpPhoneBlock /* REFILL-PREVENT-1024 */}
+                disabled={verifying || !rangeAmountValid || rpPhoneBlock || ultraSmart.paused || (ultraSmart.noHistory && !ultraSmart.acknowledged) /* REFILL-PREVENT-1024 // ULTRA-SMART-PREVENT-1024 */}
                 className="flex-[2] h-[46px] rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: bc }}
               >
