@@ -1454,7 +1454,7 @@ const htmlAliasPlugin = (): Plugin => ({
     // box is reserved before the image arrives. CSS still sets the height; the width follows the image.
     const LOGO_DIMS: Record<string, [number, number]> = {
       "simple-mobile-logo.png": [479, 105], "cricket-logo.webp": [234, 52], "metro-logo.svg": [94, 41], "tmobile-logo.svg": [52, 52],
-      "att-prepaid-logo.webp": [600, 600], "verizon-logo.png": [475, 106], "boost-logo.png": [225, 225], "h2o-logo.png": [241, 76],
+      "att-prepaid-logo.webp": [560, 120], "verizon-logo.png": [475, 106], "boost-logo.png": [225, 225], "h2o-logo.png": [241, 76], // ATT-LOGO-1023
       "lyca-logo.webp": [314, 123], "net10-logo.png": [140, 64], "pageplus-logo.png": [265, 73], "tracfone-logo.svg": [180, 84],
       "ultra-mobile-logo.png": [801, 501], "straight-talk-logo.svg": [117, 75],
     };

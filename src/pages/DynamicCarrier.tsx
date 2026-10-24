@@ -222,7 +222,7 @@ const wholeDollarMessage = (lang: string, n: number): string =>
 // SPEED-WWW-1008: intrinsic logo size per carrier slug (same numbers as LOGO_DIMS in vite.config.ts), so the logo box is reserved
 // before the image arrives. CSS still sets the height (32 / 44 px) and the width follows the image.
 const LOGO_DIMS: Record<string, [number, number]> = {
-  s1: [479, 105], "topup-crc": [234, 52], metropcs: [94, 41], tmobile: [52, 52], "topup-at": [600, 600], verizon: [475, 106],
+  s1: [479, 105], "topup-crc": [234, 52], metropcs: [94, 41], tmobile: [52, 52], "topup-at": [560, 120], verizon: [475, 106], // ATT-LOGO-1023
   boost: [225, 225], h2o: [241, 76], lyca: [314, 123], net10: [140, 64], pageplus: [265, 73], pageplusadd: [265, 73],
   tracfone: [180, 84], "ultra-mobile": [801, 501],
 };
