@@ -804,7 +804,7 @@ const htmlAliasPlugin = (): Plugin => ({
       canonical?: string; // static self-canonical, relative: resolves to the host that serves the file
     };
     const CARRIER_META: Record<string, { title: string; description: string }> = {
-      "topup-at.html":             { title: "AT&T Prepaid Refill — Online Top-Up | CellPay",        description: "Recharge your AT&T Prepaid phone online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "topup-at.html":             { title: "Pay Your AT&T Prepaid Bill Online – No Login | CellPay",        description: "Pay your AT&T Prepaid bill online with just your phone number. No login, no account sign-in needed. Pay for yourself or someone else." }, // ATT-BILLPAY-H1-1024
       // EN-META-1007: boost / topup-crc / metropcs (+ metro-pcs variant) use the same title/description that
       // src/pages/DynamicCarrier.tsx sets at runtime for these pages (lang en). Keep in sync.
       "boost.html":                { title: "Pay Boost Mobile Bill Online as a Guest – No Login | CellPay", description: "Pay your Boost Mobile bill online as a guest with just the phone number. No login needed. Service fee shown before you pay." }, // BILLPAY-BOOST-1022
