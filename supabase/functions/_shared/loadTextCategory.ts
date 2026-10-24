@@ -1,17 +1,16 @@
 // LOADTEXT-PICK-1019: proxy-side copy of the LoadText category rules in src/lib/loadTextPick.ts (logging only; never changes a reply).
 // Keep RULES, GENERIC_RE, splitLoadText and categorizeLoadText identical to that file.
 
-export type LoadTextCategory = "number" | "plan" | "amount" | "cooldown" | "system" | "generic"; // REFILL-ERROR-MSG-1024
+export type LoadTextCategory = "number" | "plan" | "amount" | "cooldown" | "generic";
 
 const RULES: Array<[Exclude<LoadTextCategory, "generic">, RegExp]> = [
-  ["amount", /product not sold|resource not found|discontinued|denomination|invalid amount/i], // REFILL-ERROR-MSG-1024
-  ["number", /subscriber not found|invalid\s*(phone\s*)?number|invalid\s*(min|mdn)\b|not a valid|phone number not found with the selected carrier|suspended|not found/i], // REFILL-ERROR-MSG-1024
+  ["number", /resource not found|invalid\s*(phone\s*)?number|invalid\s*(min|mdn)\b|not a valid|suspended|not found/i],
   ["plan", /plan does not match|not eligible|does not qualify/i],
-  ["cooldown", /refill was completed on this line recently|recent|already refilled|too soon/i], // REFILL-ERROR-MSG-1024
-  ["system", /invalid transaction state|error on params|vendor system error|time\s*out|timed out|terminal refused/i], // REFILL-ERROR-MSG-1024
+  ["amount", /discontinued|amount|denomination/i],
+  ["cooldown", /recent|already refilled|too soon/i],
 ];
-const GENERIC_RE = /invalid request|unprocessable|not approved/i; // REFILL-ERROR-MSG-1024
-const ORDER: LoadTextCategory[] = ["number", "plan", "amount", "cooldown", "system", "generic"]; // REFILL-ERROR-MSG-1024
+const GENERIC_RE = /invalid request|unprocessable|time\s*out|timed out|not approved/i;
+const ORDER: LoadTextCategory[] = ["number", "plan", "amount", "cooldown", "generic"];
 
 export function splitLoadText(text: unknown): string[] {
   return String(text ?? "")
@@ -25,19 +24,13 @@ export function categorizeLoadText(text: unknown): { category: LoadTextCategory;
   const parts = splitLoadText(text);
   if (!parts.length) return null;
   let best = ORDER.length - 1;
-  let productUnavailable = false, invalidState = false; // REFILL-ERROR-MSG-1024
   const unknownParts: string[] = [];
   for (const part of parts) {
     const hit = RULES.find(([, re]) => re.test(part));
-    if (hit) { // REFILL-ERROR-MSG-1024
-      best = Math.min(best, ORDER.indexOf(hit[0])); // REFILL-ERROR-MSG-1024
-      if (hit[0] === "amount" && /product not sold|resource not found/i.test(part)) productUnavailable = true; // REFILL-ERROR-MSG-1024
-      if (hit[0] === "system" && /invalid transaction state/i.test(part)) invalidState = true; // REFILL-ERROR-MSG-1024
-    } // REFILL-ERROR-MSG-1024
+    if (hit) best = Math.min(best, ORDER.indexOf(hit[0]));
     else if (!GENERIC_RE.test(part) && unknownParts.length < 5) unknownParts.push(part.slice(0, 80));
   }
-  // The supplied 1065 example is a system error even beside Invalid Amount; number/plan still precede it. // REFILL-ERROR-MSG-1024
-  return { category: productUnavailable ? "amount" : invalidState && best >= ORDER.indexOf("amount") ? "system" : ORDER[best], unknown: unknownParts.length > 0, unknownParts, parts }; // REFILL-ERROR-MSG-1024
+  return { category: ORDER[best], unknown: unknownParts.length > 0, unknownParts, parts };
 }
 
 /** True when the parsed upstream body carries TransResult "ccRefund" (any case, up to 4 levels deep). Never throws. */
