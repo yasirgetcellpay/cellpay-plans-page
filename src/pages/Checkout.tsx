@@ -33,6 +33,7 @@ import {
   validateRecharge,
   submitTransaction as submitTransactionRaw, // DUPCHARGE-1008: wrapped below (duplicate-charge guard)
   fetchCheckoutConfig,
+  fetchCarriers, type Carrier, // REFILL-ERROR-MSG-1024
   createPayPalOrder,
   capturePayPalOrder,
   plaidV2LinkToken,
@@ -42,7 +43,7 @@ import {
   type ValidationResult,
 } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
-import { loadTextFrom, loadTextPick, isCcRefund, pickReasonText, pickRefundLine, pickButtons, type LoadPick } from "@/lib/loadTextPick"; // LOADTEXT-PICK-1019 (replaces the LOADTEXT-REASON-1017 import here; src/lib/loadTextReason.ts stays)
+import { loadTextFrom, loadTextPick, isCcRefund, pickReasonText, pickRefundLine, pickButtons, type LoadPick, type PickAction } from "@/lib/loadTextPick"; // LOADTEXT-PICK-1019 (replaces the LOADTEXT-REASON-1017 import here; src/lib/loadTextReason.ts stays)
 import { isVerizonSlug, VZ_NOTE, VZ_NOTICE_MIN, vzBlockText } from "@/lib/vzPrepaid"; // VZ-PREPAID-GUARD-1017
 import { tmoRetryText } from "@/lib/tmoRetry"; // TMO-LOOKUP-1020
 import { Button } from "@/components/ui/button"; // VZ-PREPAID-GUARD-1017
@@ -221,6 +222,22 @@ const hasRefundSignal = (value: unknown): boolean => {
   const obj = value as Record<string, unknown>;
   return obj.refund_signal === true || Object.values(obj).some(hasRefundSignal);
 };
+// REFILL-ERROR-MSG-1024: UI analytics only, never awaited or included in payment requests.
+const refillErrorEvent = (event: "refill_error_shown" | "refill_error_retry_success", category: string, carrier: string): void => {
+  try {
+    const w = window as unknown as { dataLayer?: unknown[] };
+    w.dataLayer = w.dataLayer || [];
+    w.dataLayer.push({ event, category, carrier });
+  } catch { /* analytics never affects checkout */ }
+}; // REFILL-ERROR-MSG-1024
+const refillErrorRetrySuccess = (): void => {
+  try {
+    const pending = JSON.parse(sessionStorage.getItem("cp_refill_error_shown") || "null");
+    if (!pending || !["number", "plan", "amount", "cooldown", "system", "generic"].includes(pending.category) || typeof pending.carrier !== "string") return;
+    refillErrorEvent("refill_error_retry_success", pending.category, pending.carrier);
+    sessionStorage.removeItem("cp_refill_error_shown");
+  } catch { /* analytics never affects checkout */ }
+}; // REFILL-ERROR-MSG-1024
 const setPurchasePending = (hid: string) => {
   if (!hid) return;
   try { sessionStorage.setItem("cp_purchase_pending", String(hid)); } catch { /* storage unavailable */ }
@@ -238,6 +255,7 @@ const EP_TABLE: Record<string, Array<[string, string, string]>> = {"boost":[["Bo
 const recordMarketingOptIn = (hid: string, optIn: boolean, uiLang?: string): void => { try { const id = String(hid || "").trim(); if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return; let pLang = "en"; try { if (window.location.pathname.startsWith("/es") || uiLang === "es") pLang = "es"; } catch { /* ignore */ } let pBrowser: string | null = null; try { pBrowser = typeof navigator !== "undefined" && typeof navigator.language === "string" ? navigator.language : null; } catch { /* ignore */ } /* CONSENT-TERMS-1014 */ sendTracked("record_marketing_opt_in", { p_hashid: id, p_opt_in: optIn === true, p_lang: pLang, p_browser_language: pBrowser }); /* DB-OUTAGE-TRACK-1017 */ } catch { /* best-effort, never blocks */ } };
 const recordSmsOptIn = (hid: string, optIn: boolean, uiLang?: string): void => { try { const id = String(hid || "").trim(); if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return; sendTracked("record_sms_opt_in", { p_hashid: id, p_opt_in: optIn === true, p_lang: uiLang === "es" ? "es" : "en" }); } catch { /* ignore */ } }; // SMS-34332-1020
 const earlyPurchase = (hid: string, slug: string, plan: unknown, amountIn: unknown, totalIn: unknown): void => {
+  refillErrorRetrySuccess(); // REFILL-ERROR-MSG-1024: both existing confirmed-success paths
   try {
     const id = String(hid || "").trim();
     if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return;
@@ -835,6 +853,18 @@ const Checkout = () => {
   const retryPrefillSlugRef = useRef<string | null>(null); // REFUND-RETRY-1018
   const retryMethodRef = useRef<string | undefined>(undefined); // REFUND-RETRY-1018
   const [loadReason, setLoadReason] = useState<LoadPick | null>(null); // LOADTEXT-REASON-1017 // LOADTEXT-PICK-1019: now the picked LoadText category
+  const [refillCarrierChoices, setRefillCarrierChoices] = useState<Carrier[] | null>(null); // REFILL-ERROR-MSG-1024
+  const [refillCarrierLoading, setRefillCarrierLoading] = useState(false); // REFILL-ERROR-MSG-1024
+  const refillShownRef = useRef(false); // REFILL-ERROR-MSG-1024
+  useEffect(() => { // REFILL-ERROR-MSG-1024
+    if (!errorMsg || (!refundCard && (!loadReason || declineInfo))) { refillShownRef.current = false; return; }
+    if (refillShownRef.current || !state?.carrierSlug) return;
+    refillShownRef.current = true;
+    const category = loadReason?.category || "generic", carrier = state.carrierSlug;
+    refillErrorEvent("refill_error_shown", category, carrier);
+    try { sessionStorage.setItem("cp_refill_error_shown", JSON.stringify({ category, carrier })); } catch { /* ignore */ }
+  }, [errorMsg, refundCard, loadReason, declineInfo, state?.carrierSlug]); // REFILL-ERROR-MSG-1024
+
   const [unconfirmedCard, setUnconfirmedCard] = useState(false); // REFUNDED-STATE-1017
   const [maybePaid, setMaybePaid] = useState<{ until: number } | null>(null); // DB-OUTAGE-TRACK-1017
   const [maybePaidPaused, setMaybePaidPaused] = useState(false); // DB-OUTAGE-TRACK-1017
@@ -3596,13 +3626,26 @@ const Checkout = () => {
         const cause = retryCauseFor(state.carrierSlug); // REFUND-RETRY-1018
         const choices = cause ? retryButtons(state.carrierSlug, lang, phone10, retryNow) : []; // REFUND-RETRY-1018
         const pick = loadReason; // LOADTEXT-PICK-1019
-        const pickChoices = pick ? pickButtons(pick.category, lang, choices) : null; // LOADTEXT-PICK-1019: null for generic = existing buttons
+        const pickChoices = pickButtons(pick?.category || "generic", lang, choices); // REFILL-ERROR-MSG-1024 // LOADTEXT-PICK-1019: null for generic = existing buttons
         const es = lang === "es";
         const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`); // REFUND-WORDING-1016
-        const ultraKind = state.carrierSlug === "ultra-mobile" ? ultraResultKind : null; // ULTRA-FAIL-MSG-1022
+        const ultraKind = !pick && state.carrierSlug === "ultra-mobile" ? ultraResultKind : null; // REFILL-ERROR-MSG-1024 // ULTRA-FAIL-MSG-1022
         const amt = `$${Number(validation?.total ?? state.amount ?? 0).toFixed(2)}`; // REFUND-WORDING-1016
         const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); }; // LOADTEXT-REASON-1017: + loadReason reset
         const toCarrier = (ph: string) => { close(); navigate(carrierPageTarget(lang, state.carrierSlug, ph, undefined, location.search, location.hash)); };
+        const recover = async (action: PickAction) => { // REFILL-ERROR-MSG-1024
+          if (action === "other_carrier") {
+            setRefillCarrierLoading(true);
+            try { const { carriers } = await fetchCarriers(); setRefillCarrierChoices(carriers.filter((carrier) => carrier.slug && carrier.name && !/xbox/i.test(carrier.name))); }
+            catch { toast({ title: es ? "No pudimos cargar las compañías. Inténtelo de nuevo." : "We couldn't load carriers. Please try again.", variant: "destructive" }); }
+            finally { setRefillCarrierLoading(false); }
+            return;
+          }
+          if (action === "number") { close(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, state.amount, location.search, location.hash), { state: { focusPhone: true, selectPhone: true } }); return; }
+          if (action === "plan" || action === "amount") { close(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, undefined, location.search, location.hash)); return; }
+          close();
+          if (action === "try_again") window.setTimeout(() => { const pay = inlinePayRef.current || paypalContainerRef.current?.querySelector<HTMLElement>('button, [tabindex="0"], iframe'); pay?.scrollIntoView({ behavior: "smooth", block: "center" }); pay?.focus(); }, 0);
+        }; // REFILL-ERROR-MSG-1024
         const openHelp = () => {
           close();
           window.setTimeout(() => {
@@ -3655,10 +3698,14 @@ const Checkout = () => {
                   : (payWord ? `Your payment didn't go through, so we refunded your ${amt}. Depending on your bank, it can take a few business days to show. Please check the number and plan and try again.` : `Your refill didn't go through, so we refunded your payment of ${amt}. Depending on your bank, it can take a few business days to show. Please check the number and plan and try again.`)}
               </p>
               )}
+              {refillCarrierChoices && <div className="space-y-2 mb-4" role="dialog" aria-label={es ? "Elegir otra compañía" : "Choose another carrier"} data-testid="refill-carrier-picker">{/* REFILL-ERROR-MSG-1024 */}
+                {refillCarrierChoices.map((carrier) => <Button key={carrier.slug} variant="outline" className="w-full" onClick={() => { setRefillCarrierChoices(null); close(); navigate(carrierPageTarget(lang, carrier.slug, state.phone, state.amount, location.search, location.hash)); }}>{carrier.name}</Button>)}
+                <Button variant="ghost" onClick={() => setRefillCarrierChoices(null)}>{es ? "Cerrar" : "Close"}</Button>
+              </div>}
               <div className="space-y-2">
-                {ultraKind ? <Button type="button" data-testid="ultra-change-amount" className="w-full" onClick={() => toCarrier(state.phone)}>{es ? "Elegir otro monto" : "Choose another amount"}</Button> : pickChoices ? pickChoices.map((b, index) => { // ULTRA-FAIL-MSG-1022 // LOADTEXT-PICK-1019: buttons point at the matched reason
+                {ultraKind === "amount" ? <Button type="button" data-testid="ultra-change-amount" className="w-full" onClick={() => toCarrier(state.phone)}>{es ? "Elegir otro monto" : "Choose another amount"}</Button> : pickChoices ? pickChoices.map((b, index) => { // ULTRA-FAIL-MSG-1022 // LOADTEXT-PICK-1019: buttons point at the matched reason
                   const key = `${b.action}${b.action === "to_carrier" ? "-" + b.to_carrier : ""}`; // LOADTEXT-PICK-1019
-                  return <Button key={`pick-${key}`} type="button" data-testid={`pick-btn-${key}`} disabled={!!retryResolving} onClick={() => { if (b.action === "ok") close(); else void retry({ label: b.label, action: b.action, ...(b.to_carrier ? { to_carrier: b.to_carrier } : {}) }); }} className={btn + (index === 0 ? " text-primary-foreground" : " border-2 border-border text-foreground bg-background hover:bg-muted")} style={index === 0 ? { backgroundColor: brandColor } : undefined}>{retryResolving === key ? "…" : b.label}</Button>; // LOADTEXT-PICK-1019
+                  return <Button key={`pick-${key}`} type="button" data-testid={`pick-btn-${key}`} disabled={!!retryResolving || refillCarrierLoading} onClick={() => void recover(b.action)} className={btn + (index === 0 ? " text-primary-foreground" : " border-2 border-border text-foreground bg-background hover:bg-muted")} style={index === 0 ? { backgroundColor: brandColor } : undefined}>{retryResolving === key ? "…" : b.label}</Button>; // LOADTEXT-PICK-1019
                 }) : cause ? choices.map((choice, index) => { // REFUND-RETRY-1018
                   const key = `${choice.action}${choice.action === "to_carrier" ? "-" + choice.to_carrier : ""}`; // REFUND-RETRY-1018
                   return <Button key={key} type="button" data-testid={`retry-btn-${key}`} disabled={!!retryResolving || choice.disabled} onClick={() => void retry(choice)} className={btn + (index === 0 ? " text-primary-foreground" : " border-2 border-border text-foreground bg-background hover:bg-muted")} style={index === 0 ? { backgroundColor: brandColor } : undefined}>{retryResolving === key ? "…" : choice.label}</Button>; // REFUND-RETRY-1018
