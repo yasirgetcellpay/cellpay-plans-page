@@ -148,6 +148,13 @@
       "when": 1792865771100,
       "tag": "0020_refill_prevent_dead_amounts",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792884926385,
+      "tag": "0021_ultra_smart_prevent_1024",
+      "breakpoints": true
     }
   ]
 }
