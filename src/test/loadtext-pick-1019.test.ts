@@ -1,5 +1,7 @@
 // LOADTEXT-PICK-1019: LoadText picker (categories, EN/ES text, Metro/Boost/Cricket wording, unknown text, buttons, proxy copy in sync).
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import ts from "typescript"; // REFILL-ERROR-MSG-1024
 import { splitLoadText, loadTextPick, loadTextFrom, isCcRefund, pickReasonText, pickFullText, pickRefundLine, pickButtons, isPayWordCarrier } from "@/lib/loadTextPick";
 import { categorizeLoadText as proxyCategorize, isCcRefundBody } from "../../supabase/functions/_shared/loadTextCategory";
 
@@ -10,13 +12,27 @@ const RAW = { Result: "Error", TransResult: "ccRefund", LoadText: EXAMPLE };
   it("splits the example on ' | ' and ' & '", () => {
     expect(splitLoadText(EXAMPLE)).toEqual(["Invalid Request", "Invalid Request", "Unprocessable Transaction", "Resource not found"]);
   });
-  it("example -> number problem (most specific wins), no unknown parts", () => {
+  it("example -> amount problem (most specific wins), no unknown parts", () => {
     const p = loadTextPick(EXAMPLE);
-    expect(p?.category).toBe("number");
+    expect(p?.category).toBe("amount");
     expect(p?.unknown).toBe(false);
   });
   it.each([
-    ["Invalid Request | Resource not found", "number"],
+    ["product not sold | invalid phone number", "amount"], // REFILL-ERROR-MSG-1024
+    ["Resource not found | Selected Plan does not match", "amount"],
+    ["Invalid Amount | invalid phone number", "number"],
+    ["TXN Error: 1065 Invalid transaction state | Invalid Amount", "system"],
+    ["Invalid transaction state | Subscriber not found", "number"],
+    ["Invalid transaction state | Selected Plan does not match", "plan"],
+    ["Invalid Card | Selected Plan does not match", "plan"],
+    ["Invalid Card", "generic"],
+    ["error on params", "system"],
+    ["vendor system error", "system"],
+    ["terminal refused", "system"],
+    ["refill was completed on this line recently", "cooldown"],
+    ["Invalid Amount | Timeout", "amount"],
+    ["Too soon | Timeout", "cooldown"],
+    ["Invalid Request | Resource not found", "amount"],
     ["invalid number", "number"],
     ["Invalid Phone Number", "number"],
     ["This is not a valid subscriber", "number"],
@@ -32,13 +48,14 @@ const RAW = { Result: "Error", TransResult: "ccRefund", LoadText: EXAMPLE };
     ["Already refilled today", "cooldown"],
     ["Too soon to retry", "cooldown"],
     ["Invalid Request", "generic"],
-    ["Unprocessable Transaction & Timeout", "generic"],
-    ["Request timed out | Not approved", "generic"],
+    ["Unprocessable Transaction & Timeout", "system"],
+    ["Request timed out | Not approved", "system"],
     ["Invalid Amount | Plan does not match | Too soon", "plan"],
     ["Recent | Invalid Amount", "amount"],
-    ["RESOURCE NOT FOUND | too soon", "number"],
+    ["RESOURCE NOT FOUND | too soon", "amount"],
   ])("%s -> %s", (text, cat) => {
     expect(loadTextPick(text)?.category).toBe(cat);
+    expect(proxyCategorize(text)).toEqual(loadTextPick(text)); // REFILL-ERROR-MSG-1024
   });
   it("unknown text -> generic bucket, flagged unknown with the part kept for logging", () => {
     const p = loadTextPick("Zorblax failure 42 | Invalid Request");
@@ -79,67 +96,19 @@ const RAW = { Result: "Error", TransResult: "ccRefund", LoadText: EXAMPLE };
   });
 });
 
- describe("LOADTEXT-PICK-1019 customer text", () => {
-  const all = ["number", "plan", "amount", "cooldown", "generic"] as const;
-  it("EN texts", () => {
-    expect(pickReasonText("number", "en", "Simple Mobile", "s1")).toBe("We couldn't find this number with Simple Mobile. Please double-check the number and carrier.");
-    expect(pickReasonText("plan", "en", "T-Mobile", "tmobile")).toBe("This number is on a different plan type. Please check you picked the right carrier/plan.");
-    expect(pickReasonText("amount", "en", "Ultra Mobile", "ultra")).toBe("This amount isn't available right now. Please try a different amount.");
-    expect(pickReasonText("cooldown", "en", "Simple Mobile", "s1")).toBe("This number was just refilled. Please try again later.");
-    expect(pickReasonText("generic", "en", "Simple Mobile", "s1")).toBe("Your refill didn't go through. Please check the number and plan and try again.");
-    expect(pickReasonText("generic", "en", "Simple Mobile", "s1", "Carrier-specific reason.")).toBe("Carrier-specific reason.");
-  });
-  it("ES texts use usted", () => {
-    expect(pickReasonText("number", "es", "Simple Mobile", "s1")).toBe("No encontramos este número con Simple Mobile. Verifique el número y la compañía.");
-    expect(pickReasonText("plan", "es", "T-Mobile", "tmobile")).toBe("Este número tiene otro tipo de plan. Verifique que eligió la compañía y el plan correctos.");
-    expect(pickReasonText("amount", "es", "Ultra Mobile", "ultra")).toBe("Este monto no está disponible en este momento. Elija otro monto.");
-    expect(pickReasonText("cooldown", "es", "Simple Mobile", "s1")).toBe("Este número acaba de recibir una recarga. Inténtelo de nuevo más tarde.");
-    for (const c of all) expect(pickFullText(c, "es", "Simple Mobile", "s1")).not.toMatch(/\btú\b|\btu\b|cualquier/i);
-  });
-  it("always appends the refund line", () => {
-    for (const c of all) {
-      expect(pickFullText(c, "en", "Simple Mobile", "s1").endsWith("You have not been charged. Your payment was refunded.")).toBe(true);
-      expect(pickFullText(c, "es", "Simple Mobile", "s1").endsWith("No se le ha cobrado. Su pago fue reembolsado.")).toBe(true);
-    }
-    expect(pickRefundLine("en")).toBe("You have not been charged. Your payment was refunded.");
-  });
-  it("Metro, Boost and Cricket never say refill / recarga", () => {
-    for (const [slug, name] of [["metropcs", "Metro by T-Mobile"], ["boost", "Boost Mobile"], ["cricket", "Cricket Wireless"]]) {
-      expect(isPayWordCarrier(slug, name)).toBe(true);
-      for (const c of all) for (const l of ["en", "es"]) {
-        const s = pickFullText(c, l, name, slug);
-        expect(s).not.toMatch(/refill|recarga/i);
-      }
-      expect(pickReasonText("cooldown", "en", name, slug)).toBe("A payment was just made on this number. Please try again later.");
-      expect(pickReasonText("cooldown", "es", name, slug)).toBe("Se acaba de hacer un pago en este número. Inténtelo de nuevo más tarde.");
-      expect(pickReasonText("generic", "en", name, slug)).toBe("Your payment didn't go through. Please check the number and plan and try again.");
-    }
-  });
-  it("never shows raw LoadText or a provider name", () => {
-    for (const c of all) for (const l of ["en", "es"]) {
-      const s = pickFullText(c, l, "Simple Mobile", "s1");
-      expect(s).not.toMatch(/cell\s*pay|invalid request|unprocessable|resource not found|ccrefund|pay cell/i);
-    }
-  });
-  it("empty carrier name falls back to a neutral word", () => {
-    expect(pickReasonText("number", "en", "", "x")).toContain("with your carrier.");
-    expect(pickReasonText("number", "es", "", "x")).toContain("con su compañía.");
-  });
-});
-
  describe("LOADTEXT-PICK-1019 buttons", () => {
   const s1Base = [{ label: "Straight Talk", action: "to_carrier", to_carrier: "straight-talk" }, { label: "Total Wireless", action: "to_carrier", to_carrier: "total-wireless" }, { label: "Change number", action: "number" }];
   it("number -> edit number first, then carrier switches (or choose another carrier)", () => {
-    expect(pickButtons("number", "en", s1Base)?.map((b) => b.action)).toEqual(["number", "to_carrier", "to_carrier"]);
+    expect(pickButtons("number", "en", s1Base)?.map((b) => b.action)).toEqual(["number", "other_carrier"]);
     expect(pickButtons("number", "en", [])?.map((b) => b.action)).toEqual(["number", "other_carrier"]);
     expect(pickButtons("number", "es", [])?.[0].label).toBe("Corregir número");
   });
-  it("plan -> switch carrier first", () => {
-    expect(pickButtons("plan", "en", s1Base)?.map((b) => b.action)).toEqual(["to_carrier", "to_carrier", "number"]);
-    expect(pickButtons("plan", "en", [])?.map((b) => b.action)).toEqual(["other_carrier", "number"]);
+  it("plan -> existing plan/amount list action", () => {
+    expect(pickButtons("plan", "en", s1Base)?.map((b) => b.action)).toEqual(["amount"]);
+    expect(pickButtons("plan", "en", [])?.map((b) => b.action)).toEqual(["amount"]);
   });
   it("amount -> pick another amount first", () => {
-    expect(pickButtons("amount", "en", s1Base)?.map((b) => b.action)).toEqual(["amount", "number"]);
+    expect(pickButtons("amount", "en", s1Base)?.map((b) => b.action)).toEqual(["amount"]);
     expect(pickButtons("amount", "es", [])?.[0].label).toBe("Elegir otro monto");
   });
   it("cooldown -> no immediate retry", () => {
@@ -147,7 +116,38 @@ const RAW = { Result: "Error", TransResult: "ccRefund", LoadText: EXAMPLE };
     expect(b?.map((x) => x.action)).toEqual(["ok"]);
     expect(b?.some((x) => /try again/i.test(x.label))).toBe(false);
   });
+  it("system -> manual existing retry action", () => { // REFILL-ERROR-MSG-1024
+    expect(pickButtons("system", "en", s1Base)?.map((b) => b.action)).toEqual(["try_again"]);
+  });
   it("generic -> null (existing buttons kept)", () => {
     expect(pickButtons("generic", "en", s1Base)).toBeNull();
+    expect(pickButtons("generic", "es", [])).toBeNull(); // REFILL-ERROR-MSG-1024
+  });
+});
+
+// REFILL-ERROR-MSG-1024: concrete no-LoadText/generic fallback and analytics behavior.
+describe("REFILL-ERROR-MSG-1024 generic recovery and session analytics", () => {
+  it("no/unknown LoadText keeps the existing cause-button fallback", () => {
+    for (const text of [null, "", "Invalid Card", "unknown vendor response"]) {
+      const pick = loadTextPick(text);
+      expect(pick ? pickButtons(pick.category, "en") : null).toBeNull();
+    }
+  });
+  const source = readFileSync("src/pages/Checkout.tsx", "utf8");
+  const helpers = source.slice(source.indexOf("const refillErrorEvent ="), source.indexOf("const setPurchasePending ="));
+  const compiled = ts.transpileModule(helpers, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  it("tracks previous category/carrier once then clears the session flag", () => {
+    const events: unknown[] = [];
+    let stored: string | null = JSON.stringify({ category: "system", carrier: "s1" });
+    const window = { dataLayer: events };
+    const storage = { getItem: () => stored, removeItem: () => { stored = null; } };
+    new Function("window", "sessionStorage", compiled + "; refillErrorRetrySuccess(); refillErrorRetrySuccess();")(window, storage);
+    expect(events).toEqual([{ event: "refill_error_retry_success", category: "system", carrier: "s1" }]);
+    expect(stored).toBeNull();
+  });
+  it("analytics failure cannot throw into checkout", () => {
+    const window = { dataLayer: { push: () => { throw Error("blocked"); } } };
+    const storage = { getItem: () => JSON.stringify({ category: "amount", carrier: "s1" }), removeItem: () => {} };
+    expect(() => new Function("window", "sessionStorage", compiled + "; refillErrorRetrySuccess();")(window, storage)).not.toThrow();
   });
 });

@@ -221,6 +221,22 @@ const hasRefundSignal = (value: unknown): boolean => {
   const obj = value as Record<string, unknown>;
   return obj.refund_signal === true || Object.values(obj).some(hasRefundSignal);
 };
+// REFILL-ERROR-MSG-1024: isolated dataLayer events; no personal data or payment requests.
+const refillErrorEvent = (event: "refill_error_shown" | "refill_error_retry_success", category: string, carrier: string): void => {
+  try {
+    const w = window as unknown as { dataLayer?: unknown[] };
+    w.dataLayer = w.dataLayer || [];
+    w.dataLayer.push({ event, category, carrier });
+  } catch { /* analytics never affects payment */ }
+}; // REFILL-ERROR-MSG-1024
+const refillErrorRetrySuccess = (): void => {
+  try {
+    const pending = JSON.parse(sessionStorage.getItem("cp_refill_error_shown") || "null");
+    if (!pending || !["number", "plan", "amount", "cooldown", "system", "generic"].includes(pending.category) || typeof pending.carrier !== "string") return;
+    refillErrorEvent("refill_error_retry_success", pending.category, pending.carrier);
+    sessionStorage.removeItem("cp_refill_error_shown");
+  } catch { /* analytics never affects payment */ }
+}; // REFILL-ERROR-MSG-1024
 const setPurchasePending = (hid: string) => {
   if (!hid) return;
   try { sessionStorage.setItem("cp_purchase_pending", String(hid)); } catch { /* storage unavailable */ }
@@ -238,6 +254,7 @@ const EP_TABLE: Record<string, Array<[string, string, string]>> = {"boost":[["Bo
 const recordMarketingOptIn = (hid: string, optIn: boolean, uiLang?: string): void => { try { const id = String(hid || "").trim(); if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return; let pLang = "en"; try { if (window.location.pathname.startsWith("/es") || uiLang === "es") pLang = "es"; } catch { /* ignore */ } let pBrowser: string | null = null; try { pBrowser = typeof navigator !== "undefined" && typeof navigator.language === "string" ? navigator.language : null; } catch { /* ignore */ } /* CONSENT-TERMS-1014 */ sendTracked("record_marketing_opt_in", { p_hashid: id, p_opt_in: optIn === true, p_lang: pLang, p_browser_language: pBrowser }); /* DB-OUTAGE-TRACK-1017 */ } catch { /* best-effort, never blocks */ } };
 const recordSmsOptIn = (hid: string, optIn: boolean, uiLang?: string): void => { try { const id = String(hid || "").trim(); if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return; sendTracked("record_sms_opt_in", { p_hashid: id, p_opt_in: optIn === true, p_lang: uiLang === "es" ? "es" : "en" }); } catch { /* ignore */ } }; // SMS-34332-1020
 const earlyPurchase = (hid: string, slug: string, plan: unknown, amountIn: unknown, totalIn: unknown): void => {
+  refillErrorRetrySuccess(); // REFILL-ERROR-MSG-1024: both existing confirmed-success analytics paths
   try {
     const id = String(hid || "").trim();
     if (!/^[A-Za-z0-9_-]{4,64}$/.test(id)) return;
@@ -835,6 +852,18 @@ const Checkout = () => {
   const retryPrefillSlugRef = useRef<string | null>(null); // REFUND-RETRY-1018
   const retryMethodRef = useRef<string | undefined>(undefined); // REFUND-RETRY-1018
   const [loadReason, setLoadReason] = useState<LoadPick | null>(null); // LOADTEXT-REASON-1017 // LOADTEXT-PICK-1019: now the picked LoadText category
+  const [refillCarrierPicker, setRefillCarrierPicker] = useState<Array<{ slug: string; name: string }> | null>(null); // REFILL-ERROR-MSG-1024: non-generic number card only
+  const [refillCarrierLoading, setRefillCarrierLoading] = useState(false); // REFILL-ERROR-MSG-1024
+  const refillErrorShownRef = useRef(false); // REFILL-ERROR-MSG-1024
+  useEffect(() => { // REFILL-ERROR-MSG-1024
+    if (!errorMsg || (!refundCard && (!loadReason || declineInfo))) { refillErrorShownRef.current = false; return; }
+    if (refillErrorShownRef.current || !state?.carrierSlug) return;
+    refillErrorShownRef.current = true;
+    const category = loadReason?.category || "generic", carrier = state.carrierSlug;
+    refillErrorEvent("refill_error_shown", category, carrier);
+    try { sessionStorage.setItem("cp_refill_error_shown", JSON.stringify({ category, carrier })); } catch { /* ignore */ }
+  }, [errorMsg, refundCard, loadReason, declineInfo, state?.carrierSlug]); // REFILL-ERROR-MSG-1024
+
   const [unconfirmedCard, setUnconfirmedCard] = useState(false); // REFUNDED-STATE-1017
   const [maybePaid, setMaybePaid] = useState<{ until: number } | null>(null); // DB-OUTAGE-TRACK-1017
   const [maybePaidPaused, setMaybePaidPaused] = useState(false); // DB-OUTAGE-TRACK-1017
@@ -3599,7 +3628,7 @@ const Checkout = () => {
         const pickChoices = pick ? pickButtons(pick.category, lang, choices) : null; // LOADTEXT-PICK-1019: null for generic = existing buttons
         const es = lang === "es";
         const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`); // REFUND-WORDING-1016
-        const ultraKind = state.carrierSlug === "ultra-mobile" ? ultraResultKind : null; // ULTRA-FAIL-MSG-1022
+        const ultraKind = (!pick || pick.category === "generic") && state.carrierSlug === "ultra-mobile" ? ultraResultKind : null; // REFILL-ERROR-MSG-1024: matched LoadText takes precedence // ULTRA-FAIL-MSG-1022
         const amt = `$${Number(validation?.total ?? state.amount ?? 0).toFixed(2)}`; // REFUND-WORDING-1016
         const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); }; // LOADTEXT-REASON-1017: + loadReason reset
         const toCarrier = (ph: string) => { close(); navigate(carrierPageTarget(lang, state.carrierSlug, ph, undefined, location.search, location.hash)); };
@@ -3640,7 +3669,7 @@ const Checkout = () => {
                 ? (es ? "Este monto no está disponible para su plan Ultra. Su pago fue reembolsado. Por favor elija otro monto e intente de nuevo." : "This amount isn't available for your Ultra plan. Your payment was refunded. Please choose a different amount and try again.") // ULTRA-FAIL-MSG-1022
                 : (es ? "Su recarga no se completó y su pago fue reembolsado. Por favor intente con otro monto o vuelva a intentarlo en unos minutos." : "Your refill didn't go through and your payment was refunded. Please try a different amount, or try again in a few minutes.")}</p> : pick ? (<> {/* ULTRA-FAIL-MSG-1022 */} {/* LOADTEXT-PICK-1019: picked reason + refund line */}
                 <p className="text-sm text-muted-foreground mb-2" data-testid="pick-reason" data-pick={pick.category}>{pickReasonText(pick.category, lang, state.carrierName, state.carrierSlug, pick.category === "generic" && cause ? retryReasonText(cause, lang, phone10) : null)}</p>
-                <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">{pickRefundLine(lang)}</p>
+                <p className="text-sm text-muted-foreground mb-4" data-testid="refund-card-text">{pickRefundLine(lang, pick.category)}</p>
               </>) : cause ? (<> {/* LOADTEXT-REASON-1017: refund sentence ends after bank timing; reason paragraph added */} {/* // REFUND-RETRY-1018 */}
                 <p className="text-sm text-muted-foreground mb-2" data-testid="refund-card-text">
                   {es
@@ -3655,10 +3684,14 @@ const Checkout = () => {
                   : (payWord ? `Your payment didn't go through, so we refunded your ${amt}. Depending on your bank, it can take a few business days to show. Please check the number and plan and try again.` : `Your refill didn't go through, so we refunded your payment of ${amt}. Depending on your bank, it can take a few business days to show. Please check the number and plan and try again.`)}
               </p>
               )}
+              {pick?.category === "number" && refillCarrierPicker && <div className="space-y-2 mb-4" role="dialog" aria-label={es ? "Elegir otra compañía" : "Choose another carrier"} data-testid="refill-carrier-picker">{/* REFILL-ERROR-MSG-1024 */}
+                {refillCarrierPicker.map((carrier) => <Button key={carrier.slug} variant="outline" className="w-full" disabled={!!retryResolving} onClick={() => { setRefillCarrierPicker(null); void retry({ label: carrier.name, action: "to_carrier", to_carrier: carrier.slug }); }}>{carrier.name}</Button>)}
+                <Button variant="ghost" onClick={() => setRefillCarrierPicker(null)}>{es ? "Cerrar" : "Close"}</Button>
+              </div>}
               <div className="space-y-2">
                 {ultraKind ? <Button type="button" data-testid="ultra-change-amount" className="w-full" onClick={() => toCarrier(state.phone)}>{es ? "Elegir otro monto" : "Choose another amount"}</Button> : pickChoices ? pickChoices.map((b, index) => { // ULTRA-FAIL-MSG-1022 // LOADTEXT-PICK-1019: buttons point at the matched reason
                   const key = `${b.action}${b.action === "to_carrier" ? "-" + b.to_carrier : ""}`; // LOADTEXT-PICK-1019
-                  return <Button key={`pick-${key}`} type="button" data-testid={`pick-btn-${key}`} disabled={!!retryResolving} onClick={() => { if (b.action === "ok") close(); else void retry({ label: b.label, action: b.action, ...(b.to_carrier ? { to_carrier: b.to_carrier } : {}) }); }} className={btn + (index === 0 ? " text-primary-foreground" : " border-2 border-border text-foreground bg-background hover:bg-muted")} style={index === 0 ? { backgroundColor: brandColor } : undefined}>{retryResolving === key ? "…" : b.label}</Button>; // LOADTEXT-PICK-1019
+                  return <Button key={`pick-${key}`} type="button" data-testid={`pick-btn-${key}`} disabled={!!retryResolving || refillCarrierLoading} onClick={() => { if (b.action === "ok") close(); else if (b.action === "other_carrier") { setRefillCarrierLoading(true); void import("@/services/apiWrapper").then(({ fetchCarriers }) => fetchCarriers()).then(({ carriers }) => setRefillCarrierPicker(carriers.filter((carrier) => carrier.slug && carrier.name && !/xbox/i.test(carrier.name)).map(({ slug, name }) => ({ slug, name })))).catch(() => toast({ title: es ? "No pudimos cargar las compañías. Inténtelo de nuevo." : "We couldn't load carriers. Please try again.", variant: "destructive" })).finally(() => setRefillCarrierLoading(false)); } else void retry({ label: b.label, action: b.action, ...(b.to_carrier ? { to_carrier: b.to_carrier } : {}) }); }} className={btn + (index === 0 ? " text-primary-foreground" : " border-2 border-border text-foreground bg-background hover:bg-muted")} style={index === 0 ? { backgroundColor: brandColor } : undefined}>{retryResolving === key ? "…" : b.label}</Button>; // LOADTEXT-PICK-1019
                 }) : cause ? choices.map((choice, index) => { // REFUND-RETRY-1018
                   const key = `${choice.action}${choice.action === "to_carrier" ? "-" + choice.to_carrier : ""}`; // REFUND-RETRY-1018
                   return <Button key={key} type="button" data-testid={`retry-btn-${key}`} disabled={!!retryResolving || choice.disabled} onClick={() => void retry(choice)} className={btn + (index === 0 ? " text-primary-foreground" : " border-2 border-border text-foreground bg-background hover:bg-muted")} style={index === 0 ? { backgroundColor: brandColor } : undefined}>{retryResolving === key ? "…" : choice.label}</Button>; // REFUND-RETRY-1018
