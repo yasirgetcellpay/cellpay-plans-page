@@ -1,5 +1,7 @@
 // LOADTEXT-PICK-1019: LoadText picker (categories, EN/ES text, Metro/Boost/Cricket wording, unknown text, buttons, proxy copy in sync).
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import ts from "typescript"; // REFILL-ERROR-MSG-1024
 import { splitLoadText, loadTextPick, loadTextFrom, isCcRefund, pickReasonText, pickFullText, pickRefundLine, pickButtons, isPayWordCarrier } from "@/lib/loadTextPick";
 import { categorizeLoadText as proxyCategorize, isCcRefundBody } from "../../supabase/functions/_shared/loadTextCategory";
 
@@ -120,5 +122,32 @@ const RAW = { Result: "Error", TransResult: "ccRefund", LoadText: EXAMPLE };
   it("generic -> null (existing buttons kept)", () => {
     expect(pickButtons("generic", "en", s1Base)).toBeNull();
     expect(pickButtons("generic", "es", [])).toBeNull(); // REFILL-ERROR-MSG-1024
+  });
+});
+
+// REFILL-ERROR-MSG-1024: concrete no-LoadText/generic fallback and analytics behavior.
+describe("REFILL-ERROR-MSG-1024 generic recovery and session analytics", () => {
+  it("no/unknown LoadText keeps the existing cause-button fallback", () => {
+    for (const text of [null, "", "Invalid Card", "unknown vendor response"]) {
+      const pick = loadTextPick(text);
+      expect(pick ? pickButtons(pick.category, "en") : null).toBeNull();
+    }
+  });
+  const source = readFileSync("src/pages/Checkout.tsx", "utf8");
+  const helpers = source.slice(source.indexOf("const refillErrorEvent ="), source.indexOf("const setPurchasePending ="));
+  const compiled = ts.transpileModule(helpers, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  it("tracks previous category/carrier once then clears the session flag", () => {
+    const events: unknown[] = [];
+    let stored: string | null = JSON.stringify({ category: "system", carrier: "s1" });
+    const window = { dataLayer: events };
+    const storage = { getItem: () => stored, removeItem: () => { stored = null; } };
+    new Function("window", "sessionStorage", compiled + "; refillErrorRetrySuccess(); refillErrorRetrySuccess();")(window, storage);
+    expect(events).toEqual([{ event: "refill_error_retry_success", category: "system", carrier: "s1" }]);
+    expect(stored).toBeNull();
+  });
+  it("analytics failure cannot throw into checkout", () => {
+    const window = { dataLayer: { push: () => { throw Error("blocked"); } } };
+    const storage = { getItem: () => JSON.stringify({ category: "amount", carrier: "s1" }), removeItem: () => {} };
+    expect(() => new Function("window", "sessionStorage", compiled + "; refillErrorRetrySuccess();")(window, storage)).not.toThrow();
   });
 });
