@@ -73,7 +73,7 @@ export const refundFaq = (slug: string, lang: HeroLang): { q: string; a: string 
   return lang === "es"
     ? {
         q: "¿Qué pasa si mi pago no se completa?", // SIMPLE-PUSH-1023
-        a: `Si ${c} no puede aplicar el pago, por ejemplo cuando el número no es una línea activa de ${c} o se eligió otra compañía, el pago no se completa. Su banco libera cualquier retención en su tarjeta. Revise el número y la compañía, y vuelva a intentarlo. Si todavía necesita ayuda, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido.`, // SIMPLE-PUSH-1023
+        a: `Si ${c} no puede aplicar el pago, por ejemplo cuando el número no es una línea activa de ${c} o se eligió otra compañía, el pago no se completa. Si su banco retuvo dinero, lo libera en 1 a 2 días. Revise el número y la compañía, y vuelva a intentarlo. Si todavía necesita ayuda, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido.`, // SIMPLE-PUSH-1023 // QA-1023-CUAL
       }
     : {
         q: "What if my payment doesn't go through?", // SIMPLE-PUSH-1023
