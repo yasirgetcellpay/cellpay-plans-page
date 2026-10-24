@@ -164,10 +164,10 @@ export const PRIVACY_PAGES: Record<PpLang, PpPage> = {
         h: "6. Sus derechos",
         blocks: [
           { p: ["Puede pedir ver, corregir o borrar sus datos personales escribiéndonos a support@getcellpay.com."] },
-          { p: ["CellPay puede enviarle correos electrónicos sobre sus recargas, el pago automático y ofertas especiales. Puede darse de baja en cualquier momento con el enlace que aparece en cada correo o escribiendo a support@getcellpay.com."] },
+          { p: ["CellPay puede enviarle correos electrónicos sobre sus recargas, el pago automático y ofertas especiales. Puede darse de baja en todo momento con el enlace que aparece en cada correo o escribiendo a support@getcellpay.com."] }, // QA-1023-CUAL-2
           {
             p: [
-              "Puede pedirnos en cualquier momento que dejemos de usar su correo electrónico o número de teléfono para anuncios. Escriba a ",
+              "Puede pedirnos en todo momento que dejemos de usar su correo electrónico o número de teléfono para anuncios. Escriba a ", // QA-1023-CUAL-2
               { href: `mailto:${EMAIL}?subject=No%20anuncios`, text: EMAIL },
               ' con el asunto "No anuncios" y lo eliminaremos en un plazo de 30 días. También puede controlar los anuncios de Google en ',
               { href: AD_CENTER, text: "myadcenter.google.com" },
