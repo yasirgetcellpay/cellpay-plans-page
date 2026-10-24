@@ -592,7 +592,7 @@ const Checkout = () => {
   // FRAUD-MULTIBLOCK-1012 5c: the proxy sets risk_action "step_up" only in enforce mode; in shadow this never turns on.
   const [stepUp, setStepUp] = useState(false);
   const submitTransaction = async (p: Record<string, unknown>): Promise<unknown> => {
-    if (!ultraSmart.gate(Number(state?.amount))) return { success: false, code: "ULTRA_CONFIRM", message: ultraSmart.paused ? ultraHealthText("pause", lang) : "" }; // ULTRA-SMART-PREVENT-1024
+    if (state?.carrierSlug === "ultra-mobile" && !ultraSmart.gate(Number(state.amount))) return { success: false, code: "ULTRA_CONFIRM", message: ultraSmart.paused ? ultraHealthText("pause", lang) : "" }; // ULTRA-SMART-PREVENT-1024
     if (!phoneOk) { badPhoneGo(); return { success: false, code: "BAD_PHONE", error: "Please enter the full 10-digit phone number." }; } // REFUNDED-STATE-1017
     const key = lockKey(state?.phone, validation?.amount ?? state?.amount); // DB-OUTAGE-TRACK-1017
     const skipLock = String(p.payment_method || "").toLowerCase() === "pockyt"; // DB-OUTAGE-TRACK-1017
@@ -2689,7 +2689,7 @@ const Checkout = () => {
 
   // ─── Main handler ───
   const handlePlaceOrder = async () => {
-    if (!ultraSmart.gate(Number(state?.amount))) return; // ULTRA-SMART-PREVENT-1024
+    if (state?.carrierSlug === "ultra-mobile" && !ultraSmart.gate(Number(state.amount))) return; // ULTRA-SMART-PREVENT-1024
     const key = lockKey(state?.phone, validation?.amount ?? state?.amount); // DB-OUTAGE-TRACK-1017
     const current = activeLock(key); // DB-OUTAGE-TRACK-1017
     if (current) { setLock(key, current.s, PAYLOCK_MS); showMaybePaid(true); return; } // DB-OUTAGE-TRACK-1017: before wallet sheets
