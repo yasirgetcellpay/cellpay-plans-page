@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest"; // ULTRA-SMART-PREVENT-1024
-import { renderHook, act, waitFor } from "@testing-library/react"; // ULTRA-SMART-PREVENT-1024
+import { renderHook, render, fireEvent, act, waitFor } from "@testing-library/react"; // ULTRA-SMART-PREVENT-1024
+import { UltraRefundRecovery } from "@/components/UltraRefundRecovery"; // ULTRA-SMART-PREVENT-1024
 import { ultraRead, readUltraLastPlan, currentUltraPlan, ultra1065 } from "@/lib/ultraSmart"; // ULTRA-SMART-PREVENT-1024
 import { useUltraSmart } from "@/hooks/useUltraSmart"; // ULTRA-SMART-PREVENT-1024
 const last = { amount: 29, plan_id: "8279", date: "2026-10-24T20:00:00Z" }; // ULTRA-SMART-PREVENT-1024
@@ -13,6 +14,8 @@ describe("Ultra bounded reads", () => { // ULTRA-SMART-PREVENT-1024
   it("1065 recovery is Ultra only", () => { expect(ultra1065("ultra-mobile", "TXN Error: 1065 Invalid transaction state | Invalid Amount")).toBe(true); expect(ultra1065("tmobile", "1065")).toBe(false); expect(ultra1065("ultra-mobile", "Subscriber not found")).toBe(false); }); // ULTRA-SMART-PREVENT-1024
 }); // ULTRA-SMART-PREVENT-1024
 describe("Ultra confirmations", () => { // ULTRA-SMART-PREVENT-1024
+  it("usual-plan recovery selects the live plan without submitting a payment", () => { const select = vi.fn(); const ui = render(<UltraRefundRecovery amount={39} total={41} last={last} plans={plans} lang="en" onPlan={select} onList={vi.fn()} />); fireEvent.click(ui.getByRole("button", { name: "Refill $29 (your usual plan)" })); expect(select).toHaveBeenCalledExactlyOnceWith(plans[0]); ui.unmount(); }); // ULTRA-SMART-PREVENT-1024
+  it("without a different usual plan, failed amount cannot be selected but another can", () => { const select = vi.fn(); const ui = render(<UltraRefundRecovery amount={29} total={31} last={null} plans={plans} lang="en" onPlan={select} onList={vi.fn()} />); fireEvent.click(ui.getByRole("button", { name: "$29", exact: true })); expect(select).not.toHaveBeenCalled(); fireEvent.click(ui.getByRole("button", { name: "$39", exact: true })); expect(select).toHaveBeenCalledExactlyOnceWith(plans[1]); ui.unmount(); }); // ULTRA-SMART-PREVENT-1024
   it("a mismatch is soft and the override allows a normal later Pay", async () => { // ULTRA-SMART-PREVENT-1024
     vi.stubGlobal("fetch", vi.fn(async (url: string) => new Response(JSON.stringify(url.includes("ultra-last-plan") ? last : { tier: "off" })))); // ULTRA-SMART-PREVENT-1024
     const select = vi.fn(); const { result } = renderHook(() => useUltraSmart("ultra-mobile", "2135551234", true, plans, select)); // ULTRA-SMART-PREVENT-1024
