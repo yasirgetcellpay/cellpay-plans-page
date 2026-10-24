@@ -44,6 +44,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { RP_P2_RETRY_BLOCK, RP_P6_ST_PASTDUE } from "@/lib/refillPreventFlags"; // REFILL-PREVENT-1024
 import { recordRetryBlock, isPlanMismatchLoadText, isStPastDue, stPastDueText } from "@/lib/refillPrevent"; // REFILL-PREVENT-1024
+import { RP_P4_DEAD_AMOUNTS, RP_P2c_DISC_24H } from "@/lib/refillPreventFlags"; // LYCA-SKU-FIX-1024
+import { fetchDeadAmounts, withTimeout, recordDiscBlock, isDiscontinuedLoadText } from "@/lib/refillPrevent"; // LYCA-SKU-FIX-1024
 import { loadTextFrom, loadTextPick, isCcRefund, pickReasonText, pickRefundLine, pickButtons, type LoadPick } from "@/lib/loadTextPick"; // LOADTEXT-PICK-1019 (replaces the LOADTEXT-REASON-1017 import here; src/lib/loadTextReason.ts stays)
 import { isVerizonSlug, VZ_NOTE, VZ_NOTICE_MIN, vzBlockText } from "@/lib/vzPrepaid"; // VZ-PREPAID-GUARD-1017
 import { tmoRetryText } from "@/lib/tmoRetry"; // TMO-LOOKUP-1020
@@ -368,6 +370,15 @@ const Checkout = () => {
     toast({ title: lang === "es" ? "Este plan no está disponible ahora. Elija otro plan." : "This plan isn't available right now. Please choose another plan.", variant: "destructive" }); // H2O-HIDE-325635-1017
     navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, "", location.search, location.hash), { replace: true }); // H2O-HIDE-325635-1017
   }, [state?.planId]); // H2O-HIDE-325635-1017
+  useEffect(() => { // LYCA-SKU-FIX-1024
+    if (!RP_P4_DEAD_AMOUNTS || !state || state.carrierSlug === "ultra-mobile" || !state.planId) return; // LYCA-SKU-FIX-1024
+    let cancelled = false; // LYCA-SKU-FIX-1024
+    void withTimeout(fetchDeadAmounts(), 1500, []).then((items) => { // LYCA-SKU-FIX-1024
+      if (cancelled || !items.some((d) => d.carrier_slug === state.carrierSlug && String(d.plan_id) === String(state.planId))) return; // LYCA-SKU-FIX-1024
+      toast({ title: lang === "es" ? "Este plan no está disponible ahora. Elija otro plan." : "This plan isn't available right now. Please choose another plan.", variant: "destructive" }); // LYCA-SKU-FIX-1024
+      navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, "", location.search, location.hash), { replace: true }); // LYCA-SKU-FIX-1024
+    }).catch(() => {}); return () => { cancelled = true; }; // LYCA-SKU-FIX-1024
+  }, [state?.carrierSlug, state?.planId, lang]); // LYCA-SKU-FIX-1024
   // WORDING-1013: Metro, Boost and Cricket are bill payments -> "payment" wording in the Auto Pay offer (text only).
   const apBill = ["metropcs", "boost", "topup-crc"].includes(String(state?.carrierSlug || ""));
   const apCopy = apBill
@@ -1798,6 +1809,7 @@ const Checkout = () => {
       if (isUnconfirmed(raw)) { setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setErrorMsg(null); setUnconfirmedCard(true); return; } // REFUNDED-STATE-1017
       setLoadReason(loadTextPick(loadTextFrom(raw))); // LOADTEXT-PICK-1019
       try { const lt = loadTextFrom(raw); if (RP_P2_RETRY_BLOCK && lt && isPlanMismatchLoadText(lt)) void recordRetryBlock(state.phone, state.carrierSlug, state.planId); } catch { /* REFILL-PREVENT-1024: fail open */ }
+      try { if (RP_P2c_DISC_24H && state.carrierSlug !== "ultra-mobile" && isDiscontinuedLoadText(`${loadTextFrom(raw) || ""} | ${String(result.msg || result.message || raw.error || "")}`)) void recordDiscBlock(state.phone, state.carrierSlug, state.planId); } catch { /* fail open */ } // LYCA-SKU-FIX-1024
       if (state.carrierSlug === "ultra-mobile") setUltraResultKind(ultraRefundKind(raw)); // ULTRA-FAIL-MSG-1022
       const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Transaction failed"; // SUCCESS-FLAG-FIX-1016
       const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
@@ -2364,6 +2376,7 @@ const Checkout = () => {
           else if (raw.code !== "DUP_CONFIRM" && raw.code !== "IN_FLIGHT") {
             setLoadReason(loadTextPick(loadTextFrom(raw))); // LOADTEXT-PICK-1019
             try { const lt = loadTextFrom(raw); if (RP_P2_RETRY_BLOCK && lt && isPlanMismatchLoadText(lt)) void recordRetryBlock(state.phone, state.carrierSlug, state.planId); } catch { /* REFILL-PREVENT-1024: fail open */ }
+            try { if (RP_P2c_DISC_24H && state.carrierSlug !== "ultra-mobile" && isDiscontinuedLoadText(`${loadTextFrom(raw) || ""} | ${String(result.msg || result.message || raw.error || "")}`)) void recordDiscBlock(state.phone, state.carrierSlug, state.planId); } catch { /* fail open */ } // LYCA-SKU-FIX-1024
             if (state.carrierSlug === "ultra-mobile") setUltraResultKind(ultraRefundKind(raw)); // ULTRA-FAIL-MSG-1022
             const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Apple Pay transaction failed"; // SUCCESS-FLAG-FIX-1016
             const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();

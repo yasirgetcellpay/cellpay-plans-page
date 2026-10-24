@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "npm:@supabase/supabase-js@2"; // LYCA-SKU-FIX-1024
 import { scoreRisk, riskEngineMode } from "../_shared/riskLogic.ts"; // FRAUD-MULTIBLOCK-1012 5b
 import { vzGuardGate } from "../_shared/vzPrepaidGuard.ts"; // VZ-PREPAID-GUARD-1017
 import { tmoGuardGate } from "../_shared/tmoRetryGuard.ts"; // TMO-LOOKUP-1020
@@ -1808,6 +1809,20 @@ const RETRY_BLOCK_RE = /error during refill|auto[- ]?refunded|backend exception/
 type PlanGuardResult = { ok: boolean; reason?: string; message?: string; source: "hub" | "cache" | "failopen" | "none" }; // PLAN-RANGES-1016
 const PG_CACHE = new Map<string, { at: number; data: Record<string, unknown> }>(); // PLAN-RANGES-1016
 const PG_TTL_MS = 10 * 60 * 1000; // PLAN-RANGES-1016
+const PG_DEAD_AMOUNTS = true; // LYCA-SKU-FIX-1024
+let pgDeadCache: { at: number; rows: Array<{ carrier_slug: string; plan_id: string }> } | null = null; // LYCA-SKU-FIX-1024
+async function pgDeadMatch(slug: string, plan: string): Promise<boolean> { // LYCA-SKU-FIX-1024
+  try { // LYCA-SKU-FIX-1024
+    if (!PG_DEAD_AMOUNTS || !slug || !plan || slug === "ultra-mobile") return false; // LYCA-SKU-FIX-1024
+    if (pgDeadCache && Date.now() - pgDeadCache.at < PG_TTL_MS) return pgDeadCache.rows.some((r) => r.carrier_slug === slug && r.plan_id === plan); // LYCA-SKU-FIX-1024
+    const url = Deno.env.get("SUPABASE_URL"); const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"); if (!url || !key) return false; // LYCA-SKU-FIX-1024
+    const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } }); // LYCA-SKU-FIX-1024
+    const result = await raceNull((async () => await db.from("dead_amounts").select("carrier_slug, plan_id").is("restored_at", null).abortSignal(AbortSignal.timeout(1500)))(), 1500); // LYCA-SKU-FIX-1024
+    if (!result || result.error || !Array.isArray(result.data)) return false; // LYCA-SKU-FIX-1024
+    const rows = result.data.filter((r) => r.carrier_slug !== "ultra-mobile").map((r) => ({ carrier_slug: String(r.carrier_slug), plan_id: String(r.plan_id) })); // LYCA-SKU-FIX-1024
+    pgDeadCache = { at: Date.now(), rows }; return rows.some((r) => r.carrier_slug === slug && r.plan_id === plan); // LYCA-SKU-FIX-1024
+  } catch { return false; } // LYCA-SKU-FIX-1024
+} // LYCA-SKU-FIX-1024
 const PG_RANGE_OVERRIDES: Record<string, { min?: number; max?: number }> = { "66666": { max: 199 }, "23915": { min: 15, max: 100 }, "291945": { min: 15, max: 150 } }; // PLAN-RANGES-1016
 const PG_MSG_FIXED = { en: "This plan amount is not available. Please choose a plan from the list.", es: "Este monto no está disponible. Elija un plan de la lista." }; // PLAN-RANGES-1016
 async function pgHub(slug: string, headers: Record<string, string>): Promise<{ data: Record<string, unknown> | null; source: "hub" | "cache" }> { // PLAN-RANGES-1016
@@ -1830,6 +1845,7 @@ async function planGuard(pr: Record<string, unknown>, headers: Record<string, st
   if (plan === "8282" || plan === "325635" || plan === "547871") return { ok: false, reason: `h2o_${plan}`, message: es ? "Este plan no está disponible ahora. Elija otro plan." : "This plan is not available right now. Please choose another plan.", source: "none" }; // H2O-HIDE-325635-1017 // PLAN-BLOCK-CLEANUP-1017
   if (plan === "32993000") return { ok: false, reason: "ultra_32993000", message: es ? "Este plan no está disponible ahora. Elija otro plan." : "This plan is not available right now. Please choose another plan.", source: "none" }; // ULTRA64-HIDE-1017
   if (plan === "8947005") return { ok: false, reason: "lyca_8947005", message: es ? "Este plan no está disponible ahora. Elija otro plan." : "This plan is not available right now. Please choose another plan.", source: "none" }; // LYCA10-HIDE-1017
+  if (await pgDeadMatch(slug, plan)) return { ok: false, reason: `dead_${plan}`, message: es ? "Este plan no está disponible ahora. Elija otro plan." : "This plan is not available right now. Please choose another plan.", source: "none" }; // LYCA-SKU-FIX-1024
   if ((plan === "238888" || slug === "tmobile" || slug === "tmobile-flexi") && Number.isFinite(amt) && amt > 200) return { ok: false, reason: "tmo_cap_200", message: es ? "Las recargas de T-Mobile tienen un límite de $200 por ahora. Ingrese $200 o menos." : "T-Mobile refills are limited to $200 right now. Please enter $200 or less.", source: "none" }; // TMO-CAP-200-1022
   if (!slug || !plan || !Number.isFinite(amt)) return { ok: true, source: "none" };
   let hub: { data: Record<string, unknown> | null; source: "hub" | "cache" };

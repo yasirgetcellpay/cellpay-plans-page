@@ -78,6 +78,28 @@ export async function checkRetryBlock(phone: unknown, carrier: unknown, plan: un
   } catch { return false; }
 }
 
+export const isDiscontinuedLoadText = (t: unknown): boolean => { try { return /discontinued|product not found|does not exist|product not sold|sku not (found|mapped)/i.test(String(t ?? "")); } catch { return false; } }; // LYCA-SKU-FIX-1024
+export const RP_DISC_MS = 24 * 60 * 60 * 1000; // LYCA-SKU-FIX-1024
+const DISC_STORE = "cp_rp_disc_v1"; // LYCA-SKU-FIX-1024
+export const discBlockText = (lang: string) => lang === "es" ? "Este plan no se puede cargar en este número por ahora. Elija otro plan." : "This plan can't be loaded on this number right now. Pick a different plan."; // LYCA-SKU-FIX-1024
+export async function recordDiscBlock(phone: unknown, carrier: unknown, plan: unknown, now: number = Date.now()): Promise<void> { // LYCA-SKU-FIX-1024
+  try { // LYCA-SKU-FIX-1024
+    if (carrier === "ultra-mobile" || !plan) return; // LYCA-SKU-FIX-1024
+    const x = await keys(phone, carrier, plan); if (!x) return; // LYCA-SKU-FIX-1024
+    const raw = JSON.parse(localStorage.getItem(DISC_STORE) || "{}"); // LYCA-SKU-FIX-1024
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return; // LYCA-SKU-FIX-1024
+    localStorage.setItem(DISC_STORE, JSON.stringify({ ...raw, [x.k]: now + RP_DISC_MS })); // LYCA-SKU-FIX-1024
+  } catch { /* fail open */ } // LYCA-SKU-FIX-1024
+} // LYCA-SKU-FIX-1024
+export async function checkDiscBlock(phone: unknown, carrier: unknown, plan: unknown, now: number = Date.now()): Promise<boolean> { // LYCA-SKU-FIX-1024
+  try { // LYCA-SKU-FIX-1024
+    if (carrier === "ultra-mobile" || !plan) return false; // LYCA-SKU-FIX-1024
+    const x = await keys(phone, carrier, plan); if (!x) return false; // LYCA-SKU-FIX-1024
+    const raw = JSON.parse(localStorage.getItem(DISC_STORE) || "{}"); // LYCA-SKU-FIX-1024
+    const until = raw?.[x.k]; return typeof until === "number" && Number.isFinite(until) && until > now; // LYCA-SKU-FIX-1024
+  } catch { return false; } // LYCA-SKU-FIX-1024
+} // LYCA-SKU-FIX-1024
+
 /** Resolve within `ms`; on timeout or error resolve `fallback`. */
 export function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
   return new Promise((resolve) => { const t = setTimeout(() => resolve(fallback), ms); p.then((v) => { clearTimeout(t); resolve(v); }, () => { clearTimeout(t); resolve(fallback); }); });
