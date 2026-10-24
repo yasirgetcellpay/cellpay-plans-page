@@ -1,4 +1,5 @@
 # VZ-PREPAID-GUARD-1017
+- [x] REFILL-PREVENT-1024: P1/P2/P2b/P4/P6 behind own switches, A/B cookie cp_rp; dead-amounts function written, not deployed.
 - [x] ULTRA-MSG-1024: Ultra 8279 display label and EN/ES refund overrides verified with intercepted replies; original $29 price, payment values, retry handler and REFUND-RETRY buttons unchanged; 68 focused tests passed, five existing legacy fixture failures remain; preview build OK, no publishing or deployment.
 - [x] METRO-FIRSTSCREEN-1023b: Metro-only phone placement and CTA verified on six route forms; CTA bottoms 748/760 px at 390×844; other carrier DOM/config unchanged, original validation and mocked-verification checkout handoff checked; build OK, two new Auto Pay tests passed, full suite 486 passed/same 56 failures and one error; no publishing. // METRO-FIRSTSCREEN-1023b
 - [x] BILLPAY-CRICKET-1023: EN/ES bill copy, matching FAQ schema, links, AI index and page-specific sitemap lastmod updated; browser verified, build OK; existing suite 484 passed/56 failed plus one error; live host checks blocked by Cloudflare 403, nothing published. // BILLPAY-CRICKET-1023
