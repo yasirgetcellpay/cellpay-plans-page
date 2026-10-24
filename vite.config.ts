@@ -829,7 +829,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "straight-talk.html":        { title: "Straight Talk Refill — Online Top-Up | CellPay",       description: "Recharge Straight Talk online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "guest-metropcs.html":       { title: "Metro PCS Guest Payment — Pay Your Bill Online | CellPay",      description: "Pay your Metro PCS bill as a guest. No login needed. All 30-day plans, secure checkout." },
       "guest-boost.html":          { title: "Boost Mobile Guest Payment — Pay Your Bill Online | CellPay",   description: "Pay your Boost Mobile bill as a guest. No login needed. All 30-day plans, secure checkout." },
-      "total-wireless.html":       { title: "Total Wireless Refill — Online Top-Up | CellPay",       description: "Recharge Total Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "total-wireless.html":       { title: "Pay Total Wireless Bill Online – No Login | CellPay",       description: "Pay your Total Wireless bill online in minutes. No login needed — enter the phone number, pick your plan and pay with any card or wallet." }, // COPY-1024
       // GO-1 / GO-2 titles (noindex applied via GO_SHELLS in buildMeta)
       "go/boost.html":             { title: "Pay Your Boost Mobile Bill as a Guest | CellPay", description: "Pay your Boost Mobile bill as a guest. Just your phone number, no login. Pay with debit or credit card. Service fee shown before you pay." },
       "go/metro.html":             { title: "MetroPCS Bill Payment Online — Pay as a Guest | CellPay", description: "Metro PCS bill payment online as a guest. Enter the Metro by T-Mobile phone number, pick a plan, pay with debit or credit card. Service fee shown before you pay." }, // METRO-LPX-1019
@@ -1111,8 +1111,8 @@ const htmlAliasPlugin = (): Plugin => ({
           description: esCarrierDesc("Verizon Wireless Prepaid"),
         },
         "total-wireless/index.html": {
-          title: "Total Wireless Refills and Online Bill Payments",
-          description: "Recharge your Total Wireless plan instantly online with CellPay online bill payments. Easy, fast and secure way to pay Total Wireless",
+          title: "Pay Total Wireless Bill Online – No Login | CellPay", // COPY-1024
+          description: "Pay your Total Wireless bill online in minutes. No login needed — enter the phone number, pick your plan and pay with any card or wallet.", // COPY-1024
         },
         "es/total-wireless/index.html": {
           title: "Recarga de Total Wireless en Línea — Pague su Factura | CellPay",
@@ -1594,6 +1594,8 @@ const htmlAliasPlugin = (): Plugin => ({
         ? `Soluciones Rápidas y Seguras para Recargas Prepagadas de ${esName}`
         : slug === "metropcs"
         ? "Metro PCS Pay Bill Online"
+        : slug === "total-wireless" && !isEs // COPY-1024
+        ? "Pay Your Total Wireless Bill Online" // COPY-1024
         : "Top Up Your Mobile Number—Online & Securely";
       const h2 = bill
         ? bill.sub
@@ -1603,6 +1605,8 @@ const htmlAliasPlugin = (): Plugin => ({
         ? `Transacciones Sencillas y Seguras para Usuarios Prepagados de ${esName}`
         : slug === "metropcs"
         ? "Pay your Metro by T-Mobile prepaid bill online. No login needed."
+        : slug === "total-wireless" && !isEs // COPY-1024
+        ? "Pay as a guest with just the phone number. No login needed." // COPY-1024
         : "No login needed. Enter your phone number, choose your plan, and you're recharged.";
       const info = isEs // SEO-CONTENT-1014: bill pages use pay wording in the first sentence
         ? (bill ? bill.autoPayInfoLead : "Opcional: Auto Pago para no olvidar su pago.") + " Lo puede activar al pagar. El Pago Automático está desactivado a menos que usted lo marque o llegue desde un enlace de Pago Automático. Cargo por servicio bajo, mostrado antes de pagar. " + weAcceptLine("es") // PAYCOPY-1008: shared payment list // PLAN-BLOCK-CLEANUP-1017
