@@ -13,6 +13,8 @@ import { weAcceptLine } from "@/content/paymentMethods";
 import { top4Hero, displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq, top4Name, esCarrierFaqs, searchFaqs, usCellularNote } from "@/content/carrierHero"; // BATCH3-1014
 import { PlanGrid } from "@/components/PlanGrid";
 import { ultraPlanLabel } from "@/content/ultraPlanLabel"; // ULTRA-MSG-1024
+import { useUltraSmart } from "@/hooks/useUltraSmart"; // ULTRA-SMART-PREVENT-1024
+import { UltraSmartNotice } from "@/components/UltraSmartNotice"; // ULTRA-SMART-PREVENT-1024
 import { RP_P1_FORMAT, RP_P2_RETRY_BLOCK, RP_P2_GUIDANCE, RP_P4_DEAD_AMOUNTS } from "@/lib/refillPreventFlags"; // REFILL-PREVENT-1024
 import { RP_P2c_DISC_24H } from "@/lib/refillPreventFlags"; // LYCA-SKU-FIX-1024
 import { checkDiscBlock, discBlockText } from "@/lib/refillPrevent"; // LYCA-SKU-FIX-1024
@@ -590,6 +592,7 @@ const DynamicCarrier = ({
   const rpFormatBad = p1On && phoneDigits.length === 10 && phoneFormatBad(phoneDigits);
   const rpNeedConfirm = p1On && rpTyped.current && phoneDigits.length === 10 && !rpFormatBad;
   const rpConfirmOk = !rpNeedConfirm || rpConfirm.replace(/\D/g, "").slice(-10) === phoneDigits;
+  const ultraSmart = useUltraSmart(carrierSlug, phoneDigits, rpConfirmOk, plans, (plan) => setAmount(String(plan.amount))); // ULTRA-SMART-PREVENT-1024
   const rpPhoneBlock = rpFormatBad || !rpConfirmOk;
   const rpFmtLogged = useRef(false);
   useEffect(() => { if (rpFormatBad && !rpFmtLogged.current) { rpFmtLogged.current = true; rpEvent("rp_format_error", carrierSlug, rpV); } if (!rpFormatBad) rpFmtLogged.current = false; }, [rpFormatBad, carrierSlug, rpV]);
@@ -599,6 +602,7 @@ const DynamicCarrier = ({
   }, [carrierSlug]);
   const rpGate = async (planId: unknown, amt: unknown): Promise<boolean> => { // REFILL-PREVENT-1024: true = may continue
     try {
+      if (!ultraSmart.gate(Number(amt))) return false; // ULTRA-SMART-PREVENT-1024
       if (rpPhoneBlock) {
         if (!rpFormatBad) rpEvent("rp_confirm_mismatch", carrierSlug, rpV);
         const msg = formatErrorText(lang); setInlineError(msg); return false;
@@ -912,7 +916,6 @@ const DynamicCarrier = ({
             </div>
           </div>
 
-          {rpGuide && <p data-testid="rp-guidance" className="max-w-[420px] mx-auto px-4 pb-3 text-xs sm:text-sm text-muted-foreground text-center">{rpGuide}</p>}{/* REFILL-PREVENT-1024 */}
           {/* Plan grid (fixed_plans) */}
           {showFixedPlans && plans.length > 0 && (
             <PlanGrid
