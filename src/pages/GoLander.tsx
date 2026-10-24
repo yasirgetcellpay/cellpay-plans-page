@@ -819,7 +819,7 @@ const GoLander = ({
           {showFixedPlans && plans.length > 0 && (
             <div className="pt-1 sm:pt-2">
               <PlanGrid
-                plans={plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, goTileName(carrierSlug, isEs ? "es" : "en", p.highlight)), ...(RP_P4_DEAD_AMOUNTS && isDeadAmount(deadList, carrierSlug, p.plan_id, p.amount) ? { unavailable: deadLabel(lang) } : {}) }))} // LYCA-SKU-FIX-1024
+                plans={plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, goTileName(carrierSlug, isEs ? "es" : "en", p.highlight)), ...(RP_P4_DEAD_AMOUNTS && isDeadAmount(deadList, carrierSlug, p.plan_id, p.amount) ? { unavailable: deadLabel(lang) } : {}) })) /* // LYCA-SKU-FIX-1024 */}
                 brandColor={bc}
                 onSelect={handlePlanPayNow}
                 popularIndex={Math.min(plans.length - 1, Math.floor(plans.length / 2))}
