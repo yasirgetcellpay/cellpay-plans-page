@@ -1625,6 +1625,20 @@ const Checkout = () => {
     );
   }
 
+  const closeRefillError = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setRefillCarrierChoices(null); }; // REFILL-ERROR-MSG-1024
+  const recover = async (action: PickAction) => { // REFILL-ERROR-MSG-1024
+          if (action === "other_carrier") {
+            setRefillCarrierLoading(true);
+            try { const { carriers } = await fetchCarriers(); setRefillCarrierChoices(carriers.filter((carrier) => carrier.slug && carrier.name && !/xbox/i.test(carrier.name))); }
+            catch { toast({ title: lang === "es" ? "No pudimos cargar las compañías. Inténtelo de nuevo." : "We couldn't load carriers. Please try again.", variant: "destructive" }); }
+            finally { setRefillCarrierLoading(false); }
+            return;
+          }
+          if (action === "number") { closeRefillError(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, state.amount, location.search, location.hash), { state: { focusPhone: true, selectPhone: true } }); return; }
+          if (action === "plan" || action === "amount") { closeRefillError(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, undefined, location.search, location.hash)); return; }
+          closeRefillError();
+          if (action === "try_again") window.setTimeout(() => { const pay = inlinePayRef.current || paypalContainerRef.current?.querySelector<HTMLElement>('button, [tabindex="0"], iframe'); pay?.scrollIntoView({ behavior: "smooth", block: "center" }); pay?.focus(); }, 0);
+        }; // REFILL-ERROR-MSG-1024
   const brandColor = state.brandColor;
   // CONSENT-TERMS-1014: consent line shown directly above PLACE ORDER NOW
   const consentLine = (<p className="text-xs text-muted-foreground text-center leading-snug">{lang === "es" ? <>Al realizar su pedido, acepta nuestros <a href="/terms-and-conditions" target="_blank" rel="noopener" className="underline">Términos</a> y recibir recordatorios de pago y ofertas por correo electrónico. Puede darse de baja en todo momento.</> : <>By placing your order you agree to our <a href="/terms-and-conditions" target="_blank" rel="noopener" className="underline">Terms</a> and to receive payment reminders and offers by email. Unsubscribe anytime.</>}</p>); // QA-1023-CUAL-2
@@ -3391,7 +3405,7 @@ const Checkout = () => {
             {nsfView ? ( // FUNDS-DECLINE-1016
               <h3 className="text-lg font-bold text-foreground mb-2" data-testid="funds-title">{fc.title}</h3>
             ) : <><div className="text-3xl mb-2">❌</div><h3 className="text-xl font-bold text-foreground mb-2">{tr.paymentFailed}</h3></>}
-            {!declineInfo && <p className="text-sm text-muted-foreground mb-2">{(loadReason && loadReason.category !== "generic" && pickReasonText(loadReason.category, lang, state.carrierName, state.carrierSlug)) || errorMsg}</p>} {/* LOADTEXT-REASON-1017 */}
+            {!declineInfo && <p className="text-sm text-muted-foreground mb-2">{loadReason ? pickReasonText(loadReason.category, lang, state.carrierName, state.carrierSlug) : errorMsg}</p>} {/* LOADTEXT-REASON-1017 */}
             {orsRetry && oursideRetryOn && paymentMethod === orsFailed && (
               <button type="button" data-testid="ors-retry" className="w-full mb-2 rounded-lg py-2.5 font-bold text-primary-foreground" style={{ backgroundColor: brandColor }}
                 onClick={() => { orsWrite({ retry_clicked: true }); setOrsRetry(false); setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); void handlePlaceOrder(); }}>
@@ -3589,7 +3603,12 @@ const Checkout = () => {
                   {(sessCap || declineInfo.n >= 2) && <p className="text-xs text-muted-foreground text-center pt-1">{dc.help}</p>}
                 </div>
               );
-            })() : (
+            })() : loadReason ? <div className="space-y-2">{/* REFILL-ERROR-MSG-1024: no raw LoadText, no automatic submission */}
+              {pickButtons(loadReason.category, lang)?.map((choice) => <Button key={choice.action} className="w-full" disabled={refillCarrierLoading} onClick={() => void recover(choice.action)}>{choice.label}</Button>)}
+              {refillCarrierChoices && <div role="dialog" aria-label={lang === "es" ? "Elegir otra compañía" : "Choose another carrier"} className="space-y-2">
+                {refillCarrierChoices.map((carrier) => <Button key={carrier.slug} variant="outline" className="w-full" onClick={() => { closeRefillError(); navigate(carrierPageTarget(lang, carrier.slug, state.phone, state.amount, location.search, location.hash)); }}>{carrier.name}</Button>)}
+              </div>}
+            </div> : (
             <button type="button" onClick={() => { setErrorMsg(null); setShowNotChargedNote(false); }}
               className="px-6 py-2 rounded-lg text-primary-foreground font-bold text-sm" style={{ backgroundColor: brandColor }}>
               {tr.tryAgain}
@@ -3631,21 +3650,8 @@ const Checkout = () => {
         const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`); // REFUND-WORDING-1016
         const ultraKind = !pick && state.carrierSlug === "ultra-mobile" ? ultraResultKind : null; // REFILL-ERROR-MSG-1024 // ULTRA-FAIL-MSG-1022
         const amt = `$${Number(validation?.total ?? state.amount ?? 0).toFixed(2)}`; // REFUND-WORDING-1016
-        const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); }; // LOADTEXT-REASON-1017: + loadReason reset
+        const close = () => { setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setRefundCard(false); setLoadReason(null); setRefillCarrierChoices(null); }; // LOADTEXT-REASON-1017: + loadReason reset // REFILL-ERROR-MSG-1024
         const toCarrier = (ph: string) => { close(); navigate(carrierPageTarget(lang, state.carrierSlug, ph, undefined, location.search, location.hash)); };
-        const recover = async (action: PickAction) => { // REFILL-ERROR-MSG-1024
-          if (action === "other_carrier") {
-            setRefillCarrierLoading(true);
-            try { const { carriers } = await fetchCarriers(); setRefillCarrierChoices(carriers.filter((carrier) => carrier.slug && carrier.name && !/xbox/i.test(carrier.name))); }
-            catch { toast({ title: es ? "No pudimos cargar las compañías. Inténtelo de nuevo." : "We couldn't load carriers. Please try again.", variant: "destructive" }); }
-            finally { setRefillCarrierLoading(false); }
-            return;
-          }
-          if (action === "number") { close(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, state.amount, location.search, location.hash), { state: { focusPhone: true, selectPhone: true } }); return; }
-          if (action === "plan" || action === "amount") { close(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, undefined, location.search, location.hash)); return; }
-          close();
-          if (action === "try_again") window.setTimeout(() => { const pay = inlinePayRef.current || paypalContainerRef.current?.querySelector<HTMLElement>('button, [tabindex="0"], iframe'); pay?.scrollIntoView({ behavior: "smooth", block: "center" }); pay?.focus(); }, 0);
-        }; // REFILL-ERROR-MSG-1024
         const openHelp = () => {
           close();
           window.setTimeout(() => {
