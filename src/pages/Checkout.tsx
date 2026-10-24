@@ -1124,7 +1124,7 @@ const Checkout = () => {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [!!state]);
+  }, [!!state, state?.carrierSlug === "ultra-mobile" ? `${state.planId}|${state.amount}` : ""]); // ULTRA-SMART-PREVENT-1024
 
   // CK-0: nothing saved in this tab. Cash App return params -> the existing status page; valid ?carrier&plan|amount&phone ->
   // hand-off rebuilt from the carrier's own data (carriers/view + verify-phone, as PAY NOW does); else carrier page or home.
