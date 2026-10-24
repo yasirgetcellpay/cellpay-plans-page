@@ -2799,8 +2799,7 @@ const Checkout = () => {
         </div>
       ) : (
         <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
-          {state.carrierSlug === "ultra-mobile" && <UltraSmartNotice smart={ultraSmart} lang={lang} />}{/* // ULTRA-SMART-PREVENT-1024 */}
-          {state.carrierSlug === "ultra-mobile" && ultraSmart.pending !== null && ultraSmart.usual && <Button type="button" className="w-full" onClick={() => { ultraSmart.accept(); if (ultraSmart.usual) goUltraPlan(ultraSmart.usual); }}>{lang === "es" ? `Continuar con $${ultraSmart.usual.amount}` : `Continue with $${ultraSmart.usual.amount}`}</Button>}{/* // ULTRA-SMART-PREVENT-1024 */}
+          {state.carrierSlug === "ultra-mobile" && <UltraSmartNotice smart={ultraSmart} lang={lang} onUsual={() => { if (ultraSmart.usual) goUltraPlan(ultraSmart.usual); }} />}{/* // ULTRA-SMART-PREVENT-1024 */}
           {/* Order summary */}
           <div className="bg-card rounded-xl border border-border p-5">
             <h2 className="font-bold text-foreground mb-3 text-sm">{tr.orderSummary}</h2>

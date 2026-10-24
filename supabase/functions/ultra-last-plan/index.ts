@@ -13,7 +13,7 @@ Deno.serve(async (req) => { // ULTRA-SMART-PREVENT-1024
     if (!url || !key) return reply({}, 503); // ULTRA-SMART-PREVENT-1024
     const db = createClient(url, key); const deadline = AbortSignal.timeout(1900); // ULTRA-SMART-PREVENT-1024
     const bucket = await bucketKey(key, "ultra-history-ip", clientIp(req).ip ?? "unknown"); // ULTRA-SMART-PREVENT-1024
-    const { data: allowed, error: limiterError } = await db.rpc("help_rate_limit_hit", { _bucket: bucket, _max: 120, _window_seconds: 600 }).abortSignal(deadline); // ULTRA-SMART-PREVENT-1024
+    const { data: allowed, error: limiterError } = await db.rpc("ap1_rate_limit_hit", { _bucket: bucket, _limit: 120, _window_seconds: 600 }).abortSignal(deadline); // ULTRA-SMART-PREVENT-1024
     if (limiterError) return reply({}, 503); if (allowed !== true) return reply({}, 429); // ULTRA-SMART-PREVENT-1024
     const { data, error } = await db.from("transaction_logs").select("amount,plan_id,created_at").eq("carrier_slug", "ultra-mobile").eq("phone_number", phone).eq("status", "success").is("refunded_at", null).gte("created_at", new Date(Date.now() - 90 * 86400000).toISOString()).order("created_at", { ascending: false }).limit(1).abortSignal(deadline); // ULTRA-SMART-PREVENT-1024
     if (error) return reply({}, 503); const row = data?.[0]; // ULTRA-SMART-PREVENT-1024

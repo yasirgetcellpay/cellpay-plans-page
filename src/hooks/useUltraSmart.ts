@@ -11,7 +11,7 @@ export function useUltraSmart(slug: string, phone: string, ready: boolean, plans
   const selectedRef = useRef<string | null>(null); // ULTRA-SMART-PREVENT-1024
   const last = lookup?.phone === phone ? lookup.last : null; // ULTRA-SMART-PREVENT-1024
   const usual = currentUltraPlan(last, plans); // ULTRA-SMART-PREVENT-1024
-  const noHistory = ULTRA_NOHISTORY_CONFIRM && lookup?.phone === phone && lookup.empty; // ULTRA-SMART-PREVENT-1024
+  const noHistory = Boolean(ULTRA_NOHISTORY_CONFIRM && lookup?.phone === phone && lookup.empty); // ULTRA-SMART-PREVENT-1024
   useEffect(() => { // ULTRA-SMART-PREVENT-1024
     if (slug !== "ultra-mobile" || !ready || !/^\d{10}$/.test(phone)) return; // ULTRA-SMART-PREVENT-1024
     let cancelled = false; // ULTRA-SMART-PREVENT-1024

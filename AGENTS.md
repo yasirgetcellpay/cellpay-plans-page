@@ -1,4 +1,5 @@
 # Project architecture rules
+- Keep Ultra history, confirmations and recovery isolated in Ultra-only helpers and components, and breaker pause/probe state in a service-only atomic database function shared by health reads and the proxy before charges; bound new calls to two seconds and never mutate submission payloads. // ULTRA-SMART-PREVENT-1024
 - Keep Metro first-screen presentation behind the optional GoLander metroFirstScreen prop, enabled only on Metro ad routes, so default carrier DOM and existing validation/navigation remain unchanged. // METRO-FIRSTSCREEN-1023b
 - Keep Cricket bill-page copy and FAQs in the existing billCarrierSeo content source and existing static head renderer so visible answers match one FAQPage without adding scripts or changing shared payment logic. // BILLPAY-CRICKET-1023
 - Keep Simple Mobile legacy ad-page aliases on the existing AliasRedirect component so English/Spanish destinations preserve search parameters and hashes without adding prerender shells. // SIMPLE-PUSH-1023
