@@ -49,9 +49,9 @@ const LONG_FORM_BY_SLUG: Record<
     config: ATT_PREPAID_CONFIG,
     schema: ATT_FAQ_SCHEMA,
     seo: {
-      title: "AT&T Prepaid Refill — Pay Your AT&T Bill Online | CellPay",
+      title: "Pay Your AT&T Prepaid Bill Online – No Login | CellPay", // ATT-BILLPAY-H1-1024
       description:
-        "Refill any AT&T Prepaid phone online. No login needed. All major cards & wallets. Pay your AT&T Prepaid bill online now on CellPay.",
+        "Pay your AT&T Prepaid bill online with just your phone number. No login, no account sign-in needed. Pay for yourself or someone else.", // ATT-BILLPAY-H1-1024
       keywords:
         "at&t prepaid refill, pay att prepaid bill online, att prepaid payment, att refill, att prepaid top up, att bill pay",
     },

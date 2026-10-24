@@ -11,7 +11,7 @@ export type HeroLang = "en" | "es";
 /** H1 per carrier. Keys = DynamicCarrier carrierSlug; SLUG_ALIAS maps the prerender route slugs. */
 const HERO_H1: Record<string, { en: string; es: string }> = {
   tmobile: { en: "T-Mobile Prepaid Bill Pay & Refill", es: "Pago de factura y recarga de T-Mobile Prepago" },
-  "topup-at": { en: "AT&T Prepaid Bill Pay & Refill", es: "Pago de factura y recarga de AT&T Prepago" },
+  "topup-at": { en: "Pay Your AT&T Prepaid Bill Online", es: "Pago de factura y recarga de AT&T Prepago" }, // ATT-BILLPAY-H1-1024
   s1: { en: "Simple Mobile Bill Pay & Refill", es: "Pago de factura y recarga de Simple Mobile" },
   verizon: { en: "Verizon Prepaid Bill Pay & Refill", es: "Pago de factura y recarga de Verizon Prepago" },
 };
