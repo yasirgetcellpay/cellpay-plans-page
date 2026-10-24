@@ -18,6 +18,7 @@ export type HtpPage = {
   carrierSlug: string; // fetchCarrierView slug
   carrierName: string;
   checkoutPath: string; // transactional carrier page
+  goPath: string; // HOWTO-CTA-1023
   title: string;
   description: string;
   h1: string;
@@ -38,7 +39,7 @@ export type HtpPage = {
   updated: string;
   updatedIso: string; // AEO-03-04-1008: JSON-LD dateModified per page
   related: Array<[string, string]>;
-  labels: { payNow: string; steps: string; need: string; fees: string; item: string; amount: string; other: string; faq: string; related: string; breadcrumbHowTo: string; tool: string; supply: string };
+  labels: { payNow: string; steps: string; need: string; fees: string; item: string; amount: string; other: string; faq: string; related: string; breadcrumbHowTo: string; tool: string; supply: string; ctaBottom: string }; // HOWTO-CTA-1023
   // AI-ANSWERS-1014: amount answer pages (/how-to-pay/<carrier>/<amount>) only
   amount?: number;
   parentPath?: string;
@@ -59,6 +60,13 @@ const PAY_ES = payWith("es");
 const sfFirst = (slug: string, lang: HtpLang, fallback: HtpFaq): HtpFaq => searchFaqs(slug, lang)[0] ?? fallback;
 const sfRest = (slug: string, lang: HtpLang): HtpFaq[] => searchFaqs(slug, lang).slice(1);
 
+const GO_PATHS: Record<HtpPage["key"], string> = { // HOWTO-CTA-1023
+  "straight-talk": "/go/straight-talk", "att-prepaid": "/go/att", "simple-mobile": "/go/simple-mobile", // HOWTO-CTA-1023
+  "t-mobile-prepaid": "/go/tmobile", "verizon-prepaid": "/go/verizon", "lyca-mobile": "/go/lyca", // HOWTO-CTA-1023
+  "metro-pcs": "/go/metro", "boost-mobile": "/go/boost", cricket: "/go/cricket", net10: "/go/net10", // HOWTO-CTA-1023
+  h2o: "/go/h2o", "ultra-mobile": "/go/ultra", tracfone: "/go/tracfone", "page-plus": "/go/pageplus", "total-wireless": "/go/totalwireless", // HOWTO-CTA-1023
+}; // HOWTO-CTA-1023
+
 const LABELS_EN = { payNow: "", steps: "Steps", need: "What you need", fees: "Fees and totals", item: "Item", amount: "Amount", other: "", faq: "Frequently asked questions", related: "Related", breadcrumbHowTo: "How to pay", tool: payWith("en", "Card"), supply: "10-digit phone number" };
 const LABELS_ES = { payNow: "", steps: "Pasos", need: "Lo que necesita", fees: "Cargos y totales", item: "Concepto", amount: "Monto", other: "", faq: "Preguntas frecuentes", related: "Relacionado", breadcrumbHowTo: "Cómo pagar", tool: payWith("es", "Tarjeta"), supply: "Número de teléfono de 10 dígitos" };
 
@@ -73,6 +81,7 @@ const en = (o: {
 }): HtpPage => ({
   key: o.key, lang: "en", path: `/how-to-pay/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
+  goPath: GO_PATHS[o.key], // HOWTO-CTA-1023
   intro: o.intro ?? /* CRICKET-GUIDE-1014 */ `To pay your ${o.name} bill online without logging in, go to CellPay's ${o.name} page, enter the 10-digit ${o.name} phone number, pick your amount or plan, and pay with ${PAY_EN}. The service fee is shown before you pay, and most payments post within a few minutes (up to 30 minutes). CellPay is an independent payment service, not ${o.name}; you can also pay ${o.name} directly on its official site.`,
   steps: o.steps ?? /* // AEO-09-NET10-1015 */ [
     { name: "Open the page", text: `Go to the CellPay ${o.name} page (${o.checkout}).` },
@@ -112,7 +121,7 @@ const en = (o: {
   updated: o.updatedText ?? "Last updated: October 7, 2026",
   updatedIso: o.updatedIso ?? UPDATED_ISO,
   related: o.related,
-  labels: { ...LABELS_EN, payNow: `Pay ${o.name} now`, other: `Other ways to pay ${o.name}` },
+  labels: { ...LABELS_EN, payNow: `Pay ${o.name} now`, other: `Other ways to pay ${o.name}`, ctaBottom: "Refill now" }, // HOWTO-CTA-1023
 });
 
 const es = (o: {
@@ -127,6 +136,7 @@ const es = (o: {
 }): HtpPage => ({
   key: o.key, lang: "es", path: `/es/como-pagar/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
+  goPath: `/es${GO_PATHS[o.key]}`, // HOWTO-CTA-1023
   intro: o.intro ?? /* CRICKET-GUIDE-1014 */ `${o.introLead ?? `Para pagar su factura de ${o.name} en línea sin iniciar sesión`}, vaya a la página de ${o.name} de CellPay, ingrese el número de teléfono de ${o.name} de 10 dígitos, elija el monto o el plan y pague con ${PAY_ES}. El cargo por servicio se muestra antes de pagar y la mayoría de los pagos se acreditan en pocos minutos (hasta 30 minutos). CellPay es un servicio de pago independiente, no ${o.name}; también puede pagar directamente en el sitio oficial de ${o.name}.`,
   steps: o.steps ?? /* // AEO-09-NET10-1015 */ [
     { name: "Abra la página", text: `Vaya a la página de ${o.name} de CellPay (${o.checkout}).` },
@@ -166,7 +176,7 @@ const es = (o: {
   updated: o.updatedText ?? "Última actualización: 7 de octubre de 2026",
   updatedIso: o.updatedIso ?? UPDATED_ISO,
   related: o.related,
-  labels: { ...LABELS_ES, payNow: `Pagar ${o.name} ahora`, other: `Otras formas de pagar ${o.name}` },
+  labels: { ...LABELS_ES, payNow: `Pagar ${o.name} ahora`, other: `Otras formas de pagar ${o.name}`, ctaBottom: "Recargue ahora" }, // HOWTO-CTA-1023
 });
 
 export const HOW_TO_PAY_PAGES: HtpPage[] = [
@@ -811,6 +821,7 @@ const amtPage = (c: AmtCarrier, a: number, lang: HtpLang): HtpPage => {
   const shortTitle = c.key === "metro-pcs" ? "Metro by T-Mobile (Metro PCS)" : name; // AEO-15-TMO-AMOUNTS-1021
   return {
     key: c.key, lang, path: isEs ? esPath : enPath, enPath, esPath, carrierSlug: c.slug, carrierName: name, checkoutPath: pay, // AEO-15-TMO-AMOUNTS-1021
+    goPath: `${isEs ? "/es" : ""}${GO_PATHS[c.key]}`, // HOWTO-CTA-1023
     title: isEs
       ? (c.key === "metro-pcs" ? `Cómo pagar ${shortTitle} $${a} | CellPay` : `Cómo pagar ${name} $${a} en línea | CellPay`) // AEO-15-TMO-AMOUNTS-1021
       : (c.key === "metro-pcs" ? `How to Pay ${shortTitle} $${a} | CellPay` : `How to Pay ${name} $${a} Online | CellPay`), // AEO-15-TMO-AMOUNTS-1021
@@ -853,8 +864,8 @@ const amtPage = (c: AmtCarrier, a: number, lang: HtpLang): HtpPage => {
     updatedIso: isTmo ? "2026-10-21" : "2026-10-14", // AEO-15-TMO-AMOUNTS-1021
     related: [],
     labels: isEs
-      ? { ...LABELS_ES, payNow: `Pagar ${name} ahora`, other: "" } // AEO-15-TMO-AMOUNTS-1021
-      : { ...LABELS_EN, payNow: `Pay ${name} now`, other: "" }, // AEO-15-TMO-AMOUNTS-1021
+      ? { ...LABELS_ES, payNow: `Pagar ${name} ahora`, other: "", ctaBottom: "Recargue ahora" } // AEO-15-TMO-AMOUNTS-1021 // HOWTO-CTA-1023
+      : { ...LABELS_EN, payNow: `Pay ${name} now`, other: "", ctaBottom: "Refill now" }, // AEO-15-TMO-AMOUNTS-1021 // HOWTO-CTA-1023
     amount: a,
     parentPath,
     parentLabel: isEs ? `Guía completa: cómo pagar ${name}` : `Full guide: how to pay ${name}`, // AEO-15-TMO-AMOUNTS-1021
@@ -1005,6 +1016,7 @@ export const htpPlansNote = (pg: HtpPage): string =>
 // and main.tsx waits for the guide chunk, so React swaps in identical markup and nothing new paints. Keep in sync with HowToPay.tsx.
 export const howToPayStaticHtml = (pg: HtpPage): string => {
   const L = pg.labels;
+  const ctaBottom = `<div class="mt-10 mb-4 text-center" data-htp-cta><a href="${pg.goPath}" class="inline-block rounded-lg bg-primary text-primary-foreground font-bold px-5 py-2.5">${esc(L.ctaBottom)}</a></div>`; // HOWTO-CTA-1023
   const h2 = (t: string) => `<h2 class="text-xl font-extrabold mt-8 mb-3">${esc(t)}</h2>`;
   const head =
     `<div id="root" data-go-prerender="1"><div class="min-h-screen bg-background font-sans antialiased text-foreground" lang="${pg.lang}">` +
@@ -1022,6 +1034,7 @@ export const howToPayStaticHtml = (pg: HtpPage): string => {
       h2(pg.methodsTitle ?? "") + `<p>${esc(pg.methodsLine ?? "")}</p>` + `<p class="mt-2 font-bold">${esc(pg.feeLine ?? "")}</p>` +
       faqHtml + foot +
       `<p class="mt-6"><a href="${pg.parentPath}" class="underline">${esc(pg.parentLabel ?? "")}</a></p>` +
+      ctaBottom + // HOWTO-CTA-1023
       `</main></div></div>`
     );
   }
@@ -1047,6 +1060,7 @@ export const howToPayStaticHtml = (pg: HtpPage): string => {
     `<p class="text-xs text-muted-foreground mt-8">${esc(pg.disclaimer)}</p><p class="text-xs text-muted-foreground">${esc(pg.updated)}</p>` +
     (common.length ? h2(pg.lang === "es" ? "Montos comunes" : "Common amounts") + `<ul class="list-disc pl-6 space-y-1">` + common.map(([h, t]) => `<li><a href="${h}" class="underline">${esc(t)}</a></li>`).join("") + `</ul>` : "") + // AI-ANSWERS-1014
     h2(L.related) + `<ul class="list-disc pl-6 space-y-1">` + pg.related.map(([h, t]) => `<li><a href="${h}" class="underline">${esc(t)}</a></li>`).join("") + `</ul>` +
+    ctaBottom + // HOWTO-CTA-1023
     `</main></div></div>`
   );
 };

@@ -40,7 +40,7 @@ function extractPlans(data: unknown, slug: string, es: boolean): LivePlan[] {
 }
 
 const HowToPay = () => {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation(); // HOWTO-CTA-1023
   const pg = howToPayByPath(pathname);
   const [plans, setPlans] = useState<LivePlan[] | null>(null);
 
@@ -157,6 +157,8 @@ const HowToPay = () => {
         </ul>
         </>
         )}
+        {/* // HOWTO-CTA-1023 */}
+        <div className="mt-10 mb-4 text-center" data-htp-cta=""><a href={pg.goPath + search} className="inline-block rounded-lg bg-primary text-primary-foreground font-bold px-5 py-2.5">{L.ctaBottom}</a></div> {/* // HOWTO-CTA-1023 */}
       </main>
     </div>
   );
