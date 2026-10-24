@@ -141,6 +141,13 @@
       "when": 1792792131215,
       "tag": "0019_home_badge_ab_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792865771100,
+      "tag": "0020_refill_prevent_dead_amounts",
+      "breakpoints": true
     }
   ]
 }
