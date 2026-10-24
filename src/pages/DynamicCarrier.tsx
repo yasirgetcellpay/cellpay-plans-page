@@ -275,9 +275,10 @@ const DynamicCarrier = ({
   const [faqs, setFaqs] = useState<Array<{ question: string; answer: string }>>([]);
   // LCP-ADS-1007: Metro PCS (EN) headline is known up front, so it matches the static first screen (vite.config.ts) and never changes after load.
   const isMetroEn = carrierSlug === "metropcs" && lang !== "es";
-  const [heading, setHeading] = useState(seoH1Override || (isMetroEn ? "Metro PCS Pay Bill Online" : ""));
+  const isTwEn = carrierSlug === "total-wireless" && lang !== "es"; // COPY-1024
+  const [heading, setHeading] = useState(seoH1Override || (isMetroEn ? "Metro PCS Pay Bill Online" : isTwEn ? "Pay Your Total Wireless Bill Online" : "")); // COPY-1024
   const [subheading, setSubheading] = useState(
-    seoIntroOverride || (isMetroEn ? "Pay your Metro by T-Mobile prepaid bill online. No login needed." : ""),
+    seoIntroOverride || (isMetroEn ? "Pay your Metro by T-Mobile prepaid bill online. No login needed." : isTwEn ? "Pay as a guest with just the phone number. No login needed." : ""), // COPY-1024
   );
 
   // Apply per-route SEO overrides synchronously on mount so they're set before the API roundtrip.
@@ -403,6 +404,11 @@ const DynamicCarrier = ({
             description: feeCopy1019(carrierSlug, lang, "Pay your Boost Mobile bill online as a guest with just the phone number. No login needed. Service fee shown before you pay."), // METRO-FEECOPY-1019 BILLPAY-BOOST-1022
           });
         }
+        if (carrierSlug === "total-wireless" && lang !== "es") { // COPY-1024
+          applySeoHead({ title: "Pay Total Wireless Bill Online – No Login | CellPay", description: "Pay your Total Wireless bill online in minutes. No login needed — enter the phone number, pick your plan and pay with any card or wallet." }); // COPY-1024
+          setHeading("Pay Your Total Wireless Bill Online"); // COPY-1024
+          setSubheading("Pay as a guest with just the phone number. No login needed."); // COPY-1024
+        } // COPY-1024
 
         // AT&T / Straight Talk / Verizon long-form SEO override (keyword-focused title,
         // description, keywords + FAQPage JSON-LD mirroring the on-page FAQ).

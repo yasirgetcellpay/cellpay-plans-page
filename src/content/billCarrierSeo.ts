@@ -119,8 +119,8 @@ export const BILL_PAGES: BillPage[] = [
     path: "/metropcs.html", lang: "en", name: "Metro PCS",
     title: "Pay Metro PCS Bill Online as a Guest – No Login | CellPay",
     description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Service fee shown before you pay.",
-    h1: "Pay Your Metro by T-Mobile Bill Online",
-    sub: "Pay your Metro PCS bill as a guest with just the phone number. No login, no PIN.",
+    h1: "Pay Your Metro PCS Bill Online", // COPY-1024
+    sub: "Metro by T-Mobile bill payment online as a guest — just the phone number. No login, no PIN.", // COPY-1024
     autoPayInfoLead: "Optional: Auto Pay so you never miss a payment.",
     enterAmount: "Enter the amount you want to pay",
     securePayment: "Secure payment. Your payment goes to the number you entered.",
