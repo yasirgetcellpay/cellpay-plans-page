@@ -1,16 +1,16 @@
-// @vitest-environment node
 // ULTRA-SMART-PREVENT-1024
-import { describe, it, expect, beforeAll, afterAll } from "vitest"; // ULTRA-SMART-PREVENT-1024
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest"; // ULTRA-SMART-PREVENT-1024
 import { PGlite } from "@electric-sql/pglite"; // ULTRA-SMART-PREVENT-1024
 import { Blob as NodeBlob } from "node:buffer"; // ULTRA-SMART-PREVENT-1024
 import { readFileSync } from "node:fs"; // ULTRA-SMART-PREVENT-1024
 describe("atomic Ultra breaker", () => { // ULTRA-SMART-PREVENT-1024
   let db: PGlite; // ULTRA-SMART-PREVENT-1024
   beforeAll(async () => { // ULTRA-SMART-PREVENT-1024
+    vi.stubGlobal("Blob", NodeBlob); // ULTRA-SMART-PREVENT-1024
     db = new PGlite({ fsBundle: new NodeBlob([readFileSync("node_modules/@electric-sql/pglite/dist/pglite.data")]) as unknown as Blob }); await db.exec("CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE TABLE transaction_logs(carrier_slug text,created_at timestamptz,status text,load_text text,error_message text,raw_response jsonb); CREATE TABLE proxy_guard_events(id uuid,guard_version text,code text,method text,endpoint_shape text);"); // ULTRA-SMART-PREVENT-1024
     await db.exec(readFileSync("drizzle/migrations/0021_ultra_smart_prevent_1024.sql", "utf8")); // ULTRA-SMART-PREVENT-1024
   }, 30000); // ULTRA-SMART-PREVENT-1024
-  afterAll(async () => { await db.close(); }); // ULTRA-SMART-PREVENT-1024
+  afterAll(async () => { await db.close(); vi.unstubAllGlobals(); }); // ULTRA-SMART-PREVENT-1024
   async function seed(n: number, failures: number) { await db.exec("TRUNCATE transaction_logs,ultra_breaker_state,proxy_guard_events;"); for (let i = 0; i < n; i++) await db.query("INSERT INTO transaction_logs VALUES('ultra-mobile',now(),$1,$2,'','{}')", [i < failures ? "failed" : "success", i < failures ? "1065" : ""]); } // ULTRA-SMART-PREVENT-1024
   async function check(mode = "pause", claim = false) { const r = await db.query<{ health: Record<string, unknown> }>("SELECT ultra_breaker_check($1,$2) as health", [mode, claim]); return r.rows[0].health; } // ULTRA-SMART-PREVENT-1024
   it("warns at 40% with five attempts", async () => { await seed(5, 2); expect((await check()).tier).toBe("warn"); }); // ULTRA-SMART-PREVENT-1024
