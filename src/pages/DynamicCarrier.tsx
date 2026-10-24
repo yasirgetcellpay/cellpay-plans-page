@@ -13,6 +13,8 @@ import { weAcceptLine } from "@/content/paymentMethods";
 import { top4Hero, displayCarrierName, trademarkCarrierName, activeLineNote, refundFaq, top4Name, esCarrierFaqs, searchFaqs, usCellularNote } from "@/content/carrierHero"; // BATCH3-1014
 import { PlanGrid } from "@/components/PlanGrid";
 import { ultraPlanLabel } from "@/content/ultraPlanLabel"; // ULTRA-MSG-1024
+import { RP_P1_FORMAT, RP_P2_RETRY_BLOCK, RP_P2_GUIDANCE, RP_P4_DEAD_AMOUNTS } from "@/lib/refillPreventFlags"; // REFILL-PREVENT-1024
+import { rpVariant, rpEvent, phoneFormatBad, formatErrorText, confirmLabel, checkRetryBlock, retryBlockText, withTimeout, guidanceText, fetchDeadAmounts, isDeadAmount, deadLabel, type DeadAmount } from "@/lib/refillPrevent"; // REFILL-PREVENT-1024
 // SIMPLE-SPEC-1-1009: Simple Mobile answer page text (same source as the raw HTML in vite.config.ts)
 import { SIMPLE_META, SIMPLE_ANSWER, SIMPLE_FAQ_TITLE, SIMPLE_LINKS, simpleFaqs, simpleGridPlans } from "@/content/simplePage";
 import { FAQSection } from "@/components/FAQSection";
@@ -247,6 +249,10 @@ const DynamicCarrier = ({
   const tr = t(lang);
   // CK-0: number handed back by Checkout when a direct /checkout load can't be resumed (read once; never in the URL).
   const [phone, setPhone] = useState(() => formatPhone(takeCheckoutPrefill(carrierSlug)));
+  const [rpV] = useState(() => (RP_P1_FORMAT || RP_P2_RETRY_BLOCK ? rpVariant() : "control")); // REFILL-PREVENT-1024
+  const rpTyped = useRef(false); // REFILL-PREVENT-1024: only numbers typed here (not prefilled/retry/Auto Pay) need confirming
+  const [rpConfirm, setRpConfirm] = useState(""); // REFILL-PREVENT-1024
+  const [deadList, setDeadList] = useState<DeadAmount[]>([]); // REFILL-PREVENT-1024
   const [amount, setAmount] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -297,6 +303,7 @@ const DynamicCarrier = ({
   const handlePhoneChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setPhone(formatPhone(e.target.value));
+      rpTyped.current = true; // REFILL-PREVENT-1024
       setInlineError(null);
     },
     []
@@ -570,6 +577,32 @@ const DynamicCarrier = ({
   }); // ST-PREFILL-1018
 
   const phoneDigits = phone.replace(/\D/g, "");
+  // REFILL-PREVENT-1024 (P1): fail open — any error in these checks means no extra requirement.
+  const p1On = RP_P1_FORMAT && rpV === "rp";
+  const rpFormatBad = p1On && phoneDigits.length === 10 && phoneFormatBad(phoneDigits);
+  const rpNeedConfirm = p1On && rpTyped.current && phoneDigits.length === 10 && !rpFormatBad;
+  const rpConfirmOk = !rpNeedConfirm || rpConfirm.replace(/\D/g, "").slice(-10) === phoneDigits;
+  const rpPhoneBlock = rpFormatBad || !rpConfirmOk;
+  const rpFmtLogged = useRef(false);
+  useEffect(() => { if (rpFormatBad && !rpFmtLogged.current) { rpFmtLogged.current = true; rpEvent("rp_format_error", carrierSlug, rpV); } if (!rpFormatBad) rpFmtLogged.current = false; }, [rpFormatBad, carrierSlug, rpV]);
+  useEffect(() => { // REFILL-PREVENT-1024 (P4): list failure = everything available as today
+    if (!RP_P4_DEAD_AMOUNTS || carrierSlug === "ultra-mobile") return;
+    let off = false; void fetchDeadAmounts().then((l) => { if (!off) setDeadList(l); }); return () => { off = true; };
+  }, [carrierSlug]);
+  const rpGate = async (planId: unknown, amt: unknown): Promise<boolean> => { // REFILL-PREVENT-1024: true = may continue
+    try {
+      if (rpPhoneBlock) {
+        if (!rpFormatBad) rpEvent("rp_confirm_mismatch", carrierSlug, rpV);
+        const msg = formatErrorText(lang); setInlineError(msg); return false;
+      }
+      if (RP_P4_DEAD_AMOUNTS && isDeadAmount(deadList, carrierSlug, planId, amt)) { setInlineError(deadLabel(lang)); return false; }
+      if (RP_P2_RETRY_BLOCK && rpV === "rp" && await withTimeout(checkRetryBlock(phoneDigits, carrierSlug, planId), 1000, false)) {
+        rpEvent("rp_retry_blocked", carrierSlug, rpV);
+        const msg = retryBlockText(lang); setInlineError(msg); toast({ title: msg, description: msg, variant: "destructive" }); return false;
+      }
+    } catch { /* fail open */ }
+    return true;
+  };
   const amountNum = parseAmountDollars(amount) || 0; // dollars, same unit checkout and the API use
   const amountProblem = getAmountProblem(amount, amountNum, rangeMin, rangeMax);
   const rangeAmountValid = amountProblem === null;
@@ -599,6 +632,7 @@ const DynamicCarrier = ({
       toast({ title: tr.phoneRequired, description: tr.phoneRequired, variant: "destructive" });
       return;
     }
+    { const pa = Number(plan.price.replace("$", "")); if (!(await rpGate(isVerizonRange(pa) ? rangePlanId : plans.find((p) => p.amount === pa)?.plan_id, pa))) return; } // REFILL-PREVENT-1024
     setVerifying(true);
     const verify = await verifyPhone(carrierSlug, phoneDigits);
     setVerifying(false);
@@ -640,6 +674,7 @@ const DynamicCarrier = ({
       toast({ title: msg, description: msg, variant: "destructive" });
       return;
     }
+    if (!(await rpGate(isVerizonRange(amountNum) ? rangePlanId : (plans.find((p) => p.amount === amountNum)?.plan_id || rangePlanId), amountNum))) return; // REFILL-PREVENT-1024
     setVerifying(true);
     const verify = await verifyPhone(carrierSlug, phoneDigits);
     setVerifying(false);
@@ -687,7 +722,11 @@ const DynamicCarrier = ({
   const isSimple = carrierSlug === "s1";
   const bill = billPageByPath(typeof window !== "undefined" ? window.location.pathname : ""); // SEO-CONTENT-1014
   const sl = lang === "es" ? "es" : "en";
-  const gridPlans = plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, p.highlight) })); // ULTRA-MSG-1024
+  const gridPlans = plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, p.highlight), ...(RP_P4_DEAD_AMOUNTS && isDeadAmount(deadList, carrierSlug, p.plan_id, p.amount) ? { unavailable: deadLabel(lang) } : {}) })); // ULTRA-MSG-1024 // REFILL-PREVENT-1024
+  const rpGuide = RP_P2_GUIDANCE ? guidanceText(carrierSlug, lang) : null; // REFILL-PREVENT-1024
+  const rpDeadShown = gridPlans.some((p) => "unavailable" in p); // REFILL-PREVENT-1024
+  const rpDeadLogged = useRef(false); // REFILL-PREVENT-1024
+  useEffect(() => { if (rpDeadShown && !rpDeadLogged.current) { rpDeadLogged.current = true; rpEvent("rp_dead_amount_shown", carrierSlug, rpV); } }, [rpDeadShown, carrierSlug, rpV]); // REFILL-PREVENT-1024
   const shownGrid = isSimple ? simpleGridPlans(gridPlans, sl) : { plans: gridPlans, popular: Math.min(plans.length - 1, Math.floor(plans.length / 2)) };
 
   return (
@@ -790,6 +829,11 @@ const DynamicCarrier = ({
                   ✓ {bill && carrierSlug === "boost" ? (bill.lang === "es" ? "Pago para" : "Paying for") : tr.refilling}: {phone}{/* BILLPAY-BOOST-1022 */}
                 </p>
               )}
+              {rpFormatBad && <p role="alert" data-testid="rp-format-error" className="text-[10px] sm:text-xs text-destructive font-semibold mb-2 -mt-1">{formatErrorText(lang)}</p>}{/* REFILL-PREVENT-1024 */}
+              {rpNeedConfirm && (<div className="mb-3">{/* REFILL-PREVENT-1024 */}
+                <label htmlFor="rp-confirm-phone" className="block text-xs sm:text-sm font-bold text-foreground mb-1.5">{confirmLabel(lang)}</label>
+                <input id="rp-confirm-phone" type="tel" value={rpConfirm} onChange={(e) => { setRpConfirm(formatPhone(e.target.value)); setInlineError(null); }} placeholder={tr.phonePlaceholder} className="w-full h-10 sm:h-12 px-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" style={{ "--tw-ring-color": bc } as React.CSSProperties} />
+              </div>)}
               {phoneDigits.length > 0 && phoneDigits.length < 10 && (
                 <p className="text-[10px] sm:text-xs text-destructive mb-2 -mt-1">
                   {tr.enterAll10}
@@ -830,7 +874,7 @@ const DynamicCarrier = ({
                     <button
                       type="button"
                       onClick={handlePay}
-                      disabled={verifying}
+                      disabled={verifying || rpPhoneBlock /* REFILL-PREVENT-1024 */}
                       className="mt-3 w-full h-10 sm:h-11 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm sm:text-base transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                       style={{ backgroundColor: bc }}
                     >
@@ -856,6 +900,7 @@ const DynamicCarrier = ({
             </div>
           </div>
 
+          {rpGuide && <p data-testid="rp-guidance" className="max-w-[420px] mx-auto px-4 pb-3 text-xs sm:text-sm text-muted-foreground text-center">{rpGuide}</p>}{/* REFILL-PREVENT-1024 */}
           {/* Plan grid (fixed_plans) */}
           {showFixedPlans && plans.length > 0 && (
             <PlanGrid
@@ -885,7 +930,7 @@ const DynamicCarrier = ({
               <button
                 type="button"
                 onClick={handlePay}
-                disabled={verifying || !rangeAmountValid}
+                disabled={verifying || !rangeAmountValid || rpPhoneBlock /* REFILL-PREVENT-1024 */}
                 className="h-[48px] px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: bc }}
               >
@@ -914,7 +959,7 @@ const DynamicCarrier = ({
               <button
                 type="button"
                 onClick={handlePay}
-                disabled={verifying || !rangeAmountValid}
+                disabled={verifying || !rangeAmountValid || rpPhoneBlock /* REFILL-PREVENT-1024 */}
                 className="flex-[2] h-[46px] rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: bc }}
               >
