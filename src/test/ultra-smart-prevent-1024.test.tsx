@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach, beforeAll, afterAll } from "vitest"; // ULTRA-SMART-PREVENT-1024
 import { renderHook, act, waitFor } from "@testing-library/react"; // ULTRA-SMART-PREVENT-1024
 import { readFileSync } from "node:fs"; // ULTRA-SMART-PREVENT-1024
+import { Blob as NodeBlob } from "node:buffer"; // ULTRA-SMART-PREVENT-1024
 import { PGlite } from "@electric-sql/pglite"; // ULTRA-SMART-PREVENT-1024
 import { ultraRead, readUltraLastPlan, currentUltraPlan, ultra1065 } from "@/lib/ultraSmart"; // ULTRA-SMART-PREVENT-1024
 import { useUltraSmart } from "@/hooks/useUltraSmart"; // ULTRA-SMART-PREVENT-1024
@@ -30,7 +31,7 @@ describe("Ultra confirmations", () => { // ULTRA-SMART-PREVENT-1024
 describe("atomic Ultra breaker", () => { // ULTRA-SMART-PREVENT-1024
   let db: PGlite; // ULTRA-SMART-PREVENT-1024
   beforeAll(async () => { // ULTRA-SMART-PREVENT-1024
-    db = new PGlite(); await db.exec("CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE TABLE transaction_logs(carrier_slug text,created_at timestamptz,status text,load_text text,error_message text,raw_response jsonb); CREATE TABLE proxy_guard_events(id uuid,guard_version text,code text,method text,endpoint_shape text);"); // ULTRA-SMART-PREVENT-1024
+    db = new PGlite({ fsBundle: new NodeBlob([readFileSync("node_modules/@electric-sql/pglite/dist/pglite.data")]) as unknown as Blob }); await db.exec("CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE TABLE transaction_logs(carrier_slug text,created_at timestamptz,status text,load_text text,error_message text,raw_response jsonb); CREATE TABLE proxy_guard_events(id uuid,guard_version text,code text,method text,endpoint_shape text);"); // ULTRA-SMART-PREVENT-1024
     await db.exec(readFileSync("drizzle/migrations/0021_ultra_smart_prevent_1024.sql", "utf8")); // ULTRA-SMART-PREVENT-1024
   }, 30000); // ULTRA-SMART-PREVENT-1024
   afterAll(async () => { await db.close(); }); // ULTRA-SMART-PREVENT-1024
