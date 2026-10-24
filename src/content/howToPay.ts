@@ -218,7 +218,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     title: "Cómo Pagar su Factura de AT&T Prepaid en Línea Sin Iniciar Sesión | CellPay",
     description: `Pague AT&T Prepaid en línea sin iniciar sesión: ingrese el número, elija el monto y pague con ${payWith("es")}.`,
     h1: "Cómo Pagar su Factura de AT&T Prepaid en Línea Sin Iniciar Sesión",
-    step3: "Elija un monto o plan en la página. Los montos disponibles y cualquier mínimo se muestran al pagar.", // AI-ANSWER-1010 item 2
+    step3: "Elija un monto o plan en la página. Los montos disponibles y el mínimo que aplique se muestran al pagar.", // AI-ANSWER-1010 item 2 // QA-1023-CUAL-2
     faq2: { q: "¿AT&T tiene su propia forma de pagar el servicio prepagado sin iniciar sesión?", a: "AT&T ofrece sus propias opciones de pago en su sitio web oficial y en su aplicación. CellPay es otra opción si quiere pagar sin una cuenta de AT&T, con " + payWallets("es") + "." },
     autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
     autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",

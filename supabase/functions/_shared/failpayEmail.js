@@ -43,7 +43,7 @@ export function failpayEmail(v) {
     ? `Su recarga de ${c}${amt ? ` de ${amt}` : ""} no se completó.`
     : `Your ${c} refill${amt ? ` of ${amt}` : ""} didn't go through.`;
   const charged = v.refunded
-    ? (es ? "Cualquier cargo de ese intento se revirtió automáticamente. Su banco podría mostrarlo como pendiente por un tiempo."
+    ? (es ? "Todo cargo de ese intento se revirtió automáticamente. Su banco podría mostrarlo como pendiente por un tiempo." // QA-1023-CUAL-2
           : "Any charge from that attempt was reversed automatically. Your bank may show it as pending for a short time.")
     : String(v.method || "").toLowerCase() === "pockyt"
       ? (es ? "No se le hizo ningún cargo." : "You were NOT charged.")
