@@ -826,7 +826,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "tracfone.html":             { title: "TracFone Refill — Online Top-Up | CellPay",            description: "Recharge TracFone online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "ultra-mobile.html":         { title: "Ultra Mobile Refill — Online Top-Up | CellPay",        description: "Recharge Ultra Mobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "verizon-wireless-flexi.html": { title: "Verizon Prepaid Refill — Online Top-Up | CellPay",   description: "Recharge Verizon Prepaid online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
-      "straight-talk.html":        { title: "Straight Talk Refill — Online Top-Up | CellPay",       description: "Recharge Straight Talk online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "straight-talk.html":        { title: "Pay Straight Talk Bill Online – No Login, Pay as Guest | CellPay",       description: "Pay your Straight Talk bill online with just the phone number. No login or account needed. Pay for yourself or someone else. Low service fee shown before you pay." }, // BILLPAY-STRAIGHTTALK-1025
       "guest-metropcs.html":       { title: "Metro PCS Guest Payment — Pay Your Bill Online | CellPay",      description: "Pay your Metro PCS bill as a guest. No login needed. All 30-day plans, secure checkout." },
       "guest-boost.html":          { title: "Boost Mobile Guest Payment — Pay Your Bill Online | CellPay",   description: "Pay your Boost Mobile bill as a guest. No login needed. All 30-day plans, secure checkout." },
       "total-wireless.html":       { title: "Pay Total Wireless Bill Online – No Login | CellPay",       description: "Pay your Total Wireless bill online in minutes. No login needed — enter the phone number, pick your plan and pay with any card or wallet." }, // COPY-1024
@@ -1012,8 +1012,8 @@ const htmlAliasPlugin = (): Plugin => ({
     const ES_RUNTIME_META: Record<string, { title: string; description: string }> = {
       "es/s1.html": SIMPLE_META.es, // SIMPLE-SPEC-1-1009
       "es/straight-talk.html": {
-        title: "Recarga Straight Talk en Línea | CellPay",
-        description: "Recarga tu plan Straight Talk Wireless en línea con CellPay. Recarga segura enviada directamente a tu número.",
+        title: "Pagar Factura Straight Talk en Línea sin Cuenta | CellPay", // BILLPAY-STRAIGHTTALK-1025
+        description: "Pague su factura de Straight Talk en línea solo con el número de teléfono. Sin cuenta y sin iniciar sesión. Verá el cargo por servicio antes de pagar.", // BILLPAY-STRAIGHTTALK-1025
       },
       "es/verizon-wireless-flexi.html": {
         title: "Recarga Verizon Prepago en Línea | CellPay",
