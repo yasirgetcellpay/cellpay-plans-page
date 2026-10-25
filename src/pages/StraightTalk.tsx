@@ -45,8 +45,8 @@ const StraightTalk = () => {
   useEffect(() => {
     const isEs = typeof window !== "undefined" && window.location.pathname.startsWith("/es");
     applySeoHead(isEs
-      ? { title: 'Recarga Straight Talk en Línea | CellPay', description: 'Recarga tu plan Straight Talk Wireless en línea con CellPay. Recarga segura enviada directamente a tu número.' }
-      : { title: 'Straight Talk Prepaid Refill Online | CellPay', description: 'Refill Straight Talk Wireless plans online with CellPay. Secure online top-up sent directly to your Straight Talk phone.' });
+      ? { title: 'Pagar Factura Straight Talk en Línea sin Cuenta | CellPay', description: 'Pague su factura de Straight Talk en línea solo con el número de teléfono. Sin cuenta y sin iniciar sesión.' } // BILLPAY-STRAIGHTTALK-H1-1025
+      : { title: 'Pay Straight Talk Bill Online – No Login, Pay as Guest | CellPay', description: 'Pay your Straight Talk bill online with just the phone number. No login or account needed. Pay for yourself or someone else.' }); // BILLPAY-STRAIGHTTALK-H1-1025
   }, []);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -174,7 +174,7 @@ const StraightTalk = () => {
       </nav>
       <section className="text-foreground" style={{ backgroundColor: brandColor }}>
         <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-xl md:text-2xl font-extrabold">Straight Talk Prepaid Refill</h1>
+          <h1 className="text-xl md:text-2xl font-extrabold">{typeof window !== "undefined" && window.location.pathname.startsWith("/es") ? "Pague su Factura de Straight Talk en Línea" : "Pay Your Straight Talk Bill Online"}</h1>{/* BILLPAY-STRAIGHTTALK-H1-1025 */}
         </div>
       </section>
       <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">
