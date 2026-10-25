@@ -31,7 +31,7 @@ export const goKeywordsFor = (slug: string, lang: "en" | "es"): string | undefin
 };
 
 export const goAutoPayLine = (slug: string, lang: "en" | "es"): string => {
-  const pay = goUsesPayWording(slug);
+  const pay = goUsesPayWording(slug) || (lang === "es" && slug === "tmobile"); // ES-PAGAR-TMO-1025
   return lang === "es"
     ? "Opcional: Auto Pago para no olvidar su " + (pay ? "pago" : "recarga") + ". Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marque o llegue desde un enlace de Pago Automático."
     : "Optional: Auto Pay so you never miss a " + (pay ? "payment" : "refill") + ". You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link.";
@@ -93,7 +93,7 @@ export const goFaqsEn = (c: string, pay = false) => [
 ];
 
 /** Very simple Spanish. Never "cualquier". No refunds / 24/7 / instant / authorized. */
-export const goFaqsEs = (c: string, pay = false) => [
+export const goFaqsEs = (c: string, payIn = false) => { const pay = payIn || c === "T-Mobile"; return [ // ES-PAGAR-TMO-1025: ES T-Mobile uses payment wording
   {
     q: `¿Puedo pagar mi factura de ${c} sin cuenta?`,
     a: `Sí. No necesita cuenta ni iniciar sesión. Escriba el número de teléfono de ${c}, elija el monto o plan y pague como invitado.`,
