@@ -126,7 +126,7 @@ export const goFaqsEs = (c: string, payIn = false) => { const pay = payIn || c =
     q: "¿Cómo pido ayuda?",
     a: "Soporte: lunes–viernes 9:00 AM–6:00 PM (EST) · sábado–domingo 10:00 AM–4:00 PM (EST) · support@getcellpay.com",
   },
-];
+]; }; // ES-PAGAR-TMO-1025
 
 /** FAQ list exactly as the lander shows it (4 carriers also get the refund question). */
 export const goFaqList = (slug: string, lang: GoPageLang, fallbackName = ""): Array<{ q: string; a: string }> => {
