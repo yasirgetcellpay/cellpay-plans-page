@@ -124,6 +124,22 @@ const tmobileFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-
   { q: "I moved from UScellular to T-Mobile. Can I pay here?", a: "Yes. UScellular customers moved to T-Mobile can pay here with the T-Mobile phone number." }, // BILLPAY-TMOBILE-1024
 ]; // BILLPAY-TMOBILE-1024
 
+const straightTalkFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-STRAIGHTTALK-1025
+  { q: "¿Cómo pago mi factura de Straight Talk en línea?", a: "Ingrese el número de teléfono de Straight Talk, elija su plan y pague. No necesita una cuenta." }, // BILLPAY-STRAIGHTTALK-1025
+  { q: "¿Puedo pagar mi factura de Straight Talk sin iniciar sesión?", a: "Sí. Solo necesita el número de teléfono." }, // BILLPAY-STRAIGHTTALK-1025
+  { q: "¿Puedo pagar la línea de Straight Talk de otra persona?", a: "Sí. Ingrese su número de Straight Talk y revíselo bien antes de pagar." }, // BILLPAY-STRAIGHTTALK-1025
+  { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es")}` }, // BILLPAY-STRAIGHTTALK-1025
+  { q: "¿Cuándo se aplica mi pago?", a: "Por lo general en pocos minutos. Recibe una confirmación en pantalla y por correo electrónico." }, // BILLPAY-STRAIGHTTALK-1025
+  { q: "¿Funciona para los planes de 30 días de Straight Talk?", a: "Sí. Elija un plan de la lista en esta página. Verá el monto antes de pagar." }, // BILLPAY-STRAIGHTTALK-1025
+] : [ // BILLPAY-STRAIGHTTALK-1025
+  { q: "How do I pay my Straight Talk bill online?", a: "Enter the Straight Talk phone number, pick your plan, and pay. No account needed." }, // BILLPAY-STRAIGHTTALK-1025
+  { q: "Can I pay my Straight Talk bill without logging in?", a: "Yes. You only need the phone number." }, // BILLPAY-STRAIGHTTALK-1025
+  { q: "Can I pay someone else's Straight Talk line?", a: "Yes. Enter their Straight Talk number and double-check it before you pay." }, // BILLPAY-STRAIGHTTALK-1025
+  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-STRAIGHTTALK-1025
+  { q: "When does my payment post?", a: "Usually within minutes. You get a confirmation on screen and by email." }, // BILLPAY-STRAIGHTTALK-1025
+  { q: "Does it work for Straight Talk 30-day plans?", a: "Yes. Choose a plan from the list on this page. No prices are listed here — you'll see the amount before you pay." }, // BILLPAY-STRAIGHTTALK-1025
+]; // BILLPAY-STRAIGHTTALK-1025
+
 export const BILL_PAGES: BillPage[] = [
   { // BILLPAY-METRO-1021
     ...esPage("/es/metropcs.html", "Metro PCS", ["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"]),
@@ -219,6 +235,36 @@ export const BILL_PAGES: BillPage[] = [
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-TMOBILE-1024
     faqOnly: true, // BILLPAY-TMOBILE-1024
   }, // BILLPAY-TMOBILE-1024
+  { // BILLPAY-STRAIGHTTALK-1025
+    path: "/es/straight-talk.html", lang: "es", name: "Straight Talk", // BILLPAY-STRAIGHTTALK-1025
+    title: "Pagar Factura Straight Talk en Línea sin Cuenta | CellPay", // BILLPAY-STRAIGHTTALK-1025
+    description: "Pague su factura de Straight Talk en línea solo con el número de teléfono. Sin cuenta y sin iniciar sesión. Verá el cargo por servicio antes de pagar.", // BILLPAY-STRAIGHTTALK-1025
+    h1: "Pague su Factura de Straight Talk en Línea", // BILLPAY-STRAIGHTTALK-1025
+    sub: "Sin cuenta y sin iniciar sesión. Solo necesita el número de teléfono. Pague por usted o por otra persona.", // BILLPAY-STRAIGHTTALK-1025
+    autoPayInfoLead: "Opcional: Auto Pago para no olvidar su pago.", // BILLPAY-STRAIGHTTALK-1025
+    enterAmount: "Ingrese el monto que desea recargar", // BILLPAY-STRAIGHTTALK-1025
+    securePayment: "Pago seguro. Su recarga se envía directamente a su teléfono.", // BILLPAY-STRAIGHTTALK-1025
+    faqTitle: "Preguntas frecuentes", // BILLPAY-STRAIGHTTALK-1025
+    faqs: straightTalkFaqs("es"), // BILLPAY-STRAIGHTTALK-1025
+    guide: ["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], // BILLPAY-STRAIGHTTALK-1025
+    more: [["/es/paga-tu-factura", "Pague su factura de celular"]], // BILLPAY-STRAIGHTTALK-1025
+    faqOnly: true, // BILLPAY-STRAIGHTTALK-1025
+  }, // BILLPAY-STRAIGHTTALK-1025
+  { // BILLPAY-STRAIGHTTALK-1025
+    path: "/straight-talk.html", lang: "en", name: "Straight Talk", // BILLPAY-STRAIGHTTALK-1025
+    title: "Pay Straight Talk Bill Online – No Login, Pay as Guest | CellPay", // BILLPAY-STRAIGHTTALK-1025
+    description: "Pay your Straight Talk bill online with just the phone number. No login or account needed. Pay for yourself or someone else. Low service fee shown before you pay.", // BILLPAY-STRAIGHTTALK-1025
+    h1: "Pay Your Straight Talk Bill Online", // BILLPAY-STRAIGHTTALK-1025
+    sub: "No login. Just the phone number. Pay for yourself or someone else.", // BILLPAY-STRAIGHTTALK-1025
+    autoPayInfoLead: "Optional: Auto Pay so you never miss a payment.", // BILLPAY-STRAIGHTTALK-1025
+    enterAmount: "Enter the amount you want to recharge", // BILLPAY-STRAIGHTTALK-1025
+    securePayment: "Secure payment. Your refill is sent directly to your phone.", // BILLPAY-STRAIGHTTALK-1025
+    faqTitle: "Common questions", // BILLPAY-STRAIGHTTALK-1025
+    faqs: straightTalkFaqs("en"), // BILLPAY-STRAIGHTTALK-1025
+    guide: ["/how-to-pay/straight-talk", "How to pay Straight Talk"], // BILLPAY-STRAIGHTTALK-1025
+    more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-STRAIGHTTALK-1025
+    faqOnly: true, // BILLPAY-STRAIGHTTALK-1025
+  }, // BILLPAY-STRAIGHTTALK-1025
 ];
 
 export const billPageByPath = (pathname: string): BillPage | undefined => {
