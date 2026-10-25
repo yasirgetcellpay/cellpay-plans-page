@@ -899,9 +899,9 @@ const App = () => (
               carrierId={45}
               brandColor="hsl(82,60%,42%)"
               logo={cricketLogo}
-              h1="Pague su línea o plan Cricket — con tarjeta, sin iniciar sesión"
-              title="Pague su línea Cricket en línea | CellPay"
-              description="Pague su línea o plan Cricket en línea, en español. Sin cuenta. Escriba su número, elija su plan y pague con tarjeta."
+              h1={"Pagar Cricket en línea o por teléfono — con tarjeta, sin iniciar sesión" /* ES-PAGAR-CRICKET-1025 */}
+              title={"Pagar Cricket en línea o por teléfono | CellPay" /* ES-PAGAR-CRICKET-1025 */}
+              description={"Pagar Cricket en línea o por teléfono, en español. Sin cuenta. Escriba su número, elija su plan y pague con tarjeta." /* ES-PAGAR-CRICKET-1025 */}
             />
           }
         />
@@ -915,9 +915,9 @@ const App = () => (
               carrierId={45}
               brandColor="hsl(82,60%,42%)"
               logo={cricketLogo}
-              h1="Pague su línea o plan Cricket — con tarjeta, sin iniciar sesión"
-              title="Pague su línea Cricket en línea | CellPay"
-              description="Pague su línea o plan Cricket en línea, en español. Sin cuenta. Escriba su número, elija su plan y pague con tarjeta."
+              h1={"Pagar Cricket en línea o por teléfono — con tarjeta, sin iniciar sesión" /* ES-PAGAR-CRICKET-1025 */}
+              title={"Pagar Cricket en línea o por teléfono | CellPay" /* ES-PAGAR-CRICKET-1025 */}
+              description={"Pagar Cricket en línea o por teléfono, en español. Sin cuenta. Escriba su número, elija su plan y pague con tarjeta." /* ES-PAGAR-CRICKET-1025 */}
             />
           }
         />
