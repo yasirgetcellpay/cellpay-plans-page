@@ -89,9 +89,9 @@ export function isValidEmail(s: string): boolean {
 
 export const DECLINE_COPY = {
   en: {
-    risk: "A security check stopped this card, so the payment didn't go through. Trying the same card again won't work. Please use a different card or another way to pay.", // DECLINE-REJECTED-1018
-    riskAp: "A security check stopped this card, so the payment didn't go through. Trying the same card again won't work. Please pay with Apple Pay or a different card.", // DECLINE-REJECTED-1018
-    riskGp: "A security check stopped this card, so the payment didn't go through. Trying the same card again won't work. Please pay with Google Pay or a different card.", // DECLINE-REJECTED-1018
+    risk: "A security check stopped this card, so the payment didn't go through. Nothing was charged. Trying the same card again won't work. Please use a different card or another way to pay.", // DECLINE-REJECTED-1018 // RISK-DECLINE-STEER-1019
+    riskAp: "A security check stopped this card, so the payment didn't go through. Nothing was charged. Trying the same card again won't work. Please pay with Apple Pay or a different card.", // DECLINE-REJECTED-1018 // RISK-DECLINE-STEER-1019
+    riskGp: "A security check stopped this card, so the payment didn't go through. Nothing was charged. Trying the same card again won't work. Please pay with Google Pay or a different card.", // DECLINE-REJECTED-1018 // RISK-DECLINE-STEER-1019
     details: "The card details didn't match what your bank has. Check the card number, expiry date, CVV (3 digits on the back) and the billing ZIP code, then try again.", // DECLINE-RECOVERY-1014
     invalid: "Some payment details couldn't be read. Check your name, email and billing ZIP code, then try again or use another card.", // DECLINE-RECOVERY-1014
     plan: "This payment didn't go through. Please check that you picked the right plan and amount for this number, then try again.", // DECLINE-RECOVERY-1014
@@ -121,9 +121,9 @@ export const DECLINE_COPY = {
     abTryCard: "Try card again", // DECLINE-AB-1016
   },
   es: {
-    risk: "Un control de seguridad detuvo esta tarjeta y el pago no se completó. Volver a usar la misma tarjeta no va a funcionar. Use otra tarjeta u otra forma de pago.", // DECLINE-REJECTED-1018
-    riskAp: "Un control de seguridad detuvo esta tarjeta y el pago no se completó. Volver a usar la misma tarjeta no va a funcionar. Pague con Apple Pay o con otra tarjeta.", // DECLINE-REJECTED-1018
-    riskGp: "Un control de seguridad detuvo esta tarjeta y el pago no se completó. Volver a usar la misma tarjeta no va a funcionar. Pague con Google Pay o con otra tarjeta.", // DECLINE-REJECTED-1018
+    risk: "Un control de seguridad detuvo esta tarjeta y el pago no se completó. No se le cobró nada. Volver a usar la misma tarjeta no va a funcionar. Use otra tarjeta u otra forma de pago.", // DECLINE-REJECTED-1018 // RISK-DECLINE-STEER-1019
+    riskAp: "Un control de seguridad detuvo esta tarjeta y el pago no se completó. No se le cobró nada. Volver a usar la misma tarjeta no va a funcionar. Pague con Apple Pay o con otra tarjeta.", // DECLINE-REJECTED-1018 // RISK-DECLINE-STEER-1019
+    riskGp: "Un control de seguridad detuvo esta tarjeta y el pago no se completó. No se le cobró nada. Volver a usar la misma tarjeta no va a funcionar. Pague con Google Pay o con otra tarjeta.", // DECLINE-REJECTED-1018 // RISK-DECLINE-STEER-1019
     details: "Los datos de la tarjeta no coinciden con los de su banco. Revise el número, la fecha de vencimiento, el CVV (3 dígitos al reverso) y el código postal de facturación, y vuelva a intentar.", // DECLINE-RECOVERY-1014
     invalid: "No pudimos leer algunos datos del pago. Revise su nombre, correo y código postal de facturación, y vuelva a intentar o use otra tarjeta.", // DECLINE-RECOVERY-1014
     plan: "Este pago no se completó. Verifique que eligió el plan y el monto correctos para este número, y vuelva a intentar.", // DECLINE-RECOVERY-1014
