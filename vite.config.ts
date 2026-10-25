@@ -1531,7 +1531,7 @@ const htmlAliasPlugin = (): Plugin => ({
     // SPEED-WWW-1008: Straight Talk (StraightTalk.tsx; /es shows the same English page) first screen = nav + H1 bar + phone box,
     // then a full-height blank until React renders (plans load into that space). Same classes/copy as StraightTalk.tsx; keep in sync.
     const STRAIGHT_TALK_SHELLS = new Set<string>(["straight-talk.html", "es/straight-talk.html"]);
-    const straightTalkFirstScreen = (): string | null => {
+    const straightTalkFirstScreen = (isEs: boolean): string | null => { // BILLPAY-ST-SHELL-H1-1025
       const logo = goAssetUrl("straight-talk-logo.svg");
       if (!logo) return null;
       const bc = "hsl(72,74%,44%)";
@@ -1544,7 +1544,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `</div></div></nav>` +
         `<section class="text-foreground" style="background-color:${bc}">` +
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">` +
-        `<h1 class="text-xl md:text-2xl font-extrabold">Straight Talk Prepaid Refill</h1>` +
+        `<h1 class="text-xl md:text-2xl font-extrabold">${isEs ? "Pague su Factura de Straight Talk en Línea" : "Pay Your Straight Talk Bill Online"}</h1>` + // BILLPAY-ST-SHELL-H1-1025
         `</div></section>` +
         `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">` +
         `<div class="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">` +
@@ -1729,6 +1729,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/s1/index.html": "es/s1.html", "es/topup-crc/index.html": "es/topup-crc.html",
       "es/tmobile-flexi/index.html": "es/tmobile-flexi.html", "es/topup-at/index.html": "es/topup-at.html",
       "es/ultra-mobile/index.html": "es/ultra-mobile.html",
+      "es/straight-talk/index.html": "es/straight-talk.html", // BILLPAY-ST-SHELL-H1-1025
       "lp/metro/index.html": "metropcs.html", "lp/boost/index.html": "boost.html",
       // AEO-PAGES-1007: /terms and /about short URLs (App.tsx sends them to the full page)
       "terms/index.html": "terms-and-conditions/index.html", "about/index.html": "about-us/index.html",
@@ -1884,7 +1885,7 @@ const htmlAliasPlugin = (): Plugin => ({
           : VERIZON_SHELLS.has(route)
           ? verizonFirstScreen(route.startsWith("es/"))
           : STRAIGHT_TALK_SHELLS.has(route)
-          ? straightTalkFirstScreen()
+          ? straightTalkFirstScreen(route.startsWith("es/")) // BILLPAY-ST-SHELL-H1-1025
           : route === "es/index.html"
           ? homeFirstScreen("es")
           : null;
