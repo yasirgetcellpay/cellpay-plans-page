@@ -517,7 +517,7 @@ const GoLander = ({
   const esHref = !isEs && typeof window !== "undefined" ? `/es${window.location.pathname}` : null;
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
   const autoPayLine = goAutoPayLine(carrierSlug, isEs ? "es" : "en"); // LPX-1017
-  const amountHelp = goUsesPayWording(carrierSlug) ? (isEs ? "Ingrese el monto que desea pagar" : "Enter the amount you want to pay") : tr.enterAmount; // LPX-1017
+  const amountHelp = goUsesPayWording(carrierSlug) ? (isEs ? "Ingrese el monto que desea pagar" : "Enter the amount you want to pay") : (isEs && carrierSlug === "tmobile") ? "Ingrese el monto que desea pagar" : tr.enterAmount; // LPX-1017 // ES-PAGAR-TMO-GOLANDER-1025
   const feeLine = feeCopy1019(carrierSlug, isEs ? "es" : "en", isEs ? "Cargo por servicio mostrado antes de pagar" : "Service fee shown before you pay"); // METRO-FEECOPY-1019
   const faqHeading = isEs ? "Preguntas frecuentes" : "Common questions";
   const faqName = GO_AD_NAMES[carrierSlug] ?? initialName; // ADS-FOLLOWUPS-1008: ad-style name in the FAQs only
@@ -741,7 +741,7 @@ const GoLander = ({
               {lineNote && <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 -mt-2">{lineNote}</p>}
               {phoneDigits.length === 10 && (
                 <p className="text-[10px] sm:text-xs text-cellpay-green font-semibold mb-2 -mt-1">
-                  ✓ {goUsesPayWording(carrierSlug) ? (isEs ? "Pagando" : "Paying") : tr.refilling}: {phone}
+                  ✓ {goUsesPayWording(carrierSlug) ? (isEs ? "Pagando" : "Paying") : (isEs && carrierSlug === "tmobile") ? "Procesando" : tr.refilling /* // ES-PAGAR-TMO-GOLANDER-1025 */}: {phone}
                 </p>
               )}
               {phoneDigits.length > 0 && phoneDigits.length < 10 && (
