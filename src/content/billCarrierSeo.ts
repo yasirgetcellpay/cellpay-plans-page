@@ -140,6 +140,22 @@ const straightTalkFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BIL
   { q: "Does it work for Straight Talk 30-day plans?", a: "Yes. Choose a plan from the list on this page. No prices are listed here — you'll see the amount before you pay." }, // BILLPAY-STRAIGHTTALK-1025
 ]; // BILLPAY-STRAIGHTTALK-1025
 
+const totalWirelessFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-TOTALWIRELESS-1026
+  { q: "¿Cómo pago mi factura de Total Wireless en línea?", a: "Ingrese el número de teléfono de Total Wireless, elija su plan y pague. No necesita una cuenta." }, // BILLPAY-TOTALWIRELESS-1026
+  { q: "¿Puedo pagar Total Wireless como invitado, sin iniciar sesión?", a: "Sí. No necesita iniciar sesión ni una cuenta. Solo necesita el número de teléfono." }, // BILLPAY-TOTALWIRELESS-1026
+  { q: "¿Puedo pagar la línea de Total Wireless de otra persona?", a: "Sí. Ingrese su número de Total Wireless y revíselo bien antes de pagar." }, // BILLPAY-TOTALWIRELESS-1026
+  { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es").replace("Apple Pay en dispositivos Apple compatibles", "Apple Pay en dispositivos compatibles")}` }, // BILLPAY-TOTALWIRELESS-1026
+  { q: "¿Cuándo se aplica mi pago?", a: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Cuando el pago se completa, verá una confirmación con los datos de su transacción." }, // BILLPAY-TOTALWIRELESS-1026
+  { q: "¿Funciona para los planes mensuales de Total Wireless?", a: "Sí. Elija un plan de la lista en esta página. Verá el monto antes de pagar." }, // BILLPAY-TOTALWIRELESS-1026
+] : [ // BILLPAY-TOTALWIRELESS-1026
+  { q: "How do I pay my Total Wireless bill online?", a: "Enter the Total Wireless phone number, pick your plan, and pay. No account needed." }, // BILLPAY-TOTALWIRELESS-1026
+  { q: "Can I pay my Total Wireless bill as a guest, without logging in?", a: "Yes. You don't need a login or an account. The phone number is enough." }, // BILLPAY-TOTALWIRELESS-1026
+  { q: "Can I pay someone else's Total Wireless line?", a: "Yes. Enter their Total Wireless number and double-check it before you pay." }, // BILLPAY-TOTALWIRELESS-1026
+  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-TOTALWIRELESS-1026
+  { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-TOTALWIRELESS-1026
+  { q: "Does it work for Total Wireless monthly plans?", a: "Yes. Choose a plan from the list on this page. You'll see the amount before you pay." }, // BILLPAY-TOTALWIRELESS-1026
+]; // BILLPAY-TOTALWIRELESS-1026
+
 export const BILL_PAGES: BillPage[] = [
   { // BILLPAY-METRO-1021
     ...esPage("/es/metropcs.html", "Metro PCS", ["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"]),
@@ -265,6 +281,35 @@ export const BILL_PAGES: BillPage[] = [
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-STRAIGHTTALK-1025
     faqOnly: true, // BILLPAY-STRAIGHTTALK-1025
   }, // BILLPAY-STRAIGHTTALK-1025
+  { // BILLPAY-TOTALWIRELESS-1026
+    path: "/es/total-wireless.html", lang: "es", name: "Total Wireless", // BILLPAY-TOTALWIRELESS-1026
+    title: "Pagar Factura Total Wireless en Línea sin Cuenta | CellPay", // BILLPAY-TOTALWIRELESS-1026
+    description: "Pague su factura de Total Wireless en línea solo con el número de teléfono. Sin cuenta y sin iniciar sesión. Cargo por servicio bajo, mostrado antes de pagar.", // BILLPAY-TOTALWIRELESS-1026
+    h1: "Pague su Factura de Total Wireless en Línea", // BILLPAY-TOTALWIRELESS-1026
+    sub: "Sin cuenta y sin iniciar sesión. Solo necesita el número de teléfono. Pague por usted o por otra persona.", // BILLPAY-TOTALWIRELESS-1026
+    autoPayInfoLead: "Opcional: Auto Pago para no olvidar su pago.", // BILLPAY-TOTALWIRELESS-1026
+    enterAmount: "Ingrese el monto que desea recargar", // BILLPAY-TOTALWIRELESS-1026
+    securePayment: "Pago seguro. Su recarga se envía directamente a su teléfono.", // BILLPAY-TOTALWIRELESS-1026
+    faqTitle: "Preguntas frecuentes", // BILLPAY-TOTALWIRELESS-1026
+    faqs: totalWirelessFaqs("es"), // BILLPAY-TOTALWIRELESS-1026
+    guide: ["/es/como-pagar/total-wireless", "Cómo pagar Total Wireless"], // BILLPAY-TOTALWIRELESS-1026
+    more: [["/es/paga-tu-factura", "Pague su factura de celular"]], // BILLPAY-TOTALWIRELESS-1026
+    faqOnly: true, // BILLPAY-TOTALWIRELESS-1026
+  }, // BILLPAY-TOTALWIRELESS-1026
+  { // BILLPAY-TOTALWIRELESS-1026
+    path: "/total-wireless.html", lang: "en", name: "Total Wireless", // BILLPAY-TOTALWIRELESS-1026
+    description: "Pay your Total Wireless bill online in minutes. No login needed — enter the phone number, pick your plan and pay with any card or wallet.", // BILLPAY-TOTALWIRELESS-1026
+    h1: "Pay Your Total Wireless Bill Online", // BILLPAY-TOTALWIRELESS-1026
+    sub: "Pay as a guest with just the phone number. No login needed.", // BILLPAY-TOTALWIRELESS-1026
+    autoPayInfoLead: "Optional: Auto Pay so you never miss a refill.", // BILLPAY-TOTALWIRELESS-1026
+    enterAmount: "Enter the amount you want to recharge", // BILLPAY-TOTALWIRELESS-1026
+    securePayment: "Secure payment. Your refill is sent directly to your phone.", // BILLPAY-TOTALWIRELESS-1026
+    faqTitle: "Common questions", // BILLPAY-TOTALWIRELESS-1026
+    faqs: totalWirelessFaqs("en"), // BILLPAY-TOTALWIRELESS-1026
+    guide: ["/how-to-pay/total-wireless", "How to pay Total Wireless"], // BILLPAY-TOTALWIRELESS-1026
+    more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-TOTALWIRELESS-1026
+    faqOnly: true, // BILLPAY-TOTALWIRELESS-1026
+  }, // BILLPAY-TOTALWIRELESS-1026
 ];
 
 export const billPageByPath = (pathname: string): BillPage | undefined => {
