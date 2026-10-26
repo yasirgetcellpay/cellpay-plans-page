@@ -14,6 +14,10 @@ import { top4Hero, displayCarrierName, trademarkCarrierName, activeLineNote, ref
 import { PlanGrid } from "@/components/PlanGrid";
 import { ultraPlanLabel } from "@/content/ultraPlanLabel"; // ULTRA-MSG-1024
 import { useUltraSmart } from "@/hooks/useUltraSmart"; // ULTRA-SMART-PREVENT-1024
+import { useTmoLastPlan } from "@/hooks/useTmoLastPlan"; // REFILL-PREVENT-TMO-1026
+import { TmoLastPlanNotice } from "@/components/TmoLastPlanNotice"; // REFILL-PREVENT-TMO-1026
+import { tmoText, tmoEvent } from "@/lib/tmoLastPlan"; // REFILL-PREVENT-TMO-1026
+import { TMO_RETRY_BLOCK_ALWAYS } from "@/lib/refillPreventFlags"; // REFILL-PREVENT-TMO-1026
 import { ultraHealthText } from "@/lib/ultraSmart"; // ULTRA-SMART-PREVENT-1024
 import { UltraSmartNotice } from "@/components/UltraSmartNotice"; // ULTRA-SMART-PREVENT-1024
 import { RP_P1_FORMAT, RP_P2_RETRY_BLOCK, RP_P2_GUIDANCE, RP_P4_DEAD_AMOUNTS } from "@/lib/refillPreventFlags"; // REFILL-PREVENT-1024
@@ -594,6 +598,7 @@ const DynamicCarrier = ({
   const rpNeedConfirm = p1On && rpTyped.current && phoneDigits.length === 10 && !rpFormatBad;
   const rpConfirmOk = !rpNeedConfirm || rpConfirm.replace(/\D/g, "").slice(-10) === phoneDigits;
   const ultraSmart = useUltraSmart(carrierSlug, phoneDigits, rpConfirmOk, plans, (plan) => setAmount(String(plan.amount))); // ULTRA-SMART-PREVENT-1024
+  const tmoSmart = useTmoLastPlan(carrierSlug, phoneDigits, rpConfirmOk, plans, (plan) => setAmount(String(plan.amount))); // REFILL-PREVENT-TMO-1026
   const rpPhoneBlock = rpFormatBad || !rpConfirmOk;
   const rpFmtLogged = useRef(false);
   useEffect(() => { if (rpFormatBad && !rpFmtLogged.current) { rpFmtLogged.current = true; rpEvent("rp_format_error", carrierSlug, rpV); } if (!rpFormatBad) rpFmtLogged.current = false; }, [rpFormatBad, carrierSlug, rpV]);
@@ -604,6 +609,7 @@ const DynamicCarrier = ({
   const rpGate = async (planId: unknown, amt: unknown): Promise<boolean> => { // REFILL-PREVENT-1024: true = may continue
     try {
       if (!ultraSmart.gate(Number(amt))) return false; // ULTRA-SMART-PREVENT-1024
+      if (!tmoSmart.gate(Number(amt))) return false; // REFILL-PREVENT-TMO-1026
       if (rpPhoneBlock) {
         if (!rpFormatBad) rpEvent("rp_confirm_mismatch", carrierSlug, rpV);
         const msg = formatErrorText(lang); setInlineError(msg); return false;
@@ -613,8 +619,9 @@ const DynamicCarrier = ({
         rpEvent("rp_retry_blocked", carrierSlug, "disc24h"); // LYCA-SKU-FIX-1024
         const msg = discBlockText(lang); setInlineError(msg); toast({ title: msg, description: msg, variant: "destructive" }); return false; // LYCA-SKU-FIX-1024
       } // LYCA-SKU-FIX-1024
-      if (RP_P2_RETRY_BLOCK && rpV === "rp" && await withTimeout(checkRetryBlock(phoneDigits, carrierSlug, planId), 1000, false)) {
+      if (RP_P2_RETRY_BLOCK && (rpV === "rp" || (TMO_RETRY_BLOCK_ALWAYS && carrierSlug === "tmobile")) && await withTimeout(checkRetryBlock(phoneDigits, carrierSlug, planId), 1000, false)) { // REFILL-PREVENT-TMO-1026
         rpEvent("rp_retry_blocked", carrierSlug, rpV);
+        if (carrierSlug === "tmobile") tmoEvent("tmo_retry_blocked", carrierSlug, rpV); // REFILL-PREVENT-TMO-1026
         const msg = retryBlockText(lang); setInlineError(msg); toast({ title: msg, description: msg, variant: "destructive" }); return false;
       }
     } catch { /* fail open */ }
@@ -739,7 +746,7 @@ const DynamicCarrier = ({
   const isSimple = carrierSlug === "s1";
   const bill = billPageByPath(typeof window !== "undefined" ? window.location.pathname : ""); // SEO-CONTENT-1014
   const sl = lang === "es" ? "es" : "en";
-  const gridPlans = plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, p.highlight), ...(RP_P4_DEAD_AMOUNTS && isDeadAmount(deadList, carrierSlug, p.plan_id, p.amount) ? { unavailable: deadLabel(lang) } : {}) })); // ULTRA-MSG-1024 // REFILL-PREVENT-1024
+  const gridPlans = plans.map((p) => ({ price: p.price, highlight: ultraPlanLabel(carrierSlug, p.plan_id, p.highlight), ...(RP_P4_DEAD_AMOUNTS && isDeadAmount(deadList, carrierSlug, p.plan_id, p.amount) ? { unavailable: deadLabel(lang) } : {}), ...(tmoSmart.match && String(p.plan_id) === tmoSmart.match.plan_id && Number(p.amount) === tmoSmart.match.amount ? { badge: tmoText(lang).badge } : {}) })); // ULTRA-MSG-1024 // REFILL-PREVENT-1024 // REFILL-PREVENT-TMO-1026
   const rpGuide = RP_P2_GUIDANCE ? guidanceText(carrierSlug, lang) : null; // REFILL-PREVENT-1024
   const rpDeadShown = gridPlans.some((p) => "unavailable" in p); // REFILL-PREVENT-1024
   const rpDeadLogged = useRef(false); // REFILL-PREVENT-1024
@@ -918,6 +925,7 @@ const DynamicCarrier = ({
           </div>
 
           {carrierSlug === "ultra-mobile" && <div className="max-w-[420px] mx-auto px-4 pb-4"><UltraSmartNotice smart={ultraSmart} lang={lang} onContinue={() => { if (ultraSmart.usual) void handlePlanPayNow({ price: `$${ultraSmart.usual.amount}`, highlight: ultraSmart.usual.name || "" }); }} /></div>}{/* // ULTRA-SMART-PREVENT-1024 */}
+          {carrierSlug === "tmobile" && <div className="max-w-[420px] mx-auto px-4 pb-3"><TmoLastPlanNotice smart={tmoSmart} lang={lang} /></div>}{/* // REFILL-PREVENT-TMO-1026 */}
           {rpGuide && <p data-testid="rp-guidance" className="max-w-[420px] mx-auto px-4 pb-3 text-xs sm:text-sm text-muted-foreground text-center">{rpGuide}</p>}{/* REFILL-PREVENT-1024 */}
           {/* Plan grid (fixed_plans) */}
           {showFixedPlans && plans.length > 0 && (

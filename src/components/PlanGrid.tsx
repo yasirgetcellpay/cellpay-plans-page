@@ -2,7 +2,7 @@
 // POPULAR-BADGE-1017: centered white pill on top edge, carrier-colored outline (no theme ring), no white spacer.
 import { t, useLang } from "@/lib/i18n";
 
-interface Plan { price: string; highlight: string; popular?: boolean; unavailable?: string; } // REFILL-PREVENT-1024: optional label; absent = unchanged
+interface Plan { price: string; highlight: string; popular?: boolean; unavailable?: string; badge?: string; /* REFILL-PREVENT-TMO-1026 */ } // REFILL-PREVENT-1024: optional label; absent = unchanged
 
 interface PlanGridProps {
   plans: Plan[];
@@ -67,6 +67,7 @@ export const PlanGrid = ({
           >
             {plan.highlight}
           </div>
+          {plan.badge && <p className="text-[10px] sm:text-xs text-center font-bold mb-1" style={{ color: brandColor }} data-testid="plan-badge">{plan.badge}</p>}{/* REFILL-PREVENT-TMO-1026 */}
           {/* "Tap to continue" only on touch (mobile) — feedback Page 7 #2 */}
           <p className="sm:hidden text-[10px] text-muted-foreground text-center mt-auto font-medium">
             {onSelect ? tr.tapToContinue : ""}
