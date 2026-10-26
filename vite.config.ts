@@ -2018,10 +2018,14 @@ const htmlAliasPlugin = (): Plugin => ({
       return cricketAfterPaint(route, out); // CRICKET-LCP-1020
     };
 
+    const TW_SHELL_ALIAS: Record<string, string> = { // BILLPAY-TW-SHELL-1026
+      "total-wireless/index.html": "total-wireless.html",
+      "es/total-wireless/index.html": "es/total-wireless.html",
+    };
     for (const route of HTML_ROUTES) {
       const dest = path.join(outDir, route);
       fs.mkdirSync(path.dirname(dest), { recursive: true });
-      fs.writeFileSync(dest, renderHtml(route));
+      fs.writeFileSync(dest, renderHtml(TW_SHELL_ALIAS[route] ?? route)); // BILLPAY-TW-SHELL-1026
     }
     // GSC-DUP-1007: variant folder shells (see VARIANT_SHELLS); never overwrite a route that has its own shell.
     for (const [variant, target] of Object.entries(VARIANT_SHELLS)) {
