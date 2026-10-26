@@ -37,7 +37,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [Pay Boost Mobile bill online as a guest](https://www.cellpay.us/boost.html)
 - [Pay Straight Talk bill online](https://www.cellpay.us/straight-talk.html): Pay a Straight Talk bill with just the number, no login.
 - [TracFone](https://www.cellpay.us/tracfone.html): TracFone airtime and plan refills.
-- [Total Wireless](https://www.cellpay.us/total-wireless): Total Wireless plan payments.
+- [Pay Total Wireless bill online](https://www.cellpay.us/total-wireless.html): Pay a Total Wireless bill with just the number, no login.
 - [Simple Mobile](https://www.cellpay.us/s1.html): Simple Mobile bill pay and plan refills.
 - [H2O Wireless](https://www.cellpay.us/h2o.html): H2O prepaid plan refills.
 - [Lyca Mobile](https://www.cellpay.us/lyca.html): Lyca Mobile prepaid plan refills.
@@ -88,7 +88,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [Pague su factura de Boost Mobile en línea sin cuenta](https://www.cellpay.us/es/boost.html)
 - [Pagar factura Straight Talk](https://www.cellpay.us/es/straight-talk.html)
 - [TracFone (español)](https://www.cellpay.us/es/tracfone.html)
-- [Total Wireless (español)](https://www.cellpay.us/es/total-wireless)
+- [Pagar factura Total Wireless](https://www.cellpay.us/es/total-wireless.html)
 - [H2O Wireless (español)](https://www.cellpay.us/es/h2o.html)
 - [Lyca Mobile (español)](https://www.cellpay.us/es/lyca.html)
 - [Net10 (español)](https://www.cellpay.us/es/net10.html)
