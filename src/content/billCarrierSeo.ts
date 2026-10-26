@@ -114,14 +114,14 @@ const tmobileFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-
   { q: "¿Puedo pagar la línea de T-Mobile de otra persona?", a: "Sí. Ingrese su número de T-Mobile y revíselo bien antes de pagar." }, // BILLPAY-TMOBILE-1024
   { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es")}` }, // BILLPAY-TMOBILE-1024
   { q: "¿Cuándo se aplica mi pago?", a: "Por lo general en pocos minutos. Recibe una confirmación en pantalla y por correo electrónico." }, // BILLPAY-TMOBILE-1024
-  { q: "Me cambié de UScellular a T-Mobile, ¿puedo pagar aquí?", a: "Sí. Los clientes de UScellular que pasaron a T-Mobile pueden pagar aquí con el número de T-Mobile." }, // BILLPAY-TMOBILE-1024
+  { q: "Me cambié a T-Mobile Prepago, ¿puedo pagar aquí?", a: "Sí. Ingrese su número de T-Mobile y pague de la misma forma." }, // BILLPAY-TMOBILE-1024 // USC-FLEXI-1025
 ] : [ // BILLPAY-TMOBILE-1024
   { q: "How do I pay my T-Mobile Prepaid bill as a guest?", a: "Enter the T-Mobile phone number, pick your plan or amount, and pay. No account needed." }, // BILLPAY-TMOBILE-1024
   { q: "Can I pay my T-Mobile bill without logging in?", a: "Yes. You don't need a T-Mobile login. The phone number is enough." }, // BILLPAY-TMOBILE-1024
   { q: "Can I pay someone else's T-Mobile line?", a: "Yes. Enter their T-Mobile number and double-check it before you pay." }, // BILLPAY-TMOBILE-1024
   { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-TMOBILE-1024
   { q: "When does my payment post?", a: "Usually within minutes. You get a confirmation on screen and by email." }, // BILLPAY-TMOBILE-1024
-  { q: "I moved from UScellular to T-Mobile. Can I pay here?", a: "Yes. UScellular customers moved to T-Mobile can pay here with the T-Mobile phone number." }, // BILLPAY-TMOBILE-1024
+  { q: "I switched to T-Mobile Prepaid. Can I pay here?", a: "Yes. Enter your T-Mobile phone number and pay the same way." }, // BILLPAY-TMOBILE-1024 // USC-FLEXI-1025
 ]; // BILLPAY-TMOBILE-1024
 
 const straightTalkFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-STRAIGHTTALK-1025
