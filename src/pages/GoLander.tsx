@@ -191,6 +191,8 @@ export interface GoLanderProps {
   description: string;
   lang?: Language;
   metroFirstScreen?: boolean; // METRO-FIRSTSCREEN-1023b
+  firstScreenPhoneLabel?: string; // FIRSTSCREEN-PAY-EXTEND-1026
+  firstScreenCta?: string; // FIRSTSCREEN-PAY-EXTEND-1026
 }
 
 const GoLander = ({
@@ -204,6 +206,8 @@ const GoLander = ({
   description,
   lang = "en",
   metroFirstScreen = false, // METRO-FIRSTSCREEN-1023b
+  firstScreenPhoneLabel, // FIRSTSCREEN-PAY-EXTEND-1026
+  firstScreenCta, // FIRSTSCREEN-PAY-EXTEND-1026
 }: GoLanderProps) => {
   const navigate = useNavigate();
   const location = useLocation(); // VZ-PREPAID-GUARD-1017
@@ -590,11 +594,11 @@ const GoLander = ({
           {metroFirstScreen && ( // METRO-FIRSTSCREEN-1023b
             <div className="max-w-[280px] sm:max-w-[420px] mx-auto mt-3 text-center">{/* // METRO-FIRSTSCREEN-1023b */}
               <label htmlFor="go-phone-input" className="block text-xs sm:text-sm font-bold mb-1.5">{/* // METRO-FIRSTSCREEN-1023b */}
-                {isEs ? "Ingrese su número de teléfono de Metro PCS" : "Enter Your Metro PCS Phone Number"}{/* // METRO-FIRSTSCREEN-1023b */}
+                {firstScreenPhoneLabel ?? (isEs ? "Ingrese su número de teléfono de Metro PCS" : "Enter Your Metro PCS Phone Number")}{/* // METRO-FIRSTSCREEN-1023b // FIRSTSCREEN-PAY-EXTEND-1026 */}
               </label>{/* // METRO-FIRSTSCREEN-1023b */}
               <div className="relative">{/* // METRO-FIRSTSCREEN-1023b */}
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />{/* // METRO-FIRSTSCREEN-1023b */}
-                <input id="go-phone-input" name="phone" type="tel" value={phone} onChange={handlePhoneChange} placeholder={tr.phonePlaceholder} aria-label={isEs ? "Ingrese su número de teléfono de Metro PCS" : "Enter Your Metro PCS Phone Number"} className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" />{/* // METRO-FIRSTSCREEN-1023b */}
+                <input id="go-phone-input" name="phone" type="tel" value={phone} onChange={handlePhoneChange} placeholder={tr.phonePlaceholder} aria-label={firstScreenPhoneLabel ?? (isEs ? "Ingrese su número de teléfono de Metro PCS" : "Enter Your Metro PCS Phone Number")} className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" />{/* // METRO-FIRSTSCREEN-1023b // FIRSTSCREEN-PAY-EXTEND-1026 */}
               </div>{/* // METRO-FIRSTSCREEN-1023b */}
             </div> // METRO-FIRSTSCREEN-1023b
           )}
@@ -810,7 +814,7 @@ const GoLander = ({
               {metroFirstScreen && ( // METRO-FIRSTSCREEN-1023b
                 <Button type="button" onClick={handlePay} disabled={loading || verifying} className="mt-3 w-full h-10 sm:h-11 whitespace-normal font-bold text-sm sm:text-base">{/* // METRO-FIRSTSCREEN-1023b */}
                   {verifying && <Loader2 className="h-4 w-4 animate-spin" />}{/* // METRO-FIRSTSCREEN-1023b */}
-                  {verifying ? tr.verifying : isEs ? "Pague su factura de Metro PCS" : "Pay Metro PCS Bill"}{/* // METRO-FIRSTSCREEN-1023b */}
+                  {verifying ? tr.verifying : (firstScreenCta ?? (isEs ? "Pague su factura de Metro PCS" : "Pay Metro PCS Bill"))}{/* // METRO-FIRSTSCREEN-1023b // FIRSTSCREEN-PAY-EXTEND-1026 */}
                 </Button> // METRO-FIRSTSCREEN-1023b
               )}
               {inlineError && (

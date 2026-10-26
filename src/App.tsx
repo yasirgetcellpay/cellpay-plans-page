@@ -713,6 +713,9 @@ const App = () => (
               h1="Pay Your Simple Mobile Bill Online"
               title="Pay Your Simple Mobile Bill Online | CellPay"
               description="Pay your Simple Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay."
+              metroFirstScreen={true} // FIRSTSCREEN-PAY-EXTEND-1026
+              firstScreenPhoneLabel="Enter Your Simple Mobile Phone Number" // FIRSTSCREEN-PAY-EXTEND-1026
+              firstScreenCta="Pay Simple Mobile Bill" // FIRSTSCREEN-PAY-EXTEND-1026
             />
           }
         />
@@ -728,6 +731,9 @@ const App = () => (
               h1="Pay Your Simple Mobile Bill Online"
               title="Pay Your Simple Mobile Bill Online | CellPay"
               description="Pay your Simple Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay."
+              metroFirstScreen={true} // FIRSTSCREEN-PAY-EXTEND-1026
+              firstScreenPhoneLabel="Enter Your Simple Mobile Phone Number" // FIRSTSCREEN-PAY-EXTEND-1026
+              firstScreenCta="Pay Simple Mobile Bill" // FIRSTSCREEN-PAY-EXTEND-1026
             />
           }
         />
@@ -1000,6 +1006,9 @@ const App = () => (
               h1="Pague Simple Mobile en línea"
               title="Pague Simple Mobile en línea | CellPay"
               description="Pague su Simple Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              metroFirstScreen={true} // FIRSTSCREEN-PAY-EXTEND-1026
+              firstScreenPhoneLabel="Ingrese su número de teléfono de Simple Mobile" // FIRSTSCREEN-PAY-EXTEND-1026
+              firstScreenCta="Pague su factura de Simple Mobile" // FIRSTSCREEN-PAY-EXTEND-1026
             />
           }
         />
@@ -1016,6 +1025,9 @@ const App = () => (
               h1="Pague Simple Mobile en línea"
               title="Pague Simple Mobile en línea | CellPay"
               description="Pague su Simple Mobile en línea. Sin cuenta. Escriba el número, elija el plan y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              metroFirstScreen={true} // FIRSTSCREEN-PAY-EXTEND-1026
+              firstScreenPhoneLabel="Ingrese su número de teléfono de Simple Mobile" // FIRSTSCREEN-PAY-EXTEND-1026
+              firstScreenCta="Pague su factura de Simple Mobile" // FIRSTSCREEN-PAY-EXTEND-1026
             />
           }
         />
@@ -1360,6 +1372,9 @@ const App = () => (
               h1="Pague su factura de T-Mobile sin iniciar sesión"
               title="Pagar factura de T-Mobile en línea | CellPay"
               description="Pague su factura de T-Mobile en línea como invitado. Solo el número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar."
+              metroFirstScreen={true} // FIRSTSCREEN-PAY-EXTEND-1026
+              firstScreenPhoneLabel="Ingrese su número de teléfono de T-Mobile" // FIRSTSCREEN-PAY-EXTEND-1026
+              firstScreenCta="Pague su factura de T-Mobile" // FIRSTSCREEN-PAY-EXTEND-1026
             />
           }
         />
@@ -1376,6 +1391,9 @@ const App = () => (
               h1="Pague su factura de T-Mobile sin iniciar sesión"
               title="Pagar factura de T-Mobile en línea | CellPay"
               description="Pague su factura de T-Mobile en línea como invitado. Solo el número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar."
+              metroFirstScreen={true} // FIRSTSCREEN-PAY-EXTEND-1026
+              firstScreenPhoneLabel="Ingrese su número de teléfono de T-Mobile" // FIRSTSCREEN-PAY-EXTEND-1026
+              firstScreenCta="Pague su factura de T-Mobile" // FIRSTSCREEN-PAY-EXTEND-1026
             />
           }
         />
