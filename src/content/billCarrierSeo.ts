@@ -154,6 +154,12 @@ const totalWirelessFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BI
   { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-TOTALWIRELESS-1026
   { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-TOTALWIRELESS-1026
   { q: "Does it work for Total Wireless monthly plans?", a: "Yes. Choose a plan from the list on this page. You'll see the amount before you pay." }, // BILLPAY-TOTALWIRELESS-1026
+  { q: "When is my Total Wireless bill due, and what happens if service lapses?", a: "Your due date is shown in your Total Wireless account or app. If your service lapses, you can pay here with just the phone number to get it back. No login needed." }, // ORGANIC-TW-PAYBILL-FAQ-1027
+  { q: "Can I pay without my account PIN?", a: "Yes. You only need the Total Wireless phone number. CellPay never asks for your account PIN or a login." }, // ORGANIC-TW-PAYBILL-FAQ-1027
+  { q: "Is CellPay Auto Pay the same as Total Wireless Auto Pay?", a: "No. CellPay Auto Pay renews your payment on CellPay on the schedule you choose. Total Wireless Auto Pay is their own service. CellPay Auto Pay is optional and never pre-checked." }, // ORGANIC-TW-PAYBILL-FAQ-1027
+  { q: "My payment posted but service is still off — what do I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." }, // ORGANIC-TW-PAYBILL-FAQ-1027
+  { q: "Which plans are shown?", a: "The plans and prices on this page load live from checkout, so you always see the current options before you pay." }, // ORGANIC-TW-PAYBILL-FAQ-1027
+  { q: "Can I pay from outside the US?", a: "Yes, as long as your card or wallet works for a US merchant." }, // ORGANIC-TW-PAYBILL-FAQ-1027
 ]; // BILLPAY-TOTALWIRELESS-1026
 const verizonFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-VERIZON-PREPAID-1027
   { q: "¿Cómo pago mi factura de Verizon Prepaid en línea?", a: "Ingrese el número de teléfono de Verizon Prepaid, elija el monto o el plan y pague. No necesita una cuenta." }, // BILLPAY-VERIZON-PREPAID-1027
@@ -313,6 +319,7 @@ export const BILL_PAGES: BillPage[] = [
   }, // BILLPAY-TOTALWIRELESS-1026
   { // BILLPAY-TOTALWIRELESS-1026
     path: "/total-wireless.html", lang: "en", name: "Total Wireless", // BILLPAY-TOTALWIRELESS-1026
+    title: "Total Wireless Pay Bill Online: No Login, Guest Pay | CellPay", // ORGANIC-TW-PAYBILL-FAQ-1027
     description: "Pay your Total Wireless bill online in minutes. No login needed — enter the phone number, pick your plan and pay with any card or wallet.", // BILLPAY-TOTALWIRELESS-1026
     h1: "Pay Your Total Wireless Bill Online", // BILLPAY-TOTALWIRELESS-1026
     sub: "Pay as a guest with just the phone number. No login needed.", // BILLPAY-TOTALWIRELESS-1026
