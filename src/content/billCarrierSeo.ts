@@ -377,9 +377,12 @@ export const BILL_PAGES: BillPage[] = [
   }, // BILLPAY-VERIZON-PREPAID-1027
 ];
 
+const BILL_PATH_ALIAS: Record<string, string> = { "/total-wireless": "/total-wireless.html", "/es/total-wireless": "/es/total-wireless.html" }; // TW-FAQ-HYDRATE-SHELL-1027
+
 export const billPageByPath = (pathname: string): BillPage | undefined => {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
-  return BILL_PAGES.find((x) => x.path === p);
+  const q = BILL_PATH_ALIAS[p] ?? p; // TW-FAQ-HYDRATE-SHELL-1027
+  return BILL_PAGES.find((x) => x.path === q);
 };
 
 /** FAQPage + BreadcrumbList (Home › Carrier). Same FAQ text as the visible FAQ. */
