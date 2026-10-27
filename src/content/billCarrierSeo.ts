@@ -116,6 +116,10 @@ const tmobileFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-
   { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es")}` }, // BILLPAY-TMOBILE-1024
   { q: "¿Cuándo se aplica mi pago?", a: "Por lo general en pocos minutos. Recibe una confirmación en pantalla y por correo electrónico." }, // BILLPAY-TMOBILE-1024
   { q: "Me cambié a T-Mobile Prepago, ¿puedo pagar aquí?", a: "Sí. Ingrese su número de T-Mobile y pague de la misma forma." }, // BILLPAY-TMOBILE-1024 // USC-FLEXI-1025
+  { q: "¿Es diferente de comprar una tarjeta o un PIN?", a: "Sí. El monto se aplica directamente a su número de T-Mobile Prepago. No necesita comprar una tarjeta ni ingresar un código PIN." }, // ORGANIC-ES-BILLPAY-TW-TMO-1027
+  { q: "¿Funciona para T-Mobile pospago?", a: "No. Esta página es solo para números de T-Mobile Prepago." }, // ORGANIC-ES-BILLPAY-TW-TMO-1027
+  { q: "¿Cómo consulto mi saldo?", a: "Marque #BAL# o #999# desde su teléfono T-Mobile." }, // ORGANIC-ES-BILLPAY-TW-TMO-1027
+  { q: "¿Hay un cargo por servicio?", a: "Sí. Verá el cargo por servicio antes de pagar." }, // ORGANIC-ES-BILLPAY-TW-TMO-1027
 ] : [ // BILLPAY-TMOBILE-1024
   { q: "How do I pay my T-Mobile Prepaid bill as a guest?", a: "Enter the T-Mobile phone number, pick your plan or amount, and pay. No account needed." }, // BILLPAY-TMOBILE-1024
   { q: "Can I pay my T-Mobile bill without logging in?", a: "Yes. You don't need a T-Mobile login. The phone number is enough." }, // BILLPAY-TMOBILE-1024
@@ -149,9 +153,12 @@ const totalWirelessFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BI
   { q: "¿Cómo pago mi factura de Total Wireless en línea?", a: "Ingrese el número de teléfono de Total Wireless, elija su plan y pague. No necesita una cuenta." }, // BILLPAY-TOTALWIRELESS-1026
   { q: "¿Puedo pagar Total Wireless como invitado, sin iniciar sesión?", a: "Sí. No necesita iniciar sesión ni una cuenta. Solo necesita el número de teléfono." }, // BILLPAY-TOTALWIRELESS-1026
   { q: "¿Puedo pagar la línea de Total Wireless de otra persona?", a: "Sí. Ingrese su número de Total Wireless y revíselo bien antes de pagar." }, // BILLPAY-TOTALWIRELESS-1026
-  { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es").replace("Apple Pay en dispositivos Apple compatibles", "Apple Pay en dispositivos compatibles")}` }, // BILLPAY-TOTALWIRELESS-1026
+  { q: "¿Qué métodos de pago acepta, como Apple Pay o tarjeta?", a: `Sí. ${methodsLong("es").replace("Apple Pay en dispositivos Apple compatibles", "Apple Pay en dispositivos compatibles")}` }, // BILLPAY-TOTALWIRELESS-1026 // ORGANIC-ES-BILLPAY-TW-TMO-1027
   { q: "¿Cuándo se aplica mi pago?", a: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Cuando el pago se completa, verá una confirmación con los datos de su transacción." }, // BILLPAY-TOTALWIRELESS-1026
   { q: "¿Funciona para los planes mensuales de Total Wireless?", a: "Sí. Elija un plan de la lista en esta página. Verá el monto antes de pagar." }, // BILLPAY-TOTALWIRELESS-1026
+  { q: "¿Puede pagar sin su PIN de cuenta?", a: "Sí. Solo necesita el número de teléfono de Total Wireless. CellPay nunca le pide el PIN de su cuenta ni que inicie sesión." }, // ORGANIC-ES-BILLPAY-TW-TMO-1027
+  { q: "¿Hay un cargo por servicio?", a: "Sí. Verá el cargo por servicio antes de pagar." }, // ORGANIC-ES-BILLPAY-TW-TMO-1027
+  { q: "¿Puede pagar desde fuera de EE. UU.?", a: "Sí, siempre que su tarjeta o billetera digital funcione con comercios de EE. UU." }, // ORGANIC-ES-BILLPAY-TW-TMO-1027
 ] : [ // BILLPAY-TOTALWIRELESS-1026
   { q: "How do I pay my Total Wireless bill online?", a: "Enter the Total Wireless phone number, pick your plan, and pay. No account needed." }, // BILLPAY-TOTALWIRELESS-1026
   { q: "Can I pay my Total Wireless bill as a guest, without logging in?", a: "Yes. You don't need a login or an account. The phone number is enough." }, // BILLPAY-TOTALWIRELESS-1026
@@ -259,7 +266,7 @@ export const BILL_PAGES: BillPage[] = [
     faqTitle: "Preguntas frecuentes", // BILLPAY-TMOBILE-1024
     faqs: tmobileFaqs("es"), // BILLPAY-TMOBILE-1024
     guide: ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepago"], // BILLPAY-TMOBILE-1024
-    more: [["/es/paga-tu-factura", "Pague su factura de celular"]], // BILLPAY-TMOBILE-1024
+    more: [["/es/paga-tu-factura", "Pague su factura de celular"], ["/es/total-wireless", "Pague su factura de Total Wireless"]], // BILLPAY-TMOBILE-1024 // ORGANIC-ES-BILLPAY-TW-TMO-1027
     faqOnly: true, // BILLPAY-TMOBILE-1024
   }, // BILLPAY-TMOBILE-1024
   { // BILLPAY-TMOBILE-1024
@@ -320,7 +327,7 @@ export const BILL_PAGES: BillPage[] = [
     faqTitle: "Preguntas frecuentes", // BILLPAY-TOTALWIRELESS-1026
     faqs: totalWirelessFaqs("es"), // BILLPAY-TOTALWIRELESS-1026
     guide: ["/es/como-pagar/total-wireless", "Cómo pagar Total Wireless"], // BILLPAY-TOTALWIRELESS-1026
-    more: [["/es/paga-tu-factura", "Pague su factura de celular"]], // BILLPAY-TOTALWIRELESS-1026
+    more: [["/es/paga-tu-factura", "Pague su factura de celular"], ["/es/tmobile-flexi.html", "Pague su factura de T-Mobile Prepago"]], // BILLPAY-TOTALWIRELESS-1026 // ORGANIC-ES-BILLPAY-TW-TMO-1027
     faqOnly: true, // BILLPAY-TOTALWIRELESS-1026
   }, // BILLPAY-TOTALWIRELESS-1026
   { // BILLPAY-TOTALWIRELESS-1026
