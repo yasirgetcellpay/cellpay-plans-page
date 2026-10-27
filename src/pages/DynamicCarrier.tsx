@@ -1028,6 +1028,7 @@ const DynamicCarrier = ({
           ) : bill ? (
             /* SEO-CONTENT-1014: 4-question FAQ (text = the FAQPage JSON-LD), shown instead of the API FAQ on these pages */
             <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10" data-testid="bill-faq">
+              {bill.preFaq && (<><h2 className="text-2xl font-extrabold text-foreground mb-2 text-left">{bill.preFaq[0]}</h2><p className="text-sm text-muted-foreground mb-6 text-left">{bill.preFaq[1]}</p></>)} {/* ORGANIC-TMO-REFILL-ONLINE-FAQ-1027 */}
               <h2 className="text-2xl font-extrabold text-foreground mb-4 text-left">{bill.faqTitle}</h2>
               {bill.faqs.map((f) => (
                 <div key={f.q} className="mb-4 text-left">

@@ -22,6 +22,7 @@ export type BillPage = {
   guide?: [string, string]; // how-to-pay guide link (Metro, Boost; CRICKET-GUIDE-1014: + Cricket)
   more?: [string, string][]; // BILLPAY-BOOST-1022 extra internal links [href, label]
   faqOnly?: boolean; // BILLPAY-TMOBILE-1024: JSON-LD = FAQPage only (no BreadcrumbList)
+  preFaq?: [string, string]; // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027  (H2 heading + short paragraph shown above the FAQ)
 };
 
 const WWW = "https://www.cellpay.us";
@@ -121,7 +122,11 @@ const tmobileFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-
   { q: "Can I pay someone else's T-Mobile line?", a: "Yes. Enter their T-Mobile number and double-check it before you pay." }, // BILLPAY-TMOBILE-1024
   { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-TMOBILE-1024
   { q: "When does my payment post?", a: "Usually within minutes. You get a confirmation on screen and by email." }, // BILLPAY-TMOBILE-1024
-  { q: "I switched to T-Mobile Prepaid. Can I pay here?", a: "Yes. Enter your T-Mobile phone number and pay the same way." }, // BILLPAY-TMOBILE-1024 // USC-FLEXI-1025
+  { q: "I switched to T-Mobile Prepaid, including from UScellular. Can I pay here?", a: "Yes. Enter your T-Mobile phone number and pay the same way." }, // BILLPAY-TMOBILE-1024 // USC-FLEXI-1025 // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
+  { q: "Is a refill online different from a refill card or PIN?", a: "Yes. We load the amount directly to your T-Mobile Prepaid number. There is no card to buy and no PIN code to enter." }, // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
+  { q: "Does the amount need to match my plan?", a: "Yes. Pick the amount that exactly matches your T-Mobile Prepaid plan." }, // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
+  { q: "Does this work for T-Mobile postpaid?", a: "No. This page is for T-Mobile Prepaid numbers only." }, // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
+  { q: "How do I check my balance?", a: "Dial #BAL# or #999# from your T-Mobile phone." }, // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
 ]; // BILLPAY-TMOBILE-1024
 
 const straightTalkFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-STRAIGHTTALK-1025
@@ -259,8 +264,8 @@ export const BILL_PAGES: BillPage[] = [
   }, // BILLPAY-TMOBILE-1024
   { // BILLPAY-TMOBILE-1024
     path: "/tmobile-flexi.html", lang: "en", name: "T-Mobile Prepaid", // BILLPAY-TMOBILE-1024
-    title: "Pay T-Mobile Bill as a Guest – Prepaid, No Login | CellPay", // BILLPAY-TMOBILE-1024
-    description: "Pay your T-Mobile Prepaid bill online as a guest with just the phone number. No login, no account. Pay for yourself or someone else. Low service fee shown before you pay.", // BILLPAY-TMOBILE-1024
+    title: "Pay T-Mobile Prepaid Online: Guest Pay, No Login | CellPay", // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
+    description: "Pay or refill your T-Mobile Prepaid online as a guest with just the phone number. No login, no account. Low service fee shown before you pay.", // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
     h1: "Pay Your T-Mobile Prepaid Bill as a Guest", // BILLPAY-TMOBILE-1024
     sub: "No login. Just the phone number. Pay for yourself or someone else.", // BILLPAY-TMOBILE-1024
     autoPayInfoLead: "Optional: Auto Pay so you never miss a refill.", // BILLPAY-TMOBILE-1024
@@ -271,6 +276,7 @@ export const BILL_PAGES: BillPage[] = [
     guide: ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], // BILLPAY-TMOBILE-1024
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-TMOBILE-1024
     faqOnly: true, // BILLPAY-TMOBILE-1024
+    preFaq: ["Add a T-Mobile Prepaid refill online", "Pick your amount and pay. The refill loads straight to the T-Mobile Prepaid number. No card to buy and no PIN code to enter."], // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
   }, // BILLPAY-TMOBILE-1024
   { // BILLPAY-STRAIGHTTALK-1025
     path: "/es/straight-talk.html", lang: "es", name: "Straight Talk", // BILLPAY-STRAIGHTTALK-1025
@@ -393,6 +399,7 @@ export const billJsonLd = (pg: BillPage): string => {
 /** Raw-HTML block below the first screen (same text as the rendered FAQ + guide link). */
 export const billStaticBlock = (pg: BillPage): string =>
   `<section class="max-w-3xl mx-auto px-4 sm:px-6 py-10" data-bill-static="1">` +
+  (pg.preFaq ? `<h2 class="text-2xl font-extrabold text-foreground mb-2 text-left">${esc(pg.preFaq[0])}</h2><p class="text-sm text-muted-foreground mb-6 text-left">${esc(pg.preFaq[1])}</p>` : "") + // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
   `<h2 class="text-2xl font-extrabold text-foreground mb-4 text-left">${esc(pg.faqTitle)}</h2>` +
   pg.faqs.map((f) => `<div class="mb-4 text-left"><h3 class="font-bold">${esc(f.q)}</h3><p class="text-sm text-muted-foreground mt-1">${esc(f.a)}</p></div>`).join("") +
   (pg.guide ? `<p class="text-sm mt-4"><a href="${pg.guide[0]}" class="underline">${esc(pg.guide[1])}</a></p>` : "") +
