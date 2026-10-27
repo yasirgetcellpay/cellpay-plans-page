@@ -1737,6 +1737,21 @@ const Checkout = () => {
     input?.focus({ preventScroll: true });
     try { trackKlarna("klarna_form_blocked", readKlarnaSrc(phone10), `blocked|${field}`, { klarna_field: field }); } catch { /* ignore */ }
   };
+  const focusKlarnaBilling = () => { // KLARNA-DECLINE-BTN-1022 // DECLINE-RECOVERY-1027
+    window.setTimeout(() => { // DECLINE-RECOVERY-1027
+      const field = firstMissingKlarnaField(klarnaValuesRef.current); // DECLINE-RECOVERY-1027
+      if (field) { // DECLINE-RECOVERY-1027
+        klarnaBillingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); // DECLINE-RECOVERY-1027
+        klarnaBillingRef.current?.querySelector<HTMLInputElement>(`[data-klarna-field="${field}"]`)?.focus({ preventScroll: true }); // DECLINE-RECOVERY-1027
+        return; // DECLINE-RECOVERY-1027
+      } // DECLINE-RECOVERY-1027
+      const el = inlinePayRef.current; // DECLINE-RECOVERY-1027
+      if (!el) return; // DECLINE-RECOVERY-1027
+      el.scrollIntoView({ behavior: "smooth", block: "center" }); // DECLINE-RECOVERY-1027
+      el.classList.add("ring-4", "ring-offset-2"); // DECLINE-RECOVERY-1027
+      window.setTimeout(() => el.classList.remove("ring-4", "ring-offset-2"), 1500); // DECLINE-RECOVERY-1027
+    }, 150); // DECLINE-RECOVERY-1027
+  }; // DECLINE-RECOVERY-1027
 
   let methodValid = true;
   switch (paymentMethod) {
@@ -2397,6 +2412,7 @@ const Checkout = () => {
             setShowNotChargedNote(!autoRefund && !txn);
             // WALLET-NSF-1018: an Apple Pay insufficient-funds decline opens the same low-funds screen as card / Google Pay (Klarna at $25+, other ways to pay). Apple Pay is NOT marked declined, so the customer can still use another card in Apple Pay. Same 3-per-tab guard: from the 3rd decline the old plain dialog stays.
             if (!autoRefund && !txn && isNsfDecline(msg)) { const aSess = bumpSessionDeclines(); if (aSess < 3) { try { declineSeqRef.current += 1; } catch { /* ignore */ } setDeclineInfo({ cls: classifyDecline(msg, state.carrierSlug), n: 0, method: "applepay", sess: aSess, msg: String(msg || "") }); } } // WALLET-NSF-1018
+            else if (!autoRefund && !txn && /declin|reject/i.test(msg)) { try { declineSeqRef.current += 1; } catch { /* ignore */ } setDeclineInfo({ cls: classifyDecline(msg, state.carrierSlug), n: 0, method: "applepay", sess: bumpSessionDeclines(), msg: String(msg || "") }); markWalletDeclined("applepay"); setWalletBlocked(walletDeclined()); } // DECLINE-RECOVERY-1027
             setRefundCard(autoRefund); // TOP4-T2B-1009
             setErrorMsg(orsOnFail(msg)); // [OURSIDE-RETRY-1012]
           }
@@ -2827,7 +2843,7 @@ const Checkout = () => {
           {isVerizonSlug(state.carrierSlug) && Number(state.amount) > VZ_NOTICE_MIN && <p data-testid="vz-prepaid-notice" role="note" className="rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-900 text-xs p-3">{VZ_NOTE[lang === "es" ? "es" : "en"]}</p>}
           <div className={orsFailed ? "rounded-xl ring-2 ring-offset-2 ring-primary" : undefined} data-testid="ors-highlight" onMouseOver={kickGpay} onFocus={kickGpay}>{/* [OURSIDE-RETRY-1012] */}{/* GPAY-LAZY-1014: hover/focus on the method list starts pay.js */}
           <PaymentMethodPicker lang={lang === "es" ? "es" : "en"} methods={stepUp ? stepUpMethods : paymentMethods} selected={paymentMethod} brandColor={brandColor}
-            onSelect={(key) => { try { if (key === "klarna" && paymentMethod !== "klarna") trackKlarna("klarna_clicked", "method_list", `method_list|${declineSeqRef.current}`); } catch { /* ignore */ } if (key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); selectMethodLikeTile(key); }} /* KLARNA-FUNNEL-1017 // KLARNA-DECLINE-BTN-1022 */ />
+            onSelect={(key) => { try { if (key === "klarna" && paymentMethod !== "klarna") trackKlarna("klarna_clicked", "method_list", `method_list|${declineSeqRef.current}`); } catch { /* ignore */ } if (key === "paypal" && paymentMethod !== "paypal") ppFunnel("tile_tap"); selectMethodLikeTile(key); if (key === "klarna" && paymentMethod !== "klarna") { if (!klarnaFirstName.trim()) setKlarnaFirstName(firstName); if (!klarnaLastName.trim()) setKlarnaLastName(lastName); if (!klarnaPhone.trim()) setKlarnaPhone(state.phone); focusKlarnaBilling(); } }} /* KLARNA-FUNNEL-1017 // KLARNA-DECLINE-BTN-1022 // DECLINE-RECOVERY-1027 */ />
           </div>
 
           <div className="bg-card rounded-xl border border-border p-5">
@@ -3047,6 +3063,7 @@ const Checkout = () => {
             <div ref={klarnaBillingRef} /* KLARNA-DECLINE-BTN-1022 */ className="bg-card rounded-xl border border-border p-5 space-y-4"
               onFocusCapture={() => { try { trackKlarna("klarna_form_started", readKlarnaSrc(phone10), `form|${declineSeqRef.current}`); } catch { /* ignore */ } }} // KLARNA-FORM-1018
             >
+              {(["decline_nsf", "decline_other"].includes(readKlarnaSrc(phone10))) && <p data-testid="klarna-decline-hint" className="text-xs text-muted-foreground">{lang === "es" ? "Agregue su dirección de facturación y toque Pagar para continuar con Klarna." : "Add your billing address, then tap Pay to continue with Klarna."}</p> /* // DECLINE-RECOVERY-1027 */}
               <h2 className="font-bold text-foreground mb-1 text-sm">{tr.billingDetails}</h2>
               {klarnaMissingField && <p role="alert" data-testid="klarna-missing-msg" className="text-sm font-semibold text-destructive">{lang === "es" ? "Por favor complete: " : "Please fill in: "}{klarnaLabels[klarnaMissingField]}</p> /* KLARNA-OPEN-1019 */}
               <div className="grid grid-cols-2 gap-3">
@@ -3456,21 +3473,6 @@ const Checkout = () => {
                   el.classList.add("ring-4", "ring-offset-2");
                   window.setTimeout(() => el.classList.remove("ring-4", "ring-offset-2"), 1500);
                 }, 120);
-              };
-              const focusKlarnaBilling = () => { // KLARNA-DECLINE-BTN-1022
-                window.setTimeout(() => {
-                  const field = firstMissingKlarnaField(klarnaValuesRef.current);
-                  if (field) {
-                    klarnaBillingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    klarnaBillingRef.current?.querySelector<HTMLInputElement>(`[data-klarna-field="${field}"]`)?.focus({ preventScroll: true });
-                    return;
-                  }
-                  const el = inlinePayRef.current;
-                  if (!el) return;
-                  el.scrollIntoView({ behavior: "smooth", block: "center" });
-                  el.classList.add("ring-4", "ring-offset-2");
-                  window.setTimeout(() => el.classList.remove("ring-4", "ring-offset-2"), 1500);
-                }, 150);
               };
               const walletNow = (m: PaymentMethod) => { // DECLINE-ONETAP-1017: one tap opens the wallet sheet; otherwise today's behavior
                 const avail = m === "applepay" ? (typeof window !== "undefined" && !!window.ApplePaySession && applePayAvailable) // DECLINE-ONETAP-1017
