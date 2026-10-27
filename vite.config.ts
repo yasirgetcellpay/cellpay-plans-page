@@ -1861,7 +1861,7 @@ const htmlAliasPlugin = (): Plugin => ({
       out = out.replace(/\s*<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/gi, "");
       if (!meta.noindex) {
         const canonPath = canonicalPathFor(route, meta);
-        const headLinks = seoHeadLinks(canonPath, !meta.canonical && canonPath === routeToPath(route));
+        const headLinks = seoHeadLinks(canonPath, (!meta.canonical && canonPath === routeToPath(route)) || route === "total-wireless.html" || route === "es/total-wireless.html"); // ORGANIC-ES-BILLPAY-TW-TMO-1027
         out = out.replace(/<\/head>/i, () => `  ${headLinks}\n  </head>`);
       } else if (GO_LINKED.has(route)) {
         // GO-LANDERS-1007: noindex /go pair: self-canonical (www) + hreflang en/es/x-default.
