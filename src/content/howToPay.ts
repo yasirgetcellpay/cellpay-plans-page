@@ -737,7 +737,7 @@ HOW_TO_PAY_PAGES.push( // AEO-14-TOTAL-1020
       { q: "What if I don't know how much I owe?", a: "CellPay doesn't show your Total Wireless balance. Check the amount due in your Total Wireless app, account or text messages, then choose that plan or amount here. The total with the service fee is shown before you pay." }, // AEO-14-TOTAL-1020
       { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." }, // AEO-14-TOTAL-1020
     ], // AEO-14-TOTAL-1020
-    related: [["/how-to-pay/tracfone", "How to pay Tracfone"], ["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/page-plus", "How to pay Page Plus"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // AEO-14-TOTAL-1020
+    related: [["/total-wireless", "pay Total Wireless bill"], ["/how-to-pay/tracfone", "How to pay Tracfone"], ["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/page-plus", "How to pay Page Plus"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // AEO-14-TOTAL-1020 // ORGANIC-TW-PAYBILL-FAQ-1027
     updatedIso: "2026-10-20", updatedText: "Last updated: October 20, 2026", // AEO-14-TOTAL-1020
   }), // AEO-14-TOTAL-1020
   es({ // AEO-14-TOTAL-1020
