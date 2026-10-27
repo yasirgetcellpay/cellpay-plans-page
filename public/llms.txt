@@ -30,7 +30,8 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [AT&T PrePaid](https://www.cellpay.us/topup-at.html): Refill AT&T PrePaid plans and add-ons.
 - [AT&T FirstNet](https://www.cellpay.us/att-firstnet): Pay AT&T FirstNet prepaid plans.
 - [Pay T-Mobile Prepaid bill as a guest](https://www.cellpay.us/tmobile-flexi.html): Pay a T-Mobile Prepaid bill with just the number, no login.
-- [Verizon Prepaid bill pay](https://www.cellpay.us/verizon): Pay a Verizon Prepaid bill with the phone number, no login.
+- [Pay Verizon Prepaid bill online](https://www.cellpay.us/verizon): Pay a Verizon Prepaid bill with just the number, no login.
+- [Pagar factura Verizon Prepaid](https://www.cellpay.us/es/verizon)
 - [Verizon Prepaid refill](https://www.cellpay.us/verizon-wireless-flexi.html): Verizon prepaid plan refills.
 - [Metro by T-Mobile](https://www.cellpay.us/metropcs.html): Metro by T-Mobile monthly plan payments.
 - [Pay Cricket bill online as a guest](https://www.cellpay.us/topup-crc.html)

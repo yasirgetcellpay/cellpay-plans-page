@@ -1103,11 +1103,11 @@ const htmlAliasPlugin = (): Plugin => ({
           description: "Recargas prepagadas para más de 15 operadores de EE. UU.: AT&T, T-Mobile, Metro, Cricket, Verizon, Boost y más. Sin iniciar sesión. Cargo por servicio bajo, mostrado antes de pagar.",
         },
         "verizon/index.html": {
-          title: "Verizon Prepaid Refill — Pay Bill Online | CellPay",
-          description: "Refill any Verizon Prepaid phone online. No My Verizon login, all major cards & wallets. Pay your Verizon Prepaid bill online on CellPay.",
+          title: "Pay Verizon Prepaid Bill Online – No Login | CellPay", // BILLPAY-VERIZON-PREPAID-1027
+          description: "Pay your Verizon Prepaid bill online with just the phone number. No My Verizon login or account needed. Pay for yourself or someone else.", // BILLPAY-VERIZON-PREPAID-1027
         },
         "es/verizon/index.html": {
-          title: "Recarga de Verizon Wireless Prepaid en Línea — Pague su Factura | CellPay",
+          title: "Pagar Factura Verizon Prepaid en Línea sin Cuenta | CellPay", // BILLPAY-VERIZON-PREPAID-1027
           description: esCarrierDesc("Verizon Wireless Prepaid"),
         },
         "total-wireless/index.html": {
@@ -1957,7 +1957,8 @@ const htmlAliasPlugin = (): Plugin => ({
         }
       }
       // SEO-CONTENT-1014: es Metro / es Boost / en+es Cricket: FAQPage + BreadcrumbList JSON-LD (same FAQ text as the page).
-      const billPg = billPageByPath("/" + route);
+      const VZ_BILL_ROUTE: Record<string, string> = { "verizon/index.html": "/verizon", "es/verizon/index.html": "/es/verizon" }; // BILLPAY-VERIZON-PREPAID-1027
+      const billPg = billPageByPath(VZ_BILL_ROUTE[route] ?? "/" + route); // BILLPAY-VERIZON-PREPAID-1027
       if (billPg && (route === "topup-crc.html" || route === "es/topup-crc.html")) { // BILLPAY-CRICKET-1023
         out = out.replace(/\s*<meta name="keywords"[^>]*>/i, ""); // BILLPAY-CRICKET-1023: omit global refill keywords only on these pages
         out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${escAttr(billPg.title || billPg.h1)}"`); // BILLPAY-CRICKET-1023

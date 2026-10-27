@@ -155,6 +155,21 @@ const totalWirelessFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BI
   { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-TOTALWIRELESS-1026
   { q: "Does it work for Total Wireless monthly plans?", a: "Yes. Choose a plan from the list on this page. You'll see the amount before you pay." }, // BILLPAY-TOTALWIRELESS-1026
 ]; // BILLPAY-TOTALWIRELESS-1026
+const verizonFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-VERIZON-PREPAID-1027
+  { q: "¿Cómo pago mi factura de Verizon Prepaid en línea?", a: "Ingrese el número de teléfono de Verizon Prepaid, elija el monto o el plan y pague. No necesita una cuenta." }, // BILLPAY-VERIZON-PREPAID-1027
+  { q: "¿Puedo pagar mi factura de Verizon Prepaid sin iniciar sesión en My Verizon?", a: "Sí. No necesita iniciar sesión en My Verizon ni una cuenta. Solo necesita el número de teléfono." }, // BILLPAY-VERIZON-PREPAID-1027
+  { q: "¿Puedo pagar la línea de Verizon Prepaid de otra persona?", a: "Sí. Ingrese su número de Verizon Prepaid y revíselo bien antes de pagar." }, // BILLPAY-VERIZON-PREPAID-1027
+  { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es").replace("Apple Pay en dispositivos Apple compatibles", "Apple Pay en dispositivos compatibles")}` }, // BILLPAY-VERIZON-PREPAID-1027
+  { q: "¿Cuándo se aplica mi pago?", a: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Cuando el pago se completa, verá una confirmación con los datos de su transacción." }, // BILLPAY-VERIZON-PREPAID-1027
+  { q: "¿Puedo activar el Auto Pago?", a: "Sí. El Auto Pago es opcional. Lo puede activar al pagar. Nunca está marcado de antemano." }, // BILLPAY-VERIZON-PREPAID-1027
+] : [ // BILLPAY-VERIZON-PREPAID-1027
+  { q: "How do I pay my Verizon Prepaid bill online?", a: "Enter the Verizon Prepaid phone number, pick your amount or plan, and pay. No account needed." }, // BILLPAY-VERIZON-PREPAID-1027
+  { q: "Can I pay my Verizon Prepaid bill without a My Verizon login?", a: "Yes. You don't need a My Verizon login or an account. The phone number is enough." }, // BILLPAY-VERIZON-PREPAID-1027
+  { q: "Can I pay someone else's Verizon Prepaid line?", a: "Yes. Enter their Verizon Prepaid number and double-check it before you pay." }, // BILLPAY-VERIZON-PREPAID-1027
+  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-VERIZON-PREPAID-1027
+  { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-VERIZON-PREPAID-1027
+  { q: "Can I set up Auto Pay?", a: "Yes. Auto Pay is optional. You can turn it on at checkout. It is never pre-checked." }, // BILLPAY-VERIZON-PREPAID-1027
+]; // BILLPAY-VERIZON-PREPAID-1027
 
 export const BILL_PAGES: BillPage[] = [
   { // BILLPAY-METRO-1021
@@ -310,6 +325,36 @@ export const BILL_PAGES: BillPage[] = [
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-TOTALWIRELESS-1026
     faqOnly: true, // BILLPAY-TOTALWIRELESS-1026
   }, // BILLPAY-TOTALWIRELESS-1026
+  { // BILLPAY-VERIZON-PREPAID-1027
+    path: "/es/verizon", lang: "es", name: "Verizon Prepaid", // BILLPAY-VERIZON-PREPAID-1027
+    title: "Pagar Factura Verizon Prepaid en Línea sin Cuenta | CellPay", // BILLPAY-VERIZON-PREPAID-1027
+    description: "Pague su factura de Verizon Wireless Prepaid en línea. Sin cuenta y sin iniciar sesión. Puede pagar por otra persona. Verá el cargo por servicio antes de pagar.", // BILLPAY-VERIZON-PREPAID-1027
+    h1: "Pague su Factura de Verizon Prepaid en Línea", // BILLPAY-VERIZON-PREPAID-1027
+    sub: "Sin cuenta y sin iniciar sesión. Solo necesita el número de teléfono. Pague por usted o por otra persona.", // BILLPAY-VERIZON-PREPAID-1027
+    autoPayInfoLead: "Opcional: Auto Pago para no olvidar su pago.", // BILLPAY-VERIZON-PREPAID-1027
+    enterAmount: "Ingrese el monto que desea recargar", // BILLPAY-VERIZON-PREPAID-1027
+    securePayment: "Pago seguro. Su recarga se envía directamente a su teléfono.", // BILLPAY-VERIZON-PREPAID-1027
+    faqTitle: "Preguntas frecuentes", // BILLPAY-VERIZON-PREPAID-1027
+    faqs: verizonFaqs("es"), // BILLPAY-VERIZON-PREPAID-1027
+    guide: ["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepaid"], // BILLPAY-VERIZON-PREPAID-1027
+    more: [["/es/paga-tu-factura", "Pague su factura de celular"]], // BILLPAY-VERIZON-PREPAID-1027
+    faqOnly: true, // BILLPAY-VERIZON-PREPAID-1027
+  }, // BILLPAY-VERIZON-PREPAID-1027
+  { // BILLPAY-VERIZON-PREPAID-1027
+    path: "/verizon", lang: "en", name: "Verizon Prepaid", // BILLPAY-VERIZON-PREPAID-1027
+    title: "Pay Verizon Prepaid Bill Online – No Login | CellPay", // BILLPAY-VERIZON-PREPAID-1027
+    description: "Pay your Verizon Prepaid bill online with just the phone number. No My Verizon login or account needed. Pay for yourself or someone else.", // BILLPAY-VERIZON-PREPAID-1027
+    h1: "Pay Your Verizon Prepaid Bill Online", // BILLPAY-VERIZON-PREPAID-1027
+    sub: "No login. Just the phone number. Pay for yourself or someone else.", // BILLPAY-VERIZON-PREPAID-1027
+    autoPayInfoLead: "Optional: Auto Pay so you never miss a refill.", // BILLPAY-VERIZON-PREPAID-1027
+    enterAmount: "Enter the amount you want to recharge", // BILLPAY-VERIZON-PREPAID-1027
+    securePayment: "Secure payment. Your refill is sent directly to your phone.", // BILLPAY-VERIZON-PREPAID-1027
+    faqTitle: "Common questions", // BILLPAY-VERIZON-PREPAID-1027
+    faqs: verizonFaqs("en"), // BILLPAY-VERIZON-PREPAID-1027
+    guide: ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], // BILLPAY-VERIZON-PREPAID-1027
+    more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-VERIZON-PREPAID-1027
+    faqOnly: true, // BILLPAY-VERIZON-PREPAID-1027
+  }, // BILLPAY-VERIZON-PREPAID-1027
 ];
 
 export const billPageByPath = (pathname: string): BillPage | undefined => {
