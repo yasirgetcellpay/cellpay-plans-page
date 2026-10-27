@@ -303,14 +303,17 @@ export type Database = {
         Row: {
           carrier_slug: string
           phone_hash: string
+          src: string
         }
         Insert: {
           carrier_slug: string
           phone_hash: string
+          src?: string
         }
         Update: {
           carrier_slug?: string
           phone_hash?: string
+          src?: string
         }
         Relationships: []
       }
