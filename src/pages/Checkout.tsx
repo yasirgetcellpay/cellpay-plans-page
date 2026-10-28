@@ -2413,7 +2413,7 @@ const Checkout = () => {
             setShowNotChargedNote(!autoRefund && !txn);
             // WALLET-NSF-1018: an Apple Pay insufficient-funds decline opens the same low-funds screen as card / Google Pay (Klarna at $25+, other ways to pay). Apple Pay is NOT marked declined, so the customer can still use another card in Apple Pay. Same 3-per-tab guard: from the 3rd decline the old plain dialog stays.
             if (!autoRefund && !txn && isNsfDecline(msg)) { const aSess = bumpSessionDeclines(); if (aSess < 3) { try { declineSeqRef.current += 1; } catch { /* ignore */ } setDeclineInfo({ cls: classifyDecline(msg, state.carrierSlug), n: 0, method: "applepay", sess: aSess, msg: String(msg || "") }); } } // WALLET-NSF-1018
-            else if (!autoRefund && !txn && /declin|reject/i.test(msg)) { try { declineSeqRef.current += 1; } catch { /* ignore */ } setDeclineInfo({ cls: classifyDecline(msg, state.carrierSlug), n: 0, method: "applepay", sess: bumpSessionDeclines(), msg: String(msg || "") }); markWalletDeclined("applepay"); setWalletBlocked(walletDeclined()); } // DECLINE-RECOVERY-1027
+            else if (!autoRefund && !txn && /declin|reject/i.test(msg)) { try { declineSeqRef.current += 1; } catch { /* ignore */ } setDeclineInfo({ cls: classifyDecline(msg, state.carrierSlug), n: 0, method: "applepay", sess: bumpSessionDeclines(), msg: String(msg || "") }); } // DECLINE-RECOVERY-1027 // DECLINE-RECOVERY-1027B: Apple Pay not marked declined (same as WALLET-NSF-1018), so Apple Pay stays offered
             setRefundCard(autoRefund); // TOP4-T2B-1009
             setErrorMsg(orsOnFail(msg)); // [OURSIDE-RETRY-1012]
           }
