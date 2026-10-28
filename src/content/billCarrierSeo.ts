@@ -188,6 +188,21 @@ const verizonFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-
   { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-VERIZON-PREPAID-1027
   { q: "Can I set up Auto Pay?", a: "Yes. Auto Pay is optional. You can turn it on at checkout. It is never pre-checked." }, // BILLPAY-VERIZON-PREPAID-1027
 ]; // BILLPAY-VERIZON-PREPAID-1027
+const ultraFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-ULTRA-1028
+  { q: "¿Cómo pago mi factura de Ultra Mobile en línea?", a: "Ingrese el número de teléfono de Ultra Mobile, elija el plan y pague. No necesita una cuenta." }, // BILLPAY-ULTRA-1028
+  { q: "¿Puedo pagar mi factura de Ultra Mobile sin iniciar sesión?", a: "Sí. No necesita iniciar sesión ni una cuenta. Solo necesita el número de teléfono." }, // BILLPAY-ULTRA-1028
+  { q: "¿Puedo pagar la línea de Ultra Mobile de otra persona?", a: "Sí. Ingrese su número de Ultra Mobile y revíselo bien antes de pagar." }, // BILLPAY-ULTRA-1028
+  { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es").replace("Apple Pay en dispositivos Apple compatibles", "Apple Pay en dispositivos compatibles")}` }, // BILLPAY-ULTRA-1028
+  { q: "¿Cuándo se aplica mi pago?", a: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Cuando el pago se completa, verá una confirmación con los datos de su transacción." }, // BILLPAY-ULTRA-1028
+  { q: "¿Puedo activar el Auto Pago?", a: "Sí. El Auto Pago es opcional. Lo puede activar al pagar. Nunca está marcado de antemano." }, // BILLPAY-ULTRA-1028
+] : [ // BILLPAY-ULTRA-1028
+  { q: "How do I pay my Ultra Mobile bill online?", a: "Enter the Ultra Mobile phone number, pick your plan, and pay. No account needed." }, // BILLPAY-ULTRA-1028
+  { q: "Can I pay my Ultra Mobile bill without a login?", a: "Yes. You don't need a login or an account. The phone number is enough." }, // BILLPAY-ULTRA-1028
+  { q: "Can I pay someone else's Ultra Mobile line?", a: "Yes. Enter their Ultra Mobile number and double-check it before you pay." }, // BILLPAY-ULTRA-1028
+  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-ULTRA-1028
+  { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-ULTRA-1028
+  { q: "Can I set up Auto Pay?", a: "Yes. Auto Pay is optional. You can turn it on at checkout. It is never pre-checked." }, // BILLPAY-ULTRA-1028
+]; // BILLPAY-ULTRA-1028
 
 export const BILL_PAGES: BillPage[] = [
   { // BILLPAY-METRO-1021
@@ -375,9 +390,39 @@ export const BILL_PAGES: BillPage[] = [
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-VERIZON-PREPAID-1027
     faqOnly: true, // BILLPAY-VERIZON-PREPAID-1027
   }, // BILLPAY-VERIZON-PREPAID-1027
+  { // BILLPAY-ULTRA-1028
+    path: "/es/ultra-mobile.html", lang: "es", name: "Ultra Mobile", // BILLPAY-ULTRA-1028
+    title: "Pagar Factura Ultra Mobile en Línea sin Cuenta | CellPay", // BILLPAY-ULTRA-1028
+    description: "Pague su factura de Ultra Mobile en línea. Sin cuenta y sin iniciar sesión. Puede pagar por otra persona. Verá el cargo por servicio antes de pagar.", // BILLPAY-ULTRA-1028
+    h1: "Pague su Factura de Ultra Mobile en Línea", // BILLPAY-ULTRA-1028
+    sub: "Transacciones Sencillas y Seguras para Usuarios Prepagados de Ultra Mobile", // BILLPAY-ULTRA-1028
+    autoPayInfoLead: "Opcional: Auto Pago para no olvidar su pago.", // BILLPAY-ULTRA-1028
+    enterAmount: "Ingrese el monto que desea recargar", // BILLPAY-ULTRA-1028
+    securePayment: "Pago seguro. Su recarga se envía directamente a su teléfono.", // BILLPAY-ULTRA-1028
+    faqTitle: "Preguntas frecuentes", // BILLPAY-ULTRA-1028
+    faqs: ultraFaqs("es"), // BILLPAY-ULTRA-1028
+    guide: ["/es/como-pagar/ultra-mobile", "Cómo pagar Ultra Mobile"], // BILLPAY-ULTRA-1028
+    more: [["/es/paga-tu-factura", "Pague su factura de celular"]], // BILLPAY-ULTRA-1028
+    faqOnly: true, // BILLPAY-ULTRA-1028
+  }, // BILLPAY-ULTRA-1028
+  { // BILLPAY-ULTRA-1028
+    path: "/ultra-mobile.html", lang: "en", name: "Ultra Mobile", // BILLPAY-ULTRA-1028
+    title: "Pay Ultra Mobile Bill Online – No Login | CellPay", // BILLPAY-ULTRA-1028
+    description: "Pay your Ultra Mobile bill online with just the phone number. No account or login needed. Pay for yourself or someone else. Low service fee shown before you pay.", // BILLPAY-ULTRA-1028
+    h1: "Pay Your Ultra Mobile Bill Online", // BILLPAY-ULTRA-1028
+    sub: "No login needed. Enter your phone number, choose your plan, and you're recharged.", // BILLPAY-ULTRA-1028
+    autoPayInfoLead: "Optional: Auto Pay so you never miss a refill.", // BILLPAY-ULTRA-1028
+    enterAmount: "Enter the amount you want to recharge", // BILLPAY-ULTRA-1028
+    securePayment: "Secure payment. Your refill is sent directly to your phone.", // BILLPAY-ULTRA-1028
+    faqTitle: "Common questions", // BILLPAY-ULTRA-1028
+    faqs: ultraFaqs("en"), // BILLPAY-ULTRA-1028
+    guide: ["/how-to-pay/ultra-mobile", "How to pay Ultra Mobile"], // BILLPAY-ULTRA-1028
+    more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-ULTRA-1028
+    faqOnly: true, // BILLPAY-ULTRA-1028
+  }, // BILLPAY-ULTRA-1028
 ];
 
-const BILL_PATH_ALIAS: Record<string, string> = { "/total-wireless": "/total-wireless.html", "/es/total-wireless": "/es/total-wireless.html" }; // TW-FAQ-HYDRATE-SHELL-1027
+const BILL_PATH_ALIAS: Record<string, string> = { "/total-wireless": "/total-wireless.html", "/es/total-wireless": "/es/total-wireless.html", "/ultra-mobile": "/ultra-mobile.html", "/es/ultra-mobile": "/es/ultra-mobile.html" }; // TW-FAQ-HYDRATE-SHELL-1027 // BILLPAY-ULTRA-1028
 
 export const billPageByPath = (pathname: string): BillPage | undefined => {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
