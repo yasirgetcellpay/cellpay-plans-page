@@ -760,7 +760,7 @@ const DynamicCarrier = ({
           <div className="relative flex justify-center h-14 sm:h-20 items-center">
             <BackButton />
             {logo ? (
-              <img src={logo} alt={bill || carrierSlug === "metropcs" /* GSC-MAULIK-1014 */ ? `${carrierName} logo` /* SEO-CONTENT-1014 */ : `${carrierName} prepaid refill logo`} width={LOGO_DIMS[carrierSlug]?.[0]} height={LOGO_DIMS[carrierSlug]?.[1]} className="h-[32px] sm:h-[44px] w-auto object-contain" />
+              <img src={logo} alt={bill || carrierSlug === "metropcs" /* GSC-MAULIK-1014 */ ? `${carrierName} logo` /* SEO-CONTENT-1014 */ : `${carrierName} prepaid refill logo`} width={LOGO_DIMS[carrierSlug]?.[0]} height={LOGO_DIMS[carrierSlug]?.[1]} className="h-8 w-8 sm:h-11 sm:w-11 object-contain" />
             ) : (
               <span className="text-xl sm:text-2xl font-extrabold" style={{ color: bc }}>{carrierName}</span>
             )}
