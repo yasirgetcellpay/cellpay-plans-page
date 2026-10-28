@@ -44,7 +44,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [Lyca Mobile](https://www.cellpay.us/lyca.html): Lyca Mobile prepaid plan refills.
 - [Net10](https://www.cellpay.us/net10.html): Net10 Wireless prepaid refills.
 - [Page Plus](https://www.cellpay.us/pageplus.html): Page Plus Cellular prepaid refills.
-- [Ultra Mobile](https://www.cellpay.us/ultra-mobile.html): Ultra Mobile prepaid plan refills.
+- [Pay Ultra Mobile bill online](https://www.cellpay.us/ultra-mobile.html): Pay an Ultra Mobile bill with just the number, no login.
 
 ## How to pay guides
 
@@ -94,7 +94,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [Lyca Mobile (español)](https://www.cellpay.us/es/lyca.html)
 - [Net10 (español)](https://www.cellpay.us/es/net10.html)
 - [Page Plus (español)](https://www.cellpay.us/es/pageplus.html)
-- [Ultra Mobile (español)](https://www.cellpay.us/es/ultra-mobile.html)
+- [Pagar factura Ultra Mobile](https://www.cellpay.us/es/ultra-mobile.html)
 - [Pagar Simple Mobile (español)](https://www.cellpay.us/es/s1.html)
 - [Cómo pagar Boost Mobile](https://www.cellpay.us/es/como-pagar/boost-mobile)
 - [Cómo pagar Cricket Wireless](https://www.cellpay.us/es/como-pagar/cricket)
