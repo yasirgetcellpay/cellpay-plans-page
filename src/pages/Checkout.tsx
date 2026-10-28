@@ -1737,10 +1737,11 @@ const Checkout = () => {
     input?.focus({ preventScroll: true });
     try { trackKlarna("klarna_form_blocked", readKlarnaSrc(phone10), `blocked|${field}`, { klarna_field: field }); } catch { /* ignore */ }
   };
-  const focusKlarnaBilling = () => { // KLARNA-DECLINE-BTN-1022 // DECLINE-RECOVERY-1027
+  const focusKlarnaBilling = (fromDecline?: boolean) => { // KLARNA-DECLINE-BTN-1022 // DECLINE-RECOVERY-1027 // KLARNA-OTHER-DECLINE-1027
     window.setTimeout(() => { // DECLINE-RECOVERY-1027
       const field = firstMissingKlarnaField(klarnaValuesRef.current); // DECLINE-RECOVERY-1027
       if (field) { // DECLINE-RECOVERY-1027
+        if (fromDecline) setKlarnaMissing(field); // KLARNA-OTHER-DECLINE-1027: show the same missing-field error label as a failed Pay tap (no tracking event)
         klarnaBillingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); // DECLINE-RECOVERY-1027
         klarnaBillingRef.current?.querySelector<HTMLInputElement>(`[data-klarna-field="${field}"]`)?.focus({ preventScroll: true }); // DECLINE-RECOVERY-1027
         return; // DECLINE-RECOVERY-1027
@@ -3569,7 +3570,7 @@ const Checkout = () => {
                             if (!klarnaFirstName.trim()) setKlarnaFirstName(firstName);
                             if (!klarnaLastName.trim()) setKlarnaLastName(lastName);
                             if (!klarnaPhone.trim()) setKlarnaPhone(state.phone);
-                            rec(); close(); selectMethodLikeTile("klarna"); focusKlarnaBilling(); // KLARNA-DECLINE-BTN-1022
+                            rec(); close(); selectMethodLikeTile("klarna"); focusKlarnaBilling(true); // KLARNA-DECLINE-BTN-1022 // KLARNA-OTHER-DECLINE-1027
                           }}>{fc.klarna.replace("{x}", klarnaQuarter(total))}</button>
                         <p className="text-xs text-muted-foreground" data-testid="funds-klarna-approval">{fc.approval}</p>
                         <p className="text-[11px] leading-snug text-muted-foreground" data-testid="funds-klarna-disclosure">{fc.disclosure} <a href="https://www.klarna.com/us/terms-and-conditions/" target="_blank" rel="noopener" className="underline">{fc.terms}</a></p>
@@ -3600,7 +3601,8 @@ const Checkout = () => {
                           if (!klarnaFirstName.trim()) setKlarnaFirstName(firstName); // KLARNA-DECLINE-OTHER-1020
                           if (!klarnaLastName.trim()) setKlarnaLastName(lastName); // KLARNA-DECLINE-OTHER-1020
                           if (!klarnaPhone.trim()) setKlarnaPhone(state.phone); // KLARNA-DECLINE-OTHER-1020
-                          rec(); close(); selectMethodLikeTile("klarna"); focusKlarnaBilling(); }} /* KLARNA-FUNNEL-1017 // KLARNA-DECLINE-BTN-1022 */ className={btn + " border-2 text-foreground bg-background"} style={{ borderColor: "#FFA8CD" }}>{dc.abKlarna}</button>
+                          rec(); close(); selectMethodLikeTile("klarna"); focusKlarnaBilling(true); // KLARNA-OTHER-DECLINE-1027
+                          }} /* KLARNA-FUNNEL-1017 // KLARNA-DECLINE-BTN-1022 */ className={btn + " border-2 text-foreground bg-background"} style={{ borderColor: "#FFA8CD" }}>{dc.abKlarna}</button>
                       )}
                       {ppBtn}{primaryWallet === "applepay" ? gpBtn : null}
                       {(showRetry || showAnother) && <p className="text-xs text-muted-foreground pt-1">{dc.orCard}</p>}
