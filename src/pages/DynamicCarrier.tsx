@@ -226,7 +226,7 @@ const getAmountProblem = (text: string, n: number, min: number, max: number): "e
 };
 
 const formatDollars = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(2));
-export function pickUltraOverride<T extends { amount?: number; rangeMin?: number; rangeMax?: number }>(sel: number, fixed: T[], range: T[]): { kind: "match" | "range" | "override"; plan: T; amount: number } | { kind: "pick" | "none" } { // ULTRA-AMOUNT-OVERRIDE-1029
+export function pickUltraOverride<T extends { amount?: number; rangeMin?: number; rangeMax?: number }>(sel: number, fixed: T[], range: T[]): { kind: "match" | "range" | "override"; plan: T; amount: number } | { kind: "pick" } | { kind: "none" } { // ULTRA-AMOUNT-OVERRIDE-1029
   if (!Number.isFinite(sel)) return { kind: "none" }; // ULTRA-AMOUNT-OVERRIDE-1029
   const usable = fixed.filter((p) => typeof p.amount === "number" && Number.isFinite(p.amount) && p.amount > 0); // ULTRA-AMOUNT-OVERRIDE-1029
   const match = usable.find((p) => p.amount === sel); // ULTRA-AMOUNT-OVERRIDE-1029
