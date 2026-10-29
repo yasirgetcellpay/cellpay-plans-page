@@ -1998,8 +1998,22 @@ const htmlAliasPlugin = (): Plugin => ({
         const screen = goScreen;
         out = out.replace(/<div id="root"><\/div>/i, () => screen);
       }
-      const guest = goScreen ? undefined : GUEST_CONTENT[route] || GO_CONTENT[route];
+      const guest = goScreen ? undefined : GUEST_CONTENT[route]; // GUEST-CLS-1029
       if (guest) {
+        const prerender =
+          `<div id="root"></div>` + `<div style="height:0;overflow:hidden">` +
+          `<main role="main" style="font-family:'Open Sans',system-ui,Arial,sans-serif;max-width:760px;margin:48px auto;padding:0 20px;color:#0f172a;text-align:center">` +
+          `<h1 style="font-size:28px;line-height:1.25;font-weight:800;margin:0 0 16px">${escAttr(guest.h1)}</h1>` +
+          `<p style="font-size:16px;line-height:1.55;margin:0;color:#334155">${escAttr(GO_SHELLS.has(route) ? goFeeCopy(guest.intro) : guest.intro)}</p>` +
+          (route === "guest-boost.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/how-to-pay/boost-mobile" style="text-decoration:underline">How to pay Boost Mobile</a></p>` : "") + // SEO-CONTENT-1014
+          (route === "guest-boost.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/boost.html" style="text-decoration:underline">Pay your Boost Mobile bill online</a></p>` : "") + // BILLPAY-BOOST-1022
+          (route === "guest-net10.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/how-to-pay/net10" style="text-decoration:underline">How to pay Net10 Wireless</a></p>` : "") + // AEO-09-NET10-1015
+          (route === "guest-h2o.html" ? `<p style="font-size:14px;margin:16px 0 0"><a href="/how-to-pay/h2o" style="text-decoration:underline">How to pay H2O</a></p>` : "") + // AEO-10-H2O-1016
+          `</main>` +
+          `</div>`;
+        out = out.replace(/<div id="root"><\/div>/i, prerender);
+      } else if (!goScreen && GO_CONTENT[route]) {
+        const guest = GO_CONTENT[route];
         const prerender =
           `<div id="root">` +
           `<main role="main" style="font-family:'Open Sans',system-ui,Arial,sans-serif;max-width:760px;margin:48px auto;padding:0 20px;color:#0f172a;text-align:center">` +
