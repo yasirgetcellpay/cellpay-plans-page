@@ -226,16 +226,16 @@ const getAmountProblem = (text: string, n: number, min: number, max: number): "e
 };
 
 const formatDollars = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(2));
-export function pickUltraOverride<T extends { amount?: number; rangeMin?: number; rangeMax?: number }>(sel: number, fixed: T[], range: T[]): { kind: "match" | "range" | "override"; plan: T; amount: number } | { kind: "pick" } | { kind: "none" } { // ULTRA-AMOUNT-OVERRIDE-1029
+export function pickUltraOverride<T extends { amount?: number; rangeMin?: number; rangeMax?: number }>(sel: number, fixed: T[], range: T[], mode: "plan" | "custom"): { kind: "match" | "range" | "override"; plan: T; amount: number } | { kind: "pick" } | { kind: "none" } { // ULTRA-AMOUNT-OVERRIDE-1029
   if (!Number.isFinite(sel)) return { kind: "none" }; // ULTRA-AMOUNT-OVERRIDE-1029
   const usable = fixed.filter((p) => typeof p.amount === "number" && Number.isFinite(p.amount) && p.amount > 0); // ULTRA-AMOUNT-OVERRIDE-1029
   const match = usable.find((p) => p.amount === sel); // ULTRA-AMOUNT-OVERRIDE-1029
   if (match) return { kind: "match", plan: match, amount: sel }; // ULTRA-AMOUNT-OVERRIDE-1029
-  const wallet = range.find((p) => typeof p.rangeMin === "number" && typeof p.rangeMax === "number" && Number.isFinite(p.rangeMin) && Number.isFinite(p.rangeMax) && p.rangeMin <= sel && sel <= p.rangeMax); // ULTRA-AMOUNT-OVERRIDE-1029
+  const wallet = mode === "custom" ? range.find((p) => typeof p.rangeMin === "number" && typeof p.rangeMax === "number" && Number.isFinite(p.rangeMin) && Number.isFinite(p.rangeMax) && p.rangeMin <= sel && sel <= p.rangeMax) : undefined; // ULTRA-AMOUNT-OVERRIDE-1029
   if (wallet) return { kind: "range", plan: wallet, amount: sel }; // ULTRA-AMOUNT-OVERRIDE-1029
   const only = usable[0]; // ULTRA-AMOUNT-OVERRIDE-1029
   if (usable.length === 1 && only && typeof only.amount === "number") return { kind: "override", plan: only, amount: only.amount }; // ULTRA-AMOUNT-OVERRIDE-1029
-  return { kind: fixed.length > 1 ? "pick" : "none" }; // ULTRA-AMOUNT-OVERRIDE-1029
+  return { kind: usable.length > 1 ? "pick" : "none" }; // ULTRA-AMOUNT-OVERRIDE-1029
 } // ULTRA-AMOUNT-OVERRIDE-1029
 
 const wholeDollarMessage = (lang: string, n: number): string =>
@@ -668,7 +668,7 @@ const DynamicCarrier = ({
       toast({ title: tr.phoneRequired, description: tr.phoneRequired, variant: "destructive" });
       return;
     }
-    if (carrierSlug === "ultra-mobile" && ultraMdn10 && await handleUltraAmountOverride(Number(plan.price.replace("$", "")))) return; // ULTRA-AMOUNT-OVERRIDE-1029
+    if (carrierSlug === "ultra-mobile" && ultraMdn10 && await handleUltraAmountOverride(Number(plan.price.replace("$", "")), "plan")) return; // ULTRA-AMOUNT-OVERRIDE-1029
     { const pa = Number(plan.price.replace("$", "")); if (!(await rpGate(isVerizonRange(pa) ? rangePlanId : plans.find((p) => p.amount === pa)?.plan_id, pa))) return; } // REFILL-PREVENT-1024
     setVerifying(true);
     const verify = await verifyPhone(carrierSlug, phoneDigits);
@@ -704,7 +704,7 @@ const DynamicCarrier = ({
       toast({ title: msg, description: msg, variant: "destructive" });
       return;
     }
-    if (carrierSlug === "ultra-mobile" && ultraMdn10 && await handleUltraAmountOverride(amountNum)) return; // ULTRA-AMOUNT-OVERRIDE-1029
+    if (carrierSlug === "ultra-mobile" && ultraMdn10 && await handleUltraAmountOverride(amountNum, "custom")) return; // ULTRA-AMOUNT-OVERRIDE-1029
     if (!rangeAmountValid) {
       const msg = amountMessage || tr.invalidAmount(rangeMin, rangeMax);
       setAmountTouched(true);
@@ -772,7 +772,7 @@ const DynamicCarrier = ({
         ultraMdn: { mdn: ultraMdn10, barcode: plan.barcode, kind: plan.kind, planId: plan.planId, carrierId: plan.carrierId, rangeMin: plan.rangeMin, rangeMax: plan.rangeMax, ...(plan.kind === "fixed" ? { amount: amt } : {}) } }, // ULTRA-MDN-1029
     }); // ULTRA-MDN-1029
   }; // ULTRA-MDN-1029
-  const handleUltraAmountOverride = async (sel: number): Promise<boolean> => { // ULTRA-AMOUNT-OVERRIDE-1029
+  const handleUltraAmountOverride = async (sel: number, mode: "plan" | "custom"): Promise<boolean> => { // ULTRA-AMOUNT-OVERRIDE-1029
     let result = ultraBOk ?? ultraBRes; // ULTRA-AMOUNT-OVERRIDE-1029
     if (!result) { // ULTRA-AMOUNT-OVERRIDE-1029
       setVerifying(true); // ULTRA-AMOUNT-OVERRIDE-1029
@@ -780,7 +780,7 @@ const DynamicCarrier = ({
     } // ULTRA-AMOUNT-OVERRIDE-1029
     if (ultraCurrentMdn.current !== ultraMdn10) return true; // ULTRA-AMOUNT-OVERRIDE-1029
     if (!result?.ok || (!result.fixed.length && !result.range.length)) return false; // ULTRA-AMOUNT-OVERRIDE-1029
-    const pick = pickUltraOverride(sel, result.fixed, result.range); // ULTRA-AMOUNT-OVERRIDE-1029
+    const pick = pickUltraOverride(sel, result.fixed, result.range, mode); // ULTRA-AMOUNT-OVERRIDE-1029
     if (pick.kind === "none") return false; // ULTRA-AMOUNT-OVERRIDE-1029
     if (pick.kind === "pick") { // ULTRA-AMOUNT-OVERRIDE-1029
       setUltraB({ mdn: ultraMdn10, state: "done", r: result }); setUltraShowAll(false); // ULTRA-AMOUNT-OVERRIDE-1029
