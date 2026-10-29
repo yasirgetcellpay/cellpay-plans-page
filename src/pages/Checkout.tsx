@@ -459,6 +459,7 @@ const Checkout = () => {
   useEffect(() => { try { sessionStorage.setItem("cp_mkt_consent_v1", "1"); } catch { /* ignore */ } }, []); // CONSENT-EVERY-ATTEMPT-1016: the consent line is shown on this page, so attempts from here carry consent
   const checkoutConfigRef = useRef<Record<string, unknown> | null>(null); // APAP-1007: mirror of checkoutConfig (state is declared below)
   const [gpGate, setGpGate] = useState<{ ok: boolean; site: string } | null>(null); // GPAY-AUTOPAY-1008: gpay_autopay_check answer (offer stage)
+  const [gpayApDropped, setGpayApDropped] = useState<string | null>(null); // SPEC-GPAY-AP-SURFACE-1029
   const gpRecurringRef = useRef(false); // GPAY-AUTOPAY-1008: true only when THIS Google Pay order sent the Auto Pay flags
   const [, setApConfigTick] = useState(0);
   // ARB-0: Auto Pay is offered with card only. Leaving card clears Auto Pay and its terms tick, so hidden state can't keep
@@ -2172,6 +2173,14 @@ const Checkout = () => {
       const cfg = (checkoutConfigRef.current?.googlePay as Record<string, unknown> | undefined)?.recurringSupported;
       gpRecurring = r.ok === true && r.site !== "off" && cfg !== false && (cfg === true || r.site === "on");
     }
+    // SPEC-GPAY-AP-SURFACE-1029: surface one-time fallback without changing the submit gate or payment.
+    if (gpWantAutoPay && !gpRecurring) {
+      setGpayApDropped(lang === "es"
+        ? "No se pudo activar el Pago Automático con este Google Pay. Se le cobrará solo una vez. Intente más tarde, o use tarjeta o Apple Pay para Pago Automático."
+        : "Auto Pay could not be set up for this Google Pay payment. You will be charged one time only. Try again later, or use a card or Apple Pay for Auto Pay.");
+    } else if (gpRecurring) {
+      setGpayApDropped(null);
+    }
     gpRecurringRef.current = gpRecurring;
     console.log("[GooglePay] autopay", gpRecurring);
 
@@ -3296,6 +3305,7 @@ const Checkout = () => {
               </>
             )}
 
+            {gpayApDropped && <p role="status" className="text-sm text-muted-foreground leading-relaxed">{gpayApDropped}</p>}
             {paymentMethod !== "paypal" && consentLine /* CONSENT-TERMS-1014 */}
             {paymentMethod !== "paypal" && (
               <button
