@@ -1848,6 +1848,14 @@ async function planGuard(pr: Record<string, unknown>, headers: Record<string, st
   if (plan === "8947005") return { ok: false, reason: "lyca_8947005", message: es ? "Este plan no está disponible ahora. Elija otro plan." : "This plan is not available right now. Please choose another plan.", source: "none" }; // LYCA10-HIDE-1017
   if (await pgDeadMatch(slug, plan)) return { ok: false, reason: `dead_${plan}`, message: es ? "Este plan no está disponible ahora. Elija otro plan." : "This plan is not available right now. Please choose another plan.", source: "none" }; // LYCA-SKU-FIX-1024
   if ((plan === "238888" || slug === "tmobile" || slug === "tmobile-flexi") && Number.isFinite(amt) && amt > 200) return { ok: false, reason: "tmo_cap_200", message: es ? "Las recargas de T-Mobile tienen un límite de $200 por ahora. Ingrese $200 o menos." : "T-Mobile refills are limited to $200 right now. Please enter $200 or less.", source: "none" }; // TMO-CAP-200-1022
+  if (slug === "ultra-mobile" && typeof pr.barcode === "string" && pr.barcode.trim() !== "") { // ULTRA-MDN-1029: MDN plan (source B) checked against the MDN lookup, not carriers/view
+    let um = String(pr.phone_number ?? "").replace(/\D/g, ""); if (um.length === 11 && um.startsWith("1")) um = um.slice(1); // ULTRA-MDN-1029
+    let uc: "ok" | "mismatch" | "fail" = "fail"; // ULTRA-MDN-1029
+    try { uc = /^\d{10}$/.test(um) && plan && Number.isFinite(amt) ? await ultraMdnPlanCheck(um, plan, pr.barcode, amt, headers) : "mismatch"; } catch { uc = "fail"; } // ULTRA-MDN-1029
+    if (uc === "ok") return { ok: true, source: "hub" }; // ULTRA-MDN-1029
+    if (uc === "fail") { recordGuardEvent({ code: "plan_guard_failopen", method: "POST", endpoint_shape: `checkout/transaction#${slug}:${plan}:${amt}:mdn` }); return { ok: true, source: "failopen" }; } // ULTRA-MDN-1029
+    return { ok: false, reason: "ultra_mdn_plan", message: es ? "Este plan no está disponible. Elija un plan de la lista." : "This plan is not available. Please choose a plan from the list.", source: "hub" }; // ULTRA-MDN-1029
+  } // ULTRA-MDN-1029
   if (!slug || !plan || !Number.isFinite(amt)) return { ok: true, source: "none" };
   let hub: { data: Record<string, unknown> | null; source: "hub" | "cache" };
   try { hub = await pgHub(slug, headers); } catch { hub = { data: null, source: "hub" }; }
@@ -1889,6 +1897,34 @@ async function planGuard(pr: Record<string, unknown>, headers: Record<string, st
 function pgHeaders(apiKey: string, apiSecret: string, callerHost: string): Record<string, string> { // PLAN-RANGES-1016: same headers as the GET forward
   return { "X-Api-Key": apiKey, "X-Api-Secret": apiSecret, "X-Cellpay-Domain": resolveCellpayDomain(callerHost), "Content-Type": "application/json", "Accept": "*/*" };
 }
+const ULTRA_MDN_CACHE = new Map<string, { at: number; data: Record<string, unknown> }>(); // ULTRA-MDN-1029: per-isolate, 200 success bodies only
+const ULTRA_MDN_TTL = 5 * 60 * 1000; // ULTRA-MDN-1029
+type UltraMdnFetch = { ok: true; data: Record<string, unknown> } | { ok: false; status: number; message?: string }; // ULTRA-MDN-1029
+async function ultraMdnFetch(mdn: string, headers: Record<string, string>): Promise<UltraMdnFetch> { // ULTRA-MDN-1029
+  const c = ULTRA_MDN_CACHE.get(mdn); // ULTRA-MDN-1029
+  if (c && Date.now() - c.at < ULTRA_MDN_TTL) return { ok: true, data: c.data }; // ULTRA-MDN-1029
+  try { // ULTRA-MDN-1029
+    const r = await fetch(`${API_BASE}/plans/ultra-plans?mdn=${mdn}`, { method: "GET", headers, signal: AbortSignal.timeout(6000) }); // ULTRA-MDN-1029
+    const txt = await r.text(); // ULTRA-MDN-1029: JSON.parse keeps string barcodes as strings
+    let raw: Record<string, unknown> = {}; // ULTRA-MDN-1029
+    try { const j = JSON.parse(txt); if (j && typeof j === "object") raw = j as Record<string, unknown>; } catch { /* non-JSON */ } // ULTRA-MDN-1029
+    const msgOf = () => { const m = raw.message ?? raw.error ?? raw.msg; const s = typeof m === "string" ? m : m != null ? JSON.stringify(m) : (Object.keys(raw).length ? "" : txt); return s ? s.slice(0, 300) : undefined; }; // ULTRA-MDN-1029
+    if (r.status !== 200 || raw.success === false) return { ok: false, status: r.status === 200 ? 422 : r.status, message: msgOf() }; // ULTRA-MDN-1029
+    let d = (raw.data && typeof raw.data === "object" ? raw.data : raw) as Record<string, unknown>; // ULTRA-MDN-1029
+    if (d && d.data && typeof d.data === "object" && !Array.isArray(d.data)) d = d.data as Record<string, unknown>; // ULTRA-MDN-1029
+    ULTRA_MDN_CACHE.set(mdn, { at: Date.now(), data: d }); // ULTRA-MDN-1029
+    return { ok: true, data: d }; // ULTRA-MDN-1029
+  } catch { return { ok: false, status: 502 }; } // ULTRA-MDN-1029
+} // ULTRA-MDN-1029
+async function ultraMdnPlanCheck(mdn: string, planId: string, barcode: string, amount: number, headers: Record<string, string>): Promise<"ok" | "mismatch" | "fail"> { // ULTRA-MDN-1029
+  const r = await ultraMdnFetch(mdn, headers); // ULTRA-MDN-1029
+  if (!r.ok) return r.status >= 500 ? "fail" : "mismatch"; // ULTRA-MDN-1029
+  const list = (k: string) => (Array.isArray(r.data[k]) ? r.data[k] : []) as Array<Record<string, unknown>>; // ULTRA-MDN-1029
+  const same = (p: Record<string, unknown>) => String(p.plan_id ?? p.planId ?? "") === planId && String(p.barcode ?? "") === barcode; // ULTRA-MDN-1029
+  if (list("fixed_plans").some((p) => same(p) && Math.abs(amount - Number(p.amount)) <= 0.01)) return "ok"; // ULTRA-MDN-1029
+  if (list("range_plans").some((p) => same(p) && Number(p.rangeMin ?? p.range_min) <= amount && amount <= Number(p.rangeMax ?? p.range_max))) return "ok"; // ULTRA-MDN-1029
+  return "mismatch"; // ULTRA-MDN-1029
+} // ULTRA-MDN-1029
 
 // PLAN-RANGES-1016: RETRY-BLOCK. Same phone + plan + amount got CellPay's refill-error result in the last 30 min -> refused. Fail-open (1 s).
 const RB_WINDOW_MS = 30 * 60 * 1000; // PLAN-RANGES-1016
@@ -2298,7 +2334,7 @@ function ppScrub(value: unknown, depth = 0): void {
     else ppScrub(r[k], depth + 1);
   }
 }
-const PP_META_KEYS = ["phone_number", "carrierId", "plan_id", "amount", "total", "email", "carrier_slug", "carrier_name", "browser_info", "kount_ssid", "source"];
+const PP_META_KEYS = ["phone_number", "carrierId", "plan_id", "amount", "total", "email", "carrier_slug", "carrier_name", "browser_info", "kount_ssid", "source", "barcode"]; // ULTRA-MDN-1029: + barcode
 const PP_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PP_BLOCK_MSG = "We couldn't process this payment right now. Please try again in about 30 minutes or use a different payment method. You were not charged.";
 const PP_DUP_MSG = "This payment is already being processed. Please wait a moment before trying again; you will not be charged twice.";
@@ -2837,6 +2873,13 @@ serve(async (req) => {
       const pgr = await planGuard(asRecord(payload), pgHeaders(apiKey, apiSecret, callerHost), (body as Record<string, unknown>)?.lang);
       return new Response(JSON.stringify({ ok: pgr.ok, reason: pgr.reason ?? null, message: pgr.message ?? null, source: pgr.source === "none" ? "hub" : pgr.source }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    if (endpoint === "plans/ultra-plans" && (method.toUpperCase() === "GET" || method.toUpperCase() === "POST")) { // ULTRA-MDN-1029
+      const um = String(asRecord(payload).mdn ?? (body as Record<string, unknown>)?.mdn ?? "").trim(); // ULTRA-MDN-1029
+      if (!/^\d{10}$/.test(um)) return new Response(JSON.stringify({ success: false, code: "BAD_MDN" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }); // ULTRA-MDN-1029
+      const ur = await ultraMdnFetch(um, pgHeaders(apiKey, apiSecret, callerHost)); // ULTRA-MDN-1029
+      const ub = ur.ok ? { success: true, data: ur.data } : { success: false, status: ur.status, ...(ur.message ? { message: ur.message } : {}) }; // ULTRA-MDN-1029
+      return new Response(JSON.stringify(ub), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); // ULTRA-MDN-1029
+    } // ULTRA-MDN-1029
     // [autopay AP-1] The single restored route (exact endpoint + method). Anything else under autopay/*,
     // and transactions/last, still falls through to the 1a "retired" 403 below.
     if (AP1_ROUTE_ENABLED && endpoint === AP1_ENDPOINT && method === "POST") {
@@ -2916,6 +2959,10 @@ serve(async (req) => {
       delete payloadRecord.cp_dev;
       if (typeof fetchOptions.body === "string") fetchOptions.body = JSON.stringify(payloadRecord);
     }
+    if ("ultraBarcode" in payloadRecord || "ultraPurchaseType" in payloadRecord) { // ULTRA-MDN-1029: site-only keys never reach CellPay
+      delete payloadRecord.ultraBarcode; delete payloadRecord.ultraPurchaseType; // ULTRA-MDN-1029
+      if (typeof fetchOptions.body === "string") fetchOptions.body = JSON.stringify(payloadRecord); // ULTRA-MDN-1029
+    } // ULTRA-MDN-1029
     let mf: Mf | null = null;
     let mfIpP: Promise<Record<string, unknown> | null> = Promise.resolve(null);
     let riskAction: string | null = null;

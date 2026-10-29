@@ -28,6 +28,7 @@ import { rpVariant, rpEvent, phoneFormatBad, formatErrorText, confirmLabel, chec
 import { SIMPLE_META, SIMPLE_ANSWER, SIMPLE_FAQ_TITLE, SIMPLE_LINKS, simpleFaqs, simpleGridPlans } from "@/content/simplePage";
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
+import { fetchUltraMdnPlans, type UltraMdnPlan, type UltraMdnResult } from "@/services/apiWrapper"; // ULTRA-MDN-1029
 import { applySeoHead } from "@/lib/seo";
 import { feeCopy1019 } from "@/lib/feeCopy1019"; // METRO-FEECOPY-1019
 import { billPageByPath, billJsonLd } from "@/content/billCarrierSeo"; // SEO-CONTENT-1014
@@ -725,6 +726,38 @@ const DynamicCarrier = ({
     });
   };
 
+  // ULTRA-MDN-1029: source B (plans for this MDN). Ultra Mobile only; A plans stay the default/fallback.
+  const ultraMdn10 = (() => { let d = phone.replace(/[\s\-()+]/g, "").replace(/\D/g, ""); if (d.length === 11 && d.startsWith("1")) d = d.slice(1); return carrierSlug === "ultra-mobile" && /^\d{10}$/.test(d) ? d : ""; })(); // ULTRA-MDN-1029
+  const [ultraB, setUltraB] = useState<{ mdn: string; state: "loading" | "done"; r?: UltraMdnResult } | null>(null); // ULTRA-MDN-1029
+  const [ultraShowAll, setUltraShowAll] = useState(false); // ULTRA-MDN-1029
+  const [ultraRangeAmt, setUltraRangeAmt] = useState<Record<number, string>>({}); // ULTRA-MDN-1029
+  useEffect(() => { // ULTRA-MDN-1029: one lookup per valid MDN; stale replies ignored; phone change clears B selection
+    setUltraShowAll(false); setUltraRangeAmt({}); // ULTRA-MDN-1029
+    if (!ultraMdn10) { setUltraB(null); return; } // ULTRA-MDN-1029
+    let off = false; setUltraB({ mdn: ultraMdn10, state: "loading" }); // ULTRA-MDN-1029
+    void fetchUltraMdnPlans(ultraMdn10).then((r) => { if (!off) setUltraB({ mdn: ultraMdn10, state: "done", r }); }).catch(() => { if (!off) setUltraB({ mdn: ultraMdn10, state: "done", r: { ok: false, status: 502 } }); }); // ULTRA-MDN-1029
+    return () => { off = true; }; // ULTRA-MDN-1029
+  }, [ultraMdn10]); // ULTRA-MDN-1029
+  const ultraBRes = ultraB && ultraB.mdn === ultraMdn10 && ultraB.state === "done" ? ultraB.r : undefined; // ULTRA-MDN-1029
+  const ultraBOk = ultraBRes && ultraBRes.ok ? (ultraBRes as Extract<UltraMdnResult, { ok: true }>) : null; // ULTRA-MDN-1029
+  const ultraBActive = !!ultraBOk && !ultraShowAll; // ULTRA-MDN-1029: B is the default when it succeeds
+  const ultraBFail = ultraBRes && !ultraBRes.ok ? (ultraBRes as { ok: false; status: number; message?: string }) : null; // ULTRA-MDN-1029
+  const ultraBErr = ultraBFail ? ((ultraBFail.status === 422 || /TRANSACTION REJECTED/i.test(ultraBFail.message ?? "")) && ultraBFail.message ? { rejected: true, text: ultraBFail.message.slice(0, 300) } : { rejected: false, text: lang === "es" ? "No pudimos cargar los planes de este número. Mostramos todos los planes." : "Could not load plans for this number. Showing all plans." }) : null; // ULTRA-MDN-1029
+  const handleUltraBPay = async (plan: UltraMdnPlan, amt: number) => { // ULTRA-MDN-1029: same gates as today, then checkout with ultraMdn
+    setInlineError(null); // ULTRA-MDN-1029
+    if (!ultraMdn10 || !plan.barcode) { toast({ title: tr.phoneRequired, description: tr.phoneRequired, variant: "destructive" }); return; } // ULTRA-MDN-1029
+    if (!Number.isFinite(amt) || amt <= 0) return; // ULTRA-MDN-1029
+    if (!(await rpGate(plan.planId, amt))) return; // ULTRA-MDN-1029
+    setVerifying(true); // ULTRA-MDN-1029
+    const verify = await verifyPhone(carrierSlug, phoneDigits); // ULTRA-MDN-1029
+    setVerifying(false); // ULTRA-MDN-1029
+    if (!verify.success) { toast({ title: tr.invalidPhone, description: verify.message || tr.invalidPhone, variant: "destructive" }); return; } // ULTRA-MDN-1029
+    navigate(lang === "es" ? "/es/checkout" : "/checkout", { // ULTRA-MDN-1029
+      state: { phone, amount: amt, carrierSlug, carrierId: plan.carrierId, carrierName, brandColor, planId: plan.planId, planName: plan.name, // ULTRA-MDN-1029
+        ultraMdn: { mdn: ultraMdn10, barcode: plan.barcode, kind: plan.kind, planId: plan.planId, carrierId: plan.carrierId, rangeMin: plan.rangeMin, rangeMax: plan.rangeMax } }, // ULTRA-MDN-1029
+    }); // ULTRA-MDN-1029
+  }; // ULTRA-MDN-1029
+
   const bc = brandColor;
   // TOP4-T1-1009: display only. carrierName (API/DB name) still goes to checkout unchanged.
   const shownName = displayCarrierName(carrierName, lang === "es" ? "es" : "en");
@@ -927,8 +960,24 @@ const DynamicCarrier = ({
           {carrierSlug === "ultra-mobile" && <div className="max-w-[420px] mx-auto px-4 pb-4"><UltraSmartNotice smart={ultraSmart} lang={lang} onContinue={() => { if (ultraSmart.usual) void handlePlanPayNow({ price: `$${ultraSmart.usual.amount}`, highlight: ultraSmart.usual.name || "" }); }} /></div>}{/* // ULTRA-SMART-PREVENT-1024 */}
           {carrierSlug === "tmobile" && <div className="max-w-[420px] mx-auto px-4 pb-3"><TmoLastPlanNotice smart={tmoSmart} lang={lang} /></div>}{/* // REFILL-PREVENT-TMO-1026 */}
           {rpGuide && <p data-testid="rp-guidance" className="max-w-[420px] mx-auto px-4 pb-3 text-xs sm:text-sm text-muted-foreground text-center">{rpGuide}</p>}{/* REFILL-PREVENT-1024 */}
+          {carrierSlug === "ultra-mobile" && ultraMdn10 && ( /* ULTRA-MDN-1029 */
+            <div className="max-w-[420px] mx-auto px-4 pb-4" data-ultra-mdn="">{/* ULTRA-MDN-1029 */}
+              {ultraB?.state === "loading" && <p className="text-xs text-muted-foreground inline-flex items-center gap-2"><Loader2 className="h-3 w-3 animate-spin" />{lang === "es" ? "Buscando planes para este número…" : "Finding plans for this number…"}</p>}{/* ULTRA-MDN-1029 */}
+              {ultraBErr && <p className={`text-xs ${ultraBErr.rejected ? "text-destructive/80" : "text-muted-foreground"}`}>{ultraBErr.text}</p>}{/* ULTRA-MDN-1029 */}
+              {ultraBOk && ultraBOk.subscriber && <div className="rounded-lg border border-border bg-muted px-3 py-2 text-xs sm:text-sm text-foreground mb-3" style={{ whiteSpace: "pre-line" }}>{ultraBOk.subscriber}</div>}{/* ULTRA-MDN-1029 */}
+              {ultraBActive && ultraBOk && ultraBOk.fixed.length > 0 && <PlanGrid plans={ultraBOk.fixed.map((p, i) => ({ price: `$${formatDollars(p.amount ?? 0)}`, highlight: p.name || "", _i: i }))} brandColor={bc} onSelect={(pl) => { const fp = ultraBOk.fixed[(pl as { _i?: number })._i ?? -1]; if (fp && fp.amount !== undefined) void handleUltraBPay(fp, fp.amount); }} />}{/* ULTRA-MDN-1029 */}
+              {ultraBActive && ultraBOk && ultraBOk.range.map((rp, i) => { const mn = rp.rangeMin ?? 0; const mx = rp.rangeMax ?? 0; const v = ultraRangeAmt[i] ?? ""; const n = Number(v); const okAmt = v !== "" && Number.isFinite(n) && n >= mn && n <= mx; return ( /* ULTRA-MDN-1029 */
+                <div key={`ur${i}`} className="mt-3 rounded-lg border border-border bg-card p-3">{/* ULTRA-MDN-1029 */}
+                  <p className="text-sm font-bold text-foreground mb-2">{rp.name || `$${mn} – $${mx}`}</p>{/* ULTRA-MDN-1029 */}
+                  <input type="number" inputMode="decimal" min={mn} max={mx} value={v} placeholder={`$${mn} – $${mx}`} onChange={(e) => setUltraRangeAmt((cur) => ({ ...cur, [i]: e.target.value }))} onBlur={() => { if (v === "" || !Number.isFinite(n)) return; setUltraRangeAmt((cur) => ({ ...cur, [i]: String(Math.min(mx, Math.max(mn, n))) })); }} className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm" aria-label={rp.name || "amount"} />{/* ULTRA-MDN-1029 */}
+                  <button type="button" disabled={verifying || !okAmt || rpPhoneBlock || ultraSmart.paused} onClick={() => void handleUltraBPay(rp, n)} className="mt-2 w-full h-10 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm inline-flex items-center justify-center gap-2" style={{ backgroundColor: bc }}>{verifying && <Loader2 className="h-4 w-4 animate-spin" />}{verifying ? tr.verifying : tr.payNow}</button>{/* ULTRA-MDN-1029 */}
+                </div> /* ULTRA-MDN-1029 */
+              ); })}
+              {ultraBOk && <button type="button" className="mt-3 text-xs underline text-muted-foreground" onClick={() => setUltraShowAll((x) => !x)}>{ultraShowAll ? (lang === "es" ? "Ver los planes de este número" : "Show plans for this number") : (lang === "es" ? "Ver todos los planes de Ultra" : "Show all Ultra plans")}</button>}{/* ULTRA-MDN-1029 */}
+            </div>
+          )}
           {/* Plan grid (fixed_plans) */}
-          {showFixedPlans && plans.length > 0 && (
+          {showFixedPlans && plans.length > 0 && !ultraBActive /* ULTRA-MDN-1029 */ && (
             <PlanGrid
               plans={ultraSmart.paused ? shownGrid.plans.map((plan) => ({ ...plan, unavailable: ultraHealthText("pause", lang) })) : shownGrid.plans} // ULTRA-SMART-PREVENT-1024
               brandColor={bc}
@@ -942,7 +991,7 @@ const DynamicCarrier = ({
           )}
 
           {/* Terms + Pay (custom amount path) */}
-          {showRange && (
+          {showRange && !ultraBActive /* ULTRA-MDN-1029 */ && (
           <div className="max-w-[420px] mx-auto px-4 pb-24 sm:pb-12">
             <p className="text-xs sm:text-sm font-bold text-foreground mb-2 mt-2">{tr.importantLabel}</p>
             <label className="flex items-start gap-2 mb-6 cursor-pointer">
@@ -973,7 +1022,7 @@ const DynamicCarrier = ({
           {/* Mobile sticky Pay bar — keeps CTA visible above numeric keyboard
               on open denomination flows (feedback Page 2 #4). HC-ALL: pr-[72px] keeps a slot at the right end for the
               Help button (48px at right 16px + 8px gap), which docks inside it (data-help-dock-slot, helpMobileGuard.ts). */}
-          {showRange && (
+          {showRange && !ultraBActive /* ULTRA-MDN-1029 */ && (
             <div data-help-dock-slot="" className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] pl-3 pr-[72px] py-2 flex items-center gap-2"
                  style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)" }}>
               <div className="flex-1 text-left leading-tight">

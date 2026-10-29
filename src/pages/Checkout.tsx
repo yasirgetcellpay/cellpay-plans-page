@@ -61,6 +61,8 @@ import { SUPPORTED_COUNTRIES, getSubdivisions, normalizeRegionCode } from "@/lib
 import { useLang, t } from "@/lib/i18n";
 // TOP4-T2B-1009: carrier name for the "Your payment was refunded" card (display only)
 import { top4Name, displayCarrierName } from "@/content/carrierHero";
+import type { UltraMdnCtx } from "@/lib/checkoutResume"; // ULTRA-MDN-1029
+import { setUltraMdnActive } from "@/services/apiWrapper"; // ULTRA-MDN-1029
 import { readCheckoutCtx, writeCheckoutCtx, clearCheckoutCtx, resolveCheckoutFromUrl, carrierPageTarget, cashAppReturnTarget, stripResumeParams, readCheckoutMethod, writeCheckoutMethod } from "@/lib/checkoutResume";
 import { trackFunnel, resetFunnel, funnelFired } from "@/lib/funnelEvents"; // CHECKOUT-FUNNEL
 import { readDeclineAb, writeFunds, patchFunds, clearFunds, setKlarnaSrc, readKlarnaSrc, clearKlarnaSrc, type KlarnaSrc } from "@/lib/declineRecovery"; // KLARNA-FUNNEL-1017
@@ -75,6 +77,7 @@ interface LocationState {
   carrierSlug: string;
   carrierName: string;
   brandColor: string;
+  ultraMdn?: UltraMdnCtx; // ULTRA-MDN-1029
 }
 
 type PaymentMethod = "card" | "paypal" | "plaid" | "googlepay" | "applepay" | "klarna" | "cashapp";
@@ -366,10 +369,15 @@ const Checkout = () => {
   // REFUNDED-STATE-1017: never charge a phone that isn't a valid 10-digit US number.
   const phone10 = normalizePhone(String(state?.phone || ""));
   const phoneOk = /^[2-9]\d{9}$/.test(phone10);
+  const ultraMdnOk = !!state?.ultraMdn && state.carrierSlug === "ultra-mobile" && phone10 === state.ultraMdn.mdn && String(state.planId) === state.ultraMdn.planId && !!state.ultraMdn.barcode ? state.ultraMdn : null; // ULTRA-MDN-1029
+  const ultraMdnArg = ultraMdnOk ? { barcode: String(ultraMdnOk.barcode), kind: ultraMdnOk.kind } : undefined; // ULTRA-MDN-1029
+  const ultraMdnExtra = ultraMdnOk ? { barcode: String(ultraMdnOk.barcode), carrierId: ultraMdnOk.carrierId, plan_id: ultraMdnOk.planId, phone_number: ultraMdnOk.mdn } : {}; // ULTRA-MDN-1029
+  setUltraMdnActive(ultraMdnOk ? { mdn: ultraMdnOk.mdn, barcode: String(ultraMdnOk.barcode), planId: ultraMdnOk.planId, carrierId: ultraMdnOk.carrierId } : null); // ULTRA-MDN-1029: read by submitTransaction for every payment method
+  useEffect(() => () => setUltraMdnActive(null), []); // ULTRA-MDN-1029
   const [ultraPlans, setUltraPlans] = useState<UltraPlan[]>([]); // ULTRA-SMART-PREVENT-1024
   useEffect(() => { if (state?.carrierSlug !== "ultra-mobile") return; let cancelled = false; void readUltraPlans().then((plans) => { if (!cancelled) setUltraPlans(plans); }); return () => { cancelled = true; }; }, [state?.carrierSlug]); // ULTRA-SMART-PREVENT-1024
   const ultraSmart = useUltraSmart(state?.carrierSlug || "", phone10, phoneOk, ultraPlans); // ULTRA-SMART-PREVENT-1024
-  const goUltraPlan = (plan: UltraPlan) => { if (!state) return; const next = { ...state, amount: String(plan.amount), planId: plan.plan_id, planName: plan.name, ...(plan.carrierId ? { carrierId: plan.carrierId } : {}) }; writeCheckoutCtx(next); navigate(`${lang === "es" ? "/es" : ""}/checkout${location.search}${location.hash}`, { state: next }); }; // ULTRA-SMART-PREVENT-1024
+  const goUltraPlan = (plan: UltraPlan) => { if (!state) return; const next = { ...state, ultraMdn: undefined /* ULTRA-MDN-1029: A plan */, amount: String(plan.amount), planId: plan.plan_id, planName: plan.name, ...(plan.carrierId ? { carrierId: plan.carrierId } : {}) }; writeCheckoutCtx(next); navigate(`${lang === "es" ? "/es" : ""}/checkout${location.search}${location.hash}`, { state: next }); }; // ULTRA-SMART-PREVENT-1024
   const badPhoneGo = () => {
     toast({ title: lang === "es" ? "Ingrese el número de teléfono completo de 10 dígitos." : "Please enter the full 10-digit phone number.", variant: "destructive" });
     if (state) navigate(carrierPageTarget(lang, state.carrierSlug, "", state.amount, location.search, location.hash));
@@ -1099,7 +1107,8 @@ const Checkout = () => {
             state.carrierSlug,
             normalizePhone(state.phone),
             state.planId,
-            Number(state.amount)
+            Number(state.amount),
+            ultraMdnArg // ULTRA-MDN-1029
           ),
           fetchCheckoutConfig().catch(() => null),
         ]);
@@ -1109,7 +1118,7 @@ const Checkout = () => {
           return;
         }
         setValidation(result);
-        writeCheckoutCtx({ phone: state.phone, amount: String(state.amount), planId: state.planId, carrierSlug: state.carrierSlug, carrierName: state.carrierName, brandColor: state.brandColor });
+        writeCheckoutCtx({ phone: state.phone, amount: String(state.amount), planId: state.planId, carrierSlug: state.carrierSlug, carrierName: state.carrierName, brandColor: state.brandColor, ...(ultraMdnOk ? { ultraMdn: ultraMdnOk } : {}) }); // ULTRA-MDN-1029
         if (config) {
           console.log("Checkout config loaded:", config);
           setCheckoutConfig(config);
@@ -1315,6 +1324,7 @@ const Checkout = () => {
           plan_id: state.planId ? String(state.planId) : undefined,
           amount: validation?.amount ?? Number(state.amount),
           total: validation?.total ?? Number(state.amount),
+          ...ultraMdnExtra, // ULTRA-MDN-1029: PayPal create keeps barcode (pp meta)
         };
 
         // [PAYPAL-1008] pp_meta = log + guard fields for cellpay-proxy (same as a card order); the proxy removes it before CellPay.
@@ -1870,7 +1880,7 @@ const Checkout = () => {
     let carrierIdForCard = resolveCarrierId();
     if (!carrierIdForCard) {
       try {
-        const again = await validateRecharge(state.carrierSlug, normalizePhone(state.phone), state.planId, Number(state.amount));
+        const again = await validateRecharge(state.carrierSlug, normalizePhone(state.phone), state.planId, Number(state.amount), ultraMdnArg); // ULTRA-MDN-1029
         if (again && again.success !== false) carrierIdForCard = resolveCarrierId(again);
       } catch { /* handled below */ }
     }

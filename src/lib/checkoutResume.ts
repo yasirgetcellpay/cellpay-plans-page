@@ -12,7 +12,15 @@ export interface CheckoutHandoff {
   carrierSlug: string;
   carrierName: string;
   brandColor: string;
+  ultraMdn?: UltraMdnCtx; // ULTRA-MDN-1029
 }
+export type UltraMdnCtx = { mdn: string; barcode: string; kind: "fixed" | "range"; planId: string; carrierId: string | number; rangeMin?: number; rangeMax?: number }; // ULTRA-MDN-1029
+function ultraMdnFrom(v: unknown): UltraMdnCtx | undefined { // ULTRA-MDN-1029
+  if (!v || typeof v !== "object") return undefined; // ULTRA-MDN-1029
+  const u = v as Record<string, unknown>; // ULTRA-MDN-1029
+  if (typeof u.mdn !== "string" || !/^\d{10}$/.test(u.mdn) || typeof u.barcode !== "string" || !u.barcode || typeof u.planId !== "string" || (u.kind !== "fixed" && u.kind !== "range")) return undefined; // ULTRA-MDN-1029
+  return { mdn: u.mdn, barcode: u.barcode, kind: u.kind, planId: u.planId, carrierId: (typeof u.carrierId === "number" || typeof u.carrierId === "string") ? u.carrierId : "", rangeMin: typeof u.rangeMin === "number" ? u.rangeMin : undefined, rangeMax: typeof u.rangeMax === "number" ? u.rangeMax : undefined }; // ULTRA-MDN-1029
+} // ULTRA-MDN-1029
 
 const CTX_KEY = "cp_checkout_ctx_v1"; // this tab only (sessionStorage)
 const PREFILL_KEY = "cp_checkout_prefill_v1"; // one-shot phone hand-back to the carrier page (keeps the number out of the URL)
@@ -116,6 +124,7 @@ function readRaw(): (CheckoutHandoff & { ts: number }) | null {
     return {
       ts: v.ts, phone: String(v.phone), amount: String(v.amount), planId: v.planId ?? undefined,
       carrierSlug: v.carrierSlug, carrierName: v.carrierName, brandColor: typeof v.brandColor === "string" ? v.brandColor : "",
+      ...(ultraMdnFrom(v.ultraMdn) ? { ultraMdn: ultraMdnFrom(v.ultraMdn) } : {}), // ULTRA-MDN-1029
     };
   } catch {
     return null;
@@ -139,6 +148,7 @@ export function writeCheckoutCtx(s: CheckoutHandoff): void {
     sessionStorage.setItem(CTX_KEY, JSON.stringify({
       v: 1, ts: Date.now(), phone: s.phone, amount: String(s.amount), planId: s.planId ?? null,
       carrierSlug: s.carrierSlug, carrierName: s.carrierName, brandColor: s.brandColor,
+      ...(s.ultraMdn ? { ultraMdn: s.ultraMdn } : {}), // ULTRA-MDN-1029
     }));
     sessionStorage.setItem(LAST_KEY, JSON.stringify({ v: 1, ts: Date.now(), phone: digits10(s.phone), amount: String(s.amount), carrierSlug: s.carrierSlug }));
   } catch { /* storage unavailable: no resume */ }
