@@ -203,6 +203,21 @@ const ultraFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-UL
   { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-ULTRA-1028
   { q: "Can I set up Auto Pay?", a: "Yes. Auto Pay is optional. You can turn it on at checkout. It is never pre-checked." }, // BILLPAY-ULTRA-1028
 ]; // BILLPAY-ULTRA-1028
+const attFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-ATT-1029
+  { q: "¿Cómo pago mi factura de AT&T Prepaid en línea?", a: "Ingrese el número de teléfono de AT&T Prepaid, elija el monto o el plan y pague. No necesita una cuenta." }, // BILLPAY-ATT-1029
+  { q: "¿Puedo pagar AT&T Prepaid como invitado, sin iniciar sesión?", a: "Sí. No necesita iniciar sesión ni crear una cuenta. Solo necesita el número de teléfono." }, // BILLPAY-ATT-1029
+  { q: "¿Puedo pagar la línea de AT&T Prepaid de otra persona?", a: "Sí. Ingrese su número de AT&T Prepaid y revíselo bien antes de pagar." }, // BILLPAY-ATT-1029
+  { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es").replace("Apple Pay en dispositivos Apple compatibles", "Apple Pay en dispositivos compatibles")}` }, // BILLPAY-ATT-1029
+  { q: "¿Cuándo se aplica mi pago?", a: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Cuando el pago se completa, verá una confirmación con los datos de su transacción." }, // BILLPAY-ATT-1029
+  { q: "¿Puedo activar el Auto Pago?", a: "Sí. El Auto Pago es opcional. Lo puede activar al pagar. Nunca está marcado de antemano." }, // BILLPAY-ATT-1029
+] : [ // BILLPAY-ATT-1029
+  { q: "How do I pay my AT&T Prepaid bill online?", a: "Enter the AT&T Prepaid phone number, pick the amount or plan, and pay. No account needed." }, // BILLPAY-ATT-1029
+  { q: "Can I pay AT&T Prepaid as a guest without logging in?", a: "Yes. You don't need a login or an account. The phone number is enough." }, // BILLPAY-ATT-1029
+  { q: "Can I pay someone else's AT&T Prepaid line?", a: "Yes. Enter their AT&T Prepaid number and double-check it before you pay." }, // BILLPAY-ATT-1029
+  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-ATT-1029
+  { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-ATT-1029
+  { q: "Can I set up Auto Pay?", a: "Yes. Auto Pay is optional. You can turn it on at checkout. It is never pre-checked." }, // BILLPAY-ATT-1029
+]; // BILLPAY-ATT-1029
 
 export const BILL_PAGES: BillPage[] = [
   { // BILLPAY-METRO-1021
@@ -420,9 +435,39 @@ export const BILL_PAGES: BillPage[] = [
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-ULTRA-1028
     faqOnly: true, // BILLPAY-ULTRA-1028
   }, // BILLPAY-ULTRA-1028
+  { // BILLPAY-ATT-1029
+    path: "/es/topup-at.html", lang: "es", name: "AT&T Prepaid", // BILLPAY-ATT-1029
+    title: "Pagar Factura AT&T Prepaid en Línea sin Cuenta | CellPay", // BILLPAY-ATT-1029
+    description: "Pague su factura de AT&T Prepaid en línea. Sin cuenta y sin iniciar sesión. Puede pagar por otra persona. Verá el cargo por servicio antes de pagar.", // BILLPAY-ATT-1029
+    h1: "Pague su Factura de AT&T Prepaid en Línea", // BILLPAY-ATT-1029
+    sub: "Sin cuenta y sin iniciar sesión. Solo necesita el número de teléfono. Pague por usted o por otra persona.", // BILLPAY-ATT-1029
+    autoPayInfoLead: "Opcional: Auto Pago para no olvidar su pago.", // BILLPAY-ATT-1029
+    enterAmount: "Ingrese el monto que desea recargar", // BILLPAY-ATT-1029
+    securePayment: "Pago seguro. Su recarga se envía directamente a su teléfono.", // BILLPAY-ATT-1029
+    faqTitle: "Preguntas frecuentes", // BILLPAY-ATT-1029
+    faqs: attFaqs("es"), // BILLPAY-ATT-1029
+    guide: ["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], // BILLPAY-ATT-1029
+    more: [["/es/paga-tu-factura", "Pague su factura de celular"]], // BILLPAY-ATT-1029
+    faqOnly: true, // BILLPAY-ATT-1029
+  }, // BILLPAY-ATT-1029
+  { // BILLPAY-ATT-1029
+    path: "/topup-at.html", lang: "en", name: "AT&T Prepaid", // BILLPAY-ATT-1029
+    title: "Pay Your AT&T Prepaid Bill Online – No Login | CellPay", // BILLPAY-ATT-1029
+    description: "Pay your AT&T Prepaid bill online with just your phone number. No login, no account sign-in needed. Pay for yourself or someone else.", // BILLPAY-ATT-1029
+    h1: "Pay Your AT&T Prepaid Bill Online", // BILLPAY-ATT-1029
+    sub: "No login. Just the phone number. Pay for yourself or someone else.", // BILLPAY-ATT-1029
+    autoPayInfoLead: "Optional: Auto Pay so you never miss a refill.", // BILLPAY-ATT-1029
+    enterAmount: "Enter the amount you want to recharge", // BILLPAY-ATT-1029
+    securePayment: "Secure payment. Your refill is sent directly to your phone.", // BILLPAY-ATT-1029
+    faqTitle: "Common questions", // BILLPAY-ATT-1029
+    faqs: attFaqs("en"), // BILLPAY-ATT-1029
+    guide: ["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"], // BILLPAY-ATT-1029
+    more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-ATT-1029
+    faqOnly: true, // BILLPAY-ATT-1029
+  }, // BILLPAY-ATT-1029
 ];
 
-const BILL_PATH_ALIAS: Record<string, string> = { "/total-wireless": "/total-wireless.html", "/es/total-wireless": "/es/total-wireless.html", "/ultra-mobile": "/ultra-mobile.html", "/es/ultra-mobile": "/es/ultra-mobile.html" }; // TW-FAQ-HYDRATE-SHELL-1027 // BILLPAY-ULTRA-1028
+const BILL_PATH_ALIAS: Record<string, string> = { "/total-wireless": "/total-wireless.html", "/es/total-wireless": "/es/total-wireless.html", "/ultra-mobile": "/ultra-mobile.html", "/es/ultra-mobile": "/es/ultra-mobile.html", "/topup-at": "/topup-at.html", "/es/topup-at": "/es/topup-at.html" }; // TW-FAQ-HYDRATE-SHELL-1027 // BILLPAY-ULTRA-1028 // BILLPAY-ATT-1029
 
 export const billPageByPath = (pathname: string): BillPage | undefined => {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;

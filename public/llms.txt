@@ -27,7 +27,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 
 ## Carriers
 
-- [AT&T PrePaid](https://www.cellpay.us/topup-at.html): Refill AT&T PrePaid plans and add-ons.
+- [Pay AT&T Prepaid bill online](https://www.cellpay.us/topup-at.html): Pay an AT&T Prepaid bill with just the number, no login.
 - [AT&T FirstNet](https://www.cellpay.us/att-firstnet): Pay AT&T FirstNet prepaid plans.
 - [Pay T-Mobile Prepaid bill as a guest](https://www.cellpay.us/tmobile-flexi.html): Pay a T-Mobile Prepaid bill with just the number, no login.
 - [Pay Verizon Prepaid bill online](https://www.cellpay.us/verizon): Pay a Verizon Prepaid bill with just the number, no login.
@@ -80,7 +80,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [¿Te cambiaste a Metro PCS?](https://www.cellpay.us/es/cambiaste-a-metro): Paga tu factura de Metro con solo el número.
 - [Cómo usar CellPay](https://www.cellpay.us/es/how-to-use): Guía paso a paso.
 - [Política de privacidad](https://www.cellpay.us/es/privacy-policy)
-- [AT&T Prepaid (español)](https://www.cellpay.us/es/topup-at.html)
+- [Pagar factura AT&T Prepaid](https://www.cellpay.us/es/topup-at.html): Pague su factura de AT&T Prepaid con solo el número, sin cuenta.
 - [AT&T FirstNet (español)](https://www.cellpay.us/es/att-firstnet)
 - [Pagar factura T-Mobile como invitado](https://www.cellpay.us/es/tmobile-flexi.html)
 - [Verizon Prepaid (español)](https://www.cellpay.us/es/verizon-wireless-flexi.html)
