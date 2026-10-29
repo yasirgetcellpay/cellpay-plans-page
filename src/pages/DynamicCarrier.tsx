@@ -739,9 +739,10 @@ const DynamicCarrier = ({
     return () => { off = true; }; // ULTRA-MDN-1029
   }, [ultraMdn10]); // ULTRA-MDN-1029
   const ultraBRes = ultraB && ultraB.mdn === ultraMdn10 && ultraB.state === "done" ? ultraB.r : undefined; // ULTRA-MDN-1029
-  const ultraBOk = ultraBRes && ultraBRes.ok ? ultraBRes : null; // ULTRA-MDN-1029
+  const ultraBOk = ultraBRes && ultraBRes.ok ? (ultraBRes as Extract<UltraMdnResult, { ok: true }>) : null; // ULTRA-MDN-1029
   const ultraBActive = !!ultraBOk && !ultraShowAll; // ULTRA-MDN-1029: B is the default when it succeeds
-  const ultraBErr = ultraBRes && !ultraBRes.ok ? ((ultraBRes.status === 422 || /TRANSACTION REJECTED/i.test(ultraBRes.message ?? "")) && ultraBRes.message ? { rejected: true, text: ultraBRes.message.slice(0, 300) } : { rejected: false, text: lang === "es" ? "No pudimos cargar los planes de este número. Mostramos todos los planes." : "Could not load plans for this number. Showing all plans." }) : null; // ULTRA-MDN-1029
+  const ultraBFail = ultraBRes && !ultraBRes.ok ? (ultraBRes as { ok: false; status: number; message?: string }) : null; // ULTRA-MDN-1029
+  const ultraBErr = ultraBFail ? ((ultraBFail.status === 422 || /TRANSACTION REJECTED/i.test(ultraBFail.message ?? "")) && ultraBFail.message ? { rejected: true, text: ultraBFail.message.slice(0, 300) } : { rejected: false, text: lang === "es" ? "No pudimos cargar los planes de este número. Mostramos todos los planes." : "Could not load plans for this number. Showing all plans." }) : null; // ULTRA-MDN-1029
   const handleUltraBPay = async (plan: UltraMdnPlan, amt: number) => { // ULTRA-MDN-1029: same gates as today, then checkout with ultraMdn
     setInlineError(null); // ULTRA-MDN-1029
     if (!ultraMdn10 || !plan.barcode) { toast({ title: tr.phoneRequired, description: tr.phoneRequired, variant: "destructive" }); return; } // ULTRA-MDN-1029
