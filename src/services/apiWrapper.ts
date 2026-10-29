@@ -465,11 +465,23 @@ function storedRetryMeta(payload: Record<string, unknown>): Record<string, unkno
   return Object.keys(out).length ? out : undefined;
 }
 
+// ULTRA-MDN-1029: active MDN plan set by Checkout only when state matches; adds barcode/carrierId/plan_id/MDN to checkout/transaction.
+let ultraMdnActive: { mdn: string; barcode: string; planId: string; carrierId: string | number } | null = null; // ULTRA-MDN-1029
+export function setUltraMdnActive(v: { mdn: string; barcode: string; planId: string; carrierId: string | number } | null): void { ultraMdnActive = v; } // ULTRA-MDN-1029
+export function applyUltraMdn(payload: Record<string, unknown>): Record<string, unknown> { // ULTRA-MDN-1029
+  const u = ultraMdnActive; // ULTRA-MDN-1029
+  if (!u || !u.barcode || String(payload.carrier_slug ?? "") !== "ultra-mobile") return payload; // ULTRA-MDN-1029
+  let d = String(payload.phone_number ?? "").replace(/\D/g, ""); while (d.length > 10 && d.startsWith("1")) d = d.slice(1); // ULTRA-MDN-1029
+  if (d !== u.mdn || String(payload.plan_id ?? payload.planId ?? "") !== u.planId) return payload; // ULTRA-MDN-1029: A path as today
+  return { ...payload, barcode: String(u.barcode), carrierId: u.carrierId, plan_id: u.planId, phone_number: u.mdn }; // ULTRA-MDN-1029
+} // ULTRA-MDN-1029
+
 export async function submitTransaction(
   payload: Record<string, unknown>,
   bearerToken?: string,
   opts?: ProxyCallOptions, // CHECKOUT-TIMEOUT-1023: optional; omitted = unchanged behavior
 ): Promise<unknown> {
+  payload = applyUltraMdn(payload); // ULTRA-MDN-1029
   return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds(), lang: pageLang(), visit_source: storedVisitSource(), retry_meta: storedRetryMeta(payload) }, opts); // CHECKOUT-TIMEOUT-1023
 }
 
