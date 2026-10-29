@@ -2837,6 +2837,13 @@ serve(async (req) => {
       const pgr = await planGuard(asRecord(payload), pgHeaders(apiKey, apiSecret, callerHost), (body as Record<string, unknown>)?.lang);
       return new Response(JSON.stringify({ ok: pgr.ok, reason: pgr.reason ?? null, message: pgr.message ?? null, source: pgr.source === "none" ? "hub" : pgr.source }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    if (endpoint === "plans/ultra-plans" && (method.toUpperCase() === "GET" || method.toUpperCase() === "POST")) { // ULTRA-MDN-1029
+      const um = String(asRecord(payload).mdn ?? (body as Record<string, unknown>)?.mdn ?? "").trim(); // ULTRA-MDN-1029
+      if (!/^\d{10}$/.test(um)) return new Response(JSON.stringify({ success: false, code: "BAD_MDN" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }); // ULTRA-MDN-1029
+      const ur = await ultraMdnFetch(um, pgHeaders(apiKey, apiSecret, callerHost)); // ULTRA-MDN-1029
+      const ub = ur.ok ? { success: true, data: ur.data } : { success: false, status: ur.status, ...(ur.message ? { message: ur.message } : {}) }; // ULTRA-MDN-1029
+      return new Response(JSON.stringify(ub), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); // ULTRA-MDN-1029
+    } // ULTRA-MDN-1029
     // [autopay AP-1] The single restored route (exact endpoint + method). Anything else under autopay/*,
     // and transactions/last, still falls through to the 1a "retired" 403 below.
     if (AP1_ROUTE_ENABLED && endpoint === AP1_ENDPOINT && method === "POST") {
@@ -2916,6 +2923,10 @@ serve(async (req) => {
       delete payloadRecord.cp_dev;
       if (typeof fetchOptions.body === "string") fetchOptions.body = JSON.stringify(payloadRecord);
     }
+    if ("ultraBarcode" in payloadRecord || "ultraPurchaseType" in payloadRecord) { // ULTRA-MDN-1029: site-only keys never reach CellPay
+      delete payloadRecord.ultraBarcode; delete payloadRecord.ultraPurchaseType; // ULTRA-MDN-1029
+      if (typeof fetchOptions.body === "string") fetchOptions.body = JSON.stringify(payloadRecord); // ULTRA-MDN-1029
+    } // ULTRA-MDN-1029
     let mf: Mf | null = null;
     let mfIpP: Promise<Record<string, unknown> | null> = Promise.resolve(null);
     let riskAction: string | null = null;
