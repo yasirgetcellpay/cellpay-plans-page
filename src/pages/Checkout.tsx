@@ -3562,7 +3562,8 @@ const Checkout = () => {
               );
               // DECLINE-AB-1016: sticky 50/50 assignment, written as soon as a card-decline dialog renders
               const ab = walletFirst ? getDeclineAb(normalizePhone(String(state?.phone || ""))) : undefined; // DECLINE-AB-1016
-              const abVariant = walletFirst && ab === "variant" && (showAp || showGp); // DECLINE-AB-1016
+              const ultraDeclineWallet = /^ultra(-mobile)?$/.test(String(state?.carrierSlug || "")); // ULTRA-DECLINE-WALLET-1029: Ultra card decline always wallet-first primary
+              const abVariant = walletFirst && (ab === "variant" || ultraDeclineWallet) && (showAp || showGp); // DECLINE-AB-1016 // ULTRA-DECLINE-WALLET-1029
               const primaryWallet: PaymentMethod | null = abVariant ? (showAp ? "applepay" : "googlepay") : null; // DECLINE-AB-1016
               const quiet = "w-full px-4 py-2 rounded-lg font-semibold text-sm border border-border text-foreground bg-background"; // DECLINE-AB-1016
               return (
