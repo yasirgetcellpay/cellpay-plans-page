@@ -3300,10 +3300,13 @@ const Checkout = () => {
             {paymentMethod !== "paypal" && (
               <button
                 ref={inlinePayRef}
+                // MOBILE-PAYNOW-UX-1029: one Pay Now on phones; inline hidden (layout kept) while sticky bar shows
+                aria-hidden={payBarShown || undefined}
+                tabIndex={payBarShown ? -1 : undefined}
                 type="button"
                 disabled={!canSubmit && !klarnaFix} // KLARNA-OPEN-1019
                 onClick={() => { if (klarnaFix) { klarnaBlocked(); return; } handlePlaceOrder(); }} // KLARNA-OPEN-1019
-                className={`w-full h-[56px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-all active:scale-[0.97] flex items-center justify-center gap-2 ${klarnaFix ? "opacity-50" : ""}`} // KLARNA-OPEN-1019
+                className={`w-full h-[56px] rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-all active:scale-[0.97] flex items-center justify-center gap-2 ${klarnaFix ? "opacity-50" : ""} ${payBarShown ? "invisible" : ""}`} // KLARNA-OPEN-1019
                 style={{ backgroundColor: brandColor }}
               >
                 {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
