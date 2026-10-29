@@ -14,12 +14,12 @@ export interface CheckoutHandoff {
   brandColor: string;
   ultraMdn?: UltraMdnCtx; // ULTRA-MDN-1029
 }
-export type UltraMdnCtx = { mdn: string; barcode: string; kind: "fixed" | "range"; planId: string; carrierId: string | number; rangeMin?: number; rangeMax?: number }; // ULTRA-MDN-1029
+export type UltraMdnCtx = { mdn: string; barcode: string; kind: "fixed" | "range"; planId: string; carrierId: string | number; rangeMin?: number; rangeMax?: number; amount?: number }; // ULTRA-MDN-1029 (+ amount: fixed plan amount)
 function ultraMdnFrom(v: unknown): UltraMdnCtx | undefined { // ULTRA-MDN-1029
   if (!v || typeof v !== "object") return undefined; // ULTRA-MDN-1029
   const u = v as Record<string, unknown>; // ULTRA-MDN-1029
   if (typeof u.mdn !== "string" || !/^\d{10}$/.test(u.mdn) || typeof u.barcode !== "string" || !u.barcode || typeof u.planId !== "string" || (u.kind !== "fixed" && u.kind !== "range")) return undefined; // ULTRA-MDN-1029
-  return { mdn: u.mdn, barcode: u.barcode, kind: u.kind, planId: u.planId, carrierId: (typeof u.carrierId === "number" || typeof u.carrierId === "string") ? u.carrierId : "", rangeMin: typeof u.rangeMin === "number" ? u.rangeMin : undefined, rangeMax: typeof u.rangeMax === "number" ? u.rangeMax : undefined }; // ULTRA-MDN-1029
+  return { mdn: u.mdn, barcode: u.barcode, kind: u.kind, planId: u.planId, carrierId: (typeof u.carrierId === "number" || typeof u.carrierId === "string") ? u.carrierId : "", rangeMin: typeof u.rangeMin === "number" ? u.rangeMin : undefined, rangeMax: typeof u.rangeMax === "number" ? u.rangeMax : undefined, amount: typeof u.amount === "number" ? u.amount : undefined }; // ULTRA-MDN-1029
 } // ULTRA-MDN-1029
 
 const CTX_KEY = "cp_checkout_ctx_v1"; // this tab only (sessionStorage)

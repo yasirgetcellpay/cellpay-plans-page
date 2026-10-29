@@ -730,7 +730,7 @@ const DynamicCarrier = ({
   const ultraMdn10 = (() => { let d = phone.replace(/[\s\-()+]/g, "").replace(/\D/g, ""); if (d.length === 11 && d.startsWith("1")) d = d.slice(1); return carrierSlug === "ultra-mobile" && /^\d{10}$/.test(d) ? d : ""; })(); // ULTRA-MDN-1029
   const [ultraB, setUltraB] = useState<{ mdn: string; state: "loading" | "done"; r?: UltraMdnResult } | null>(null); // ULTRA-MDN-1029
   const [ultraShowAll, setUltraShowAll] = useState(false); // ULTRA-MDN-1029
-  const [ultraRangeAmt, setUltraRangeAmt] = useState<Record<number, string>>({}); // ULTRA-MDN-1029
+  const [ultraRangeAmt, setUltraRangeAmt] = useState<Record<string, string>>({}); // ULTRA-MDN-1029: keyed by barcode
   useEffect(() => { // ULTRA-MDN-1029: one lookup per valid MDN; stale replies ignored; phone change clears B selection
     setUltraShowAll(false); setUltraRangeAmt({}); // ULTRA-MDN-1029
     if (!ultraMdn10) { setUltraB(null); return; } // ULTRA-MDN-1029
@@ -754,7 +754,7 @@ const DynamicCarrier = ({
     if (!verify.success) { toast({ title: tr.invalidPhone, description: verify.message || tr.invalidPhone, variant: "destructive" }); return; } // ULTRA-MDN-1029
     navigate(lang === "es" ? "/es/checkout" : "/checkout", { // ULTRA-MDN-1029
       state: { phone, amount: amt, carrierSlug, carrierId: plan.carrierId, carrierName, brandColor, planId: plan.planId, planName: plan.name, // ULTRA-MDN-1029
-        ultraMdn: { mdn: ultraMdn10, barcode: plan.barcode, kind: plan.kind, planId: plan.planId, carrierId: plan.carrierId, rangeMin: plan.rangeMin, rangeMax: plan.rangeMax } }, // ULTRA-MDN-1029
+        ultraMdn: { mdn: ultraMdn10, barcode: plan.barcode, kind: plan.kind, planId: plan.planId, carrierId: plan.carrierId, rangeMin: plan.rangeMin, rangeMax: plan.rangeMax, ...(plan.kind === "fixed" ? { amount: amt } : {}) } }, // ULTRA-MDN-1029
     }); // ULTRA-MDN-1029
   }; // ULTRA-MDN-1029
 
@@ -965,11 +965,11 @@ const DynamicCarrier = ({
               {ultraB?.state === "loading" && <p className="text-xs text-muted-foreground inline-flex items-center gap-2"><Loader2 className="h-3 w-3 animate-spin" />{lang === "es" ? "Buscando planes para este número…" : "Finding plans for this number…"}</p>}{/* ULTRA-MDN-1029 */}
               {ultraBErr && <p className={`text-xs ${ultraBErr.rejected ? "text-destructive/80" : "text-muted-foreground"}`}>{ultraBErr.text}</p>}{/* ULTRA-MDN-1029 */}
               {ultraBOk && ultraBOk.subscriber && <div className="rounded-lg border border-border bg-muted px-3 py-2 text-xs sm:text-sm text-foreground mb-3" style={{ whiteSpace: "pre-line" }}>{ultraBOk.subscriber}</div>}{/* ULTRA-MDN-1029 */}
-              {ultraBActive && ultraBOk && ultraBOk.fixed.length > 0 && <PlanGrid plans={ultraBOk.fixed.map((p, i) => ({ price: `$${formatDollars(p.amount ?? 0)}`, highlight: p.name || "", _i: i }))} brandColor={bc} onSelect={(pl) => { const fp = ultraBOk.fixed[(pl as { _i?: number })._i ?? -1]; if (fp && fp.amount !== undefined) void handleUltraBPay(fp, fp.amount); }} />}{/* ULTRA-MDN-1029 */}
-              {ultraBActive && ultraBOk && ultraBOk.range.map((rp, i) => { const mn = rp.rangeMin ?? 0; const mx = rp.rangeMax ?? 0; const v = ultraRangeAmt[i] ?? ""; const n = Number(v); const okAmt = v !== "" && Number.isFinite(n) && n >= mn && n <= mx; return ( /* ULTRA-MDN-1029 */
-                <div key={`ur${i}`} className="mt-3 rounded-lg border border-border bg-card p-3">{/* ULTRA-MDN-1029 */}
+              {ultraBActive && ultraBOk && ultraBOk.fixed.length > 0 && <PlanGrid plans={ultraBOk.fixed.map((p) => ({ price: `$${formatDollars(p.amount ?? 0)}`, highlight: p.name || "", _bc: p.barcode }))} brandColor={bc} onSelect={(pl) => { const fp = ultraBOk.fixed.find((x) => x.barcode === (pl as { _bc?: string })._bc); /* ULTRA-MDN-1029: by barcode */ if (fp && fp.amount !== undefined) void handleUltraBPay(fp, fp.amount); }} />}{/* ULTRA-MDN-1029 */}
+              {ultraBActive && ultraBOk && ultraBOk.range.map((rp) => { const mn = rp.rangeMin ?? 0; const mx = rp.rangeMax ?? 0; const v = ultraRangeAmt[rp.barcode] ?? ""; /* ULTRA-MDN-1029: by barcode */ const n = Number(v); const okAmt = v !== "" && Number.isFinite(n) && n >= mn && n <= mx; return ( /* ULTRA-MDN-1029 */
+                <div key={`ur${rp.barcode}`} className="mt-3 rounded-lg border border-border bg-card p-3">{/* ULTRA-MDN-1029 */}
                   <p className="text-sm font-bold text-foreground mb-2">{rp.name || `$${mn} – $${mx}`}</p>{/* ULTRA-MDN-1029 */}
-                  <input type="number" inputMode="decimal" min={mn} max={mx} value={v} placeholder={`$${mn} – $${mx}`} onChange={(e) => setUltraRangeAmt((cur) => ({ ...cur, [i]: e.target.value }))} onBlur={() => { if (v === "" || !Number.isFinite(n)) return; setUltraRangeAmt((cur) => ({ ...cur, [i]: String(Math.min(mx, Math.max(mn, n))) })); }} className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm" aria-label={rp.name || "amount"} />{/* ULTRA-MDN-1029 */}
+                  <input type="number" inputMode="decimal" step="0.01" min={mn} max={mx} value={v} placeholder={`$${mn} – $${mx}`} onChange={(e) => setUltraRangeAmt((cur) => ({ ...cur, [rp.barcode]: e.target.value }))} onBlur={() => { if (v === "" || !Number.isFinite(n)) return; setUltraRangeAmt((cur) => ({ ...cur, [rp.barcode]: (Math.round(Math.min(mx, Math.max(mn, n)) * 100) / 100).toFixed(2) })); }} className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm" aria-label={rp.name || "amount"} />{/* ULTRA-MDN-1029 */}
                   <button type="button" disabled={verifying || !okAmt || rpPhoneBlock || ultraSmart.paused} onClick={() => void handleUltraBPay(rp, n)} className="mt-2 w-full h-10 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm inline-flex items-center justify-center gap-2" style={{ backgroundColor: bc }}>{verifying && <Loader2 className="h-4 w-4 animate-spin" />}{verifying ? tr.verifying : tr.payNow}</button>{/* ULTRA-MDN-1029 */}
                 </div> /* ULTRA-MDN-1029 */
               ); })}

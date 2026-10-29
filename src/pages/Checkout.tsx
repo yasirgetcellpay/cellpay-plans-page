@@ -106,6 +106,11 @@ const STEPUP_WALLETS: PaymentMethod[] = ["applepay", "googlepay", "paypal"]; // 
 // US area codes (NPA) never start with 0 or 1, so a leading "1" is ALWAYS the
 // country code and must be removed — even on a 10-digit string like
 // "1716436920" where the user typed the country code instead of the area code.
+function ultraMdnAmountOk(u: UltraMdnCtx, amt: number): boolean { // ULTRA-MDN-1029: range = within its own min..max; fixed = its own amount
+  if (!Number.isFinite(amt)) return false; // ULTRA-MDN-1029
+  if (u.kind === "range") return (u.rangeMin === undefined || amt >= u.rangeMin - 0.001) && (u.rangeMax === undefined || amt <= u.rangeMax + 0.001); // ULTRA-MDN-1029
+  return u.amount === undefined || Math.abs(amt - u.amount) <= 0.01; // ULTRA-MDN-1029
+} // ULTRA-MDN-1029
 function normalizePhone(input: string): string {
   let d = (input || "").replace(/\D/g, "");
   while (d.length > 10 && d.startsWith("1")) d = d.slice(1);
@@ -369,11 +374,13 @@ const Checkout = () => {
   // REFUNDED-STATE-1017: never charge a phone that isn't a valid 10-digit US number.
   const phone10 = normalizePhone(String(state?.phone || ""));
   const phoneOk = /^[2-9]\d{9}$/.test(phone10);
-  const ultraMdnOk = !!state?.ultraMdn && state.carrierSlug === "ultra-mobile" && phone10 === state.ultraMdn.mdn && String(state.planId) === state.ultraMdn.planId && !!state.ultraMdn.barcode ? state.ultraMdn : null; // ULTRA-MDN-1029
+  const ultraMdnOk = !!state?.ultraMdn && state.carrierSlug === "ultra-mobile" && phone10 === state.ultraMdn.mdn && String(state.planId) === state.ultraMdn.planId && !!state.ultraMdn.barcode && ultraMdnAmountOk(state.ultraMdn, Number(state.amount)) ? state.ultraMdn : null; // ULTRA-MDN-1029
   const ultraMdnArg = ultraMdnOk ? { barcode: String(ultraMdnOk.barcode), kind: ultraMdnOk.kind } : undefined; // ULTRA-MDN-1029
   const ultraMdnExtra = ultraMdnOk ? { barcode: String(ultraMdnOk.barcode), carrierId: ultraMdnOk.carrierId, plan_id: ultraMdnOk.planId, phone_number: ultraMdnOk.mdn } : {}; // ULTRA-MDN-1029
   setUltraMdnActive(ultraMdnOk ? { mdn: ultraMdnOk.mdn, barcode: String(ultraMdnOk.barcode), planId: ultraMdnOk.planId, carrierId: ultraMdnOk.carrierId } : null); // ULTRA-MDN-1029: read by submitTransaction for every payment method
   useEffect(() => () => setUltraMdnActive(null), []); // ULTRA-MDN-1029
+  const ultraMdnStale = !!state?.ultraMdn && !ultraMdnOk; // ULTRA-MDN-1029: phone/plan/amount no longer match the B pick
+  useEffect(() => { if (ultraMdnStale && state) { clearCheckoutCtx(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, undefined, location.search, location.hash), { replace: true }); } }, [ultraMdnStale]); // eslint-disable-line react-hooks/exhaustive-deps -- ULTRA-MDN-1029: back to the Ultra page to re-pick
   const [ultraPlans, setUltraPlans] = useState<UltraPlan[]>([]); // ULTRA-SMART-PREVENT-1024
   useEffect(() => { if (state?.carrierSlug !== "ultra-mobile") return; let cancelled = false; void readUltraPlans().then((plans) => { if (!cancelled) setUltraPlans(plans); }); return () => { cancelled = true; }; }, [state?.carrierSlug]); // ULTRA-SMART-PREVENT-1024
   const ultraSmart = useUltraSmart(state?.carrierSlug || "", phone10, phoneOk, ultraPlans); // ULTRA-SMART-PREVENT-1024
