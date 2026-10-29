@@ -273,15 +273,55 @@ export async function verifyPhone(
   }
 }
 
+// ULTRA-MDN-1029: Ultra Mobile plans for one MDN (source B). Never mixed with carriers/view plans.
+export type UltraMdnPlan = { planId: string; carrierId: string | number; barcode: string; name?: string; amount?: number; rangeMin?: number; rangeMax?: number; kind: "fixed" | "range" }; // ULTRA-MDN-1029
+export type UltraMdnResult = { ok: true; subscriber: string | null; fixed: UltraMdnPlan[]; range: UltraMdnPlan[] } | { ok: false; status: number; message?: string }; // ULTRA-MDN-1029
+const ULTRA_MDN_MEMO = new Map<string, { at: number; r: UltraMdnResult }>(); // ULTRA-MDN-1029
+const ULTRA_MDN_INFLIGHT = new Map<string, Promise<UltraMdnResult>>(); // ULTRA-MDN-1029
+const numOrU = (v: unknown): number | undefined => { const n = Number(v); return v !== undefined && v !== null && v !== "" && Number.isFinite(n) ? n : undefined; }; // ULTRA-MDN-1029
+function mapUltraMdnPlans(v: unknown, kind: "fixed" | "range"): UltraMdnPlan[] { // ULTRA-MDN-1029
+  if (!Array.isArray(v)) return []; // ULTRA-MDN-1029
+  const out: UltraMdnPlan[] = []; // ULTRA-MDN-1029
+  for (const it of v) { // ULTRA-MDN-1029
+    if (!it || typeof it !== "object") continue; // ULTRA-MDN-1029
+    const p = it as Record<string, unknown>; // ULTRA-MDN-1029
+    const planId = p.plan_id ?? p.planId; const bc = p.barcode; // ULTRA-MDN-1029
+    if (planId === undefined || planId === null || planId === "" || bc === undefined || bc === null || bc === "") continue; // ULTRA-MDN-1029: never a B plan without barcode
+    out.push({ planId: String(planId), carrierId: (p.carrierId ?? p.carrier_id ?? "") as string | number, barcode: typeof bc === "string" ? bc : String(bc), name: typeof p.name === "string" ? p.name : (typeof p.plan_name === "string" ? p.plan_name : undefined), amount: numOrU(p.amount), rangeMin: numOrU(p.rangeMin ?? p.range_min), rangeMax: numOrU(p.rangeMax ?? p.range_max), kind }); // ULTRA-MDN-1029
+  } // ULTRA-MDN-1029
+  return out; // ULTRA-MDN-1029
+} // ULTRA-MDN-1029
+export function fetchUltraMdnPlans(mdn: string): Promise<UltraMdnResult> { // ULTRA-MDN-1029
+  const m = ULTRA_MDN_MEMO.get(mdn); // ULTRA-MDN-1029
+  if (m && Date.now() - m.at < 5 * 60 * 1000) return Promise.resolve(m.r); // ULTRA-MDN-1029
+  const f = ULTRA_MDN_INFLIGHT.get(mdn); if (f) return f; // ULTRA-MDN-1029
+  const p = (async (): Promise<UltraMdnResult> => { // ULTRA-MDN-1029
+    try { // ULTRA-MDN-1029
+      const raw = (await callProxy({ endpoint: "plans/ultra-plans", method: "POST", payload: { mdn } })) as Record<string, unknown>; // ULTRA-MDN-1029
+      if (!raw || raw.success !== true) return { ok: false, status: Number(raw?.status) || 502, message: typeof raw?.message === "string" ? raw.message : undefined }; // ULTRA-MDN-1029
+      const d = (raw.data && typeof raw.data === "object" ? raw.data : {}) as Record<string, unknown>; // ULTRA-MDN-1029
+      const r: UltraMdnResult = { ok: true, subscriber: typeof d.subscriber === "string" ? d.subscriber : null, fixed: mapUltraMdnPlans(d.fixed_plans, "fixed"), range: mapUltraMdnPlans(d.range_plans, "range") }; // ULTRA-MDN-1029
+      ULTRA_MDN_MEMO.set(mdn, { at: Date.now(), r }); // ULTRA-MDN-1029
+      return r; // ULTRA-MDN-1029
+    } catch { return { ok: false, status: 502 }; } finally { ULTRA_MDN_INFLIGHT.delete(mdn); } // ULTRA-MDN-1029
+  })(); // ULTRA-MDN-1029
+  ULTRA_MDN_INFLIGHT.set(mdn, p); // ULTRA-MDN-1029
+  return p; // ULTRA-MDN-1029
+} // ULTRA-MDN-1029
+
 export async function validateRecharge(
   carrierSlug: string,
   phoneNumber: string,
   planId?: string | number,
-  amount?: number
+  amount?: number,
+  mdn?: { barcode: string; kind: "fixed" | "range" } // ULTRA-MDN-1029
 ): Promise<ValidationResult> {
   const payload: Record<string, unknown> = { phone_number: phoneNumber };
   if (planId) payload.plan_id = planId;
-  if (amount !== undefined && amount !== null) payload.amount = amount;
+  if (mdn) { // ULTRA-MDN-1029: MDN plan -> barcode (string); amount only for range plans
+    payload.barcode = String(mdn.barcode); // ULTRA-MDN-1029
+    if (mdn.kind === "range" && amount !== undefined && amount !== null) payload.amount = amount; // ULTRA-MDN-1029
+  } else if (amount !== undefined && amount !== null) payload.amount = amount; // ULTRA-MDN-1029 (unchanged behavior without mdn)
 
   const raw = await callProxy({
     endpoint: `carriers/validate/${carrierSlug}`,
