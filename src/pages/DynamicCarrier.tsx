@@ -226,6 +226,17 @@ const getAmountProblem = (text: string, n: number, min: number, max: number): "e
 };
 
 const formatDollars = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(2));
+export function pickUltraOverride<T extends { amount?: number; rangeMin?: number; rangeMax?: number }>(sel: number, fixed: T[], range: T[]): { kind: "match" | "range" | "override"; plan: T; amount: number } | { kind: "pick" | "none" } { // ULTRA-AMOUNT-OVERRIDE-1029
+  if (!Number.isFinite(sel)) return { kind: "none" }; // ULTRA-AMOUNT-OVERRIDE-1029
+  const usable = fixed.filter((p) => typeof p.amount === "number" && Number.isFinite(p.amount) && p.amount > 0); // ULTRA-AMOUNT-OVERRIDE-1029
+  const match = usable.find((p) => p.amount === sel); // ULTRA-AMOUNT-OVERRIDE-1029
+  if (match) return { kind: "match", plan: match, amount: sel }; // ULTRA-AMOUNT-OVERRIDE-1029
+  const wallet = range.find((p) => typeof p.rangeMin === "number" && typeof p.rangeMax === "number" && Number.isFinite(p.rangeMin) && Number.isFinite(p.rangeMax) && p.rangeMin <= sel && sel <= p.rangeMax); // ULTRA-AMOUNT-OVERRIDE-1029
+  if (wallet) return { kind: "range", plan: wallet, amount: sel }; // ULTRA-AMOUNT-OVERRIDE-1029
+  const only = usable[0]; // ULTRA-AMOUNT-OVERRIDE-1029
+  if (usable.length === 1 && only && typeof only.amount === "number") return { kind: "override", plan: only, amount: only.amount }; // ULTRA-AMOUNT-OVERRIDE-1029
+  return { kind: fixed.length > 1 ? "pick" : "none" }; // ULTRA-AMOUNT-OVERRIDE-1029
+} // ULTRA-AMOUNT-OVERRIDE-1029
 
 const wholeDollarMessage = (lang: string, n: number): string =>
   lang === "es"
@@ -657,6 +668,7 @@ const DynamicCarrier = ({
       toast({ title: tr.phoneRequired, description: tr.phoneRequired, variant: "destructive" });
       return;
     }
+    if (carrierSlug === "ultra-mobile" && ultraMdn10 && await handleUltraAmountOverride(Number(plan.price.replace("$", "")))) return; // ULTRA-AMOUNT-OVERRIDE-1029
     { const pa = Number(plan.price.replace("$", "")); if (!(await rpGate(isVerizonRange(pa) ? rangePlanId : plans.find((p) => p.amount === pa)?.plan_id, pa))) return; } // REFILL-PREVENT-1024
     setVerifying(true);
     const verify = await verifyPhone(carrierSlug, phoneDigits);
@@ -692,6 +704,7 @@ const DynamicCarrier = ({
       toast({ title: msg, description: msg, variant: "destructive" });
       return;
     }
+    if (carrierSlug === "ultra-mobile" && ultraMdn10 && await handleUltraAmountOverride(amountNum)) return; // ULTRA-AMOUNT-OVERRIDE-1029
     if (!rangeAmountValid) {
       const msg = amountMessage || tr.invalidAmount(rangeMin, rangeMax);
       setAmountTouched(true);
@@ -728,6 +741,7 @@ const DynamicCarrier = ({
 
   // ULTRA-MDN-1029: source B (plans for this MDN). Ultra Mobile only; A plans stay the default/fallback.
   const ultraMdn10 = (() => { let d = phone.replace(/[\s\-()+]/g, "").replace(/\D/g, ""); if (d.length === 11 && d.startsWith("1")) d = d.slice(1); return carrierSlug === "ultra-mobile" && /^\d{10}$/.test(d) ? d : ""; })(); // ULTRA-MDN-1029
+  const ultraCurrentMdn = useRef(ultraMdn10); ultraCurrentMdn.current = ultraMdn10; // ULTRA-AMOUNT-OVERRIDE-1029
   const [ultraB, setUltraB] = useState<{ mdn: string; state: "loading" | "done"; r?: UltraMdnResult } | null>(null); // ULTRA-MDN-1029
   const [ultraShowAll, setUltraShowAll] = useState(false); // ULTRA-MDN-1029
   const [ultraRangeAmt, setUltraRangeAmt] = useState<Record<string, string>>({}); // ULTRA-MDN-1029: keyed by barcode
@@ -743,7 +757,7 @@ const DynamicCarrier = ({
   const ultraBActive = !!ultraBOk && !ultraShowAll; // ULTRA-MDN-1029: B is the default when it succeeds
   const ultraBFail = ultraBRes && !ultraBRes.ok ? (ultraBRes as { ok: false; status: number; message?: string }) : null; // ULTRA-MDN-1029
   const ultraBErr = ultraBFail ? ((ultraBFail.status === 422 || /TRANSACTION REJECTED/i.test(ultraBFail.message ?? "")) && ultraBFail.message ? { rejected: true, text: ultraBFail.message.slice(0, 300) } : { rejected: false, text: lang === "es" ? "No pudimos cargar los planes de este número. Mostramos todos los planes." : "Could not load plans for this number. Showing all plans." }) : null; // ULTRA-MDN-1029
-  const handleUltraBPay = async (plan: UltraMdnPlan, amt: number) => { // ULTRA-MDN-1029: same gates as today, then checkout with ultraMdn
+  const handleUltraBPay = async (plan: UltraMdnPlan, amt: number, overrideFrom?: number) => { // ULTRA-MDN-1029: same gates as today, then checkout with ultraMdn // ULTRA-AMOUNT-OVERRIDE-1029
     setInlineError(null); // ULTRA-MDN-1029
     if (!ultraMdn10 || !plan.barcode) { toast({ title: tr.phoneRequired, description: tr.phoneRequired, variant: "destructive" }); return; } // ULTRA-MDN-1029
     if (!Number.isFinite(amt) || amt <= 0) return; // ULTRA-MDN-1029
@@ -754,9 +768,30 @@ const DynamicCarrier = ({
     if (!verify.success) { toast({ title: tr.invalidPhone, description: verify.message || tr.invalidPhone, variant: "destructive" }); return; } // ULTRA-MDN-1029
     navigate(lang === "es" ? "/es/checkout" : "/checkout", { // ULTRA-MDN-1029
       state: { phone, amount: amt, carrierSlug, carrierId: plan.carrierId, carrierName, brandColor, planId: plan.planId, planName: plan.name, // ULTRA-MDN-1029
+        ...(overrideFrom !== undefined ? { ultraOverrideFrom: overrideFrom } : {}), // ULTRA-AMOUNT-OVERRIDE-1029
         ultraMdn: { mdn: ultraMdn10, barcode: plan.barcode, kind: plan.kind, planId: plan.planId, carrierId: plan.carrierId, rangeMin: plan.rangeMin, rangeMax: plan.rangeMax, ...(plan.kind === "fixed" ? { amount: amt } : {}) } }, // ULTRA-MDN-1029
     }); // ULTRA-MDN-1029
   }; // ULTRA-MDN-1029
+  const handleUltraAmountOverride = async (sel: number): Promise<boolean> => { // ULTRA-AMOUNT-OVERRIDE-1029
+    let result = ultraBOk ?? ultraBRes; // ULTRA-AMOUNT-OVERRIDE-1029
+    if (!result) { // ULTRA-AMOUNT-OVERRIDE-1029
+      setVerifying(true); // ULTRA-AMOUNT-OVERRIDE-1029
+      try { result = await withTimeout(fetchUltraMdnPlans(ultraMdn10), 2000, undefined); } catch { return false; } finally { setVerifying(false); } // ULTRA-AMOUNT-OVERRIDE-1029
+    } // ULTRA-AMOUNT-OVERRIDE-1029
+    if (ultraCurrentMdn.current !== ultraMdn10) return true; // ULTRA-AMOUNT-OVERRIDE-1029
+    if (!result?.ok || (!result.fixed.length && !result.range.length)) return false; // ULTRA-AMOUNT-OVERRIDE-1029
+    const pick = pickUltraOverride(sel, result.fixed, result.range); // ULTRA-AMOUNT-OVERRIDE-1029
+    if (pick.kind === "none") return false; // ULTRA-AMOUNT-OVERRIDE-1029
+    if (pick.kind === "pick") { // ULTRA-AMOUNT-OVERRIDE-1029
+      setUltraB({ mdn: ultraMdn10, state: "done", r: result }); setUltraShowAll(false); // ULTRA-AMOUNT-OVERRIDE-1029
+      document.querySelector("[data-ultra-mdn]")?.scrollIntoView({ behavior: "smooth", block: "start" }); // ULTRA-AMOUNT-OVERRIDE-1029
+      toast({ title: lang === "es" ? "Este número tiene sus propios planes. Elija uno abajo." : "This number has its own plans. Please pick one below." }); // ULTRA-AMOUNT-OVERRIDE-1029
+      return true; // ULTRA-AMOUNT-OVERRIDE-1029
+    } // ULTRA-AMOUNT-OVERRIDE-1029
+    if (pick.kind === "override") toast({ title: lang === "es" ? `Su pago es de $${formatDollars(pick.amount)}, no de $${formatDollars(sel)}. Este es el plan de este número.` : `Your payment is $${formatDollars(pick.amount)}, not $${formatDollars(sel)}. This is the plan for this number.` }); // ULTRA-AMOUNT-OVERRIDE-1029
+    await handleUltraBPay(pick.plan, pick.amount, pick.kind === "override" ? sel : undefined); // ULTRA-AMOUNT-OVERRIDE-1029
+    return true; // ULTRA-AMOUNT-OVERRIDE-1029
+  }; // ULTRA-AMOUNT-OVERRIDE-1029
 
   const bc = brandColor;
   // TOP4-T1-1009: display only. carrierName (API/DB name) still goes to checkout unchanged.
