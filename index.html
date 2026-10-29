@@ -96,12 +96,27 @@
          load+idle (1.5s), or 4s cap. Checkout, order confirmation, payment callback, Cash App return, */pay pages
          and any URL with hashid= load immediately (same as before). If the app navigates to one of those pages,
          or pushes a purchase / checkout / conversion event, GTM loads at once. dataLayer stub always present so
-         early pushes queue and run when GTM arrives. -->
+         early pushes queue and run when GTM arrives.
+         CONSENT-DEFAULT-1029: Consent Mode defaults (EEA/UK denied, rest granted) set before gtag js/config. -->
     <script>
     (function(w, d, s, l, i) {
       w[l] = w[l] || [];
       function gtag(){ w[l].push(arguments); }
       w.gtag = w.gtag || gtag;
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        wait_for_update: 500,
+        region: ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IS','IE','IT','LV','LI','LT','LU','MT','NL','NO','PL','PT','RO','SK','SI','ES','SE','GB']
+      });
+      gtag('consent', 'default', {
+        ad_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted',
+        analytics_storage: 'granted'
+      });
       gtag('js', new Date());
       gtag('config', 'G-4T3FK9DBTR');
       gtag('config', 'AW-1017130069');
