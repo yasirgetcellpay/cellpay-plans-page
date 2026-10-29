@@ -287,7 +287,7 @@ function mapUltraMdnPlans(v: unknown, kind: "fixed" | "range"): UltraMdnPlan[] {
     const p = it as Record<string, unknown>; // ULTRA-MDN-1029
     const planId = p.plan_id ?? p.planId; const bc = p.barcode; // ULTRA-MDN-1029
     if (planId === undefined || planId === null || planId === "" || bc === undefined || bc === null || bc === "") continue; // ULTRA-MDN-1029: never a B plan without barcode
-    out.push({ planId: String(planId), carrierId: (p.carrierId ?? p.carrier_id ?? "") as string | number, barcode: typeof bc === "string" ? bc : String(bc), name: typeof p.name === "string" ? p.name : (typeof p.plan_name === "string" ? p.plan_name : undefined), amount: numOrU(p.amount), rangeMin: numOrU(p.rangeMin ?? p.range_min), rangeMax: numOrU(p.rangeMax ?? p.range_max), kind }); // ULTRA-MDN-1029
+    out.push({ planId: String(planId), carrierId: (p.carrierId ?? p.carrier_id ?? "") as string | number, barcode: typeof bc === "string" ? bc : String(bc), name: typeof p.name === "string" ? p.name : typeof p.plan_name === "string" ? p.plan_name : typeof p.description === "string" ? p.description : undefined, /* ULTRA-MDN-1029: + description */ amount: numOrU(p.amount), rangeMin: numOrU(p.rangeMin ?? p.range_min), rangeMax: numOrU(p.rangeMax ?? p.range_max), kind }); // ULTRA-MDN-1029
   } // ULTRA-MDN-1029
   return out; // ULTRA-MDN-1029
 } // ULTRA-MDN-1029
