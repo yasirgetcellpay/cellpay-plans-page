@@ -78,6 +78,7 @@ interface LocationState {
   carrierName: string;
   brandColor: string;
   ultraMdn?: UltraMdnCtx; // ULTRA-MDN-1029
+  ultraOverrideFrom?: number; // ULTRA-AMOUNT-OVERRIDE-1029
 }
 
 type PaymentMethod = "card" | "paypal" | "plaid" | "googlepay" | "applepay" | "klarna" | "cashapp";
@@ -100,6 +101,7 @@ function ultraRefundKind(value: unknown): "amount" | "generic" | null {
   return !text.trim() || /error during refill/i.test(text) ? "generic" : null;
 }
 const STEPUP_WALLETS: PaymentMethod[] = ["applepay", "googlepay", "paypal"]; // RISK-RULES-1020: step-up = wallets only (enforce mode only)
+const formatDollars = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(2)); // ULTRA-AMOUNT-OVERRIDE-1029
 
 // Normalize a US phone number for the carrier API: strip non-digits and any
 // leading "1" country code(s). For US numbers we always want exactly 10 digits.
@@ -2837,6 +2839,7 @@ const Checkout = () => {
           {/* Order summary */}
           <div className="bg-card rounded-xl border border-border p-5">
             <h2 className="font-bold text-foreground mb-3 text-sm">{tr.orderSummary}</h2>
+            {state.carrierSlug === "ultra-mobile" && typeof state.ultraOverrideFrom === "number" && Number.isFinite(state.ultraOverrideFrom) && ultraMdnOk?.kind === "fixed" && typeof ultraMdnOk.amount === "number" && <div role="note" data-ultra-amount-override="" className="border-l-2 border-primary bg-muted px-3 py-2 mb-3 text-xs text-foreground">{lang === "es" ? `Su pago es de $${formatDollars(ultraMdnOk.amount)}, no de $${formatDollars(state.ultraOverrideFrom)}. Este es el plan de este número.` : `Your payment is $${formatDollars(ultraMdnOk.amount)}, not $${formatDollars(state.ultraOverrideFrom)}. This is the plan for this number.`}</div>}{/* // ULTRA-AMOUNT-OVERRIDE-1029 */}
             <div className="space-y-2 text-sm">
               <div className="flex justify-between items-center"><span className="text-muted-foreground">{tr.phone}</span><span className="font-medium text-foreground inline-flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-cellpay-green" />{state.phone}</span></div>
               {/* VZ-PREPAID-GUARD-1017: note threshold uses refill amount, never changes totals. */}
