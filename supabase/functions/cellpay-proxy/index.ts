@@ -1889,6 +1889,34 @@ async function planGuard(pr: Record<string, unknown>, headers: Record<string, st
 function pgHeaders(apiKey: string, apiSecret: string, callerHost: string): Record<string, string> { // PLAN-RANGES-1016: same headers as the GET forward
   return { "X-Api-Key": apiKey, "X-Api-Secret": apiSecret, "X-Cellpay-Domain": resolveCellpayDomain(callerHost), "Content-Type": "application/json", "Accept": "*/*" };
 }
+const ULTRA_MDN_CACHE = new Map<string, { at: number; data: Record<string, unknown> }>(); // ULTRA-MDN-1029: per-isolate, 200 success bodies only
+const ULTRA_MDN_TTL = 5 * 60 * 1000; // ULTRA-MDN-1029
+type UltraMdnFetch = { ok: true; data: Record<string, unknown> } | { ok: false; status: number; message?: string }; // ULTRA-MDN-1029
+async function ultraMdnFetch(mdn: string, headers: Record<string, string>): Promise<UltraMdnFetch> { // ULTRA-MDN-1029
+  const c = ULTRA_MDN_CACHE.get(mdn); // ULTRA-MDN-1029
+  if (c && Date.now() - c.at < ULTRA_MDN_TTL) return { ok: true, data: c.data }; // ULTRA-MDN-1029
+  try { // ULTRA-MDN-1029
+    const r = await fetch(`${API_BASE}/plans/ultra-plans?mdn=${mdn}`, { method: "GET", headers, signal: AbortSignal.timeout(6000) }); // ULTRA-MDN-1029
+    const txt = await r.text(); // ULTRA-MDN-1029: JSON.parse keeps string barcodes as strings
+    let raw: Record<string, unknown> = {}; // ULTRA-MDN-1029
+    try { const j = JSON.parse(txt); if (j && typeof j === "object") raw = j as Record<string, unknown>; } catch { /* non-JSON */ } // ULTRA-MDN-1029
+    const msgOf = () => { const m = raw.message ?? raw.error ?? raw.msg; const s = typeof m === "string" ? m : m != null ? JSON.stringify(m) : (Object.keys(raw).length ? "" : txt); return s ? s.slice(0, 300) : undefined; }; // ULTRA-MDN-1029
+    if (r.status !== 200 || raw.success === false) return { ok: false, status: r.status === 200 ? 422 : r.status, message: msgOf() }; // ULTRA-MDN-1029
+    let d = (raw.data && typeof raw.data === "object" ? raw.data : raw) as Record<string, unknown>; // ULTRA-MDN-1029
+    if (d && d.data && typeof d.data === "object" && !Array.isArray(d.data)) d = d.data as Record<string, unknown>; // ULTRA-MDN-1029
+    ULTRA_MDN_CACHE.set(mdn, { at: Date.now(), data: d }); // ULTRA-MDN-1029
+    return { ok: true, data: d }; // ULTRA-MDN-1029
+  } catch { return { ok: false, status: 502 }; } // ULTRA-MDN-1029
+} // ULTRA-MDN-1029
+async function ultraMdnPlanCheck(mdn: string, planId: string, barcode: string, amount: number, headers: Record<string, string>): Promise<"ok" | "mismatch" | "fail"> { // ULTRA-MDN-1029
+  const r = await ultraMdnFetch(mdn, headers); // ULTRA-MDN-1029
+  if (!r.ok) return r.status === 502 ? "fail" : "mismatch"; // ULTRA-MDN-1029
+  const list = (k: string) => (Array.isArray(r.data[k]) ? r.data[k] : []) as Array<Record<string, unknown>>; // ULTRA-MDN-1029
+  const same = (p: Record<string, unknown>) => String(p.plan_id ?? p.planId ?? "") === planId && String(p.barcode ?? "") === barcode; // ULTRA-MDN-1029
+  if (list("fixed_plans").some((p) => same(p) && Math.abs(amount - Number(p.amount)) <= 0.01)) return "ok"; // ULTRA-MDN-1029
+  if (list("range_plans").some((p) => same(p) && Number(p.rangeMin ?? p.range_min) <= amount && amount <= Number(p.rangeMax ?? p.range_max))) return "ok"; // ULTRA-MDN-1029
+  return "mismatch"; // ULTRA-MDN-1029
+} // ULTRA-MDN-1029
 
 // PLAN-RANGES-1016: RETRY-BLOCK. Same phone + plan + amount got CellPay's refill-error result in the last 30 min -> refused. Fail-open (1 s).
 const RB_WINDOW_MS = 30 * 60 * 1000; // PLAN-RANGES-1016
