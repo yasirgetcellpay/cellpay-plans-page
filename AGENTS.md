@@ -1,4 +1,5 @@
 # Project architecture rules
+- Keep receipt SMS in a shared background-only sender with service-only atomic paid-identity claims and top-level checkout language, so delivery failures cannot alter or delay payment responses. // POSTPAY-SMS-34332-1030
 - Keep the CCPA notice in one route-aware component outside Routes, with deferred same-origin geography and reversible body spacing; share privacy heading IDs between static and React renderers so consent/payment code remains untouched. // CCPA-BANNER-1029
 - Keep Ultra history, confirmations and recovery isolated in Ultra-only helpers and components, and breaker pause/probe state in a service-only atomic database function shared by health reads and the proxy before charges; bound new calls to two seconds and never mutate submission payloads. // ULTRA-SMART-PREVENT-1024
 - Keep Metro first-screen presentation behind the optional GoLander metroFirstScreen prop, enabled only on Metro ad routes, so default carrier DOM and existing validation/navigation remain unchanged. // METRO-FIRSTSCREEN-1023b

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2"; // LYCA-SKU-FIX-1024
+import { startPostpaySms } from "../_shared/postpaySms.ts"; // POSTPAY-SMS-34332-1030
 import { scoreRisk, riskEngineMode } from "../_shared/riskLogic.ts"; // FRAUD-MULTIBLOCK-1012 5b
 import { vzGuardGate } from "../_shared/vzPrepaidGuard.ts"; // VZ-PREPAID-GUARD-1017
 import { tmoGuardGate } from "../_shared/tmoRetryGuard.ts"; // TMO-LOOKUP-1020
@@ -440,7 +441,9 @@ async function finishTransactionLog(
     }, timeoutMs); // DB-OUTAGE-TRACK-1017
   } catch (error) {
     console.error("[tx-log] finalize failed:", error instanceof Error ? error.message : error);
+    return; // POSTPAY-SMS-34332-1030
   }
+  if (isSuccess) startPostpaySms(id); // POSTPAY-SMS-34332-1030: claim verifies persisted success; no response waits for SMS.
 }
 
 // [CASHAPP-STUCK-1007] The Cash App create call to CellPay threw or passed POCKYT_CREATE_TIMEOUT_MS: close the pending log row as
@@ -3287,7 +3290,7 @@ serve(async (req) => {
       if (health?.allowed === false) return new Response(JSON.stringify({ success: false, blocked: true, code: "ULTRA_PAUSED", message: body.lang === "es" ? "Las recargas de Ultra no están disponibles temporalmente. Volverán pronto. Inténtelo de nuevo en unos 20 minutos." : "Ultra refills are temporarily unavailable — back shortly. Please try again in about 20 minutes." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); // ULTRA-SMART-PREVENT-1024
     } // ULTRA-SMART-PREVENT-1024
     const createP: Promise<string | null> = shouldLogTransaction
-      ? createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...retryMetaFrom(body.retry_meta), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}), ...namesSentMeta(payloadRecord) /* ACCENT-FOLD-1015C */, ...ultraMdnMeta(payloadRecord, ultraPtSite) }, clickIdsFrom(body.click_ids), // PREP-META-1029
+      ? createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...retryMetaFrom(body.retry_meta), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}), ...namesSentMeta(payloadRecord) /* ACCENT-FOLD-1015C */, ...ultraMdnMeta(payloadRecord, ultraPtSite), uiLang: body.uiLang === "es" ? "es" : "en" }, clickIdsFrom(body.click_ids), // PREP-META-1029 // POSTPAY-SMS-34332-1030
           mf ? await mfLogMeta(mf, null) : {}, 20000)
       : Promise.resolve(null); // DB-OUTAGE-TRACK-1017
     waitUntilSafe(createP); // DB-OUTAGE-TRACK-1017
@@ -3456,6 +3459,7 @@ serve(async (req) => {
               _error_message: finalStatus === "failed" ? text(result.message ?? result.msg) : null,
               _raw_response: result,
             }, 10000); // DB-OUTAGE-TRACK-1017
+            if (finalStatus === "success") startPostpaySms(logId); // POSTPAY-SMS-34332-1030
           } catch (error) {
             console.error("[tx-log] pockyt finalize failed:", error instanceof Error ? error.message : error);
           }
@@ -3463,9 +3467,10 @@ serve(async (req) => {
           // and our log id both match (and the txn is not on another row). No-op when the row was pending (settled just above).
           if (finalStatus === "success") {
             try {
-              await callDatabaseRpc("finalize_pockyt_log", {
+              const flipped = await callDatabaseRpc("finalize_pockyt_log", { // POSTPAY-SMS-34332-1030
                 _session_id: endpoint.split("/")[3] || "", _pending_log_id: logId, _status: "success", _txn: txnId, _msg: null, _raw: result,
               }, 10000); // DB-OUTAGE-TRACK-1017
+              if (flipped === true) startPostpaySms(logId); // POSTPAY-SMS-34332-1030
             } catch (error) {
               console.error("[tx-log] pockyt late-paid flip failed:", error instanceof Error ? error.message : error);
             }

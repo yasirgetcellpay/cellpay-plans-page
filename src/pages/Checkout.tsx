@@ -641,7 +641,7 @@ const Checkout = () => {
         const attemptId = newAttemptId(); const started = Date.now(); const ac = new AbortController(); let timedOut = false; // CHECKOUT-TIMEOUT-1023
         const tm = setTimeout(() => { timedOut = true; ac.abort(); }, CHECKOUT_TIMEOUT_MS); // CHECKOUT-TIMEOUT-1023
         try { // CHECKOUT-TIMEOUT-1023
-          const out = await submitTransactionRaw(confirmed ? { ...withDev, dup_confirm: true } : withDev, undefined, { signal: ac.signal }); // CHECKOUT-TIMEOUT-1023
+          const out = await submitTransactionRaw(confirmed ? { ...withDev, dup_confirm: true } : withDev, undefined, { signal: ac.signal }, lang); // CHECKOUT-TIMEOUT-1023 // POSTPAY-SMS-34332-1030
           logAttempt(attemptId, 200, Date.now() - started); return out; // CHECKOUT-TIMEOUT-1023
         } catch (err) { // CHECKOUT-TIMEOUT-1023
           const outcome = outcomeOfError(err, timedOut); logAttempt(attemptId, outcome, Date.now() - started); // CHECKOUT-TIMEOUT-1023

@@ -13,6 +13,7 @@ interface ProxyRequest {
   click_ids?: Record<string, string>;
   /** DECLINE-DIALOG-1008: top-level page language ("en" | "es"); cellpay-proxy stores it as transaction_logs.metadata.lang only. Never sent to CellPay. */
   lang?: "en" | "es";
+  uiLang?: "en" | "es"; // POSTPAY-SMS-34332-1030
   /** AI-REFERRALS-1010b: top-level; cellpay-proxy stores it in transaction_logs.metadata only (ref_host, utm_source, landing_path). Never sent to CellPay. */
   visit_source?: { ref_host?: string; utm_source?: string; landing_path?: string; gad_source?: string; gad_campaignid?: string; click_id_source?: string }; // CP-PROFIT-COVERAGE-1023
   /** OURSIDE-RETRY-1012: top-level; cellpay-proxy stores it in transaction_logs.metadata only. Never sent to CellPay. */
@@ -54,7 +55,7 @@ export async function callProxy(req: ProxyRequest, opts?: ProxyCallOptions): Pro
 
   try {
     const { data, error } = await supabase.functions.invoke("cellpay-proxy", {
-      body: { ...req, callerHost },
+      body: { ...req, callerHost, ...(req.uiLang ? { uiLang: req.uiLang } : {}) }, // POSTPAY-SMS-34332-1030
       ...(optController ? { signal: optController.signal } : {}), // CHECKOUT-TIMEOUT-1023
     });
 
@@ -480,9 +481,10 @@ export async function submitTransaction(
   payload: Record<string, unknown>,
   bearerToken?: string,
   opts?: ProxyCallOptions, // CHECKOUT-TIMEOUT-1023: optional; omitted = unchanged behavior
+  uiLang?: "en" | "es", // POSTPAY-SMS-34332-1030
 ): Promise<unknown> {
   payload = applyUltraMdn(payload); // ULTRA-MDN-1029
-  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds(), lang: pageLang(), visit_source: storedVisitSource(), retry_meta: storedRetryMeta(payload) }, opts); // CHECKOUT-TIMEOUT-1023
+  return callProxy({ endpoint: "checkout/transaction", method: "POST", payload, bearerToken, click_ids: adClickIds(), lang: pageLang(), uiLang, visit_source: storedVisitSource(), retry_meta: storedRetryMeta(payload) }, opts); // CHECKOUT-TIMEOUT-1023 // POSTPAY-SMS-34332-1030
 }
 
 export async function fetchCheckoutConfig(): Promise<Record<string, unknown>> {

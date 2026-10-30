@@ -9,6 +9,7 @@
 // Settles a row only on a definitive answer; everything else is re-checked with backoff (3 min < 1 h, then 15 min, to 48 h).
 // Never logs session ids, log ids, transaction ids or customer data.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { startPostpaySms } from "../_shared/postpaySms.ts"; // POSTPAY-SMS-34332-1030
 
 const API_BASE = "https://api.cellpay.us/api";
 const SUCCESS = ["success", "completed", "paid", "captured", "approved"];   // identical to cellpay-proxy + CashAppReturn
@@ -106,10 +107,11 @@ export async function runSweep(mode: "shadow" | "enforce", limit: number, rpcImp
       const row = rows[i++];
       const r = await checkOne(row, fetchImpl);
       try {
-        await rpcImpl("pockyt_sweep_record", {
+        const settled = await rpcImpl("pockyt_sweep_record", { // POSTPAY-SMS-34332-1030
           _log_id: row.log_id, _session_id: row.session_id, _http: r.http, _upstream: r.upstream,
           _txn: r.txn, _msg: r.msg, _raw: r.raw, _verdict: r.verdict,
         });
+        if (mode === "enforce" && settled === "paid:applied") startPostpaySms(row.log_id); // POSTPAY-SMS-34332-1030
         counts[r.verdict === "paid" ? "paid" : r.verdict === "failed" ? "failed" : r.verdict === "pending" ? "pending" : r.verdict === "auth" ? "auth" : "error"]++;
       } catch (_e) {
         counts.error++;   // unrecorded rows keep their 5-min lease and are retried next run
