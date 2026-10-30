@@ -162,6 +162,13 @@
       "when": 1793372055949,
       "tag": "0022_postpay_sms_34332_1030",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1793401064567,
+      "tag": "0023_partner_receipt_sms_34332_host_1030",
+      "breakpoints": true
     }
   ]
 }

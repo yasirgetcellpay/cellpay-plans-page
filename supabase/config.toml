@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.send-receipt]
 verify_jwt = false
+
+[functions.partner-receipt-sms] # // CM-PZ-34332-HOST-1030
+verify_jwt = false # // CM-PZ-34332-HOST-1030
