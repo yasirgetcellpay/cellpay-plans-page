@@ -104,9 +104,10 @@ export default function CcpaBar() {
     };
   }, [visible, es]);
 
+  // CCPA-BANNER-DESKTOP-1029
   if (!visible) return null;
   return (
-    <div ref={barRef} role="region" aria-label="Privacy notice" className="fixed bottom-0 left-0 right-0 z-30 flex min-h-[44px] flex-wrap items-center gap-x-3 gap-y-1 bg-[hsl(var(--cellpay-dark))] px-3 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))] text-[12px] leading-normal text-primary-foreground">
+    <div ref={barRef} role="region" aria-label="Privacy notice" className="fixed bottom-0 left-0 right-0 z-30 flex min-h-[44px] flex-wrap items-center gap-x-3 gap-y-1 bg-[hsl(var(--cellpay-dark))] px-3 lg:pr-28 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))] text-[12px] leading-normal text-primary-foreground">
       <p className="min-w-0 flex-1 basis-[240px]">
         {es ? "Usamos cookies para anuncios y el uso del sitio. California: " : "We use cookies for ads and site use. California: "}
         <a className="text-primary-foreground underline" href={es ? "/es/privacy-policy#no-vender" : "/privacy-policy#do-not-sell"}>
