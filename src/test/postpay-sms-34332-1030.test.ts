@@ -1,6 +1,7 @@
 // Run server-side receipt tests with vitest.postpay.config.ts, without browser-only setup. // POSTPAY-SMS-34332-1030
 import { describe, it, expect, vi } from "vitest"; // POSTPAY-SMS-34332-1030
 import { readFileSync } from "node:fs"; // POSTPAY-SMS-34332-1030
+import { Blob as NodeBlob } from "node:buffer"; // POSTPAY-SMS-34332-1030
 import { PGlite } from "@electric-sql/pglite"; // POSTPAY-SMS-34332-1030
 import ts from "typescript"; // POSTPAY-SMS-34332-1030
 import { postpayMdn, sendPostpaySms } from "../../supabase/functions/_shared/postpaySms"; // POSTPAY-SMS-34332-1030
@@ -34,7 +35,7 @@ describe("POSTPAY-SMS-34332-1030 sender", () => { // POSTPAY-SMS-34332-1030
 }); // POSTPAY-SMS-34332-1030
 describe("POSTPAY-SMS-34332-1030 atomic claim", () => { // POSTPAY-SMS-34332-1030
   it("claims successful identity once, preserves metadata/status and restricts execution", async () => { // POSTPAY-SMS-34332-1030
-    const db = new PGlite(); try { // POSTPAY-SMS-34332-1030
+    const db = new PGlite({ fsBundle: new NodeBlob([readFileSync("node_modules/@electric-sql/pglite/dist/pglite.data")]) as unknown as Blob }); try { // POSTPAY-SMS-34332-1030
       await db.exec("CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE TABLE public.transaction_logs(id uuid primary key, status text, hashid text, transaction_id text, phone_number text, amount numeric, carrier_name text, metadata jsonb); ALTER TABLE public.transaction_logs ENABLE ROW LEVEL SECURITY;"); // POSTPAY-SMS-34332-1030
       await db.exec(readFileSync("drizzle/migrations/0022_postpay_sms_34332_1030.sql", "utf8")); // POSTPAY-SMS-34332-1030
       const ids = [1, 2, 3, 4].map((n) => `00000000-0000-0000-0000-00000000000${n}`); // POSTPAY-SMS-34332-1030
