@@ -8,7 +8,7 @@
 export type PpLang = "en" | "es";
 export type PpInline = string | { strong: string } | { href: string; text: string };
 export type PpBlock = { p: PpInline[] } | { ul: PpInline[][] };
-export type PpSection = { h: string; blocks: PpBlock[] };
+export type PpSection = { h: string; id?: string; blocks: PpBlock[] };
 export type PpPage = {
   lang: PpLang;
   path: string;
@@ -83,6 +83,7 @@ export const PRIVACY_PAGES: Record<PpLang, PpPage> = {
       },
       {
         h: "6. Your Rights",
+        id: "do-not-sell", // CCPA-BANNER-1029
         blocks: [
           { p: ["You may request access to, correction of, or deletion of your personal data by contacting us at support@getcellpay.com."] },
           { p: ["CellPay may email you about your refills, Auto Pay, and special offers. You can unsubscribe anytime using the link in any email or by emailing support@getcellpay.com."] },
@@ -162,6 +163,7 @@ export const PRIVACY_PAGES: Record<PpLang, PpPage> = {
       },
       {
         h: "6. Sus derechos",
+        id: "no-vender", // CCPA-BANNER-1029
         blocks: [
           { p: ["Puede pedir ver, corregir o borrar sus datos personales escribiéndonos a support@getcellpay.com."] },
           { p: ["CellPay puede enviarle correos electrónicos sobre sus recargas, el pago automático y ofertas especiales. Puede darse de baja en todo momento con el enlace que aparece en cada correo o escribiendo a support@getcellpay.com."] }, // QA-1023-CUAL-2
@@ -203,7 +205,7 @@ export const privacyMainHtml = (pg: PpPage): string =>
   pg.sections
     .map(
       (s) =>
-        `<h2 class="text-lg font-bold text-foreground pt-3">${esc(s.h)}</h2>` +
+        `<h2${s.id ? ` id="${esc(s.id)}"` : ""} class="text-lg font-bold text-foreground pt-3">${esc(s.h)}</h2>` +
         s.blocks
           .map((b) =>
             "p" in b
