@@ -1729,6 +1729,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/s1/index.html": "es/s1.html", "es/topup-crc/index.html": "es/topup-crc.html",
       "es/tmobile-flexi/index.html": "es/tmobile-flexi.html", "es/topup-at/index.html": "es/topup-at.html",
       "es/ultra-mobile/index.html": "es/ultra-mobile.html",
+      "es/pageplus/index.html": "es/pageplus.html", // ES-PAGEPLUS-ROUTE-1030
       "es/straight-talk/index.html": "es/straight-talk.html", // BILLPAY-ST-SHELL-H1-1025
       "lp/metro/index.html": "metropcs.html", "lp/boost/index.html": "boost.html",
       // AEO-PAGES-1007: /terms and /about short URLs (App.tsx sends them to the full page)
