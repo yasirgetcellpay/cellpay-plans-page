@@ -775,10 +775,10 @@ const DynamicCarrier = ({
     setVerifying(false); // ULTRA-MDN-1029
     if (!verify.success) { toast({ title: tr.invalidPhone, description: verify.message || tr.invalidPhone, variant: "destructive" }); return; } // ULTRA-MDN-1029
     if (ultraCurrentMdn.current !== ultraMdn10) return; // ULTRA-BPATH-FIX-1029
-    setAmount(String(selection.amount)); setUltraMdnActive({ mdn: selection.ultraMdn.mdn, barcode: selection.ultraMdn.barcode, planId: selection.ultraMdn.planId, carrierId: selection.ultraMdn.carrierId }); // ULTRA-BPATH-FIX-1029
+    setAmount(String(selection.amount)); setUltraMdnActive({ mdn: selection.ultraMdn.mdn, barcode: selection.ultraMdn.barcode, planId: selection.ultraMdn.planId, carrierId: selection.ultraMdn.carrierId, ...(validated?.purchaseType !== undefined ? { purchaseType: validated.purchaseType } : {}) }); // ULTRA-BPATH-FIX-1029 // PREP-META-1029
     navigate(lang === "es" ? "/es/checkout" : "/checkout", { // ULTRA-MDN-1029
       state: { phone, amount: amt, carrierSlug, carrierId: plan.carrierId, carrierName, brandColor, planId: plan.planId, planName: plan.name, // ULTRA-MDN-1029
-        ...selection, // ULTRA-BPATH-FIX-1029
+        ...selection, ultraMdn: { ...selection.ultraMdn, ...(validated?.purchaseType !== undefined ? { purchaseType: validated.purchaseType } : {}) }, // ULTRA-BPATH-FIX-1029 // PREP-META-1029
       }, // ULTRA-BPATH-FIX-1029
     }); // ULTRA-MDN-1029
   }; // ULTRA-MDN-1029

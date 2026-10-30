@@ -380,7 +380,7 @@ const Checkout = () => {
   const ultraMdnOk = !!state?.ultraMdn && state.carrierSlug === "ultra-mobile" && phone10 === state.ultraMdn.mdn && String(state.planId) === state.ultraMdn.planId && !!state.ultraMdn.barcode && ultraMdnAmountOk(state.ultraMdn, Number(state.amount)) ? state.ultraMdn : null; // ULTRA-MDN-1029
   const ultraMdnArg = ultraMdnOk ? { barcode: String(ultraMdnOk.barcode), kind: ultraMdnOk.kind } : undefined; // ULTRA-MDN-1029
   const ultraMdnExtra = ultraMdnOk ? { barcode: String(ultraMdnOk.barcode), carrierId: ultraMdnOk.carrierId, plan_id: ultraMdnOk.planId, phone_number: ultraMdnOk.mdn } : {}; // ULTRA-MDN-1029
-  setUltraMdnActive(ultraMdnOk ? { mdn: ultraMdnOk.mdn, barcode: String(ultraMdnOk.barcode), planId: ultraMdnOk.planId, carrierId: ultraMdnOk.carrierId } : null); // ULTRA-MDN-1029: read by submitTransaction for every payment method
+  setUltraMdnActive(ultraMdnOk ? { mdn: ultraMdnOk.mdn, barcode: String(ultraMdnOk.barcode), planId: ultraMdnOk.planId, carrierId: ultraMdnOk.carrierId, ...(ultraMdnOk.purchaseType !== undefined ? { purchaseType: ultraMdnOk.purchaseType } : {}) } : null); // ULTRA-MDN-1029: read by submitTransaction for every payment method // PREP-META-1029
   useEffect(() => () => setUltraMdnActive(null), []); // ULTRA-MDN-1029
   const ultraBarcodeMissing = state?.carrierSlug === "ultra-mobile" && !ultraMdnOk; // ULTRA-BPATH-FIX-1029
   const ultraRePick = () => { if (!state) return; toast({ title: ultraVerifyText(lang), variant: "destructive" }); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, state.amount, location.search, location.hash), { replace: true }); }; // ULTRA-BPATH-FIX-1029

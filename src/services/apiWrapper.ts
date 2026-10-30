@@ -274,7 +274,7 @@ export async function verifyPhone(
 }
 
 // ULTRA-MDN-1029: Ultra Mobile plans for one MDN (source B). Never mixed with carriers/view plans.
-export type UltraMdnPlan = { planId: string; carrierId: string | number; barcode: string; name?: string; amount?: number; rangeMin?: number; rangeMax?: number; kind: "fixed" | "range" }; // ULTRA-MDN-1029
+export type UltraMdnPlan = { planId: string; carrierId: string | number; barcode: string; purchaseType?: string; name?: string; amount?: number; rangeMin?: number; rangeMax?: number; kind: "fixed" | "range" }; // ULTRA-MDN-1029 // PREP-META-1029
 export type UltraMdnResult = { ok: true; subscriber: string | null; fixed: UltraMdnPlan[]; range: UltraMdnPlan[] } | { ok: false; status: number; message?: string }; // ULTRA-MDN-1029
 const ULTRA_MDN_MEMO = new Map<string, { at: number; r: UltraMdnResult }>(); // ULTRA-MDN-1029
 const ULTRA_MDN_INFLIGHT = new Map<string, Promise<UltraMdnResult>>(); // ULTRA-MDN-1029
@@ -287,7 +287,7 @@ function mapUltraMdnPlans(v: unknown, kind: "fixed" | "range"): UltraMdnPlan[] {
     const p = it as Record<string, unknown>; // ULTRA-MDN-1029
     const planId = p.plan_id ?? p.planId; const bc = p.barcode; // ULTRA-MDN-1029
     if (planId === undefined || planId === null || planId === "" || bc === undefined || bc === null || bc === "") continue; // ULTRA-MDN-1029: never a B plan without barcode
-    out.push({ planId: String(planId), carrierId: (p.carrierId ?? p.carrier_id ?? "") as string | number, barcode: typeof bc === "string" ? bc : String(bc), name: typeof p.name === "string" ? p.name : typeof p.plan_name === "string" ? p.plan_name : typeof p.description === "string" ? p.description : undefined, /* ULTRA-MDN-1029: + description */ amount: numOrU(p.amount), rangeMin: numOrU(p.rangeMin ?? p.range_min), rangeMax: numOrU(p.rangeMax ?? p.range_max), kind }); // ULTRA-MDN-1029
+    out.push({ planId: String(planId), carrierId: (p.carrierId ?? p.carrier_id ?? "") as string | number, barcode: typeof bc === "string" ? bc : String(bc), ...(typeof p.purchase_type === "string" && /^[A-Z_]{1,20}$/.test(p.purchase_type) ? { purchaseType: p.purchase_type } : {}), name: typeof p.name === "string" ? p.name : typeof p.plan_name === "string" ? p.plan_name : typeof p.description === "string" ? p.description : undefined, /* ULTRA-MDN-1029: + description */ amount: numOrU(p.amount), rangeMin: numOrU(p.rangeMin ?? p.range_min), rangeMax: numOrU(p.rangeMax ?? p.range_max), kind }); // ULTRA-MDN-1029 // PREP-META-1029
   } // ULTRA-MDN-1029
   return out; // ULTRA-MDN-1029
 } // ULTRA-MDN-1029
@@ -466,14 +466,14 @@ function storedRetryMeta(payload: Record<string, unknown>): Record<string, unkno
 }
 
 // ULTRA-MDN-1029: active MDN plan set by Checkout only when state matches; adds barcode/carrierId/plan_id/MDN to checkout/transaction.
-let ultraMdnActive: { mdn: string; barcode: string; planId: string; carrierId: string | number } | null = null; // ULTRA-MDN-1029
-export function setUltraMdnActive(v: { mdn: string; barcode: string; planId: string; carrierId: string | number } | null): void { ultraMdnActive = v; } // ULTRA-MDN-1029
+let ultraMdnActive: { mdn: string; barcode: string; planId: string; carrierId: string | number; purchaseType?: string } | null = null; // ULTRA-MDN-1029 // PREP-META-1029
+export function setUltraMdnActive(v: { mdn: string; barcode: string; planId: string; carrierId: string | number; purchaseType?: string } | null): void { ultraMdnActive = v; } // ULTRA-MDN-1029 // PREP-META-1029
 export function applyUltraMdn(payload: Record<string, unknown>): Record<string, unknown> { // ULTRA-MDN-1029
   const u = ultraMdnActive; // ULTRA-MDN-1029
   if (!u || !u.barcode || String(payload.carrier_slug ?? "") !== "ultra-mobile") return payload; // ULTRA-MDN-1029
   let d = String(payload.phone_number ?? "").replace(/\D/g, ""); while (d.length > 10 && d.startsWith("1")) d = d.slice(1); // ULTRA-MDN-1029
   if (d !== u.mdn || String(payload.plan_id ?? payload.planId ?? "") !== u.planId) return payload; // ULTRA-MDN-1029: A path as today
-  return { ...payload, barcode: String(u.barcode), carrierId: u.carrierId, plan_id: u.planId, phone_number: u.mdn }; // ULTRA-MDN-1029
+  return { ...payload, barcode: String(u.barcode), carrierId: u.carrierId, plan_id: u.planId, phone_number: u.mdn, ...(u.purchaseType !== undefined ? { ultraPurchaseType: u.purchaseType } : {}) }; // ULTRA-MDN-1029 // PREP-META-1029
 } // ULTRA-MDN-1029
 
 export async function submitTransaction(
