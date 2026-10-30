@@ -3704,7 +3704,7 @@ const Checkout = () => {
         const choices = cause ? retryButtons(state.carrierSlug, lang, phone10, retryNow) : []; // REFUND-RETRY-1018
         const stPastDue = RP_P6_ST_PASTDUE && !!loadReason && isStPastDue(state.carrierSlug, loadReason.parts.join(" | ")); // REFILL-PREVENT-1024
         const pick = stPastDue && loadReason ? { ...loadReason, category: "plan" as const } : state.carrierSlug === "ultra-mobile" && loadReason ? loadTextPick(loadReason.parts.join(" | "), state.carrierSlug) : loadReason; // LOADTEXT-PICK-1019 // ULTRA-MSG-1024: refund display only // REFILL-PREVENT-1024
-        const pickChoices = pick ? pickButtons(pick.category, lang, choices) : null; // LOADTEXT-PICK-1019: null for generic = existing buttons
+        const pickChoices = pick ? pickButtons(pick.category, lang, choices, state.carrierSlug) : null; // LOADTEXT-PICK-1019: null for generic = existing buttons // METRO-INVALID-PHONE-UX-1030
         const es = lang === "es";
         const payWord = /metro|boost|cricket/i.test(`${state.carrierSlug || ""} ${state.carrierName || ""}`); // REFUND-WORDING-1016
         const ultraKind = (!pick || pick.category === "generic") && state.carrierSlug === "ultra-mobile" ? ultraResultKind : null; // REFILL-ERROR-MSG-1024: matched LoadText takes precedence // ULTRA-FAIL-MSG-1022

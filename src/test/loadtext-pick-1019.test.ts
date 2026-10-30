@@ -139,6 +139,16 @@ describe("ULTRA-MSG-1024", () => {
 });
 
  describe("LOADTEXT-PICK-1019 buttons", () => {
+  it.each(["metropcs", "Metro PCS", "metro-pcs"])("Metro %s number errors offer only number correction in both languages", (slug) => { // METRO-INVALID-PHONE-UX-1030
+    for (const lang of ["en", "es"]) expect(pickButtons("number", lang, [], slug)?.map((b) => b.action)).toEqual(["number"]); // METRO-INVALID-PHONE-UX-1030
+  }); // METRO-INVALID-PHONE-UX-1030
+  it.each(["boost", "cricket", "tmobile", "ultra-mobile", undefined])("non-Metro %s number errors retain carrier selection", (slug) => { // METRO-INVALID-PHONE-UX-1030
+    for (const lang of ["en", "es"]) expect(pickButtons("number", lang, [], slug)?.map((b) => b.action)).toEqual(["number", "other_carrier"]); // METRO-INVALID-PHONE-UX-1030
+  }); // METRO-INVALID-PHONE-UX-1030
+  it("Metro non-number errors and legacy third-argument calls remain unchanged", () => { // METRO-INVALID-PHONE-UX-1030
+    for (const category of ["plan", "amount", "cooldown", "system", "generic"] as const) expect(pickButtons(category, "en", [], "metropcs")).toEqual(pickButtons(category, "en", [])); // METRO-INVALID-PHONE-UX-1030
+    expect(pickButtons("number", "en", [{ label: "Existing", action: "number" }])?.map((b) => b.action)).toEqual(["number", "other_carrier"]); // METRO-INVALID-PHONE-UX-1030
+  }); // METRO-INVALID-PHONE-UX-1030
   const s1Base = [{ label: "Straight Talk", action: "to_carrier", to_carrier: "straight-talk" }, { label: "Total Wireless", action: "to_carrier", to_carrier: "total-wireless" }, { label: "Change number", action: "number" }];
   it("number -> edit number first, then carrier switches (or choose another carrier)", () => {
     expect(pickButtons("number", "en", s1Base)?.map((b) => b.action)).toEqual(["number", "other_carrier"]);
