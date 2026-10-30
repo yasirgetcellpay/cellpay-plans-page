@@ -291,9 +291,9 @@ function mapUltraMdnPlans(v: unknown, kind: "fixed" | "range"): UltraMdnPlan[] {
   } // ULTRA-MDN-1029
   return out; // ULTRA-MDN-1029
 } // ULTRA-MDN-1029
-export function fetchUltraMdnPlans(mdn: string): Promise<UltraMdnResult> { // ULTRA-MDN-1029
+export function fetchUltraMdnPlans(mdn: string, refresh = false): Promise<UltraMdnResult> { // ULTRA-BPATH-FIX-1029
   const m = ULTRA_MDN_MEMO.get(mdn); // ULTRA-MDN-1029
-  if (m && Date.now() - m.at < 5 * 60 * 1000) return Promise.resolve(m.r); // ULTRA-MDN-1029
+  if (!refresh && m && Date.now() - m.at < 5 * 60 * 1000) return Promise.resolve(m.r); // ULTRA-BPATH-FIX-1029
   const f = ULTRA_MDN_INFLIGHT.get(mdn); if (f) return f; // ULTRA-MDN-1029
   const p = (async (): Promise<UltraMdnResult> => { // ULTRA-MDN-1029
     try { // ULTRA-MDN-1029

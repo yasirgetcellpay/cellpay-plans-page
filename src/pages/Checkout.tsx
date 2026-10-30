@@ -62,6 +62,7 @@ import { useLang, t } from "@/lib/i18n";
 // TOP4-T2B-1009: carrier name for the "Your payment was refunded" card (display only)
 import { top4Name, displayCarrierName } from "@/content/carrierHero";
 import type { UltraMdnCtx } from "@/lib/checkoutResume"; // ULTRA-MDN-1029
+import { ultraChargeVerified, ultraVerifyText } from "@/lib/ultraBPath"; // ULTRA-BPATH-FIX-1029
 import { setUltraMdnActive } from "@/services/apiWrapper"; // ULTRA-MDN-1029
 import { readCheckoutCtx, writeCheckoutCtx, clearCheckoutCtx, resolveCheckoutFromUrl, carrierPageTarget, cashAppReturnTarget, stripResumeParams, readCheckoutMethod, writeCheckoutMethod } from "@/lib/checkoutResume";
 import { trackFunnel, resetFunnel, funnelFired } from "@/lib/funnelEvents"; // CHECKOUT-FUNNEL
@@ -381,6 +382,9 @@ const Checkout = () => {
   const ultraMdnExtra = ultraMdnOk ? { barcode: String(ultraMdnOk.barcode), carrierId: ultraMdnOk.carrierId, plan_id: ultraMdnOk.planId, phone_number: ultraMdnOk.mdn } : {}; // ULTRA-MDN-1029
   setUltraMdnActive(ultraMdnOk ? { mdn: ultraMdnOk.mdn, barcode: String(ultraMdnOk.barcode), planId: ultraMdnOk.planId, carrierId: ultraMdnOk.carrierId } : null); // ULTRA-MDN-1029: read by submitTransaction for every payment method
   useEffect(() => () => setUltraMdnActive(null), []); // ULTRA-MDN-1029
+  const ultraBarcodeMissing = state?.carrierSlug === "ultra-mobile" && !ultraMdnOk; // ULTRA-BPATH-FIX-1029
+  const ultraRePick = () => { if (!state) return; toast({ title: ultraVerifyText(lang), variant: "destructive" }); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, state.amount, location.search, location.hash), { replace: true }); }; // ULTRA-BPATH-FIX-1029
+  useEffect(() => { if (ultraBarcodeMissing) ultraRePick(); }, [ultraBarcodeMissing]); // eslint-disable-line react-hooks/exhaustive-deps -- ULTRA-BPATH-FIX-1029
   const ultraMdnStale = !!state?.ultraMdn && !ultraMdnOk; // ULTRA-MDN-1029: phone/plan/amount no longer match the B pick
   useEffect(() => { if (ultraMdnStale && state) { clearCheckoutCtx(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, undefined, location.search, location.hash), { replace: true }); } }, [ultraMdnStale]); // eslint-disable-line react-hooks/exhaustive-deps -- ULTRA-MDN-1029: back to the Ultra page to re-pick
   const [ultraPlans, setUltraPlans] = useState<UltraPlan[]>([]); // ULTRA-SMART-PREVENT-1024
@@ -610,6 +614,7 @@ const Checkout = () => {
   // FRAUD-MULTIBLOCK-1012 5c: the proxy sets risk_action "step_up" only in enforce mode; in shadow this never turns on.
   const [stepUp, setStepUp] = useState(false);
   const submitTransaction = async (p: Record<string, unknown>): Promise<unknown> => {
+    if (ultraBarcodeMissing || !ultraChargeVerified(ultraMdnOk, p)) { ultraRePick(); throw new Error(ultraVerifyText(lang)); } // ULTRA-BPATH-FIX-1029
     if (state?.carrierSlug === "ultra-mobile" && !ultraSmart.gate(Number(state.amount))) return { success: false, code: "ULTRA_CONFIRM", message: ultraSmart.paused ? ultraHealthText("pause", lang) : "" }; // ULTRA-SMART-PREVENT-1024
     if (!phoneOk) { badPhoneGo(); return { success: false, code: "BAD_PHONE", error: "Please enter the full 10-digit phone number." }; } // REFUNDED-STATE-1017
     const key = lockKey(state?.phone, validation?.amount ?? state?.amount); // DB-OUTAGE-TRACK-1017
@@ -1109,6 +1114,7 @@ const Checkout = () => {
       clearCheckoutCtx();
       navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, state.amount, location.search, location.hash), { replace: true });
     };
+    if (ultraBarcodeMissing) return; // ULTRA-BPATH-FIX-1029
     if (!phoneOk) { badPhoneGo(); return; } // REFUNDED-STATE-1017: before validateRecharge
     (async () => {
       try {
@@ -1325,6 +1331,7 @@ const Checkout = () => {
         return actions.reject();
       },
       createOrder: async () => {
+        if (ultraBarcodeMissing) { ultraRePick(); throw new Error("__PP_BLOCKED__"); } // ULTRA-BPATH-FIX-1029
         if (!phoneOk) { badPhoneGo(); throw new Error("__PP_BLOCKED__"); } // REFUNDED-STATE-1017
         ppFunnel("button_click");
         ppLogIdRef.current = null;
@@ -1782,7 +1789,7 @@ const Checkout = () => {
     default: methodValid = true;
   }
 
-  const canSubmit = agreedTerms && !submitting && !confirmingPay && // CHECKOUT-TIMEOUT-1023
+  const canSubmit = !ultraBarcodeMissing && agreedTerms && !submitting && !confirmingPay && // ULTRA-BPATH-FIX-1029
      isEmailValid && methodValid && (!autoPay || autoPayTerms) && !ultraSmart.paused && !(ultraSmart.noHistory && !ultraSmart.acknowledged); // ULTRA-SMART-PREVENT-1024
 
   // [OURSIDE-RETRY-1012] Data-error fallback (never resends) + flagged single Retry. Per-session record in sessionStorage
@@ -2734,6 +2741,7 @@ const Checkout = () => {
 
   // ─── Main handler ───
   const handlePlaceOrder = async () => {
+    if (ultraBarcodeMissing) { ultraRePick(); return; } // ULTRA-BPATH-FIX-1029
     if (state?.carrierSlug === "ultra-mobile" && !ultraSmart.gate(Number(state.amount))) return; // ULTRA-SMART-PREVENT-1024
     const key = lockKey(state?.phone, validation?.amount ?? state?.amount); // DB-OUTAGE-TRACK-1017
     const current = activeLock(key); // DB-OUTAGE-TRACK-1017
