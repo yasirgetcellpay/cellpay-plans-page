@@ -1,5 +1,5 @@
 # VZ-PREPAID-GUARD-1017
-- [ ] CCPA-BANNER-1029: Add isolated California notice, section 6 anchors, and verify visibility/dismissal/checkout exclusion without payment or consent changes.
+- [x] CCPA-BANNER-1029: Added isolated California notice and shared section 6 anchors; four rule tests and EN/ES mobile/browser checks passed for cached trace geography, dismissal, GPC, failures and checkout exclusion. No payment/consent changes, publishing or deployment.
 - [x] ULTRA-SMART-PREVENT-1024: Ultra-only bounded history, soft/no-history confirmation, recovery and atomic pre-charge breaker implemented; rule tests and EN/ES intercepted carrier-to-checkout handoff verified, preview build OK; full suite retains 56 legacy failures/one error. Full refund-through-payment browser check remains unverified. No real charges, deployment or publishing.
 - [x] LYCA-SKU-FIX-1024: three active entries added directly with duplicate protection (data-only, no migration); lists, saved-cart redirect and isolated 24-hour block verified EN/ES; 104 focused tests passed, full suite retains 56 legacy failures/one fixture error; redeployed only cellpay-proxy/dead-amounts and verified live list/dry-run guards, no publish. // LYCA-SKU-FIX-1024
 - [x] REFILL-PREVENT-1024: P1/P2/P2b/P4/P6 behind own switches, A/B cookie cp_rp; dead-amounts deployed under LYCA-SKU-FIX-1024. // LYCA-SKU-FIX-1024
