@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"; // CM-PZ-34332-HOST-1030
 import { handlePartnerReceipt } from "./index.ts"; // CM-PZ-34332-HOST-1030
-import { postpayMdn } from "../_shared/partnerReceiptSms.ts"; // CM-PZ-34332-HOST-1030
+import { partnerReceiptBody, postpayMdn } from "../_shared/partnerReceiptSms.ts"; // CM-PZ-34332-HOST-1030
+import { postpayBody } from "../_shared/postpaySms.ts"; // CM-PZ-34332-HOST-1030
 const sid = `SM${"a".repeat(32)}`; // CM-PZ-34332-HOST-1030
 function fixture(overrides: Record<string, string | undefined> = {}, outcomes: (number | "timeout")[] = [201], duplicate = false) { // CM-PZ-34332-HOST-1030
   const env: Record<string, string | undefined> = { PARTNER_RECEIPT_SMS_KEY_CALLINGMART: "test-cm", PARTNER_RECEIPT_SMS_KEY_PINZOO: "test-pz", PARTNER_RECEIPT_SMS_ENABLED: "true", TWILIO_ACCOUNT_SID: "test-account", TWILIO_AUTH_TOKEN: "test-token", TWILIO_MESSAGING_SERVICE_SID: "test-service", SUPABASE_URL: "https://database.test", SUPABASE_SERVICE_ROLE_KEY: "test-db", ...overrides }; // CM-PZ-34332-HOST-1030
@@ -15,6 +16,10 @@ function fixture(overrides: Record<string, string | undefined> = {}, outcomes: (
   return { run, calls, sends: () => sends }; // CM-PZ-34332-HOST-1030
 } // CM-PZ-34332-HOST-1030
 describe("partner receipt safeguards", () => { // CM-PZ-34332-HOST-1030
+  for (const brand of ["callingmart", "pinzoo"] as const) for (const lang of ["en", "es"] as const) { // CM-PZ-34332-HOST-1030
+    test(`${brand} ${lang} paid receipt reuses CellPay text`, () => { const body = partnerReceiptBody({ brand, amount: 24, carrier: "Ultra Mobile", last4: "1234", lang }); expect(body).toBe(postpayBody(24, "Ultra Mobile", "1234", lang)); expect(body.startsWith("CellPay:")).toBe(true); expect(body).not.toMatch(/CallingMart|PinZoo/i); }); // CM-PZ-34332-HOST-1030
+    for (const missing of ["amount", "carrier"] as const) test(`${brand} ${lang} missing ${missing} uses CellPay confirmation`, () => { const body = partnerReceiptBody({ brand, amount: missing === "amount" ? undefined : 24, carrier: missing === "carrier" ? undefined : "Ultra Mobile", last4: "1234", lang }); expect(body).toBe(lang === "es" ? "CellPay: Su pago para ***1234 está confirmado. Responda STOP para cancelar, HELP para ayuda. Pueden aplicar tarifas." : "CellPay: Your payment for ***1234 is confirmed. Reply STOP to opt out, HELP for help. Msg&data rates may apply."); expect(body.startsWith("CellPay:")).toBe(true); expect(body).not.toMatch(/CallingMart|PinZoo/i); }); // CM-PZ-34332-HOST-1030
+  } // CM-PZ-34332-HOST-1030
   test("unset keys reject before disabled switch and never call services", async () => { const f = fixture({ PARTNER_RECEIPT_SMS_KEY_CALLINGMART: undefined, PARTNER_RECEIPT_SMS_KEY_PINZOO: undefined, PARTNER_RECEIPT_SMS_ENABLED: undefined }); expect((await f.run()).status).toBe(401); expect(f.calls).toHaveLength(0); }); // CM-PZ-34332-HOST-1030
   test("authenticated disabled request returns 503", async () => { const f = fixture({ PARTNER_RECEIPT_SMS_ENABLED: undefined }); const r = await f.run(); expect(r.status).toBe(503); expect(await r.json()).toEqual({ ok: false, error: "disabled" }); }); // CM-PZ-34332-HOST-1030
   test("non POST returns 405 without browser CORS", async () => { const r = await fixture().run(undefined, "test-cm", "OPTIONS"); expect(r.status).toBe(405); expect(r.headers.get("Access-Control-Allow-Origin")).toBeNull(); }); // CM-PZ-34332-HOST-1030
