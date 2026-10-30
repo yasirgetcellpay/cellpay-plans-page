@@ -778,9 +778,9 @@ const App = () => (
               carrierId={3}
               brandColor="hsl(196,100%,44%)"
               logo={attLogo}
-              h1="Pay Your AT&T Prepaid Bill Online"
-              title="Pay Your AT&T Prepaid Bill Online | CellPay"
-              description="Pay your AT&T Prepaid bill online as a guest. Just the phone number, pick the amount, pay. Service fee shown before you pay."
+              h1="Pay My AT&T Prepaid Bill Online" // SPEC-ATT-GO-LP-1030
+              title="AT&T Prepaid Pay My Bill – Pay Online, No Login | CellPay" // SPEC-ATT-GO-LP-1030
+              description="AT&T Prepaid pay my bill online: enter the phone number, pick the amount, pay. No login. Service fee shown before you pay." // SPEC-ATT-GO-LP-1030
             />
           }
         />
@@ -793,9 +793,9 @@ const App = () => (
               carrierId={3}
               brandColor="hsl(196,100%,44%)"
               logo={attLogo}
-              h1="Pay Your AT&T Prepaid Bill Online"
-              title="Pay Your AT&T Prepaid Bill Online | CellPay"
-              description="Pay your AT&T Prepaid bill online as a guest. Just the phone number, pick the amount, pay. Service fee shown before you pay."
+              h1="Pay My AT&T Prepaid Bill Online" // SPEC-ATT-GO-LP-1030
+              title="AT&T Prepaid Pay My Bill – Pay Online, No Login | CellPay" // SPEC-ATT-GO-LP-1030
+              description="AT&T Prepaid pay my bill online: enter the phone number, pick the amount, pay. No login. Service fee shown before you pay." // SPEC-ATT-GO-LP-1030
             />
           }
         />

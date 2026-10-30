@@ -601,16 +601,16 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/att.html": {
-        h1: "Pay Your AT&T Prepaid Bill Online",
-        intro: "Guest OK. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+        h1: "Pay My AT&T Prepaid Bill Online", // SPEC-ATT-GO-LP-1030
+        intro: "Pay your AT&T Prepaid bill with just the phone number — no login needed. Pay with debit or credit card.", // SPEC-ATT-GO-LP-1030
       },
       "go/cricket/index.html": {
         h1: "Pay Your Cricket Wireless Bill as a Guest — With Your Phone Number",
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/att/index.html": {
-        h1: "Pay Your AT&T Prepaid Bill Online",
-        intro: "Guest OK. Enter the number, pick the amount, pay. Low service fee shown before you pay.",
+        h1: "Pay My AT&T Prepaid Bill Online", // SPEC-ATT-GO-LP-1030
+        intro: "Pay your AT&T Prepaid bill with just the phone number — no login needed. Pay with debit or credit card.", // SPEC-ATT-GO-LP-1030
       },
       "go/straight-talk.html": {
         h1: "Pay Your Straight Talk Bill Online",
@@ -847,9 +847,9 @@ const htmlAliasPlugin = (): Plugin => ({
       "go/ultra.html": { title: "Pay Your Ultra Mobile Bill Online | CellPay", description: "Pay your Ultra Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       "go/ultra/index.html": { title: "Pay Your Ultra Mobile Bill Online | CellPay", description: "Pay your Ultra Mobile bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       "go/cricket.html": { title: "Pay Your Cricket Bill as a Guest | CellPay", description: "Pay your Cricket Wireless bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
-      "go/att.html": { title: "Pay Your AT&T Prepaid Bill Online | CellPay", description: "Pay your AT&T Prepaid bill online as a guest. Just the phone number, pick the amount, pay. Service fee shown before you pay." }, // TMO-ATT-LPX-1018
+      "go/att.html": { title: "AT&T Prepaid Pay My Bill – Pay Online, No Login | CellPay", description: "AT&T Prepaid pay my bill online: enter the phone number, pick the amount, pay. No login. Service fee shown before you pay." }, // TMO-ATT-LPX-1018 // SPEC-ATT-GO-LP-1030
       "go/cricket/index.html": { title: "Pay Your Cricket Bill as a Guest | CellPay", description: "Pay your Cricket Wireless bill as a guest. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
-      "go/att/index.html": { title: "Pay Your AT&T Prepaid Bill Online | CellPay", description: "Pay your AT&T Prepaid bill online as a guest. Just the phone number, pick the amount, pay. Service fee shown before you pay." }, // TMO-ATT-LPX-1018
+      "go/att/index.html": { title: "AT&T Prepaid Pay My Bill – Pay Online, No Login | CellPay", description: "AT&T Prepaid pay my bill online: enter the phone number, pick the amount, pay. No login. Service fee shown before you pay." }, // TMO-ATT-LPX-1018 // SPEC-ATT-GO-LP-1030
       // GO-ES-ST Batch A
       "go/straight-talk.html": { title: "Pay Your Straight Talk Bill Online | CellPay", description: "Pay your Straight Talk bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
       "go/straight-talk/index.html": { title: "Pay Your Straight Talk Bill Online | CellPay", description: "Pay your Straight Talk bill online. Enter the phone number, pick a plan, pay. No login. Low service fee shown before you pay." },
