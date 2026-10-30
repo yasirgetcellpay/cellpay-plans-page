@@ -35,7 +35,7 @@ describe("POSTPAY-SMS-34332-1030 sender", () => { // POSTPAY-SMS-34332-1030
 }); // POSTPAY-SMS-34332-1030
 describe("POSTPAY-SMS-34332-1030 atomic claim", () => { // POSTPAY-SMS-34332-1030
   it("claims successful identity once, preserves metadata/status and restricts execution", async () => { // POSTPAY-SMS-34332-1030
-    const db = new PGlite({ fsBundle: new NodeBlob([readFileSync("node_modules/@electric-sql/pglite/dist/pglite.data")]) as unknown as Blob }); try { // POSTPAY-SMS-34332-1030
+    vi.stubGlobal("Blob", NodeBlob); const db = new PGlite({ fsBundle: new NodeBlob([readFileSync("node_modules/@electric-sql/pglite/dist/pglite.data")]) as unknown as Blob }); try { // POSTPAY-SMS-34332-1030
       await db.exec("CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE TABLE public.transaction_logs(id uuid primary key, status text, hashid text, transaction_id text, phone_number text, amount numeric, carrier_name text, metadata jsonb); ALTER TABLE public.transaction_logs ENABLE ROW LEVEL SECURITY;"); // POSTPAY-SMS-34332-1030
       await db.exec(readFileSync("drizzle/migrations/0022_postpay_sms_34332_1030.sql", "utf8")); // POSTPAY-SMS-34332-1030
       const ids = [1, 2, 3, 4].map((n) => `00000000-0000-0000-0000-00000000000${n}`); // POSTPAY-SMS-34332-1030
@@ -46,6 +46,6 @@ describe("POSTPAY-SMS-34332-1030 atomic claim", () => { // POSTPAY-SMS-34332-103
       const fresh = "00000000-0000-0000-0000-000000000005"; await db.query("INSERT INTO public.transaction_logs VALUES ($1,'success','fresh','fresh','2025550123',26,'Ultra Mobile','{}')", [fresh]); // POSTPAY-SMS-34332-1030
       const d = setup(); const dbRpc = async (name: string, data: Record<string, unknown>) => name === "claim_postpay_sms" ? (await claim(String(data._id))).rows : db.query("UPDATE public.transaction_logs SET metadata = metadata || $2::jsonb WHERE id = $1", [data._id, data._patch]); // POSTPAY-SMS-34332-1030
       await Promise.all([sendPostpaySms(fresh, { ...d, rpc: dbRpc }), sendPostpaySms(fresh, { ...d, rpc: dbRpc })]); expect(d.fetch).toHaveBeenCalledTimes(1); const saved = await db.query<{ metadata: { postpay_sms: { status: string; lang: string } }; status: string }>("SELECT metadata, status FROM public.transaction_logs WHERE id=$1", [fresh]); expect(saved.rows[0].metadata.postpay_sms).toMatchObject({ status: "sent", lang: "en" }); expect(saved.rows[0].status).toBe("success"); // POSTPAY-SMS-34332-1030
-    } finally { await db.close(); } // POSTPAY-SMS-34332-1030
+    } finally { await db.close(); vi.unstubAllGlobals(); } // POSTPAY-SMS-34332-1030
   }); // POSTPAY-SMS-34332-1030
 }); // POSTPAY-SMS-34332-1030
