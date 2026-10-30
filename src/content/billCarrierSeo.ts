@@ -525,6 +525,7 @@ export const BILL_PAGES: BillPage[] = [
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-PAGEPLUS-1030
     faqOnly: true, // BILLPAY-PAGEPLUS-1030
   }, // BILLPAY-PAGEPLUS-1030
+  { // BILLPAY-TRACFONE-1030
     path: "/es/tracfone.html", lang: "es", name: "Tracfone", // BILLPAY-TRACFONE-1030
     title: "Pagar Factura Tracfone en Línea sin Cuenta | CellPay", // BILLPAY-TRACFONE-1030
     description: "Pague su factura de TracFone en línea. Sin cuenta y sin iniciar sesión. Puede pagar por otra persona. Verá el cargo por servicio antes de pagar.", // BILLPAY-TRACFONE-1030
