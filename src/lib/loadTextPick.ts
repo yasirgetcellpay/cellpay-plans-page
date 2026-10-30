@@ -102,6 +102,7 @@ export const PICK_REFUND_LINE = { en: "You have not been charged. Your payment w
 /** The reason sentence for a category (no refund line). `genericText` replaces the generic sentence when given (e.g. a carrier-specific reason). */
 export function pickReasonText(category: LoadTextCategory, lang: string, carrierName: string, carrierSlug: string, genericText?: string | null, loadText?: string): string { // ULTRA-MSG-1024
   const l = lang === "es" ? "es" : "en";
+  if (category === "number" && /metro/i.test(`${carrierSlug ?? ""} ${carrierName ?? ""}`)) return l === "es" ? "No se puede hacer el pago de Metro para este número. Revise que el número de teléfono esté correcto e inténtelo de nuevo." : "This number can't be paid with Metro. Check that the phone number is correct and try again."; // METRO-INVALID-PHONE-UX-1030
   if (carrierSlug === "ultra-mobile" && category === "amount" && /1065|invalid amount/i.test(loadText || "")) return l === "es" ? "Este monto no coincide con su plan de Ultra. Elija el plan que tiene su línea ahora." : "This amount doesn't match your Ultra plan. Pick the plan your line has now."; // ULTRA-MSG-1024
   if (carrierSlug === "ultra-mobile" && category === "number" && /subscriber not found/i.test(loadText || "")) return l === "es" ? "Ultra no encontró este número. Revise el número e inténtelo de nuevo." : "Ultra couldn't find this number. Please check the number and try again."; // ULTRA-MSG-1024
   const w = isPayWordCarrier(carrierSlug, carrierName) ? "pay" : "refill";
@@ -123,8 +124,9 @@ export function pickFullText(category: LoadTextCategory, lang: string, carrierNa
  * number -> edit number first; plan -> switch carrier first; amount -> pick another amount; cooldown -> no retry (OK only).
  * generic -> null: the caller keeps its existing buttons unchanged.
  */
-export function pickButtons(category: LoadTextCategory, lang: string, base: Array<{ label: string; action: string; to_carrier?: string }> = []): PickButton[] | null {
+export function pickButtons(category: LoadTextCategory, lang: string, base: Array<{ label: string; action: string; to_carrier?: string }> = [], carrierSlug?: string): PickButton[] | null { // METRO-INVALID-PHONE-UX-1030
   const es = lang === "es";
+  if (category === "number" && /metro/i.test(carrierSlug ?? "")) return [{ label: es ? "Corregir número" : "Edit number", action: "number" }]; // METRO-INVALID-PHONE-UX-1030
   if (category === "number") return [{ label: es ? "Corregir número" : "Edit number", action: "number" }, { label: es ? "Elegir otra compañía" : "Choose another carrier", action: "other_carrier" }]; // REFILL-ERROR-MSG-1024
   if (category === "plan") return [{ label: es ? "Elegir plan" : "Choose plan", action: "amount" }]; // REFILL-ERROR-MSG-1024: existing amount action opens the same carrier plan list
   if (category === "amount") return [{ label: es ? "Elegir otro monto" : "Choose another amount", action: "amount" }]; // REFILL-ERROR-MSG-1024
