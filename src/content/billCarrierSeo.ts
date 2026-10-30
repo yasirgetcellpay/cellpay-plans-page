@@ -233,6 +233,21 @@ const pageplusFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY
   { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-PAGEPLUS-1030
   { q: "Can I set up Auto Pay?", a: "Yes. Auto Pay is optional. You can turn it on at checkout. It is never pre-checked." }, // BILLPAY-PAGEPLUS-1030
 ]; // BILLPAY-PAGEPLUS-1030
+const tracfoneFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-TRACFONE-1030
+  { q: "¿Cómo pago mi factura de Tracfone en línea?", a: "Ingrese el número de teléfono de Tracfone, elija el plan y pague. No necesita una cuenta." }, // BILLPAY-TRACFONE-1030
+  { q: "¿Puedo pagar Tracfone como invitado, sin iniciar sesión?", a: "Sí. No necesita iniciar sesión ni crear una cuenta. Solo necesita el número de teléfono." }, // BILLPAY-TRACFONE-1030
+  { q: "¿Puedo pagar la línea de Tracfone de otra persona?", a: "Sí. Ingrese su número de Tracfone y revíselo bien antes de pagar." }, // BILLPAY-TRACFONE-1030
+  { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es").replace("Apple Pay en dispositivos Apple compatibles", "Apple Pay en dispositivos compatibles")}` }, // BILLPAY-TRACFONE-1030
+  { q: "¿Cuándo se aplica mi pago?", a: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Cuando el pago se completa, verá una confirmación con los datos de su transacción." }, // BILLPAY-TRACFONE-1030
+  { q: "¿Puedo activar el Auto Pago?", a: "Sí. El Auto Pago es opcional. Lo puede activar al pagar. Nunca está marcado de antemano." }, // BILLPAY-TRACFONE-1030
+] : [ // BILLPAY-TRACFONE-1030
+  { q: "How do I pay my Tracfone bill online?", a: "Enter the Tracfone phone number, pick the plan, and pay. No account needed." }, // BILLPAY-TRACFONE-1030
+  { q: "Can I pay Tracfone as a guest without logging in?", a: "Yes. You don't need a login or an account. The phone number is enough." }, // BILLPAY-TRACFONE-1030
+  { q: "Can I pay someone else's Tracfone line?", a: "Yes. Enter their Tracfone number and double-check it before you pay." }, // BILLPAY-TRACFONE-1030
+  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-TRACFONE-1030
+  { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-TRACFONE-1030
+  { q: "Can I set up Auto Pay?", a: "Yes. Auto Pay is optional. You can turn it on at checkout. It is never pre-checked." }, // BILLPAY-TRACFONE-1030
+]; // BILLPAY-TRACFONE-1030
 
 export const BILL_PAGES: BillPage[] = [
   { // BILLPAY-METRO-1021
@@ -510,6 +525,36 @@ export const BILL_PAGES: BillPage[] = [
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-PAGEPLUS-1030
     faqOnly: true, // BILLPAY-PAGEPLUS-1030
   }, // BILLPAY-PAGEPLUS-1030
+  { // BILLPAY-TRACFONE-1030
+    path: "/es/tracfone.html", lang: "es", name: "Tracfone", // BILLPAY-TRACFONE-1030
+    title: "Pagar Factura Tracfone en Línea sin Cuenta | CellPay", // BILLPAY-TRACFONE-1030
+    description: "Pague su factura de TracFone en línea. Sin cuenta y sin iniciar sesión. Puede pagar por otra persona. Verá el cargo por servicio antes de pagar.", // BILLPAY-TRACFONE-1030
+    h1: "Pague su Factura de Tracfone en Línea", // BILLPAY-TRACFONE-1030
+    sub: "Sin cuenta y sin iniciar sesión. Solo necesita el número de teléfono. Pague por usted o por otra persona.", // BILLPAY-TRACFONE-1030
+    autoPayInfoLead: "Opcional: Auto Pago para no olvidar su pago.", // BILLPAY-TRACFONE-1030
+    enterAmount: "Ingrese el monto que desea recargar", // BILLPAY-TRACFONE-1030
+    securePayment: "Pago seguro. Su recarga se envía directamente a su teléfono.", // BILLPAY-TRACFONE-1030
+    faqTitle: "Preguntas frecuentes", // BILLPAY-TRACFONE-1030
+    faqs: tracfoneFaqs("es"), // BILLPAY-TRACFONE-1030
+    guide: ["/es/como-pagar/tracfone", "Cómo pagar Tracfone"], // BILLPAY-TRACFONE-1030
+    more: [["/es/paga-tu-factura", "Pague su factura de celular"]], // BILLPAY-TRACFONE-1030
+    faqOnly: true, // BILLPAY-TRACFONE-1030
+  }, // BILLPAY-TRACFONE-1030
+  { // BILLPAY-TRACFONE-1030
+    path: "/tracfone.html", lang: "en", name: "Tracfone", // BILLPAY-TRACFONE-1030
+    title: "Pay Your Tracfone Bill Online – No Login | CellPay", // BILLPAY-TRACFONE-1030
+    description: "Pay your Tracfone bill online with just the phone number. No account or login. Pay for yourself or someone else. Service fee shown before you pay.", // BILLPAY-TRACFONE-1030
+    h1: "Pay Your Tracfone Bill Online", // BILLPAY-TRACFONE-1030
+    sub: "No login. Just the phone number. Pay for yourself or someone else.", // BILLPAY-TRACFONE-1030
+    autoPayInfoLead: "Optional: Auto Pay so you never miss a refill.", // BILLPAY-TRACFONE-1030
+    enterAmount: "Enter the amount you want to recharge", // BILLPAY-TRACFONE-1030
+    securePayment: "Secure payment. Your refill is sent directly to your phone.", // BILLPAY-TRACFONE-1030
+    faqTitle: "Common questions", // BILLPAY-TRACFONE-1030
+    faqs: tracfoneFaqs("en"), // BILLPAY-TRACFONE-1030
+    guide: ["/how-to-pay/tracfone", "How to pay Tracfone"], // BILLPAY-TRACFONE-1030
+    more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-TRACFONE-1030
+    faqOnly: true, // BILLPAY-TRACFONE-1030
+  }, // BILLPAY-TRACFONE-1030
 ];
 
 const BILL_PATH_ALIAS: Record<string, string> = { "/total-wireless": "/total-wireless.html", "/es/total-wireless": "/es/total-wireless.html", "/ultra-mobile": "/ultra-mobile.html", "/es/ultra-mobile": "/es/ultra-mobile.html", "/topup-at": "/topup-at.html", "/es/topup-at": "/es/topup-at.html" }; // TW-FAQ-HYDRATE-SHELL-1027 // BILLPAY-ULTRA-1028 // BILLPAY-ATT-1029
