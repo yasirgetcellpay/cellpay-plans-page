@@ -26,7 +26,8 @@ const cloudflareSender: Sender = {
     const token = env("CF_EMAIL_API_TOKEN"); if (!token) return { kind: "rejected", code: "cf_token_missing" };
     const ref = crypto.randomUUID(); const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 10_000);
     try {
-      const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(env("CF_ACCOUNT_ID") || CF_ACCOUNT_DEFAULT)}/email/sending/send`, {
+      const sendUrl = env("CF_EMAIL_SEND_URL") || `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(env("CF_ACCOUNT_ID") || CF_ACCOUNT_DEFAULT)}/email/sending/send`; // FAILPAY-PROXY-1030
+      const r = await fetch(sendUrl, { // FAILPAY-PROXY-1030
         method: "POST", signal: ctrl.signal, headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
         body: JSON.stringify({ from: m.from, to: m.to, reply_to: m.replyTo, subject: m.subject, html: m.html, text: m.text, headers: { ...m.headers, "X-CP-Ref": ref } }),
       });
@@ -74,9 +75,20 @@ async function health() {
       } catch (e) { return { http: 0, success: false, err: (e as Error)?.name === "AbortError" ? "timeout" : "network" }; }
       finally { clearTimeout(timer); }
     };
+    const proxyUrl = env("CF_EMAIL_SEND_URL"); // FAILPAY-PROXY-1030
+    if (proxyUrl) { // FAILPAY-PROXY-1030
+      const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 8000); // FAILPAY-PROXY-1030
+      try { // FAILPAY-PROXY-1030
+        const r = await fetch(`${proxyUrl.replace(/\/$/, "")}/health`, { method: "GET", signal: ctrl.signal, headers: { authorization: `Bearer ${token}` } }); // FAILPAY-PROXY-1030
+        let j: any = null; try { j = await r.json(); } catch { j = null; } // FAILPAY-PROXY-1030
+        out.cf_proxy_health = { http: r.status, success: j?.ok === true }; // FAILPAY-PROXY-1030
+      } catch (e) { out.cf_proxy_health = { http: 0, success: false, err: (e as Error)?.name === "AbortError" ? "timeout" : "network" }; } // FAILPAY-PROXY-1030
+      finally { clearTimeout(timer); } // FAILPAY-PROXY-1030
+    } else { // FAILPAY-PROXY-1030
     out.cf_token_verify_account = await probe(`https://api.cloudflare.com/client/v4/accounts/${acct}/tokens/verify`);
     out.cf_token_verify_user = await probe("https://api.cloudflare.com/client/v4/user/tokens/verify");
     out.cf_sending_limits = await probe(`https://api.cloudflare.com/client/v4/accounts/${acct}/email/sending/limits`);
+    } // FAILPAY-PROXY-1030
   }
   return out;
 }
