@@ -753,7 +753,7 @@ const DynamicCarrier = ({
     setUltraShowAll(false); setUltraMismatch(false); // ULTRA-BPATH-FIX-1029
     if (!ultraMdn10) { setUltraB(null); return; } // ULTRA-MDN-1029
     let off = false; setUltraB({ mdn: ultraMdn10, state: "loading" }); // ULTRA-MDN-1029
-    void ultraLookup(fetchUltraMdnPlans(ultraMdn10)).then((r) => { if (!off) setUltraB({ mdn: ultraMdn10, state: "done", r }); }).catch(() => { if (!off) setUltraB({ mdn: ultraMdn10, state: "done", r: { ok: false, status: 502 } }); }); // ULTRA-BPATH-FIX-1029
+    void ultraLookup(fetchUltraMdnPlans(ultraMdn10, ultraRetry > 0)).then((r) => { if (!off) { setUltraB({ mdn: ultraMdn10, state: "done", r }); if (r.ok && (r.fixed.length || r.range.length)) setInlineError((current) => current === ultraVerifyText(lang) ? null : current); } }).catch(() => { if (!off) setUltraB({ mdn: ultraMdn10, state: "done", r: { ok: false, status: 502 } }); }); // ULTRA-BPATH-FIX-1029
     return () => { off = true; }; // ULTRA-MDN-1029
   }, [ultraMdn10, ultraRetry]); // ULTRA-BPATH-FIX-1029
   const ultraBRes = ultraB && ultraB.mdn === ultraMdn10 && ultraB.state === "done" ? ultraB.r : undefined; // ULTRA-MDN-1029
