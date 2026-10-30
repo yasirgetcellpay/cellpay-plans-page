@@ -1,4 +1,4 @@
-// Server-side receipt tests with the project's standard test setup. // POSTPAY-SMS-34332-1030
+// Run server-side receipt tests with vitest.postpay.config.ts, without browser-only setup. // POSTPAY-SMS-34332-1030
 import { describe, it, expect, vi } from "vitest"; // POSTPAY-SMS-34332-1030
 import { readFileSync } from "node:fs"; // POSTPAY-SMS-34332-1030
 import { PGlite } from "@electric-sql/pglite"; // POSTPAY-SMS-34332-1030
@@ -42,6 +42,9 @@ describe("POSTPAY-SMS-34332-1030 atomic claim", () => { // POSTPAY-SMS-34332-103
       const claim = (id: string) => db.query("SELECT * FROM public.claim_postpay_sms($1)", [id]); expect((await claim(ids[0])).rows).toHaveLength(1); for (const id of ids) expect((await claim(id)).rows).toHaveLength(0); // POSTPAY-SMS-34332-1030
       const rows = await db.query<{ status: string; metadata: { retained: boolean; postpay_sms?: { lang: string } } }>("SELECT status, metadata FROM public.transaction_logs ORDER BY id"); expect(rows.rows[0].status).toBe("success"); expect(rows.rows[0].metadata.retained).toBe(true); expect(rows.rows[0].metadata.postpay_sms?.lang).toBe("es"); expect(rows.rows[1].metadata.postpay_sms).toBeUndefined(); // POSTPAY-SMS-34332-1030
       const permissions = await db.query("SELECT has_function_privilege('anon','public.claim_postpay_sms(uuid)','execute') AS anon, has_function_privilege('authenticated','public.claim_postpay_sms(uuid)','execute') AS authenticated, has_function_privilege('service_role','public.claim_postpay_sms(uuid)','execute') AS service"); expect(permissions.rows[0]).toEqual({ anon: false, authenticated: false, service: true }); // POSTPAY-SMS-34332-1030
+      const fresh = "00000000-0000-0000-0000-000000000005"; await db.query("INSERT INTO public.transaction_logs VALUES ($1,'success','fresh','fresh','2025550123',26,'Ultra Mobile','{}')", [fresh]); // POSTPAY-SMS-34332-1030
+      const d = setup(); const dbRpc = async (name: string, data: Record<string, unknown>) => name === "claim_postpay_sms" ? (await claim(String(data._id))).rows : db.query("UPDATE public.transaction_logs SET metadata = metadata || $2::jsonb WHERE id = $1", [data._id, data._patch]); // POSTPAY-SMS-34332-1030
+      await Promise.all([sendPostpaySms(fresh, { ...d, rpc: dbRpc }), sendPostpaySms(fresh, { ...d, rpc: dbRpc })]); expect(d.fetch).toHaveBeenCalledTimes(1); const saved = await db.query<{ metadata: { postpay_sms: { status: string; lang: string } }; status: string }>("SELECT metadata, status FROM public.transaction_logs WHERE id=$1", [fresh]); expect(saved.rows[0].metadata.postpay_sms).toMatchObject({ status: "sent", lang: "en" }); expect(saved.rows[0].status).toBe("success"); // POSTPAY-SMS-34332-1030
     } finally { await db.close(); } // POSTPAY-SMS-34332-1030
   }); // POSTPAY-SMS-34332-1030
 }); // POSTPAY-SMS-34332-1030

@@ -1,0 +1,2 @@
+import { defineConfig } from "vitest/config"; // POSTPAY-SMS-34332-1030
+export default defineConfig({ test: { environment: "node", setupFiles: [], include: ["src/test/postpay-sms-34332-1030.test.ts"] } }); // POSTPAY-SMS-34332-1030
