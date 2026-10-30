@@ -823,7 +823,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "pageplus.html": { title: "Pay Your Page Plus Bill Online – No Login | CellPay", description: "Pay your Page Plus bill online with just the phone number. No account or login. Pay for yourself or someone else. Service fee shown before you pay." }, // BILLPAY-PAGEPLUS-1030
       "s1.html":                   SIMPLE_META.en, // SIMPLE-SPEC-1-1009: same title/description as DynamicCarrier sets at runtime
       "tmobile-flexi.html":        { title: "Pay T-Mobile Prepaid Online: Guest Pay, No Login | CellPay",    description: "Pay or refill your T-Mobile Prepaid online as a guest with just the phone number. No login, no account. Low service fee shown before you pay." }, // BILLPAY-TMOBILE-1024 // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
-      "tracfone.html":             { title: "TracFone Refill — Online Top-Up | CellPay",            description: "Recharge TracFone online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "tracfone.html":             { title: "Pay Your Tracfone Bill Online – No Login | CellPay", description: "Pay your Tracfone bill online with just the phone number. No account or login. Pay for yourself or someone else. Service fee shown before you pay." }, // BILLPAY-TRACFONE-1030
       "ultra-mobile.html":         { title: "Pay Ultra Mobile Bill Online – No Login | CellPay", description: "Pay your Ultra Mobile bill online with just the phone number. No account or login needed. Pay for yourself or someone else. Low service fee shown before you pay." }, // BILLPAY-ULTRA-1028
       "verizon-wireless-flexi.html": { title: "Verizon Prepaid Refill — Online Top-Up | CellPay",   description: "Recharge Verizon Prepaid online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "straight-talk.html":        { title: "Pay Straight Talk Bill Online – No Login, Pay as Guest | CellPay",       description: "Pay your Straight Talk bill online with just the phone number. No login or account needed. Pay for yourself or someone else. Low service fee shown before you pay." }, // BILLPAY-STRAIGHTTALK-1025
@@ -1730,6 +1730,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/tmobile-flexi/index.html": "es/tmobile-flexi.html", "es/topup-at/index.html": "es/topup-at.html",
       "es/ultra-mobile/index.html": "es/ultra-mobile.html",
       "es/pageplus/index.html": "es/pageplus.html", // ES-PAGEPLUS-ROUTE-1030
+      "es/tracfone/index.html": "es/tracfone.html", // BILLPAY-TRACFONE-1030
       "es/straight-talk/index.html": "es/straight-talk.html", // BILLPAY-ST-SHELL-H1-1025
       "lp/metro/index.html": "metropcs.html", "lp/boost/index.html": "boost.html",
       // AEO-PAGES-1007: /terms and /about short URLs (App.tsx sends them to the full page)
