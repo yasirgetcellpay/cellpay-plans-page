@@ -28,7 +28,9 @@ import { rpVariant, rpEvent, phoneFormatBad, formatErrorText, confirmLabel, chec
 import { SIMPLE_META, SIMPLE_ANSWER, SIMPLE_FAQ_TITLE, SIMPLE_LINKS, simpleFaqs, simpleGridPlans } from "@/content/simplePage";
 import { FAQSection } from "@/components/FAQSection";
 import { fetchCarrierView, verifyPhone, type CarrierViewData } from "@/services/apiWrapper";
-import { fetchUltraMdnPlans, type UltraMdnPlan, type UltraMdnResult } from "@/services/apiWrapper"; // ULTRA-MDN-1029
+import { Button } from "@/components/ui/button"; // ULTRA-BPATH-FIX-1029
+import { ultraLookup, ultraSelection, ultraVerifyText, ultraCheckingText } from "@/lib/ultraBPath"; // ULTRA-BPATH-FIX-1029
+import { setUltraMdnActive, fetchUltraMdnPlans, type UltraMdnPlan, type UltraMdnResult } from "@/services/apiWrapper"; // ULTRA-BPATH-FIX-1029
 import { applySeoHead } from "@/lib/seo";
 import { feeCopy1019 } from "@/lib/feeCopy1019"; // METRO-FEECOPY-1019
 import { billPageByPath, billJsonLd } from "@/content/billCarrierSeo"; // SEO-CONTENT-1014
@@ -226,17 +228,16 @@ const getAmountProblem = (text: string, n: number, min: number, max: number): "e
 };
 
 const formatDollars = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(2));
-export function pickUltraOverride<T extends { amount?: number; rangeMin?: number; rangeMax?: number }>(sel: number, fixed: T[], range: T[], mode: "plan" | "custom"): { kind: "match" | "range" | "override"; plan: T; amount: number } | { kind: "pick" } | { kind: "none" } { // ULTRA-AMOUNT-OVERRIDE-1029
-  if (!Number.isFinite(sel)) return { kind: "none" }; // ULTRA-AMOUNT-OVERRIDE-1029
-  const usable = fixed.filter((p) => typeof p.amount === "number" && Number.isFinite(p.amount) && p.amount > 0); // ULTRA-AMOUNT-OVERRIDE-1029
-  const match = usable.find((p) => p.amount === sel); // ULTRA-AMOUNT-OVERRIDE-1029
-  if (match) return { kind: "match", plan: match, amount: sel }; // ULTRA-AMOUNT-OVERRIDE-1029
-  const wallet = mode === "custom" ? range.find((p) => typeof p.rangeMin === "number" && typeof p.rangeMax === "number" && Number.isFinite(p.rangeMin) && Number.isFinite(p.rangeMax) && p.rangeMin <= sel && sel <= p.rangeMax) : undefined; // ULTRA-AMOUNT-OVERRIDE-1029
-  if (wallet) return { kind: "range", plan: wallet, amount: sel }; // ULTRA-AMOUNT-OVERRIDE-1029
-  const only = usable[0]; // ULTRA-AMOUNT-OVERRIDE-1029
-  if (usable.length === 1 && only && typeof only.amount === "number") return { kind: "override", plan: only, amount: only.amount }; // ULTRA-AMOUNT-OVERRIDE-1029
-  return { kind: usable.length > 1 ? "pick" : "none" }; // ULTRA-AMOUNT-OVERRIDE-1029
-} // ULTRA-AMOUNT-OVERRIDE-1029
+export function pickUltraOverride<T extends { amount?: number; rangeMin?: number; rangeMax?: number }>(sel: number, fixed: T[], range: T[], mode: "plan" | "custom"): { kind: "match" | "range"; plan: T; amount: number } | { kind: "pick" } | { kind: "none" } { // ULTRA-BPATH-FIX-1029
+  if (!Number.isFinite(sel)) return { kind: "none" }; // ULTRA-BPATH-FIX-1029
+  const usable = fixed.filter((p) => typeof p.amount === "number" && Number.isFinite(p.amount) && p.amount > 0); // ULTRA-BPATH-FIX-1029
+  const match = usable.find((p) => p.amount === sel); // ULTRA-BPATH-FIX-1029
+  if (match) return { kind: "match", plan: match, amount: sel }; // ULTRA-BPATH-FIX-1029
+  const wallets = range.filter((p) => typeof p.rangeMin === "number" && typeof p.rangeMax === "number" && Number.isFinite(p.rangeMin) && Number.isFinite(p.rangeMax) && p.rangeMin <= p.rangeMax); // ULTRA-BPATH-FIX-1029
+  const wallet = mode === "custom" ? wallets.find((p) => Number(p.rangeMin) <= sel && sel <= Number(p.rangeMax)) : undefined; // ULTRA-BPATH-FIX-1029
+  if (wallet) return { kind: "range", plan: wallet, amount: sel }; // ULTRA-BPATH-FIX-1029
+  return { kind: usable.length || wallets.length ? "pick" : "none" }; // ULTRA-BPATH-FIX-1029
+} // ULTRA-BPATH-FIX-1029
 
 const wholeDollarMessage = (lang: string, n: number): string =>
   lang === "es"
@@ -668,7 +669,7 @@ const DynamicCarrier = ({
       toast({ title: tr.phoneRequired, description: tr.phoneRequired, variant: "destructive" });
       return;
     }
-    if (carrierSlug === "ultra-mobile" && ultraMdn10 && await handleUltraAmountOverride(Number(plan.price.replace("$", "")), "plan")) return; // ULTRA-AMOUNT-OVERRIDE-1029
+    if (carrierSlug === "ultra-mobile" && await handleUltraAmountOverride(Number(plan.price.replace("$", "")), "plan")) return; // ULTRA-BPATH-FIX-1029
     { const pa = Number(plan.price.replace("$", "")); if (!(await rpGate(isVerizonRange(pa) ? rangePlanId : plans.find((p) => p.amount === pa)?.plan_id, pa))) return; } // REFILL-PREVENT-1024
     setVerifying(true);
     const verify = await verifyPhone(carrierSlug, phoneDigits);
@@ -704,7 +705,7 @@ const DynamicCarrier = ({
       toast({ title: msg, description: msg, variant: "destructive" });
       return;
     }
-    if (carrierSlug === "ultra-mobile" && ultraMdn10 && await handleUltraAmountOverride(amountNum, "custom")) return; // ULTRA-AMOUNT-OVERRIDE-1029
+    if (carrierSlug === "ultra-mobile" && await handleUltraAmountOverride(amountNum, "custom")) return; // ULTRA-BPATH-FIX-1029
     if (!rangeAmountValid) {
       const msg = amountMessage || tr.invalidAmount(rangeMin, rangeMax);
       setAmountTouched(true);
@@ -744,20 +745,27 @@ const DynamicCarrier = ({
   const ultraCurrentMdn = useRef(ultraMdn10); ultraCurrentMdn.current = ultraMdn10; // ULTRA-AMOUNT-OVERRIDE-1029
   const [ultraB, setUltraB] = useState<{ mdn: string; state: "loading" | "done"; r?: UltraMdnResult } | null>(null); // ULTRA-MDN-1029
   const [ultraShowAll, setUltraShowAll] = useState(false); // ULTRA-MDN-1029
+  const [ultraChecking, setUltraChecking] = useState(false); // ULTRA-BPATH-FIX-1029
+  const [ultraMismatch, setUltraMismatch] = useState(false); // ULTRA-BPATH-FIX-1029
+  const [ultraRetry, setUltraRetry] = useState(0); // ULTRA-BPATH-FIX-1029
   const [ultraRangeAmt, setUltraRangeAmt] = useState<Record<string, string>>({}); // ULTRA-MDN-1029: keyed by barcode
   useEffect(() => { // ULTRA-MDN-1029: one lookup per valid MDN; stale replies ignored; phone change clears B selection
-    setUltraShowAll(false); setUltraRangeAmt({}); // ULTRA-MDN-1029
+    setUltraShowAll(false); setUltraMismatch(false); // ULTRA-BPATH-FIX-1029
     if (!ultraMdn10) { setUltraB(null); return; } // ULTRA-MDN-1029
     let off = false; setUltraB({ mdn: ultraMdn10, state: "loading" }); // ULTRA-MDN-1029
-    void fetchUltraMdnPlans(ultraMdn10).then((r) => { if (!off) setUltraB({ mdn: ultraMdn10, state: "done", r }); }).catch(() => { if (!off) setUltraB({ mdn: ultraMdn10, state: "done", r: { ok: false, status: 502 } }); }); // ULTRA-MDN-1029
+    void ultraLookup(fetchUltraMdnPlans(ultraMdn10)).then((r) => { if (!off) setUltraB({ mdn: ultraMdn10, state: "done", r }); }).catch(() => { if (!off) setUltraB({ mdn: ultraMdn10, state: "done", r: { ok: false, status: 502 } }); }); // ULTRA-BPATH-FIX-1029
     return () => { off = true; }; // ULTRA-MDN-1029
-  }, [ultraMdn10]); // ULTRA-MDN-1029
+  }, [ultraMdn10, ultraRetry]); // ULTRA-BPATH-FIX-1029
   const ultraBRes = ultraB && ultraB.mdn === ultraMdn10 && ultraB.state === "done" ? ultraB.r : undefined; // ULTRA-MDN-1029
   const ultraBOk = ultraBRes && ultraBRes.ok ? (ultraBRes as Extract<UltraMdnResult, { ok: true }>) : null; // ULTRA-MDN-1029
   const ultraBActive = !!ultraBOk && !ultraShowAll; // ULTRA-MDN-1029: B is the default when it succeeds
   const ultraBFail = ultraBRes && !ultraBRes.ok ? (ultraBRes as { ok: false; status: number; message?: string }) : null; // ULTRA-MDN-1029
-  const ultraBErr = ultraBFail ? ((ultraBFail.status === 422 || /TRANSACTION REJECTED/i.test(ultraBFail.message ?? "")) && ultraBFail.message ? { rejected: true, text: ultraBFail.message.slice(0, 300) } : { rejected: false, text: lang === "es" ? "No pudimos cargar los planes de este número. Mostramos todos los planes." : "Could not load plans for this number. Showing all plans." }) : null; // ULTRA-MDN-1029
-  const handleUltraBPay = async (plan: UltraMdnPlan, amt: number, overrideFrom?: number) => { // ULTRA-MDN-1029: same gates as today, then checkout with ultraMdn // ULTRA-AMOUNT-OVERRIDE-1029
+  const ultraBErr = ultraBFail || (ultraBOk && !ultraBOk.fixed.length && !ultraBOk.range.length) ? ultraVerifyText(lang) : null; // ULTRA-BPATH-FIX-1029
+  const handleUltraBPay = async (plan: UltraMdnPlan, amt: number) => { // ULTRA-BPATH-FIX-1029
+    if (verifying || ultraChecking) return; // ULTRA-BPATH-FIX-1029
+    const validated = [...(ultraBOk?.fixed ?? []), ...(ultraBOk?.range ?? [])].find((p) => p.barcode === plan.barcode && p.planId === plan.planId); // ULTRA-BPATH-FIX-1029
+    const selection = validated ? ultraSelection(validated, ultraMdn10, amt) : null; // ULTRA-BPATH-FIX-1029
+    if (!selection) { setInlineError(ultraVerifyText(lang)); return; } // ULTRA-BPATH-FIX-1029
     setInlineError(null); // ULTRA-MDN-1029
     if (!ultraMdn10 || !plan.barcode) { toast({ title: tr.phoneRequired, description: tr.phoneRequired, variant: "destructive" }); return; } // ULTRA-MDN-1029
     if (!Number.isFinite(amt) || amt <= 0) return; // ULTRA-MDN-1029
@@ -766,32 +774,34 @@ const DynamicCarrier = ({
     const verify = await verifyPhone(carrierSlug, phoneDigits); // ULTRA-MDN-1029
     setVerifying(false); // ULTRA-MDN-1029
     if (!verify.success) { toast({ title: tr.invalidPhone, description: verify.message || tr.invalidPhone, variant: "destructive" }); return; } // ULTRA-MDN-1029
+    if (ultraCurrentMdn.current !== ultraMdn10) return; // ULTRA-BPATH-FIX-1029
+    setAmount(String(selection.amount)); setUltraMdnActive({ mdn: selection.ultraMdn.mdn, barcode: selection.ultraMdn.barcode, planId: selection.ultraMdn.planId, carrierId: selection.ultraMdn.carrierId }); // ULTRA-BPATH-FIX-1029
     navigate(lang === "es" ? "/es/checkout" : "/checkout", { // ULTRA-MDN-1029
       state: { phone, amount: amt, carrierSlug, carrierId: plan.carrierId, carrierName, brandColor, planId: plan.planId, planName: plan.name, // ULTRA-MDN-1029
-        ...(overrideFrom !== undefined ? { ultraOverrideFrom: overrideFrom } : {}), // ULTRA-AMOUNT-OVERRIDE-1029
-        ultraMdn: { mdn: ultraMdn10, barcode: plan.barcode, kind: plan.kind, planId: plan.planId, carrierId: plan.carrierId, rangeMin: plan.rangeMin, rangeMax: plan.rangeMax, ...(plan.kind === "fixed" ? { amount: amt } : {}) } }, // ULTRA-MDN-1029
+        ...selection, // ULTRA-BPATH-FIX-1029
+      }, // ULTRA-BPATH-FIX-1029
     }); // ULTRA-MDN-1029
   }; // ULTRA-MDN-1029
-  const handleUltraAmountOverride = async (sel: number, mode: "plan" | "custom"): Promise<boolean> => { // ULTRA-AMOUNT-OVERRIDE-1029
-    let result = ultraBOk ?? ultraBRes; // ULTRA-AMOUNT-OVERRIDE-1029
-    if (!result) { // ULTRA-AMOUNT-OVERRIDE-1029
-      setVerifying(true); // ULTRA-AMOUNT-OVERRIDE-1029
-      try { result = await withTimeout(fetchUltraMdnPlans(ultraMdn10), 2000, undefined); } catch { return false; } finally { setVerifying(false); } // ULTRA-AMOUNT-OVERRIDE-1029
-    } // ULTRA-AMOUNT-OVERRIDE-1029
-    if (ultraCurrentMdn.current !== ultraMdn10) return true; // ULTRA-AMOUNT-OVERRIDE-1029
-    if (!result?.ok || (!result.fixed.length && !result.range.length)) return false; // ULTRA-AMOUNT-OVERRIDE-1029
-    const pick = pickUltraOverride(sel, result.fixed, result.range, mode); // ULTRA-AMOUNT-OVERRIDE-1029
-    if (pick.kind === "none") return false; // ULTRA-AMOUNT-OVERRIDE-1029
-    if (pick.kind === "pick") { // ULTRA-AMOUNT-OVERRIDE-1029
-      setUltraB({ mdn: ultraMdn10, state: "done", r: result }); setUltraShowAll(false); // ULTRA-AMOUNT-OVERRIDE-1029
-      document.querySelector("[data-ultra-mdn]")?.scrollIntoView({ behavior: "smooth", block: "start" }); // ULTRA-AMOUNT-OVERRIDE-1029
-      toast({ title: lang === "es" ? "Este número tiene sus propios planes. Elija uno abajo." : "This number has its own plans. Please pick one below." }); // ULTRA-AMOUNT-OVERRIDE-1029
-      return true; // ULTRA-AMOUNT-OVERRIDE-1029
-    } // ULTRA-AMOUNT-OVERRIDE-1029
-    if (pick.kind === "override") toast({ title: lang === "es" ? `Su pago es de $${formatDollars(pick.amount)}, no de $${formatDollars(sel)}. Este es el plan de este número.` : `Your payment is $${formatDollars(pick.amount)}, not $${formatDollars(sel)}. This is the plan for this number.` }); // ULTRA-AMOUNT-OVERRIDE-1029
-    await handleUltraBPay(pick.plan, pick.amount, pick.kind === "override" ? sel : undefined); // ULTRA-AMOUNT-OVERRIDE-1029
-    return true; // ULTRA-AMOUNT-OVERRIDE-1029
-  }; // ULTRA-AMOUNT-OVERRIDE-1029
+  const handleUltraAmountOverride = async (sel: number, mode: "plan" | "custom"): Promise<boolean> => { // ULTRA-BPATH-FIX-1029
+    if (ultraChecking || verifying) return true; // ULTRA-BPATH-FIX-1029
+    let result = ultraBOk ?? ultraBRes; // ULTRA-BPATH-FIX-1029
+    if (!result && ultraMdn10) { // ULTRA-BPATH-FIX-1029
+      setUltraChecking(true); // ULTRA-BPATH-FIX-1029
+      try { result = await ultraLookup(fetchUltraMdnPlans(ultraMdn10)); } finally { setUltraChecking(false); } // ULTRA-BPATH-FIX-1029
+      if (ultraCurrentMdn.current !== ultraMdn10) return true; // ULTRA-BPATH-FIX-1029
+      setUltraB({ mdn: ultraMdn10, state: "done", r: result }); // ULTRA-BPATH-FIX-1029
+    } // ULTRA-BPATH-FIX-1029
+    if (!result?.ok || (!result.fixed.length && !result.range.length)) { setInlineError(ultraVerifyText(lang)); return true; } // ULTRA-BPATH-FIX-1029
+    const pick = pickUltraOverride(sel, result.fixed, result.range, mode); // ULTRA-BPATH-FIX-1029
+    if (pick.kind === "none") { setInlineError(ultraVerifyText(lang)); return true; } // ULTRA-BPATH-FIX-1029
+    if (pick.kind === "pick") { // ULTRA-BPATH-FIX-1029
+      setUltraMismatch(true); setUltraShowAll(false); // ULTRA-BPATH-FIX-1029
+      requestAnimationFrame(() => document.querySelector("[data-ultra-mdn]")?.scrollIntoView({ behavior: "smooth", block: "start" })); // ULTRA-BPATH-FIX-1029
+      return true; // ULTRA-BPATH-FIX-1029
+    } // ULTRA-BPATH-FIX-1029
+    await handleUltraBPay(pick.plan, pick.amount); // ULTRA-BPATH-FIX-1029
+    return true; // ULTRA-BPATH-FIX-1029
+  }; // ULTRA-BPATH-FIX-1029
 
   const bc = brandColor;
   // TOP4-T1-1009: display only. carrierName (API/DB name) still goes to checkout unchanged.
@@ -966,12 +976,12 @@ const DynamicCarrier = ({
                     <button
                       type="button"
                       onClick={handlePay}
-                      disabled={verifying || rpPhoneBlock || ultraSmart.paused || (ultraSmart.noHistory && !ultraSmart.acknowledged) /* REFILL-PREVENT-1024 // ULTRA-SMART-PREVENT-1024 */}
+                      disabled={ultraChecking || verifying || rpPhoneBlock || ultraSmart.paused || (ultraSmart.noHistory && !ultraSmart.acknowledged) /* REFILL-PREVENT-1024 // ULTRA-SMART-PREVENT-1024 */} // ULTRA-BPATH-FIX-1029
                       className="mt-3 w-full h-10 sm:h-11 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm sm:text-base transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                       style={{ backgroundColor: bc }}
                     >
                       {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
-                      {verifying ? tr.verifying : tr.payNow}
+                      {ultraChecking ? ultraCheckingText(lang) : verifying ? tr.verifying : tr.payNow} {/* // ULTRA-BPATH-FIX-1029 */}
                     </button>
                   )}
                   <p className="text-[10px] sm:text-xs text-muted-foreground">
@@ -998,14 +1008,16 @@ const DynamicCarrier = ({
           {carrierSlug === "ultra-mobile" && ultraMdn10 && ( /* ULTRA-MDN-1029 */
             <div className="max-w-[420px] mx-auto px-4 pb-4" data-ultra-mdn="">{/* ULTRA-MDN-1029 */}
               {ultraB?.state === "loading" && <p className="text-xs text-muted-foreground inline-flex items-center gap-2"><Loader2 className="h-3 w-3 animate-spin" />{lang === "es" ? "Buscando planes para este número…" : "Finding plans for this number…"}</p>}{/* ULTRA-MDN-1029 */}
-              {ultraBErr && <p className={`text-xs ${ultraBErr.rejected ? "text-destructive/80" : "text-muted-foreground"}`}>{ultraBErr.text}</p>}{/* ULTRA-MDN-1029 */}
+              {(ultraBErr || inlineError === ultraVerifyText(lang)) && <div role="alert" className="text-xs text-destructive"><p>{ultraVerifyText(lang)}</p><Button variant="outline" size="sm" disabled={ultraChecking || ultraB?.state === "loading"} onClick={() => { setUltraRetry((n) => n + 1); }}>{lang === "es" ? "Reintentar" : "Try again"}</Button></div>}{/* // ULTRA-BPATH-FIX-1029 */}
+              {ultraChecking && <p role="status" className="text-xs text-muted-foreground">{ultraCheckingText(lang)}</p>}{/* // ULTRA-BPATH-FIX-1029 */}
+              {ultraMismatch && ultraBOk && <div role="alert" data-ultra-mismatch="" className="mb-3 text-sm text-foreground">{[...ultraBOk.fixed, ...ultraBOk.range].map((p) => <p key={p.barcode}>{lang === "es" ? `Elegiste el plan equivocado para este número. El plan correcto es $${formatDollars(p.amount ?? p.rangeMin ?? 0)} (${p.name || "Ultra"}). Selecciónalo para continuar.` : `You chose the wrong plan for this number. The correct plan is $${formatDollars(p.amount ?? p.rangeMin ?? 0)} (${p.name || "Ultra"}). Select it to continue.`}</p>)}</div>}{/* // ULTRA-BPATH-FIX-1029 */}
               {ultraBOk && ultraBOk.subscriber && <div className="rounded-lg border border-border bg-muted px-3 py-2 text-xs sm:text-sm text-foreground mb-3" style={{ whiteSpace: "pre-line" }}>{ultraBOk.subscriber}</div>}{/* ULTRA-MDN-1029 */}
-              {ultraBActive && ultraBOk && ultraBOk.fixed.length > 0 && <PlanGrid plans={ultraBOk.fixed.map((p) => ({ price: `$${formatDollars(p.amount ?? 0)}`, highlight: p.name || "", _bc: p.barcode }))} brandColor={bc} onSelect={(pl) => { const fp = ultraBOk.fixed.find((x) => x.barcode === (pl as { _bc?: string })._bc); /* ULTRA-MDN-1029: by barcode */ if (fp && fp.amount !== undefined) void handleUltraBPay(fp, fp.amount); }} />}{/* ULTRA-MDN-1029 */}
+              {ultraBActive && ultraBOk && ultraBOk.fixed.map((p) => <Button key={p.barcode} variant="outline" className="mb-2 h-auto min-h-11 w-full whitespace-normal text-left" disabled={ultraChecking || verifying || ultraChecking || rpPhoneBlock || ultraSmart.paused} onClick={() => { if (p.amount !== undefined) void handleUltraBPay(p, p.amount); }}>${formatDollars(p.amount ?? 0)} · {p.name}</Button>)}{/* // ULTRA-BPATH-FIX-1029 */} // ULTRA-BPATH-FIX-1029
               {ultraBActive && ultraBOk && ultraBOk.range.map((rp) => { const mn = rp.rangeMin ?? 0; const mx = rp.rangeMax ?? 0; const v = ultraRangeAmt[rp.barcode] ?? ""; /* ULTRA-MDN-1029: by barcode */ const n = Number(v); const okAmt = v !== "" && Number.isFinite(n) && n >= mn && n <= mx; return ( /* ULTRA-MDN-1029 */
                 <div key={`ur${rp.barcode}`} className="mt-3 rounded-lg border border-border bg-card p-3">{/* ULTRA-MDN-1029 */}
                   <p className="text-sm font-bold text-foreground mb-2">{rp.name || `$${mn} – $${mx}`}</p>{/* ULTRA-MDN-1029 */}
                   <input type="number" inputMode="decimal" step="0.01" min={mn} max={mx} value={v} placeholder={`$${mn} – $${mx}`} onChange={(e) => setUltraRangeAmt((cur) => ({ ...cur, [rp.barcode]: e.target.value }))} onBlur={() => { if (v === "" || !Number.isFinite(n)) return; setUltraRangeAmt((cur) => ({ ...cur, [rp.barcode]: (Math.round(Math.min(mx, Math.max(mn, n)) * 100) / 100).toFixed(2) })); }} className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm" aria-label={rp.name || "amount"} />{/* ULTRA-MDN-1029 */}
-                  <button type="button" disabled={verifying || !okAmt || rpPhoneBlock || ultraSmart.paused} onClick={() => void handleUltraBPay(rp, n)} className="mt-2 w-full h-10 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm inline-flex items-center justify-center gap-2" style={{ backgroundColor: bc }}>{verifying && <Loader2 className="h-4 w-4 animate-spin" />}{verifying ? tr.verifying : tr.payNow}</button>{/* ULTRA-MDN-1029 */}
+                  <button type="button" disabled={ultraChecking || verifying || !okAmt || rpPhoneBlock || ultraSmart.paused} onClick={() => void handleUltraBPay(rp, n)} className="mt-2 w-full h-10 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm inline-flex items-center justify-center gap-2" style={{ backgroundColor: bc }}>{verifying && <Loader2 className="h-4 w-4 animate-spin" />}{ultraChecking ? ultraCheckingText(lang) : verifying ? tr.verifying : tr.payNow}</button>{/* ULTRA-MDN-1029 */} {/* // ULTRA-BPATH-FIX-1029 */}
                 </div> /* ULTRA-MDN-1029 */
               ); })}
               {ultraBOk && <button type="button" className="mt-3 text-xs underline text-muted-foreground" onClick={() => setUltraShowAll((x) => !x)}>{ultraShowAll ? (lang === "es" ? "Ver los planes de este número" : "Show plans for this number") : (lang === "es" ? "Ver todos los planes de Ultra" : "Show all Ultra plans")}</button>}{/* ULTRA-MDN-1029 */}
@@ -1014,7 +1026,7 @@ const DynamicCarrier = ({
           {/* Plan grid (fixed_plans) */}
           {showFixedPlans && plans.length > 0 && !ultraBActive /* ULTRA-MDN-1029 */ && (
             <PlanGrid
-              plans={ultraSmart.paused ? shownGrid.plans.map((plan) => ({ ...plan, unavailable: ultraHealthText("pause", lang) })) : shownGrid.plans} // ULTRA-SMART-PREVENT-1024
+              plans={(carrierSlug === "ultra-mobile" && (ultraChecking || verifying)) ? shownGrid.plans.map((plan) => ({ ...plan, unavailable: ultraCheckingText(lang) })) : ultraSmart.paused ? shownGrid.plans.map((plan) => ({ ...plan, unavailable: ultraHealthText("pause", lang) })) : shownGrid.plans} // ULTRA-SMART-PREVENT-1024 // ULTRA-BPATH-FIX-1029
               brandColor={bc}
               onSelect={handlePlanPayNow}
               popularIndex={shownGrid.popular}
@@ -1040,12 +1052,12 @@ const DynamicCarrier = ({
               <button
                 type="button"
                 onClick={handlePay}
-                disabled={verifying || !rangeAmountValid || rpPhoneBlock || ultraSmart.paused || (ultraSmart.noHistory && !ultraSmart.acknowledged) /* REFILL-PREVENT-1024 // ULTRA-SMART-PREVENT-1024 */}
+                disabled={ultraChecking || verifying || !rangeAmountValid || rpPhoneBlock || ultraSmart.paused || (ultraSmart.noHistory && !ultraSmart.acknowledged) /* REFILL-PREVENT-1024 // ULTRA-SMART-PREVENT-1024 */} // ULTRA-BPATH-FIX-1029
                 className="h-[48px] px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: bc }}
               >
                 {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
-                {verifying ? tr.verifying : tr.payNow}
+                {ultraChecking ? ultraCheckingText(lang) : verifying ? tr.verifying : tr.payNow} {/* // ULTRA-BPATH-FIX-1029 */}
               </button>
             </div>
             <p className="hidden sm:block text-center text-[10px] sm:text-xs text-muted-foreground mt-3">
@@ -1069,12 +1081,12 @@ const DynamicCarrier = ({
               <button
                 type="button"
                 onClick={handlePay}
-                disabled={verifying || !rangeAmountValid || rpPhoneBlock || ultraSmart.paused || (ultraSmart.noHistory && !ultraSmart.acknowledged) /* REFILL-PREVENT-1024 // ULTRA-SMART-PREVENT-1024 */}
+                disabled={ultraChecking || verifying || !rangeAmountValid || rpPhoneBlock || ultraSmart.paused || (ultraSmart.noHistory && !ultraSmart.acknowledged) /* REFILL-PREVENT-1024 // ULTRA-SMART-PREVENT-1024 */} // ULTRA-BPATH-FIX-1029
                 className="flex-[2] h-[46px] rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
                 style={{ backgroundColor: bc }}
               >
                 {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
-                {verifying ? tr.verifying : tr.payNow}
+                {ultraChecking ? ultraCheckingText(lang) : verifying ? tr.verifying : tr.payNow} {/* // ULTRA-BPATH-FIX-1029 */}
               </button>
             </div>
           )}
