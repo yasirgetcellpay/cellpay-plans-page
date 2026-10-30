@@ -37,7 +37,7 @@ const PrivacyPolicy = () => {
         <p><strong className="text-foreground">{pg.effectiveLabel}</strong> {pg.effectiveDate}</p>
         {pg.sections.map((s) => (
           <Fragment key={s.h}>
-            <h2 className="text-lg font-bold text-foreground pt-3">{s.h}</h2>
+            <h2 id={s.id} className="text-lg font-bold text-foreground pt-3">{s.h}</h2>
             {s.blocks.map((b, i) =>
               "p" in b ? (
                 <p key={i}>{b.p.map((x, j) => <Inline key={j} x={x} />)}</p>

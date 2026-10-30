@@ -6,6 +6,7 @@ import { captureTrackingIdsFromUrl } from "@/lib/tracking";
 import { startTrackQueue } from "@/lib/trackQueue"; // DB-OUTAGE-TRACK-1017
 import { usePresence } from "@/hooks/usePresence";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import CcpaBar from "@/components/CcpaBar"; // CCPA-BANNER-1029
 import Home from "./pages/Home.tsx";
 import DynamicCarrier from "./pages/DynamicCarrier.tsx";
 import PaymentCallback from "./pages/PaymentCallback.tsx";
@@ -381,6 +382,7 @@ const App = () => (
       <TrackQueueStarter />
       <ScrollToTop />
       <CheckoutPrefetch />
+      <CcpaBar />{/* CCPA-BANNER-1029: outside routes; internally excluded from checkout. */}
       <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/" element={<Home />} />
