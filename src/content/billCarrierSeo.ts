@@ -480,6 +480,36 @@ export const BILL_PAGES: BillPage[] = [
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-ATT-1029
     faqOnly: true, // BILLPAY-ATT-1029
   }, // BILLPAY-ATT-1029
+  { // BILLPAY-PAGEPLUS-1030
+    path: "/es/pageplus.html", lang: "es", name: "Page Plus", // BILLPAY-PAGEPLUS-1030
+    title: "Pagar Factura Page Plus en Línea sin Cuenta | CellPay", // BILLPAY-PAGEPLUS-1030
+    description: "Pague su factura de Page Plus en línea. Sin cuenta y sin iniciar sesión. Puede pagar por otra persona. Verá el cargo por servicio antes de pagar.", // BILLPAY-PAGEPLUS-1030
+    h1: "Pague su Factura de Page Plus en Línea", // BILLPAY-PAGEPLUS-1030
+    sub: "Sin cuenta y sin iniciar sesión. Solo necesita el número de teléfono. Pague por usted o por otra persona.", // BILLPAY-PAGEPLUS-1030
+    autoPayInfoLead: "Opcional: Auto Pago para no olvidar su pago.", // BILLPAY-PAGEPLUS-1030
+    enterAmount: "Ingrese el monto que desea recargar", // BILLPAY-PAGEPLUS-1030
+    securePayment: "Pago seguro. Su recarga se envía directamente a su teléfono.", // BILLPAY-PAGEPLUS-1030
+    faqTitle: "Preguntas frecuentes", // BILLPAY-PAGEPLUS-1030
+    faqs: pageplusFaqs("es"), // BILLPAY-PAGEPLUS-1030
+    guide: ["/es/como-pagar/page-plus", "Cómo pagar Page Plus"], // BILLPAY-PAGEPLUS-1030
+    more: [["/es/paga-tu-factura", "Pague su factura de celular"]], // BILLPAY-PAGEPLUS-1030
+    faqOnly: true, // BILLPAY-PAGEPLUS-1030
+  }, // BILLPAY-PAGEPLUS-1030
+  { // BILLPAY-PAGEPLUS-1030
+    path: "/pageplus.html", lang: "en", name: "Page Plus", // BILLPAY-PAGEPLUS-1030
+    title: "Pay Your Page Plus Bill Online – No Login | CellPay", // BILLPAY-PAGEPLUS-1030
+    description: "Pay your Page Plus bill online with just the phone number. No account or login. Pay for yourself or someone else. Service fee shown before you pay.", // BILLPAY-PAGEPLUS-1030
+    h1: "Pay Your Page Plus Bill Online", // BILLPAY-PAGEPLUS-1030
+    sub: "No login. Just the phone number. Pay for yourself or someone else.", // BILLPAY-PAGEPLUS-1030
+    autoPayInfoLead: "Optional: Auto Pay so you never miss a refill.", // BILLPAY-PAGEPLUS-1030
+    enterAmount: "Enter the amount you want to recharge", // BILLPAY-PAGEPLUS-1030
+    securePayment: "Secure payment. Your refill is sent directly to your phone.", // BILLPAY-PAGEPLUS-1030
+    faqTitle: "Common questions", // BILLPAY-PAGEPLUS-1030
+    faqs: pageplusFaqs("en"), // BILLPAY-PAGEPLUS-1030
+    guide: ["/how-to-pay/page-plus", "How to pay Page Plus"], // BILLPAY-PAGEPLUS-1030
+    more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-PAGEPLUS-1030
+    faqOnly: true, // BILLPAY-PAGEPLUS-1030
+  }, // BILLPAY-PAGEPLUS-1030
 ];
 
 const BILL_PATH_ALIAS: Record<string, string> = { "/total-wireless": "/total-wireless.html", "/es/total-wireless": "/es/total-wireless.html", "/ultra-mobile": "/ultra-mobile.html", "/es/ultra-mobile": "/es/ultra-mobile.html", "/topup-at": "/topup-at.html", "/es/topup-at": "/es/topup-at.html" }; // TW-FAQ-HYDRATE-SHELL-1027 // BILLPAY-ULTRA-1028 // BILLPAY-ATT-1029

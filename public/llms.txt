@@ -43,7 +43,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [H2O Wireless](https://www.cellpay.us/h2o.html): H2O prepaid plan refills.
 - [Lyca Mobile](https://www.cellpay.us/lyca.html): Lyca Mobile prepaid plan refills.
 - [Net10](https://www.cellpay.us/net10.html): Net10 Wireless prepaid refills.
-- [Page Plus](https://www.cellpay.us/pageplus.html): Page Plus Cellular prepaid refills.
+- [Pay Page Plus bill online](https://www.cellpay.us/pageplus.html): Pay a Page Plus bill with just the number, no login.
 - [Pay Ultra Mobile bill online](https://www.cellpay.us/ultra-mobile.html): Pay an Ultra Mobile bill with just the number, no login.
 
 ## How to pay guides
@@ -93,7 +93,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [H2O Wireless (español)](https://www.cellpay.us/es/h2o.html)
 - [Lyca Mobile (español)](https://www.cellpay.us/es/lyca.html)
 - [Net10 (español)](https://www.cellpay.us/es/net10.html)
-- [Page Plus (español)](https://www.cellpay.us/es/pageplus.html)
+- [Pagar factura Page Plus](https://www.cellpay.us/es/pageplus.html): Pague su factura de Page Plus con solo el número, sin cuenta.
 - [Pagar factura Ultra Mobile](https://www.cellpay.us/es/ultra-mobile.html)
 - [Pagar Simple Mobile (español)](https://www.cellpay.us/es/s1.html)
 - [Cómo pagar Boost Mobile](https://www.cellpay.us/es/como-pagar/boost-mobile)
