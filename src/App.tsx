@@ -551,9 +551,9 @@ const App = () => (
               carrierId={36}
               brandColor="hsl(27,100%,50%)"
               logo={boostLogo}
-              seoTitleOverride="Boost Mobile Guest Payment — One-Time Refill | CellPay"
+              seoTitleOverride="Pay Your Boost Mobile Bill as a Guest"
               seoDescriptionOverride="Make a Boost Mobile guest payment online. No login needed — enter your phone number, choose your 30-day plan, and pay securely."
-              seoH1Override="Boost Mobile Guest Payment — One-Time Refill, No login needed"
+              seoH1Override="Pay Your Boost Mobile Bill as a Guest"
               seoIntroOverride="Pay your Boost Mobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment."
             />
           }
