@@ -1,0 +1,1 @@
+- Keep partner receipt sending isolated from CellPay checkout and receipt SMS, with key-bound brands, service-only claims and injected environment/network dependencies for safe tests. // CM-PZ-34332-HOST-1030
