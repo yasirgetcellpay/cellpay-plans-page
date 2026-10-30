@@ -2516,7 +2516,7 @@ async function paypalAction(
   const refundMarker = !isCreate ? refundSuccessMarker(wrapped) : null;
   if (refundMarker) wrapped = { success: true, data: { status: false, message: REFUND_FAILURE_MESSAGE, refund_signal: true } };
   const r = unwrapTransactionResult(wrapped);
-  const arb = (): Record<string, unknown> => arbLogMeta(lr, body.bearerToken, body.lang);
+  const arb = (): Record<string, unknown> => ({ ...arbLogMeta(lr, body.bearerToken, body.lang), ...ultraMdnMeta(lr, null) }); // PREP-META-1029
 
   if (isCreate && PP_CAPTURE_RETIRED) {
     // [PAYPAL-REBUILD-1009] No transaction_logs row at create-order any more: the one order row is written by checkout/transaction
@@ -2737,6 +2737,15 @@ function asciiNamesCopy(v: unknown, depth = 0): unknown {
   return out;
 }
 // ACCENT-FOLD-1015B: names as typed vs as sent to CellPay (same fold as the outbound body).
+// PREP-META-1029: Ultra MDN plan facts on the log row only (never sent to CellPay; read-only copy).
+function ultraMdnMeta(p: Record<string, unknown>, pt: string | null): Record<string, unknown> { // PREP-META-1029
+  try { // PREP-META-1029
+    if (String(p.carrier_slug ?? p.carrierSlug ?? "").trim().toLowerCase() !== "ultra-mobile") return {}; // PREP-META-1029
+    const bc = typeof p.barcode === "string" && /^\d{6,20}$/.test(p.barcode.trim()) ? p.barcode.trim() : null; // PREP-META-1029
+    if (!bc) return {}; // PREP-META-1029
+    return { ultra_mdn: true, barcode: bc, ...(pt ? { purchase_type: pt } : {}) }; // PREP-META-1029
+  } catch { return {}; } // PREP-META-1029
+} // PREP-META-1029
 function namesSentMeta(p: unknown): Record<string, unknown> {
   try {
     const rec = (p && typeof p === "object" ? p : {}) as Record<string, unknown>;
@@ -2959,6 +2968,7 @@ serve(async (req) => {
       delete payloadRecord.cp_dev;
       if (typeof fetchOptions.body === "string") fetchOptions.body = JSON.stringify(payloadRecord);
     }
+    const ultraPtSite = typeof payloadRecord.ultraPurchaseType === "string" && /^[A-Z_]{1,20}$/.test(payloadRecord.ultraPurchaseType) ? payloadRecord.ultraPurchaseType : null; // PREP-META-1029
     if ("ultraBarcode" in payloadRecord || "ultraPurchaseType" in payloadRecord) { // ULTRA-MDN-1029: site-only keys never reach CellPay
       delete payloadRecord.ultraBarcode; delete payloadRecord.ultraPurchaseType; // ULTRA-MDN-1029
       if (typeof fetchOptions.body === "string") fetchOptions.body = JSON.stringify(payloadRecord); // ULTRA-MDN-1029
@@ -3277,7 +3287,7 @@ serve(async (req) => {
       if (health?.allowed === false) return new Response(JSON.stringify({ success: false, blocked: true, code: "ULTRA_PAUSED", message: body.lang === "es" ? "Las recargas de Ultra no están disponibles temporalmente. Volverán pronto. Inténtelo de nuevo en unos 20 minutos." : "Ultra refills are temporarily unavailable — back shortly. Please try again in about 20 minutes." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); // ULTRA-SMART-PREVENT-1024
     } // ULTRA-SMART-PREVENT-1024
     const createP: Promise<string | null> = shouldLogTransaction
-      ? createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...retryMetaFrom(body.retry_meta), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}), ...namesSentMeta(payloadRecord) /* ACCENT-FOLD-1015C */ }, clickIdsFrom(body.click_ids),
+      ? createTransactionLog(payloadRecord, callerHost, req.headers.get("user-agent"), { ...arbLogMeta(payloadRecord, bearerToken, body.lang), ...visitSourceMeta(body.visit_source), ...retryMetaFrom(body.retry_meta), ...(isPayPalTx ? { paypal_order_id: ppTxOrderId, paypal_step: "transaction" } : {}), ...namesSentMeta(payloadRecord) /* ACCENT-FOLD-1015C */, ...ultraMdnMeta(payloadRecord, ultraPtSite) }, clickIdsFrom(body.click_ids), // PREP-META-1029
           mf ? await mfLogMeta(mf, null) : {}, 20000)
       : Promise.resolve(null); // DB-OUTAGE-TRACK-1017
     waitUntilSafe(createP); // DB-OUTAGE-TRACK-1017
