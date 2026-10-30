@@ -11,7 +11,7 @@
 import { cronAuthorized, rpc, rest, json, hmacKey, signLink, senderSettings, sha256Hex } from "../_shared/retentionEmail.ts";
 import { failpayEmail } from "../_shared/failpayEmail.js";
 
-export const FAILPAY_SEND_ENABLED = false;            // go-live = separate reviewed change (Fraud & QA sign-off + Parvez OK)
+export const FAILPAY_SEND_ENABLED = true;            // go-live = separate reviewed change (Fraud & QA sign-off + Parvez OK) // FAILPAY-GO-LIVE-1030
 const FROM_LOCAL = "orders";                           // orders@notify.cellpay.us
 const CF_ACCOUNT_DEFAULT = "7daef2eefd2b54148d4b8ef26b57d5a7";
 const env = (k: string) => Deno.env.get(k) || "";
