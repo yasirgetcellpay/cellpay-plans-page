@@ -2960,6 +2960,15 @@ export type Database = {
         Args: { _id: string; _outcome: string }
         Returns: boolean
       }
+      claim_postpay_sms: {
+        Args: { _id: string }
+        Returns: {
+          amount: number
+          carrier_name: string
+          lang: string
+          phone_number: string
+        }[]
+      }
       cp_clean_first_name: { Args: { fn: string; ln: string }; Returns: string }
       cp_email_sha256: { Args: { _e: string }; Returns: string }
       cp_phone_sha256: { Args: { _p: string }; Returns: string }
