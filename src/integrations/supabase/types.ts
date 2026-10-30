@@ -1565,6 +1565,39 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_receipt_sms_log: {
+        Row: {
+          brand: string
+          created_at: string | null
+          error_code: string | null
+          id: number
+          order_id: string | null
+          sid: string | null
+          status: string | null
+          to_last4: string | null
+        }
+        Insert: {
+          brand: string
+          created_at?: string | null
+          error_code?: string | null
+          id?: number
+          order_id?: string | null
+          sid?: string | null
+          status?: string | null
+          to_last4?: string | null
+        }
+        Update: {
+          brand?: string
+          created_at?: string | null
+          error_code?: string | null
+          id?: number
+          order_id?: string | null
+          sid?: string | null
+          status?: string | null
+          to_last4?: string | null
+        }
+        Relationships: []
+      }
       paypal_funnel_events: {
         Row: {
           created_at: string
