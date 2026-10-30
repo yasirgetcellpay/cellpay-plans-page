@@ -218,6 +218,21 @@ const attFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-ATT-
   { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-ATT-1029
   { q: "Can I set up Auto Pay?", a: "Yes. Auto Pay is optional. You can turn it on at checkout. It is never pre-checked." }, // BILLPAY-ATT-1029
 ]; // BILLPAY-ATT-1029
+const pageplusFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-PAGEPLUS-1030
+  { q: "¿Cómo pago mi factura de Page Plus en línea?", a: "Ingrese el número de teléfono de Page Plus, elija el plan y pague. No necesita una cuenta." }, // BILLPAY-PAGEPLUS-1030
+  { q: "¿Puedo pagar Page Plus como invitado, sin iniciar sesión?", a: "Sí. No necesita iniciar sesión ni crear una cuenta. Solo necesita el número de teléfono." }, // BILLPAY-PAGEPLUS-1030
+  { q: "¿Puedo pagar la línea de Page Plus de otra persona?", a: "Sí. Ingrese su número de Page Plus y revíselo bien antes de pagar." }, // BILLPAY-PAGEPLUS-1030
+  { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es").replace("Apple Pay en dispositivos Apple compatibles", "Apple Pay en dispositivos compatibles")}` }, // BILLPAY-PAGEPLUS-1030
+  { q: "¿Cuándo se aplica mi pago?", a: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Cuando el pago se completa, verá una confirmación con los datos de su transacción." }, // BILLPAY-PAGEPLUS-1030
+  { q: "¿Puedo activar el Auto Pago?", a: "Sí. El Auto Pago es opcional. Lo puede activar al pagar. Nunca está marcado de antemano." }, // BILLPAY-PAGEPLUS-1030
+] : [ // BILLPAY-PAGEPLUS-1030
+  { q: "How do I pay my Page Plus bill online?", a: "Enter the Page Plus phone number, pick the plan, and pay. No account needed." }, // BILLPAY-PAGEPLUS-1030
+  { q: "Can I pay Page Plus as a guest without logging in?", a: "Yes. You don't need a login or an account. The phone number is enough." }, // BILLPAY-PAGEPLUS-1030
+  { q: "Can I pay someone else's Page Plus line?", a: "Yes. Enter their Page Plus number and double-check it before you pay." }, // BILLPAY-PAGEPLUS-1030
+  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-PAGEPLUS-1030
+  { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-PAGEPLUS-1030
+  { q: "Can I set up Auto Pay?", a: "Yes. Auto Pay is optional. You can turn it on at checkout. It is never pre-checked." }, // BILLPAY-PAGEPLUS-1030
+]; // BILLPAY-PAGEPLUS-1030
 
 export const BILL_PAGES: BillPage[] = [
   { // BILLPAY-METRO-1021
