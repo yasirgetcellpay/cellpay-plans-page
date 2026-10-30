@@ -152,7 +152,7 @@ export async function scoreRisk(inp: RiskInput, knownMode?: string): Promise<Ris
     }
     // Shadow-only view: what the new rules would do (never returned, never enforced).
     let shadowAction: RiskResult["action"] = linked ? "block" : decide(score + shadowPts);
-    if (shadowAction === "allow" && SHADOW_STEPUP_FLAGS.some((k) => Number(f[k]) > 0)) shadowAction = "step_up";
+    if (shadowAction === "allow" && !(Number(f.prior_paid) > 0) && SHADOW_STEPUP_FLAGS.some((k) => Number(f[k]) > 0)) shadowAction = "step_up"; // PRIOR-PAID-STEPUP-EXEMPT-1029
     score = Math.round(score * 10) / 10;
 
     clearTimeout(timer);
