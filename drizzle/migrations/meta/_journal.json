@@ -155,6 +155,13 @@
       "when": 1792884926385,
       "tag": "0021_ultra_smart_prevent_1024",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793372055949,
+      "tag": "0022_postpay_sms_34332_1030",
+      "breakpoints": true
     }
   ]
 }
