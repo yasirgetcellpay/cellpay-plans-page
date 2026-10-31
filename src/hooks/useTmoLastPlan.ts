@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react"; // REFILL-PREVENT-TMO-1026
 import { matchTmoPlan, readTmoLastPlan, tmoEvent, tmoNeedsConfirm, TMO_SLUG, type TmoLastPlan, type TmoPlan } from "@/lib/tmoLastPlan"; // REFILL-PREVENT-TMO-1026
 import { rpVariant } from "@/lib/refillPrevent"; // REFILL-PREVENT-TMO-1026
-export function useTmoLastPlan(slug: string, phone: string, ready: boolean, plans: TmoPlan[], onSelect?: (plan: TmoPlan) => void) { // REFILL-PREVENT-TMO-1026
+export function useTmoLastPlan(slug: string, phone: string, ready: boolean, plans: TmoPlan[], onSelect?: (plan: TmoPlan) => void, canPreselect?: () => boolean) { // REFILL-PREVENT-TMO-1026 // TMO-AMOUNT-FORCE-1031
   const [lookup, setLookup] = useState<{ phone: string; last: TmoLastPlan | null } | null>(null);
   const [pending, setPending] = useState<{ phone: string; amount: number } | null>(null);
   const [continuedFor, setContinuedFor] = useState<string | null>(null);
   const selectRef = useRef(onSelect); selectRef.current = onSelect;
+  const canPreselectRef = useRef(canPreselect); canPreselectRef.current = canPreselect; // TMO-AMOUNT-FORCE-1031
   const shownRef = useRef<string | null>(null);
   const on = slug === TMO_SLUG;
   const last = on && lookup?.phone === phone ? lookup.last : null;
@@ -19,7 +20,7 @@ export function useTmoLastPlan(slug: string, phone: string, ready: boolean, plan
   useEffect(() => {
     if (!match || shownRef.current === phone) return;
     shownRef.current = phone;
-    try { selectRef.current?.(match); } catch { /* fail open */ }
+    try { if (!canPreselectRef.current || canPreselectRef.current()) selectRef.current?.(match); } catch { /* fail open: preserve amount */ } // TMO-AMOUNT-FORCE-1031
     tmoEvent("last_plan_shown", slug, rpVariant());
   }, [match, phone, slug]);
   const gate = (amount: number): boolean => {

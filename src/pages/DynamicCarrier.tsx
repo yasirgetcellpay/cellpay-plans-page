@@ -276,6 +276,7 @@ const DynamicCarrier = ({
   const [rpConfirm, setRpConfirm] = useState(""); // REFILL-PREVENT-1024
   const [deadList, setDeadList] = useState<DeadAmount[]>([]); // REFILL-PREVENT-1024
   const [amount, setAmount] = useState("");
+  const userAmountRef = useRef(false); // TMO-AMOUNT-FORCE-1031
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
@@ -336,6 +337,7 @@ const DynamicCarrier = ({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setInlineError(null);
       setAmountTouched(false);
+      userAmountRef.current = true; // TMO-AMOUNT-FORCE-1031
       setAmount(sanitizeAmountInput(e.target.value));
     },
     []
@@ -344,6 +346,7 @@ const DynamicCarrier = ({
   const handleAmountPaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     setInlineError(null);
+    userAmountRef.current = true; // TMO-AMOUNT-FORCE-1031
     setAmount(parsePastedAmount(e.clipboardData.getData("text")));
     setAmountTouched(true);
   }, []);
@@ -579,11 +582,13 @@ const DynamicCarrier = ({
     if (!Number.isFinite(n) || n <= 0) return;
     if (showRange) {
       const clamped = Math.min(Math.max(n, rangeMin), rangeMax);
+      userAmountRef.current = true; // TMO-AMOUNT-FORCE-1031
       setAmount(String(clamped));
     } else if (showFixedPlans && plans.length > 0) {
       const match = plans.find((p) => p.amount === n);
-      if (match) setAmount(String(match.amount));
+      if (match) { userAmountRef.current = true; setAmount(String(match.amount)); } // TMO-AMOUNT-FORCE-1031
     } else {
+      userAmountRef.current = true; // TMO-AMOUNT-FORCE-1031
       setAmount(String(n));
     }
     // Only run once after initial load; ignore changes to searchParams afterwards.
@@ -596,10 +601,10 @@ const DynamicCarrier = ({
     const n = r.amount; // ST-PREFILL-1018
     if (n !== null) { // ST-PREFILL-1018
       if (showRange) { // ST-PREFILL-1018
-        if (Number.isInteger(n) && n >= rangeMin && n <= rangeMax) setAmount(String(n)); // ST-PREFILL-1018
+        if (Number.isInteger(n) && n >= rangeMin && n <= rangeMax) { userAmountRef.current = true; setAmount(String(n)); } // ST-PREFILL-1018 // TMO-AMOUNT-FORCE-1031
       } else if (showFixedPlans && plans.length > 0) { // ST-PREFILL-1018
         const match = plans.find((p) => p.amount === n); // ST-PREFILL-1018
-        if (match) setAmount(String(match.amount)); // ST-PREFILL-1018
+        if (match) { userAmountRef.current = true; setAmount(String(match.amount)); } // ST-PREFILL-1018 // TMO-AMOUNT-FORCE-1031
       } // ST-PREFILL-1018
     } // ST-PREFILL-1018
   }); // ST-PREFILL-1018
@@ -611,7 +616,7 @@ const DynamicCarrier = ({
   const rpNeedConfirm = p1On && rpTyped.current && phoneDigits.length === 10 && !rpFormatBad;
   const rpConfirmOk = !rpNeedConfirm || rpConfirm.replace(/\D/g, "").slice(-10) === phoneDigits;
   const ultraSmart = useUltraSmart(carrierSlug, phoneDigits, rpConfirmOk, plans, (plan) => setAmount(String(plan.amount))); // ULTRA-SMART-PREVENT-1024
-  const tmoSmart = useTmoLastPlan(carrierSlug, phoneDigits, rpConfirmOk, plans, (plan) => setAmount(String(plan.amount))); // REFILL-PREVENT-TMO-1026
+  const tmoSmart = useTmoLastPlan(carrierSlug, phoneDigits, rpConfirmOk, plans, (plan) => setAmount(String(plan.amount)), () => !userAmountRef.current); // REFILL-PREVENT-TMO-1026 // TMO-AMOUNT-FORCE-1031
   const rpPhoneBlock = rpFormatBad || !rpConfirmOk;
   const rpFmtLogged = useRef(false);
   useEffect(() => { if (rpFormatBad && !rpFmtLogged.current) { rpFmtLogged.current = true; rpEvent("rp_format_error", carrierSlug, rpV); } if (!rpFormatBad) rpFmtLogged.current = false; }, [rpFormatBad, carrierSlug, rpV]);
@@ -653,6 +658,7 @@ const DynamicCarrier = ({
   const showAmountMessage = !!amountMessage && (amountTouched || amountNum > rangeMax);
 
   const handlePlanSelect = (plan: { price: string; highlight: string }) => {
+    userAmountRef.current = true; // TMO-AMOUNT-FORCE-1031
     setAmount(plan.price.replace("$", ""));
   };
 
@@ -665,6 +671,7 @@ const DynamicCarrier = ({
 
   // Direct checkout from plan card "Pay Now" button (fixed_plans → use that plan's carrier id)
   const handlePlanPayNow = async (plan: { price: string; highlight: string }) => {
+    userAmountRef.current = true; // TMO-AMOUNT-FORCE-1031
     if (phoneDigits.length !== 10) {
       toast({ title: tr.phoneRequired, description: tr.phoneRequired, variant: "destructive" });
       return;
