@@ -809,7 +809,7 @@ const htmlAliasPlugin = (): Plugin => ({
       // src/pages/DynamicCarrier.tsx sets at runtime for these pages (lang en). Keep in sync.
       "boost.html":                { title: "Pay Boost Mobile Bill Online as a Guest – No Login | CellPay", description: "Pay your Boost Mobile bill online as a guest with just the phone number. No login needed. Service fee shown before you pay." }, // BILLPAY-BOOST-1022
       "topup-crc.html":            { title: "Pay Cricket Bill Online – Quick Pay as a Guest | CellPay", description: "Cricket Quick Pay on CellPay: pay any Cricket Wireless bill online. No login needed. All major cards & wallets. Service fee shown before you pay." }, // BILLPAY-CRICKET-1023
-      "h2o.html":                  { title: "H2O Wireless Refill — Online Top-Up | CellPay",        description: "Recharge H2O Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "h2o.html": { title: "Pay Your H2O Wireless Bill Online – No Login | CellPay", description: "Pay your H2O Wireless bill online with just the phone number. No account or login. Pay for yourself or someone else. Service fee shown before you pay." }, // BILLPAY-H2O-1031
       "lyca.html":                 { title: "Lycamobile Refill — Online Top-Up | CellPay",          description: "Recharge Lycamobile online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "metropcs.html":             { title: "Pay Metro PCS Bill Online as a Guest – No Login | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." }, // GSC-MAULIK-1014
       "metro-pcs.html":            { title: "Pay Metro PCS Bill Online as a Guest – No Login | CellPay", description: "Metro PCS pay bill online. Pay your Metro by T-Mobile prepaid bill with any card or wallet. No login needed. Low service fee shown before you pay." }, // GSC-MAULIK-1014
@@ -1731,6 +1731,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/ultra-mobile/index.html": "es/ultra-mobile.html",
       "es/pageplus/index.html": "es/pageplus.html", // ES-PAGEPLUS-ROUTE-1030
       "es/tracfone/index.html": "es/tracfone.html", // BILLPAY-TRACFONE-1030
+      "es/h2o/index.html": "es/h2o.html", // BILLPAY-H2O-1031
       "es/straight-talk/index.html": "es/straight-talk.html", // BILLPAY-ST-SHELL-H1-1025
       "lp/metro/index.html": "metropcs.html", "lp/boost/index.html": "boost.html",
       // AEO-PAGES-1007: /terms and /about short URLs (App.tsx sends them to the full page)
