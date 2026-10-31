@@ -666,6 +666,11 @@ const AP1_ORIGIN_DOMAIN: Record<string, string> = {
 const AP1_MIN_MS = 2500; // every 200 reply waits at least this long
 const AP1_UPSTREAM_TIMEOUT_MS = 2000;
 const AP1_RL_TIMEOUT_MS = 2500; // [AP1-RL-1018] rate-limit RPC budget (was 1000 inline; two cancels failed closed on a slow DB moment)
+// [CHECKOUT-RL-1030eve] checkout/transaction junk reject + rate limits (see handler block).
+const CHECKOUT_RL_METHODS = new Set(["cardpayment", "applepay", "googlepay", "klarna", "pockyt", "plaid", "paypal"]);
+const CHECKOUT_RL_WINDOW_S = 600;
+const CHECKOUT_RL_DC_ASNS = new Set([396982, 15169, 16509, 14618, 8075]); // GCP, GCP, AWS, AWS, Azure
+const CHECKOUT_RL_TIMEOUT_MS = 800; // fail-open budget per bucket
 const AP1_LIMITS = { ip: { max: 10, windowS: 3600 }, phone: { max: 5, windowS: 3600 } };
 const AP1_TS_MODE: "shadow" = "shadow"; // standing decision: Turnstile only if abuse. Shadow logs, never blocks.
 const AP1_TS_ACTION = "autopay_cancel";
@@ -2985,6 +2990,48 @@ serve(async (req) => {
     // [plaid v2] A Plaid checkout carries no Plaid token or Link metadata past this point (guards, log row, CellPay).
     const isPlaidCheckout = shouldLogTransaction && (paymentMethod || "").toLowerCase() === "plaid";
     if (isPlaidCheckout) for (const k of PLAID_V2_DROP) delete payloadRecord[k];
+    // [CHECKOUT-RL-1030eve] Early junk reject + rate limits on POST checkout/transaction, BEFORE any transaction_logs row.
+    // Calm RETRY_LATER (same message as blocklist). Fail-open on limiter / ASN errors. PII-free buckets (ap1Hash HMAC).
+    if (shouldLogTransaction) {
+      const crlReply = (code: string) => {
+        try { recordGuardEvent({ code: `checkout_rl:${code}`, method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: guardOrigin !== null }); } catch { /* ignore */ }
+        return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: "We couldn't process this card right now. Please try again in about 30 minutes or use a different payment method. You were not charged." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      };
+      const crlMethod = (paymentMethod || "").toLowerCase();
+      if (!CHECKOUT_RL_METHODS.has(crlMethod)) return crlReply("bad_method");
+      const crlTotal = Number(payloadRecord.total);
+      const crlAmt = Number.isFinite(crlTotal) && payloadRecord.total !== undefined && payloadRecord.total !== null && payloadRecord.total !== "" ? crlTotal : Number(payloadRecord.amount);
+      if (!Number.isFinite(crlAmt) || crlAmt <= 0) return crlReply("bad_amount");
+      try {
+        const crlIp = riskIp.ip;
+        const crlEmail = (text(asRecord(payloadRecord.payment).email ?? payloadRecord.email) || "").trim().toLowerCase();
+        const crlSess = text(payloadRecord.kount_ssid ?? payloadRecord.riskified_sessionid ?? payloadRecord.cbsys_sessionid);
+        const crlHit = async (kind: string, value: string, limit: number): Promise<boolean> => {
+          try {
+            const ok = await ap1Rpc("ap1_rate_limit_hit", { _bucket: await ap1Hash(`ctx:${kind}`, value), _limit: limit, _window_seconds: CHECKOUT_RL_WINDOW_S }, CHECKOUT_RL_TIMEOUT_MS);
+            return ok === false; // only an explicit false is a hit; errors fail open
+          } catch { return false; }
+        };
+        const crlDc = async (): Promise<boolean> => {
+          if (!crlIp) return false;
+          const info = await mfIpEnrich(crlIp); // best-effort 300 ms; null = unknown -> skip DC bucket
+          if (!info) return false;
+          const asn = Number(info.asn);
+          const isDc = info.datacenter === true || (Number.isFinite(asn) && CHECKOUT_RL_DC_ASNS.has(asn));
+          return isDc ? await crlHit("dc", crlIp, 3) : false;
+        };
+        const [hIp, hDc, hEm, hSess] = await Promise.all([
+          crlIp ? crlHit("ip", crlIp, 10) : Promise.resolve(false),
+          crlDc().catch(() => false),
+          crlEmail ? crlHit("em", crlEmail, 5) : Promise.resolve(false),
+          crlSess ? crlHit("sess", crlSess, 5) : Promise.resolve(false),
+        ]);
+        if (hIp) return crlReply("ip");
+        if (hDc) return crlReply("dc");
+        if (hEm) return crlReply("email");
+        if (hSess) return crlReply("session");
+      } catch { /* fail open */ }
+    }
     // [RISK-COVER-IP-1019] Shadow risk decision for EVERY checkout attempt, started here before any guard can refuse it. Background only
     // (waitUntilSafe): the mode read and the scoring never touch the customer's response or its timing. Enforce keeps its own path below.
     if (shouldLogTransaction) {
