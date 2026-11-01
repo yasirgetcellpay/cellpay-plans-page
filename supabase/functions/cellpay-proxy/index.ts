@@ -3447,6 +3447,25 @@ serve(async (req) => {
           try { await callDatabaseRpc("finalize_transaction_log", { _id: id, _status: "failed", _hashid: null, _transaction_id: null, _error_message: REFUND_FAILURE_MESSAGE, _raw_response: refundAudit }, 10000); }
           catch (error) { console.error("[tx-log] refund finalize failed:", error instanceof Error ? error.message : error); }
         } else await finishTransactionLog(id, logWrapped, paymentMethod, 10000);
+        try { // AUTOPAY-MERCHCFG-1101
+          const merchResult = unwrapTransactionResult(logWrapped); // AUTOPAY-MERCHCFG-1101
+          const merchMsg = String(merchResult.message || merchResult.msg || logWrapped.error || ""); // AUTOPAY-MERCHCFG-1101
+          const merchPayment = asRecord(payloadRecord.payment); // AUTOPAY-MERCHCFG-1101
+          const merchAutopay = merchPayment.autopay === true || payloadRecord.autopay === true || merchPayment.autopay_agreement === true || payloadRecord.autopay_agreement === true; // AUTOPAY-MERCHCFG-1101
+          if (id && !memSuccess && !unconfirmedKind && /^(card|cardpayment)$/i.test(String(paymentMethod || "")) && merchAutopay && /merchant configuration/i.test(merchMsg)) { // AUTOPAY-MERCHCFG-1101
+            await rpcSoon("tx_log_meta_merge", { _id: id, _patch: { error_code: "AUTOPAY_MERCHCFG", internal_error: true } }); // AUTOPAY-MERCHCFG-1101
+            const merchUrl = Deno.env.get("SUPABASE_URL"); const merchKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"); // AUTOPAY-MERCHCFG-1101
+            if (merchUrl && merchKey) { // AUTOPAY-MERCHCFG-1101
+              const headers = { apikey: merchKey, authorization: `Bearer ${merchKey}`, "content-type": "application/json" }; // AUTOPAY-MERCHCFG-1101
+              const since = encodeURIComponent(new Date(Date.now() - 3600000).toISOString()); // AUTOPAY-MERCHCFG-1101
+              const prior = await fetch(`${merchUrl}/rest/v1/ops_alarms?kind=eq.AUTOPAY_MERCHCFG&created_at=gte.${since}&select=id&limit=1`, { headers, signal: AbortSignal.timeout(1500) }); // AUTOPAY-MERCHCFG-1101
+              if (prior.ok && Array.isArray(await prior.clone().json()) && (await prior.json()).length === 0) { // AUTOPAY-MERCHCFG-1101
+                const safeMsg = merchMsg.replace(/\b(?:card\w*|cc\w*|cvv\w*|cvc\w*|expir\w*|token|password|authorization|apikey)\s*[:=]\s*\S+/gi, "[redacted]").replace(/\b\d{5,}\b/g, "[redacted]").slice(0, 120); // AUTOPAY-MERCHCFG-1101
+                await fetch(`${merchUrl}/rest/v1/ops_alarms`, { method: "POST", headers, signal: AbortSignal.timeout(1500), body: JSON.stringify({ source: "cellpay-proxy", kind: "AUTOPAY_MERCHCFG", ref: String(id), severity: "alarm", detail: { phone_last4: String(payloadRecord.phone_number || payloadRecord.phoneNumber || "").replace(/\D/g, "").slice(-4), carrier: text(payloadRecord.carrier_name ?? payloadRecord.carrierName ?? payloadRecord.carrierId ?? payloadRecord.carrier_id), method: paymentMethod, msg: safeMsg } }) }); // AUTOPAY-MERCHCFG-1101
+              } // AUTOPAY-MERCHCFG-1101
+            } // AUTOPAY-MERCHCFG-1101
+          } // AUTOPAY-MERCHCFG-1101
+        } catch { /* fail open; diagnostics cannot change payment outcomes */ } // AUTOPAY-MERCHCFG-1101
         await logDataErr(id, payloadRecord, logWrapped, paymentMethod); // [OURSIDE-RETRY-1012] masked, failed data-error rows only
         if (!isPlaidCheckout && /^(card|applepay|googlepay|klarna)/i.test(String(paymentMethod || ""))) await logCardFacts(id, payloadRecord, logWrapped, paymentMethod); // [CARDLOG-1007 v3] never throws
         // REFUNDED-STATE-1017: keep each RPC's own existing fail-open cap.

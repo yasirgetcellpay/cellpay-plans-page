@@ -2,6 +2,12 @@
 // the right next step. It NEVER retries or re-submits by itself: every retry is a new tap by the customer on a decline
 // that had NO transaction id (= nothing was charged). Card retries are capped per order in this tab (anti card-testing).
 export type DeclineClass = "details" | "funds" | "risk" | "blocked" | "system" | "invalid" | "plan"; // DECLINE-RECOVERY-1014: + invalid, plan // DECLINE-REJECTED-1018
+export function isAutopayMerchCfg(msg: unknown): boolean { return /merchant configuration/i.test(String(msg || "")); } // AUTOPAY-MERCHCFG-1101
+export const MERCHCFG_COPY = { // AUTOPAY-MERCHCFG-1101
+  en: { text: "Auto Pay couldn't be set up right now. That's on our side, and your card was not charged. You can pay this refill one time instead.", button: "Pay one time" }, // AUTOPAY-MERCHCFG-1101
+  es: { text: "No pudimos activar Auto Pay en este momento. El problema es nuestro y no se cobró tu tarjeta. Puedes pagar esta recarga una sola vez.", button: "Pagar una vez" }, // AUTOPAY-MERCHCFG-1101
+}; // AUTOPAY-MERCHCFG-1101
+export function merchCfgOfferFor(msg: unknown, autopayIntended: boolean): boolean { return !!autopayIntended && isAutopayMerchCfg(msg); } // AUTOPAY-MERCHCFG-1101
 
 const DETAILS = /(cvv|cvc|cvv2|security code|avs|address|zip|postal|expir|exp(\.|iration)? date|invalid card|card number|incorrect|invalid account|invalid number)/i;
 const FUNDS = /(insufficient|nsf|not sufficient|limit|exceed|over.?limit|withdrawal|do not honou?r)/i; // DECLINE-REJECTED-1018
