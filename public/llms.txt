@@ -42,7 +42,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [Simple Mobile](https://www.cellpay.us/s1.html): Simple Mobile bill pay and plan refills.
 - [Pay H2O Wireless bill online](https://www.cellpay.us/h2o.html): Pay an H2O Wireless bill with just the number, no login.
 - [Pay Lyca Mobile bill online](https://www.cellpay.us/lyca.html): Pay a Lyca Mobile bill with just the number, no login.
-- [Net10](https://www.cellpay.us/net10.html): Net10 Wireless prepaid refills.
+- [Pay Net10 Wireless bill online](https://www.cellpay.us/net10.html): Pay a Net10 Wireless bill with just the number, no login.
 - [Pay Page Plus bill online](https://www.cellpay.us/pageplus.html): Pay a Page Plus bill with just the number, no login.
 - [Pay Ultra Mobile bill online](https://www.cellpay.us/ultra-mobile.html): Pay an Ultra Mobile bill with just the number, no login.
 
@@ -92,7 +92,7 @@ Supported carriers include AT&T, T-Mobile, Verizon, Cricket, Metro by T-Mobile, 
 - [Pagar factura Total Wireless](https://www.cellpay.us/es/total-wireless.html)
 - [Pagar factura H2O Wireless](https://www.cellpay.us/es/h2o.html): Pague su factura de H2O Wireless con solo el número, sin cuenta.
 - [Pagar factura Lyca Mobile](https://www.cellpay.us/es/lyca.html): Pague su factura de Lyca Mobile con solo el número, sin cuenta.
-- [Net10 (español)](https://www.cellpay.us/es/net10.html)
+- [Pagar factura Net10 Wireless](https://www.cellpay.us/es/net10.html): Pague su factura de Net10 Wireless con solo el número, sin cuenta.
 - [Pagar factura Page Plus](https://www.cellpay.us/es/pageplus.html): Pague su factura de Page Plus con solo el número, sin cuenta.
 - [Pagar factura Ultra Mobile](https://www.cellpay.us/es/ultra-mobile.html)
 - [Pagar Simple Mobile (español)](https://www.cellpay.us/es/s1.html)

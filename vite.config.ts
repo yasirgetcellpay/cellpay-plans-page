@@ -819,7 +819,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "guest-simple-mobile.html":  { title: "Simple Mobile Guest Refill — Online Top-Up | CellPay", description: "Make a Simple Mobile guest payment online. No login needed — pick a 30-day plan, pay securely, and your refill is sent to your line after payment." },
       "guest-net10.html":          { title: "NET10 Wireless Guest Refill — Online Top-Up | CellPay",description: "Pay your NET10 Wireless bill as a guest. No login needed — pick a 30-day plan, check out securely, and your refill is sent to your line after payment." },
       "guest-lyca.html":           { title: "Lycamobile Guest Refill — Online Top-Up | CellPay",    description: "Make a Lycamobile guest payment online. No login needed — pick a 30-day plan, pay securely, and your refill is sent to your line after payment." },
-      "net10.html":                { title: "Net10 Wireless Refill — Online Top-Up | CellPay",      description: "Recharge Net10 Wireless online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
+      "net10.html": { title: "Pay Your Net10 Wireless Bill Online – No Login | CellPay", description: "Pay your Net10 Wireless bill online with just the phone number. No account or login. Pay for yourself or someone else. Service fee shown before you pay." }, // BILLPAY-NET10-1101
       "pageplus.html": { title: "Pay Your Page Plus Bill Online – No Login | CellPay", description: "Pay your Page Plus bill online with just the phone number. No account or login. Pay for yourself or someone else. Service fee shown before you pay." }, // BILLPAY-PAGEPLUS-1030
       "s1.html":                   SIMPLE_META.en, // SIMPLE-SPEC-1-1009: same title/description as DynamicCarrier sets at runtime
       "tmobile-flexi.html":        { title: "Pay T-Mobile Prepaid Online: Guest Pay, No Login | CellPay",    description: "Pay or refill your T-Mobile Prepaid online as a guest with just the phone number. No login, no account. Low service fee shown before you pay." }, // BILLPAY-TMOBILE-1024 // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
@@ -1733,6 +1733,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/tracfone/index.html": "es/tracfone.html", // BILLPAY-TRACFONE-1030
       "es/h2o/index.html": "es/h2o.html", // BILLPAY-H2O-1031
       "es/lyca/index.html": "es/lyca.html", // BILLPAY-LYCA-1101
+      "es/net10/index.html": "es/net10.html", // BILLPAY-NET10-1101
       "es/straight-talk/index.html": "es/straight-talk.html", // BILLPAY-ST-SHELL-H1-1025
       "lp/metro/index.html": "metropcs.html", "lp/boost/index.html": "boost.html",
       // AEO-PAGES-1007: /terms and /about short URLs (App.tsx sends them to the full page)
@@ -1776,7 +1777,7 @@ const htmlAliasPlugin = (): Plugin => ({
 
     // CRICKET-LCP-1020: defer only these four shells' app assets until after first paint.
     const cricketAfterPaint = (route: string, shell: string): string => {
-      if (!["go/cricket.html", "go/cricket/index.html", "es/go/cricket.html", "es/go/cricket/index.html", "go/boost.html", "go/boost/index.html", "es/go/boost.html", "es/go/boost/index.html", "es/go/tmobile.html", "es/go/tmobile/index.html", "es/go/metro.html", "es/go/metro/index.html", "es/go/pageplus.html", "es/go/pageplus/index.html", "go/tmobile.html", "go/tmobile/index.html", "go/att.html", "go/att/index.html", "go/metro.html", "go/metro/index.html", "go/verizon.html", "go/verizon/index.html", "es/go/simple-mobile.html", "es/go/simple-mobile/index.html", "es/go/verizon.html", "es/go/verizon/index.html", "es/go/net10.html", "es/go/net10/index.html", "go/simple-mobile.html", "go/simple-mobile/index.html", "es/go/att.html", "es/go/att/index.html"].includes(route)) return shell; // BOOST-LCP-1021: + 4 Boost shells // ES-GO-LCP-1021: + 6 ES T-Mobile/Metro/Page Plus shells // GO-EN-LCP-1022: + 4 EN T-Mobile/AT&T shells // GO-EN-LCP-1022b: + 2 EN Metro shells // GO-VZ-LCP-1023 // SIMPLE-PUSH-1023 // ES-GO-LCP-1024: + 6 ES Simple Mobile/Verizon/Net10 shells // GO-SM-LCP-1101: + 2 EN Simple Mobile + 2 ES AT&T shells
+      if (!["go/cricket.html", "go/cricket/index.html", "es/go/cricket.html", "es/go/cricket/index.html", "go/boost.html", "go/boost/index.html", "es/go/boost.html", "es/go/boost/index.html", "es/go/tmobile.html", "es/go/tmobile/index.html", "es/go/metro.html", "es/go/metro/index.html", "es/go/pageplus.html", "es/go/pageplus/index.html", "go/tmobile.html", "go/tmobile/index.html", "go/att.html", "go/att/index.html", "go/metro.html", "go/metro/index.html", "go/verizon.html", "go/verizon/index.html", "es/go/simple-mobile.html", "es/go/simple-mobile/index.html", "es/go/verizon.html", "es/go/verizon/index.html", "es/go/net10.html", "es/go/net10/index.html"].includes(route)) return shell; // BOOST-LCP-1021: + 4 Boost shells // ES-GO-LCP-1021: + 6 ES T-Mobile/Metro/Page Plus shells // GO-EN-LCP-1022: + 4 EN T-Mobile/AT&T shells // GO-EN-LCP-1022b: + 2 EN Metro shells // GO-VZ-LCP-1023 // SIMPLE-PUSH-1023 // ES-GO-LCP-1024: + 6 ES Simple Mobile/Verizon/Net10 shells
       try {
         const head = shell.match(/<head\b[^>]*>[\s\S]*?<\/head>/i);
         if (!head || !/<\/body>/i.test(shell)) return shell;
