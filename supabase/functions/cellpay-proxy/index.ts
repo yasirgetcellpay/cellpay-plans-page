@@ -3461,7 +3461,7 @@ serve(async (req) => {
               const prior = await fetch(`${merchUrl}/rest/v1/ops_alarms?kind=eq.AUTOPAY_MERCHCFG&created_at=gte.${since}&select=id&limit=1`, { headers, signal: AbortSignal.timeout(1500) }); // AUTOPAY-MERCHCFG-1101
               const priorRows: unknown = prior.ok ? await prior.json() : null; // AUTOPAY-MERCHCFG-1101
               if (Array.isArray(priorRows) && priorRows.length === 0) { // AUTOPAY-MERCHCFG-1101
-                const safeMsg = merchMsg.replace(/\b(?:card\w*|cc\w*|cvv\w*|cvc\w*|expir\w*|token|password|authorization|apikey)\s*[:=]\s*\S+/gi, "[redacted]").replace(/\b\d{5,}\b/g, "[redacted]").slice(0, 120); // AUTOPAY-MERCHCFG-1101
+                const safeMsg = merchMsg.replace(/\b(?:card\w*|cc\w*|cvv\w*|cvc\w*|expir\w*|token|password|authorization|apikey)\s*[:=]\s*\S+/gi, "[redacted]").replace(/\b(?:\d[\s().+-]*){5,}\b/g, "[redacted]").slice(0, 120); // AUTOPAY-MERCHCFG-1101
                 await fetch(`${merchUrl}/rest/v1/ops_alarms`, { method: "POST", headers, signal: AbortSignal.timeout(1500), body: JSON.stringify({ source: "cellpay-proxy", kind: "AUTOPAY_MERCHCFG", ref: String(id), severity: "alarm", detail: { phone_last4: String(payloadRecord.phone_number || payloadRecord.phoneNumber || "").replace(/\D/g, "").slice(-4), carrier: text(payloadRecord.carrier_name ?? payloadRecord.carrierName ?? payloadRecord.carrierId ?? payloadRecord.carrier_id), method: paymentMethod, msg: safeMsg } }) }); // AUTOPAY-MERCHCFG-1101
               } // AUTOPAY-MERCHCFG-1101
             } // AUTOPAY-MERCHCFG-1101
