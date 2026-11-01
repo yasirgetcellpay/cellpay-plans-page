@@ -278,6 +278,21 @@ const lycaFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-LYC
   { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-LYCA-1101
   { q: "Can I set up Auto Pay?", a: "Yes. Auto Pay is optional. You can turn it on at checkout. It is never pre-checked." }, // BILLPAY-LYCA-1101
 ]; // BILLPAY-LYCA-1101
+const net10Faqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-NET10-1101
+  { q: "¿Cómo pago mi factura de Net10 Wireless en línea?", a: "Ingrese el número de teléfono de Net10 Wireless, elija el plan y pague. No necesita una cuenta." }, // BILLPAY-NET10-1101
+  { q: "¿Puedo pagar Net10 Wireless como invitado, sin iniciar sesión?", a: "Sí. No necesita iniciar sesión ni crear una cuenta. Solo necesita el número de teléfono." }, // BILLPAY-NET10-1101
+  { q: "¿Puedo pagar la línea de Net10 Wireless de otra persona?", a: "Sí. Ingrese su número de Net10 Wireless y revíselo bien antes de pagar." }, // BILLPAY-NET10-1101
+  { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es").replace("Apple Pay en dispositivos Apple compatibles", "Apple Pay en dispositivos compatibles")}` }, // BILLPAY-NET10-1101
+  { q: "¿Cuándo se aplica mi pago?", a: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Cuando el pago se completa, verá una confirmación con los datos de su transacción." }, // BILLPAY-NET10-1101
+  { q: "¿Puedo activar el Auto Pago?", a: "Sí. El Auto Pago es opcional. Lo puede activar al pagar. Nunca está marcado de antemano." }, // BILLPAY-NET10-1101
+] : [ // BILLPAY-NET10-1101
+  { q: "How do I pay my Net10 Wireless bill online?", a: "Enter the Net10 Wireless phone number, pick the plan, and pay. No account needed." }, // BILLPAY-NET10-1101
+  { q: "Can I pay Net10 Wireless as a guest without logging in?", a: "Yes. You don't need a login or an account. The phone number is enough." }, // BILLPAY-NET10-1101
+  { q: "Can I pay someone else's Net10 Wireless line?", a: "Yes. Enter their Net10 Wireless number and double-check it before you pay." }, // BILLPAY-NET10-1101
+  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-NET10-1101
+  { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-NET10-1101
+  { q: "Can I set up Auto Pay?", a: "Yes. Auto Pay is optional. You can turn it on at checkout. It is never pre-checked." }, // BILLPAY-NET10-1101
+]; // BILLPAY-NET10-1101
 
 export const BILL_PAGES: BillPage[] = [
   { // BILLPAY-METRO-1021
@@ -645,6 +660,36 @@ export const BILL_PAGES: BillPage[] = [
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-LYCA-1101
     faqOnly: true, // BILLPAY-LYCA-1101
   }, // BILLPAY-LYCA-1101
+  { // BILLPAY-NET10-1101
+    path: "/es/net10.html", lang: "es", name: "Net10 Wireless", // BILLPAY-NET10-1101
+    title: "Pagar Factura Net10 Wireless en Línea sin Cuenta | CellPay", // BILLPAY-NET10-1101
+    description: "Pague su factura de Net10 Wireless en línea. Sin cuenta y sin iniciar sesión. Puede pagar por otra persona. Verá el cargo por servicio antes de pagar.", // BILLPAY-NET10-1101
+    h1: "Pague su Factura de Net10 Wireless en Línea", // BILLPAY-NET10-1101
+    sub: "Sin cuenta y sin iniciar sesión. Solo necesita el número de teléfono. Pague por usted o por otra persona.", // BILLPAY-NET10-1101
+    autoPayInfoLead: "Opcional: Auto Pago para no olvidar su pago.", // BILLPAY-NET10-1101
+    enterAmount: "Ingrese el monto que desea recargar", // BILLPAY-NET10-1101
+    securePayment: "Pago seguro. Su recarga se envía directamente a su teléfono.", // BILLPAY-NET10-1101
+    faqTitle: "Preguntas frecuentes", // BILLPAY-NET10-1101
+    faqs: net10Faqs("es"), // BILLPAY-NET10-1101
+    guide: ["/es/como-pagar/net10", "Cómo pagar Net10 Wireless"], // BILLPAY-NET10-1101
+    more: [["/es/paga-tu-factura", "Pague su factura de celular"]], // BILLPAY-NET10-1101
+    faqOnly: true, // BILLPAY-NET10-1101
+  }, // BILLPAY-NET10-1101
+  { // BILLPAY-NET10-1101
+    path: "/net10.html", lang: "en", name: "Net10 Wireless", // BILLPAY-NET10-1101
+    title: "Pay Your Net10 Wireless Bill Online – No Login | CellPay", // BILLPAY-NET10-1101
+    description: "Pay your Net10 Wireless bill online with just the phone number. No account or login. Pay for yourself or someone else. Service fee shown before you pay.", // BILLPAY-NET10-1101
+    h1: "Pay Your Net10 Wireless Bill Online", // BILLPAY-NET10-1101
+    sub: "No login. Just the phone number. Pay for yourself or someone else.", // BILLPAY-NET10-1101
+    autoPayInfoLead: "Optional: Auto Pay so you never miss a refill.", // BILLPAY-NET10-1101
+    enterAmount: "Enter the amount you want to recharge", // BILLPAY-NET10-1101
+    securePayment: "Secure payment. Your refill is sent directly to your phone.", // BILLPAY-NET10-1101
+    faqTitle: "Common questions", // BILLPAY-NET10-1101
+    faqs: net10Faqs("en"), // BILLPAY-NET10-1101
+    guide: ["/how-to-pay/net10", "How to pay Net10 Wireless"], // BILLPAY-NET10-1101
+    more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-NET10-1101
+    faqOnly: true, // BILLPAY-NET10-1101
+  }, // BILLPAY-NET10-1101
 ];
 
 const BILL_PATH_ALIAS: Record<string, string> = { "/total-wireless": "/total-wireless.html", "/es/total-wireless": "/es/total-wireless.html", "/ultra-mobile": "/ultra-mobile.html", "/es/ultra-mobile": "/es/ultra-mobile.html", "/topup-at": "/topup-at.html", "/es/topup-at": "/es/topup-at.html" }; // TW-FAQ-HYDRATE-SHELL-1027 // BILLPAY-ULTRA-1028 // BILLPAY-ATT-1029
