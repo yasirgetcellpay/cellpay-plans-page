@@ -67,6 +67,7 @@ import { setUltraMdnActive } from "@/services/apiWrapper"; // ULTRA-MDN-1029
 import { readCheckoutCtx, writeCheckoutCtx, clearCheckoutCtx, resolveCheckoutFromUrl, carrierPageTarget, cashAppReturnTarget, stripResumeParams, readCheckoutMethod, writeCheckoutMethod } from "@/lib/checkoutResume";
 import { trackFunnel, resetFunnel, funnelFired } from "@/lib/funnelEvents"; // CHECKOUT-FUNNEL
 import { readDeclineAb, writeFunds, patchFunds, clearFunds, setKlarnaSrc, readKlarnaSrc, clearKlarnaSrc, type KlarnaSrc } from "@/lib/declineRecovery"; // KLARNA-FUNNEL-1017
+import { merchCfgOfferFor, MERCHCFG_COPY } from "@/lib/declineRecovery"; // AUTOPAY-MERCHCFG-1101
 import type { KlarnaFunnelEvent, FunnelData } from "@/lib/funnelEvents"; // KLARNA-FUNNEL-1017
 import { klarnaCategoryIds, pickKlarnaCategory, klarnaLocale } from "@/lib/klarnaCategory"; // KLARNA-CAT-1017
 import { firstMissingKlarnaField, type KlarnaField } from "@/lib/klarnaMissing"; // KLARNA-OPEN-1019
@@ -456,6 +457,10 @@ const Checkout = () => {
   const [saveCard, setSaveCard] = useState(false);
   const [autoPay, setAutoPay] = useState(false);
   const [autoPayTerms, setAutoPayTerms] = useState(false);
+  const [merchCfgOffer, setMerchCfgOffer] = useState(false); // AUTOPAY-MERCHCFG-1101
+  const apAtSubmitRef = useRef(false); // AUTOPAY-MERCHCFG-1101
+  const [merchCfgPayOnce, setMerchCfgPayOnce] = useState(false); // AUTOPAY-MERCHCFG-1101
+  useEffect(() => { setMerchCfgOffer(false); setMerchCfgPayOnce(false); }, [paymentMethod]); // AUTOPAY-MERCHCFG-1101
   const mktOptInRef = useRef(true); // MARKETING-OPTIN-1013
   const [smsOptIn, setSmsOptIn] = useState(false); // SMS-34332-1020
   const smsOptInRef = useRef(false); // SMS-34332-1020
@@ -1489,6 +1494,11 @@ const Checkout = () => {
   // carrier Pay bar), hides while a text field is focused (keypad up) and never shows for PayPal (SDK buttons) or on tablet/desktop.
   const inlinePayRef = useRef<HTMLButtonElement | null>(null);
   const placeOrderRef = useRef<(() => Promise<void>) | null>(null); // DECLINE-ONETAP-1017
+  useEffect(() => { // AUTOPAY-MERCHCFG-1101
+    if (!merchCfgPayOnce || autoPay || autoPayTerms || submitting) return; // AUTOPAY-MERCHCFG-1101
+    setMerchCfgPayOnce(false); // AUTOPAY-MERCHCFG-1101
+    if (paymentMethod === "card") void placeOrderRef.current?.(); // AUTOPAY-MERCHCFG-1101
+  }, [merchCfgPayOnce, autoPay, autoPayTerms, submitting, paymentMethod]); // AUTOPAY-MERCHCFG-1101
   const payBarRef = useRef<HTMLDivElement | null>(null);
   const [payBarShown, setPayBarShown] = useState(false);
   useEffect(() => {
@@ -1836,6 +1846,7 @@ const Checkout = () => {
     const failedRefill = hasRefundSignal(raw) || isCcRefund(raw) || /error during refill|auto[\s-]?refund/i.test(String(result.msg || result.message || "")); // SUCCESS-FLAG-FIX-1016 // LOADTEXT-PICK-1019: + TransResult ccRefund
     const isSuccess = !failedRefill && (status === true || status === "true" || String(status || "").toLowerCase() === "success" || String(status || "").toLowerCase() === "completed"); // SUCCESS-FLAG-FIX-1016
     if (isSuccess) {
+      setMerchCfgOffer(false); // AUTOPAY-MERCHCFG-1101
       try { clearFunds(phone10); clearKlarnaSrc(phone10); } catch { /* ignore */ } // FUNDS-DECLINE-1016 // KLARNA-FUNNEL-1017
       const hid = (result.hashid || result.transactionId || result.transaction_id || "") as string;
       // Purchase analytics fire once, from /order-confirmation, only when this flag matches its hashid (CV-1b: sessionStorage + cookie).
@@ -1869,6 +1880,9 @@ const Checkout = () => {
       const msg = failedRefill ? "There was some error during refill. This transaction has been auto refunded." : (result.msg as string) || (result.message as string) || "Transaction failed"; // SUCCESS-FLAG-FIX-1016
       const txn = String(result.hashid || result.transactionId || result.transaction_id || "").trim();
       const autoRefund = /auto[\s-]?refund/i.test(msg);
+      if (paymentMethod === "card" && !txn && !autoRefund && merchCfgOfferFor(msg, apAtSubmitRef.current)) { // AUTOPAY-MERCHCFG-1101
+        setErrorMsg(null); setShowNotChargedNote(false); setDeclineInfo(null); setMerchCfgOffer(true); return; // AUTOPAY-MERCHCFG-1101
+      } // AUTOPAY-MERCHCFG-1101
       setShowNotChargedNote(!autoRefund && !txn);
       // DECLINE-RECOVERY-1014: card, Apple Pay and Google Pay; card keeps its per-card counter, every method bumps the session counter.
       const dWallet = paymentMethod === "applepay" || paymentMethod === "googlepay";
@@ -2741,6 +2755,7 @@ const Checkout = () => {
 
   // ─── Main handler ───
   const handlePlaceOrder = async () => {
+    setMerchCfgOffer(false); // AUTOPAY-MERCHCFG-1101
     if (ultraBarcodeMissing) { ultraRePick(); return; } // ULTRA-BPATH-FIX-1029
     if (state?.carrierSlug === "ultra-mobile" && !ultraSmart.gate(Number(state.amount))) return; // ULTRA-SMART-PREVENT-1024
     const key = lockKey(state?.phone, validation?.amount ?? state?.amount); // DB-OUTAGE-TRACK-1017
@@ -2754,6 +2769,7 @@ const Checkout = () => {
     const validationErr = validateBeforeSubmit();
     if (validationErr) { setErrorMsg(validationErr); return; }
     if (!canSubmit) return;
+    apAtSubmitRef.current = autoPay && autoPayTerms; // AUTOPAY-MERCHCFG-1101
     setSubmitting(true);
     // CHECKOUT-FUNNEL: queued after the order flow below has started; never awaited, never throws.
     try { setTimeout(() => trackFunnel("submitted", funnelDataRef.current), 0); } catch { /* ignore */ }
@@ -3314,6 +3330,13 @@ const Checkout = () => {
             )}
 
             {gpayApDropped && <p role="status" className="text-sm text-muted-foreground leading-relaxed">{gpayApDropped}</p>}
+            {/* AUTOPAY-MERCHCFG-1101 */}
+            {merchCfgOffer && ( // AUTOPAY-MERCHCFG-1101
+              <div data-testid="merchcfg-offer" role="status" className="rounded-lg border border-border bg-muted p-4 space-y-3"> {/* AUTOPAY-MERCHCFG-1101 */}
+                <p className="text-sm text-foreground">{MERCHCFG_COPY[lang === "es" ? "es" : "en"].text}</p> {/* AUTOPAY-MERCHCFG-1101 */}
+                <Button type="button" data-testid="merchcfg-pay-once" disabled={submitting || merchCfgPayOnce} onClick={() => { setMerchCfgOffer(false); setAutoPay(false); setAutoPayTerms(false); apAtSubmitRef.current = false; setMerchCfgPayOnce(true); }}>{MERCHCFG_COPY[lang === "es" ? "es" : "en"].button}</Button> {/* AUTOPAY-MERCHCFG-1101 */}
+              </div> // AUTOPAY-MERCHCFG-1101
+            )} {/* AUTOPAY-MERCHCFG-1101 */}
             {paymentMethod !== "paypal" && consentLine /* CONSENT-TERMS-1014 */}
             {paymentMethod !== "paypal" && (
               <button
