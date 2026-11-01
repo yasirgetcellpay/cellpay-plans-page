@@ -5,4 +5,6 @@ describe("Auto Pay merchant configuration", () => { // AUTOPAY-MERCHCFG-1101
   it.each(["Insufficient funds", "Decline", "", null])("rejects %s", (msg) => { expect(isAutopayMerchCfg(msg)).toBe(false); }); // AUTOPAY-MERCHCFG-1101
   it("requires Auto Pay intent", () => { expect(merchCfgOfferFor("MERCHANT CONFIGURATION", false)).toBe(false); expect(merchCfgOfferFor("MERCHANT CONFIGURATION", true)).toBe(true); expect(merchCfgOfferFor("Decline", true)).toBe(false); }); // AUTOPAY-MERCHCFG-1101
   it("keeps funds classification", () => { expect(classifyDecline("Insufficient funds")).toBe("funds"); }); // AUTOPAY-MERCHCFG-1101
+  it("uses the supplied English offer", () => { expect(MERCHCFG_COPY.en).toEqual({ text: "Auto Pay couldn't be set up right now. That's on our side, and your card was not charged. You can pay this refill one time instead.", button: "Pay one time" }); }); // AUTOPAY-MERCHCFG-1101
+  it("uses the supplied Spanish offer", () => { expect(MERCHCFG_COPY.es).toEqual({ text: "No pudimos activar Auto Pay en este momento. El problema es nuestro y no se cobró tu tarjeta. Puedes pagar esta recarga una sola vez.", button: "Pagar una vez" }); }); // AUTOPAY-MERCHCFG-1101
 }); // AUTOPAY-MERCHCFG-1101
