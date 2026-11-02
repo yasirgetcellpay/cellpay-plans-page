@@ -10,7 +10,7 @@ import { useLang, t, langPath } from "@/lib/i18n";
 import { applySeoHead } from "@/lib/seo";
 import { PayAgainCard } from "@/components/PayAgainCard";
 import { ReminderOptIn } from "@/components/ReminderOptIn";
-import { AutoPayReceiptCard } from "@/components/AutoPayReceiptCard";
+import { AutoPayReceiptCard, AP_LAST_KEY, shouldHidePostPurchaseAutoPay } from "@/components/AutoPayReceiptCard";
 import { NotWorkingYet } from "@/components/NotWorkingYet";
 import { supabase } from "@/integrations/supabase/client"; // AUTOPAY-POSTPURCHASE-1013
 import { carrierPagePath, carrierPageTarget } from "@/lib/checkoutResume"; // AUTOPAY-POSTPURCHASE-1013 // ULTRA-FAIL-MSG-1022
@@ -71,6 +71,10 @@ const OrderConfirmation = () => {
   const carrierName = searchParams.get("carrier") || "";
 
   const [transaction, setTransaction] = useState<TransactionData | null>(null);
+  const [enrolledServer, setEnrolledServer] = useState(false); // AUTOPAY-RECEIPT-ENROLL-1102
+  let autoPaySession: string | null = null;
+  try { autoPaySession = sessionStorage.getItem(AP_LAST_KEY); } catch { /* ignore */ }
+  const hidePostPurchaseAutoPay = shouldHidePostPurchaseAutoPay(enrolledServer, hashid, autoPaySession);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const enhancedPushedRef = useRef(false);
@@ -159,6 +163,7 @@ const OrderConfirmation = () => {
   }, [transaction, refunded, hashid]); // REFUND-RETRY-LATE-1018
 
   const fetchTransaction = async () => {
+    setEnrolledServer(false); // AUTOPAY-RECEIPT-ENROLL-1102: do not carry enrollment between receipts.
     try {
       try { thisDeviceRef.current = sessionStorage.getItem("cp_purchase_pending") === hashid || localStorage.getItem(`cp_purchase_early:${hashid}`) !== null; } catch { /* ignore */ } // REFUND-RETRY-LATE-1018
       const refundP = fetchRefundState(hashid); // REFUNDED-STATE-1017: in parallel, 1500 ms cap, error = not refunded
@@ -172,6 +177,7 @@ const OrderConfirmation = () => {
         result = result.data as Record<string, unknown>;
       }
       const txn = (result.transaction || result) as TransactionData;
+      setEnrolledServer(wrapper.autopay_enrolled === true || result.autopay_enrolled === true || txn.autopay_enrolled === true); // AUTOPAY-RECEIPT-ENROLL-1102
       // CV-1: fail OPEN on unknown values, closed only on a clear failure. The pending flag below (set only after a
       // success checkout reply, matched to this hashid) is the main guard. Not confirmed = the proxy error/not-found
       // shape (success:false), an upstream body that is not JSON (parseError), or a status/success field that is a clear
@@ -425,7 +431,7 @@ const OrderConfirmation = () => {
             <NotWorkingYet lang={lang} orderId={String(transaction.id || transaction.hashid || "")} brandColor={brandColor} />
 
             {/* GROWTH-1007-B: Auto Pay prompt (display + link only; never enrolls, never charges) */}
-            <AutoPayReceiptCard lang={lang} hashid={hashid} brandColor={brandColor} />
+            <AutoPayReceiptCard lang={lang} hashid={hashid} brandColor={brandColor} enrolledServer={enrolledServer} />
 
             {/* RT-3: pay again next time (number saved on this device only; display + localStorage, no tracking change) */}
             <PayAgainCard
@@ -441,7 +447,7 @@ const OrderConfirmation = () => {
             <ReminderOptIn lang={lang} hashid={hashid} email={transaction.user?.email} brandColor={brandColor} />
 
             {/* AUTOPAY-POSTPURCHASE-1013: Auto Pay for next month (below the receipt; link only, never enrolls or charges) */}
-            <PostPurchaseAutoPay lang={lang} hashid={hashid} brandColor={brandColor} />
+            {!hidePostPurchaseAutoPay && <PostPurchaseAutoPay lang={lang} hashid={hashid} brandColor={brandColor} />}
           </div>
         ) : null}
       </main>
