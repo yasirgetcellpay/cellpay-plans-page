@@ -31,6 +31,7 @@ export const goKeywordsFor = (slug: string, lang: "en" | "es"): string | undefin
 };
 
 export const goAutoPayLine = (slug: string, lang: "en" | "es"): string => {
+  if (slug === "topup-at" && lang === "en") return "Optional: Auto Pay so you never miss a bill payment. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link."; // GO-ATT-FAQLD-COPY-1102
   const pay = goUsesPayWording(slug) || (lang === "es" && slug === "tmobile"); // ES-PAGAR-TMO-1025
   return lang === "es"
     ? "Opcional: Auto Pago para no olvidar su " + (pay ? "pago" : "recarga") + ". Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marque o llegue desde un enlace de Pago Automático."
@@ -64,11 +65,11 @@ export const goFaqsEn = (c: string, pay = false) => [
   },
   {
     q: `Can I pay for someone else's ${c} line?`,
-    a: pay ? `Yes. Enter their ${c} phone number, choose the amount or plan, and pay. The payment goes to that line.` : `Yes. Enter their ${c} phone number, choose the amount or plan, and pay. The refill goes to that line.`,
+    a: c === "AT&T Prepaid" ? "Yes. Enter their AT&T Prepaid phone number, choose the amount or plan, and pay. The payment posts to that line." : pay ? `Yes. Enter their ${c} phone number, choose the amount or plan, and pay. The payment goes to that line.` : `Yes. Enter their ${c} phone number, choose the amount or plan, and pay. The refill goes to that line.`, // GO-ATT-FAQLD-COPY-1102
   },
   {
     q: `Do I just need the ${c} phone number?`,
-    a: pay ? `Yes. Enter the 10-digit phone number of the ${c} line you want to pay. Then pick the amount or plan and pay.` : `Yes. Enter the 10-digit phone number of the ${c} line you want to refill. Then pick the amount or plan and pay.`,
+    a: c === "AT&T Prepaid" ? "Yes. Enter the 10-digit phone number of the AT&T Prepaid line you want to pay. Then pick the amount or plan and pay." : pay ? `Yes. Enter the 10-digit phone number of the ${c} line you want to pay. Then pick the amount or plan and pay.` : `Yes. Enter the 10-digit phone number of the ${c} line you want to refill. Then pick the amount or plan and pay.`, // GO-ATT-FAQLD-COPY-1102
   },
   {
     q: `Do I need to call ${c} to pay?`,
@@ -79,8 +80,8 @@ export const goFaqsEn = (c: string, pay = false) => [
     a: payWith("en", `Card (${CARD_BRANDS})`) + ". Apple Pay shows on supported Apple devices. The service fee is shown before you pay.",
   },
   {
-    q: pay ? `How long does a ${c} payment take?` : `How long does a ${c} refill take?`,
-    a: pay ? "Most payments post in a few minutes. Some can take up to 30 minutes." : "Most refills finish in a few minutes. Some can take up to 30 minutes.",
+    q: pay || c === "AT&T Prepaid" ? `How long does a ${c} payment take?` : `How long does a ${c} refill take?`, // GO-ATT-FAQLD-COPY-1102
+    a: pay || c === "AT&T Prepaid" ? "Most payments post in a few minutes. Some can take up to 30 minutes." : "Most refills finish in a few minutes. Some can take up to 30 minutes.", // GO-ATT-FAQLD-COPY-1102
   },
   {
     q: "What if the payment fails?",
@@ -134,6 +135,7 @@ export const goFaqList = (slug: string, lang: GoPageLang, fallbackName = ""): Ar
   const r = refundFaq(slug, lang);
   return [...(lang === "es" ? goFaqsEs(c, goUsesPayWording(slug)) : goFaqsEn(c, goUsesPayWording(slug))), ...(r ? [r] : [])];
 };
+export const goFaqJsonLd = (slug: string, lang: GoPageLang): string => JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", inLanguage: lang, mainEntity: goFaqList(slug, lang).map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }); // GO-ATT-FAQLD-COPY-1102
 
 /** One sentence under the subline (same wording as the active-line note on the carrier pages, plus what happens next). */
 export const goCarrierSentence = (slug: string, lang: GoPageLang, fallbackName = ""): string => {
@@ -181,6 +183,7 @@ export const goStaticFaqHtml = (route: string, color: string): string => {
     `<section class="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8" data-go-static-faq="1">` +
     `<h2 class="text-xl sm:text-2xl font-extrabold text-foreground mb-4 text-left">${i.lang === "es" ? "Preguntas frecuentes" : "Common questions"}</h2>` +
     goFaqList(i.slug, i.lang).map((f) => `<div class="border-b py-4"><h3 class="font-bold text-foreground" style="color:${color}">${esc(f.q)}</h3><p class="text-muted-foreground mt-1">${esc(f.a)}</p></div>`).join("") +
+    (i.slug === "topup-at" ? `<script type="application/ld+json" data-go-faq-static="1">${goFaqJsonLd(i.slug, i.lang).replace(/</g, "\\u003c")}</script>` : "") + // GO-ATT-FAQLD-COPY-1102
     `</section>`
   );
 };
