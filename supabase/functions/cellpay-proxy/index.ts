@@ -3547,6 +3547,12 @@ serve(async (req) => {
           } catch (error) {
             console.error("[tx-log] pockyt finalize failed:", error instanceof Error ? error.message : error);
           }
+          try { // POCKYT-LOADTEXT-1102
+            const lt = extractLoadText(result) ?? extractLoadText(data); // POCKYT-LOADTEXT-1102
+            if (lt) await rpcSoon("set_tx_load_text", { _id: logId, _text: lt }); // POCKYT-LOADTEXT-1102
+            const cat = lt ? categorizeLoadText(lt) : null; // POCKYT-LOADTEXT-1102
+            await rpcSoon("tx_log_meta_merge", { _id: logId, _patch: { ...(buildRawReplyPatch(result) ?? {}), pockyt_step: "status", pockyt_upstream_status: internal || null, pockyt_msg: text(result.message ?? result.msg), ...(cat ? { load_text_category: cat.category, load_text_unknown: cat.unknown, ...(cat.unknown ? { load_text_unknown_parts: cat.unknownParts } : {}) } : {}), load_text_cc_refund: isCcRefundBody(result) || isCcRefundBody(data) } }); // POCKYT-LOADTEXT-1102
+          } catch (e) { console.error("[tx-log] pockyt loadtext failed:", e instanceof Error ? e.message : e); } // POCKYT-LOADTEXT-1102
           // [CASHAPP-STUCK-1007] failed/abandoned are not final: a paid answer flips THIS row to success only when its saved session id
           // and our log id both match (and the txn is not on another row). No-op when the row was pending (settled just above).
           if (finalStatus === "success") {

@@ -10,6 +10,7 @@
 // Never logs session ids, log ids, transaction ids or customer data.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { startPostpaySms } from "../_shared/postpaySms.ts"; // POSTPAY-SMS-34332-1030
+import { categorizeLoadText, isCcRefundBody } from "../_shared/loadTextCategory.ts"; // POCKYT-LOADTEXT-1102
 
 const API_BASE = "https://api.cellpay.us/api";
 const SUCCESS = ["success", "completed", "paid", "captured", "approved"];   // identical to cellpay-proxy + CashAppReturn
@@ -112,6 +113,20 @@ export async function runSweep(mode: "shadow" | "enforce", limit: number, rpcImp
           _txn: r.txn, _msg: r.msg, _raw: r.raw, _verdict: r.verdict,
         });
         if (mode === "enforce" && settled === "paid:applied") startPostpaySms(row.log_id); // POSTPAY-SMS-34332-1030
+        if (mode === "enforce" && r.raw !== null) { // POCKYT-LOADTEXT-1102
+          try { // POCKYT-LOADTEXT-1102
+            let lt: string | null = null; // POCKYT-LOADTEXT-1102
+            for (const obj of [r.raw, asRecord(r.raw.data)]) { // POCKYT-LOADTEXT-1102
+              for (const [key, value] of Object.entries(obj)) { // POCKYT-LOADTEXT-1102
+                if (/^(loadtext|load_text|loadmessage)$/i.test(key) && typeof value === "string" && value.trim()) { lt = value.trim().slice(0, 500); break; } // POCKYT-LOADTEXT-1102
+              } // POCKYT-LOADTEXT-1102
+              if (lt) break; // POCKYT-LOADTEXT-1102
+            } // POCKYT-LOADTEXT-1102
+            if (lt) await rpcImpl("set_tx_load_text", { _id: row.log_id, _text: lt }); // POCKYT-LOADTEXT-1102
+            const cat = lt ? categorizeLoadText(lt) : null; // POCKYT-LOADTEXT-1102
+            await rpcImpl("tx_log_meta_merge", { _id: row.log_id, _patch: { pockyt_step: "sweep", pockyt_upstream_status: r.upstream, pockyt_msg: r.msg, load_text_cc_refund: isCcRefundBody(r.raw), ...(cat ? { load_text_category: cat.category, load_text_unknown: cat.unknown, ...(cat.unknown ? { load_text_unknown_parts: cat.unknownParts } : {}) } : {}) } }); // POCKYT-LOADTEXT-1102
+          } catch (e) { console.error("[tx-log] pockyt sweep loadtext failed:", e instanceof Error ? e.name : "unknown"); } // POCKYT-LOADTEXT-1102
+        } // POCKYT-LOADTEXT-1102
         counts[r.verdict === "paid" ? "paid" : r.verdict === "failed" ? "failed" : r.verdict === "pending" ? "pending" : r.verdict === "auth" ? "auth" : "error"]++;
       } catch (_e) {
         counts.error++;   // unrecorded rows keep their 5-min lease and are retried next run
