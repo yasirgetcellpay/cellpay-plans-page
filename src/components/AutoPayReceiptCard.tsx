@@ -11,24 +11,30 @@ import { payAgainPath } from "@/lib/payAgain";
 
 export const AP_LAST_KEY = "cp_autopay_last_v1"; // set by Checkout on a successful card order with Auto Pay authorized
 
-interface Props { lang: Language; hashid: string; brandColor: string; paidByCard?: boolean }
+interface Props { lang: Language; hashid: string; brandColor: string; paidByCard?: boolean; enrolledServer?: boolean }
 
-export const AutoPayReceiptCard = ({ lang, hashid, brandColor, paidByCard }: Props) => {
+// AUTOPAY-RECEIPT-ENROLL-1102: share the receipt confirmation and redundant-offer decision.
+export const isAutoPayEnrolled = (enrolledServer: boolean | undefined, hashid: string, sessionValue: string | null): boolean =>
+  enrolledServer === true || (!!hashid && sessionValue === hashid);
+export const shouldHidePostPurchaseAutoPay = isAutoPayEnrolled;
+
+export const AutoPayReceiptCard = ({ lang, hashid, brandColor, paidByCard, enrolledServer }: Props) => {
   const es = lang === "es";
-  let enrolled = false;
-  try { enrolled = !!hashid && sessionStorage.getItem(AP_LAST_KEY) === hashid; } catch { /* ignore */ }
+  let sessionValue: string | null = null;
+  try { sessionValue = sessionStorage.getItem(AP_LAST_KEY); } catch { /* ignore */ }
+  const enrolled = isAutoPayEnrolled(enrolledServer, hashid, sessionValue);
 
   if (enrolled) {
     return (
       <div className="bg-card rounded-xl border-2 p-5" style={{ borderColor: brandColor }} data-testid="ap-receipt-on">
         <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
           <Repeat className="h-5 w-5" style={{ color: brandColor }} aria-hidden="true" />
-          {es ? "Pago automático activado" : "Auto Pay is on"}
+          {es ? "Ya está inscrito en el pago automático" : "You're signed up for Auto Pay"}
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
           {es
-            ? "Recargaremos este número con la misma tarjeta en su fecha de pago, para que no se quede sin servicio. Cancele cuando quiera."
-            : "We'll refill this number with the same card on your payment date, so you don't lose service. Cancel anytime."}
+            ? "Todo listo. Pagaremos este número con la misma tarjeta en su fecha de pago. Cancele cuando quiera."
+            : "You're all set. We'll pay for this number with the same card on your payment date. Cancel anytime."}
         </p>
         <p className="text-xs text-muted-foreground mt-2">
           {es ? "Para cancelar: " : "To cancel: "}

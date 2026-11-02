@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2"; // LYCA-SKU-FIX-1024
+import { hasAutoPayEnrollment } from "../_shared/autopayEnrolled.ts"; // AUTOPAY-RECEIPT-ENROLL-1102
 import { startPostpaySms } from "../_shared/postpaySms.ts"; // POSTPAY-SMS-34332-1030
 import { scoreRisk, riskEngineMode } from "../_shared/riskLogic.ts"; // FRAUD-MULTIBLOCK-1012 5b
 import { vzGuardGate } from "../_shared/vzPrepaidGuard.ts"; // VZ-PREPAID-GUARD-1017
@@ -3404,6 +3405,22 @@ serve(async (req) => {
     let wrapped: Record<string, unknown> = response.ok
       ? { success: true, data }
       : { success: false, error: (data as Record<string, unknown>)?.message || (data as Record<string, unknown>)?.error || "Request failed", data };
+
+    if (secRoute === "receipt" && !rawReplyParseFailed) { // AUTOPAY-RECEIPT-ENROLL-1102
+      wrapped.autopay_enrolled = false;
+      try {
+        const dbUrl = Deno.env.get("SUPABASE_URL"), dbKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        const receiptHashid = normalizeEndpoint(endpoint)?.rawSegments[2];
+        if (dbUrl && dbKey && receiptHashid) {
+          const db = createClient(dbUrl, dbKey, { auth: { persistSession: false, autoRefreshToken: false } });
+          const rows = await raceNull((async () => await db.from("transaction_logs")
+            .select("status, metadata, raw_response").eq("hashid", receiptHashid)
+            .order("created_at", { ascending: false }).limit(5)
+            .abortSignal(AbortSignal.timeout(1500)))(), 1500);
+          wrapped.autopay_enrolled = !!rows && !rows.error && Array.isArray(rows.data) && rows.data.some(hasAutoPayEnrollment);
+        }
+      } catch { /* Receipt remains unchanged apart from the false boolean; no identifiers logged. */ }
+    }
 
     // SUCCESS-FLAG-FIX-1016: raw logger receives the original upstream body before any rewriting/scrubbing.
     if (shouldLogTransaction) { if (txLogId) logRawCellPayReply(txLogId, endpoint, response.status, paymentMethod, data, rawText, rawReplyParseFailed); else { let rawCopy: unknown = data; try { rawCopy = structuredClone(data); } catch { /* keep reference */ } const st = response.status; waitUntilSafe(logIdP().then((lateId) => logRawCellPayReply(lateId, endpoint, st, paymentMethod, rawCopy, rawText, rawReplyParseFailed)).catch(() => logRawCellPayReply(null, endpoint, st, paymentMethod, rawCopy, rawText, rawReplyParseFailed))); } } // DBT-FOLLOWUP-1017
