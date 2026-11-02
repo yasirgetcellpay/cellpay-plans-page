@@ -40,6 +40,15 @@ const CARRIERS = (es: boolean) => {
     { name: "Simple Mobile", href: `${p}/s1.html` },
     { name: "T-Mobile Prepaid", href: `${p}/tmobile-flexi.html` },
     { name: "AT&T Prepaid", href: `${p}/topup-at.html` },
+    { name: "Straight Talk", href: `${p}/straight-talk.html` }, // BILLPAY-HUB-LINKS-1102
+    { name: "Total Wireless", href: `${p}/total-wireless.html` }, // BILLPAY-HUB-LINKS-1102
+    { name: es ? "Verizon Prepago" : "Verizon Prepaid", href: `${p}/verizon` }, // BILLPAY-HUB-LINKS-1102
+    { name: "Ultra Mobile", href: `${p}/ultra-mobile.html` }, // BILLPAY-HUB-LINKS-1102
+    { name: "Page Plus", href: `${p}/pageplus.html` }, // BILLPAY-HUB-LINKS-1102
+    { name: "Tracfone", href: `${p}/tracfone.html` }, // BILLPAY-HUB-LINKS-1102
+    { name: "H2O Wireless", href: `${p}/h2o.html` }, // BILLPAY-HUB-LINKS-1102
+    { name: "Lyca Mobile", href: `${p}/lyca.html` }, // BILLPAY-HUB-LINKS-1102
+    { name: "Net10 Wireless", href: `${p}/net10.html` }, // BILLPAY-HUB-LINKS-1102
   ];
 };
 
