@@ -805,7 +805,7 @@
   <!-- ES-FIRST-1014: bill-pay hub pair -->
   <url>
     <loc>https://www.cellpay.us/es/paga-tu-factura</loc>
-    <lastmod>2026-10-14</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/pay-your-phone-bill" />
@@ -814,7 +814,7 @@
   </url>
   <url>
     <loc>https://www.cellpay.us/pay-your-phone-bill</loc>
-    <lastmod>2026-10-14</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/pay-your-phone-bill" />
