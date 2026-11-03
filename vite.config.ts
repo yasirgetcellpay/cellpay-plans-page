@@ -1687,6 +1687,12 @@ const htmlAliasPlugin = (): Plugin => ({
       // SIMPLE-SPEC-3-1009: one Simple Mobile page: the guest page stays live (index,follow) but points its canonical at /s1.html.
       "guest-simple-mobile.html": "/s1.html",
       "guest-boost.html": "/boost.html", // BILLPAY-BOOST-1022
+      "guest-metro-pcs.html": "/metropcs.html", // GUEST-CANONICAL-1103
+      "guest-metropcs.html": "/metropcs.html", // GUEST-CANONICAL-1103
+      "guest-h2o.html": "/h2o.html", // GUEST-CANONICAL-1103
+      "guest-lyca.html": "/lyca.html", // GUEST-CANONICAL-1103
+      "guest-net10.html": "/net10.html", // GUEST-CANONICAL-1103
+      "guest-pageplus.html": "/pageplus.html", // GUEST-CANONICAL-1103
     };
     const routeToPath = (route: string): string => {
       const p = "/" + route.replace(/(^|\/)index\.html$/, "");
