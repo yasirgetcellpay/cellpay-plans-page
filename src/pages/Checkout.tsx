@@ -19,7 +19,6 @@ import { ArrowLeft, CreditCard, Loader2, Building2, Wallet, Apple, Smartphone, C
 import { CardBrandsStrip, PayPalMark, ApplePayMark, GooglePayMark, KlarnaMark, CashAppMark, BankMark } from "@/components/PaymentBrands";
 import { classifyDecline, bumpCardDeclines, clearCardDeclines, MAX_CARD_RETRIES, DECLINE_COPY, type DeclineClass, bumpSessionDeclines, clearSessionDeclines, cleanEmail, isValidEmail, noSameRetry, markWalletDeclined, walletDeclined, getDeclineAb, declineHint, isNsfDecline, FUNDS_COPY, KLARNA_MIN_TOTAL, klarnaQuarter, declineBtnCode, declineActionFor } from "@/lib/declineRecovery"; // DECLINE-RECOVERY-1014C: + wallet block // DECLINE-RECOVERY-1014: + session counter, email cleanup // DECLINE-RECOVERY-1014B: + noSameRetry // DECLINE-MSGS-1016 // FUNDS-DECLINE-1016 // DECLINE-REJECTED-1018
 import { AP_LAST_KEY } from "@/components/AutoPayReceiptCard";
-import { readPayAgain } from "@/lib/payAgain"; // RETURNING-AP-NUDGE-1103
 import { PLAID_ENABLED, PAYPAL_ENABLED } from "@/config/paymentFlags";
 // [PAYPAL-REBUILD-1009] QA only: ?pp_qa=1 shows the PayPal tile in this tab while PAYPAL_ENABLED is false (?pp_qa=0 clears it).
 // cellpay-proxy still refuses PayPal unless fraud_controls.paypal_mode = 'qa' and the phone is on paypal_qa_phones.
@@ -373,7 +372,6 @@ const Checkout = () => {
     routerState || cashAppReturnTarget(location.pathname, location.search, location.hash) ? null : readCheckoutCtx(location.search)
   );
   const state = routerState ?? savedState;
-  const apReturning = useMemo(() => { try { const p = readPayAgain(); const d = String(state?.phone || "").replace(/\D/g, "").slice(-10); return !!p && d.length === 10 && p.phone === d; } catch { return false; } }, [state?.phone]); // RETURNING-AP-NUDGE-1103
   const resumed = !routerState || !!routerState.resumed;
   const lang = useLang();
   const tr = t(lang);
@@ -3224,7 +3222,6 @@ const Checkout = () => {
                   <span data-testid="autopay-offer" className="flex-1 text-sm leading-snug rounded-lg border-2 px-3 py-3 -mt-1 shadow-sm" style={{ borderColor: brandColor, backgroundColor: `color-mix(in srgb, ${brandColor} 7%, transparent)` }}>{/* AUTOPAY-PUSH-1012: more visible, still unticked by default */}
                     <span data-testid="autopay-offer-badge" className="inline-block mb-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white" style={{ backgroundColor: brandColor }}>{apCopy.offerBadge}</span>
                     <span className="block text-base font-extrabold text-foreground">{apCopy.offerTitle}</span>
-                    {apReturning && (<span data-testid="autopay-returning" className="block text-sm font-semibold text-foreground mt-0.5">{lang === "es" ? "Ya pagó este número aquí antes. Con el pago automático, no tiene que volver cada mes." : "You've paid for this number here before. With Auto Pay, you don't have to come back each month."}</span>)} {/* RETURNING-AP-NUDGE-1103 */}
                     <span className="block text-muted-foreground mt-0.5">{apCopy.offerBenefit}</span>
                     <span data-testid="autopay-offer-how" className="block text-muted-foreground mt-1">{apCopy.offerHow}</span>
                     {!autoPayMethodOk && (
