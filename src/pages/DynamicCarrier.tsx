@@ -488,6 +488,12 @@ const DynamicCarrier = ({
         // SIMPLE-SPEC-3-1009: /guest-simple-mobile.html canonical = /s1.html (same as its raw HTML).
         if (window.location.pathname.replace(/\/+$/, "") === "/guest-simple-mobile.html") applySeoHead({ path: "/s1.html" });
         if (window.location.pathname.replace(/\/+$/, "") === "/guest-boost.html") applySeoHead({ path: "/boost.html" }); // BILLPAY-BOOST-1022
+        if (window.location.pathname.replace(/\/+$/, "") === "/guest-metro-pcs.html") applySeoHead({ path: "/metropcs.html" }); // GUEST-CANONICAL-1103
+        if (window.location.pathname.replace(/\/+$/, "") === "/guest-metropcs.html") applySeoHead({ path: "/metropcs.html" }); // GUEST-CANONICAL-1103
+        if (window.location.pathname.replace(/\/+$/, "") === "/guest-h2o.html") applySeoHead({ path: "/h2o.html" }); // GUEST-CANONICAL-1103
+        if (window.location.pathname.replace(/\/+$/, "") === "/guest-lyca.html") applySeoHead({ path: "/lyca.html" }); // GUEST-CANONICAL-1103
+        if (window.location.pathname.replace(/\/+$/, "") === "/guest-net10.html") applySeoHead({ path: "/net10.html" }); // GUEST-CANONICAL-1103
+        if (window.location.pathname.replace(/\/+$/, "") === "/guest-pageplus.html") applySeoHead({ path: "/pageplus.html" }); // GUEST-CANONICAL-1103
         if (seoH1Override) setHeading(seoH1Override);
         if (seoIntroOverride) setSubheading(seoIntroOverride);
 

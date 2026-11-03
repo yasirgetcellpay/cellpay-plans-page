@@ -325,36 +325,6 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://refill.cellpay.us/att-firstnet" />
   </url>
   <url>
-    <loc>https://refill.cellpay.us/guest-metro-pcs.html</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://refill.cellpay.us/guest-h2o.html</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://refill.cellpay.us/guest-pageplus.html</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://refill.cellpay.us/guest-net10.html</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://refill.cellpay.us/guest-lyca.html</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://refill.cellpay.us/about-us</loc>
     <lastmod>2026-10-03</lastmod>
     <changefreq>monthly</changefreq>
