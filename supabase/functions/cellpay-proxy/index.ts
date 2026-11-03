@@ -3171,8 +3171,9 @@ serve(async (req) => {
           mfShadowLater(mf, "checkout/transaction", originHost(guardOrigin), true);
         }
       } catch { /* mfblock fails open */ }
-      // [FRAUD-MULTIBLOCK-1012 5b] Pre-payment risk score. Shadow: fire-and-forget (zero added latency). Enforce: wait max 700 ms,
-      // block = same calm 200; step_up / hold are logged (step_up is passed to the page as risk_action). Any error = allow.
+      // [FRAUD-MULTIBLOCK-1012 5b] Pre-payment risk score. Shadow: fire-and-forget (zero added latency). // RISK-AWAIT-BLOCK-1103
+      // Enforce: await the decision (cap 4500 ms); block, error or timeout = same calm 200, nothing charged. // RISK-AWAIT-BLOCK-1103
+      let riskEnforce = false; // RISK-AWAIT-BLOCK-1103
       try {
         const mode = await riskEngineMode(AbortSignal.timeout(300)); // 60 s per-isolate cache
         if (mode !== "off") {
@@ -3187,12 +3188,19 @@ serve(async (req) => {
             ip: riskIp.ip, ip_src: riskIp.src, ip_country_hdr: riskIp.country,
           };
           if (mode === "enforce") {
-            const rr = await Promise.race([
-              scoreRisk(rin, mode),
-              new Promise<{ action: "allow" }>((r) => setTimeout(() => r({ action: "allow" }), 700)),
-            ]);
+            riskEnforce = true; // RISK-AWAIT-BLOCK-1103
+            // RISK-AWAIT-BLOCK-1103: always await the real decision before any processor call. Hard cap 4500 ms (score budget 700 + log write 3000);
+            // the cap resolves a refusal, never allow. scoreRisk error/timeout in enforce = fail closed (refuse). // RISK-AWAIT-BLOCK-1103
+            const rr = await Promise.race([ // RISK-AWAIT-BLOCK-1103
+              scoreRisk(rin, mode), // RISK-AWAIT-BLOCK-1103
+              new Promise<{ action: "block"; error: true; timed_out: true }>((r) => setTimeout(() => r({ action: "block", error: true, timed_out: true }), 4500)), // RISK-AWAIT-BLOCK-1103
+            ]) as { action: string; error?: boolean; timed_out?: boolean }; // RISK-AWAIT-BLOCK-1103
+            if (rr.action !== "block" && rr.error === true) { // RISK-AWAIT-BLOCK-1103 fail closed on risk error/timeout
+              recordGuardEvent({ code: "risk_timeout", method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: true }); // RISK-AWAIT-BLOCK-1103
+              return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: "We couldn't process this card right now. Please try again in about 30 minutes or use a different payment method. You were not charged." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); // RISK-AWAIT-BLOCK-1103
+            } // RISK-AWAIT-BLOCK-1103
             if (rr.action === "block") {
-              recordGuardEvent({ code: "risk_block", method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: true });
+              recordGuardEvent({ code: rr.timed_out === true ? "risk_timeout" : "risk_block", method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: true }); // RISK-AWAIT-BLOCK-1103
               return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: "We couldn't process this card right now. Please try again in about 30 minutes or use a different payment method. You were not charged." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
             }
             if (rr.action === "step_up" || rr.action === "hold") {
@@ -3201,7 +3209,12 @@ serve(async (req) => {
             }
           } // shadow: the decision was already started before the guards ([RISK-COVER-IP-1019]), so nothing runs here
         }
-      } catch { /* risk engine fails open */ }
+      } catch { // RISK-AWAIT-BLOCK-1103: enforce fails closed; off/shadow still fail open
+        if (riskEnforce) { // RISK-AWAIT-BLOCK-1103
+          recordGuardEvent({ code: "risk_timeout", method: "POST", endpoint_shape: "checkout/transaction", origin_host: originHost(guardOrigin), has_origin: true }); // RISK-AWAIT-BLOCK-1103
+          return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: "We couldn't process this card right now. Please try again in about 30 minutes or use a different payment method. You were not charged." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }); // RISK-AWAIT-BLOCK-1103
+        } // RISK-AWAIT-BLOCK-1103
+      } // RISK-AWAIT-BLOCK-1103
     }
     // [VEL1-ENFORCE-1009] Card only. Calm 200 before the log and CellPay, nothing is charged. The page shows its "use another method"
     // panel (the message holds "velocity", which its decline classifier files under "blocked": wallets / Cash App / bank, no card retry).
