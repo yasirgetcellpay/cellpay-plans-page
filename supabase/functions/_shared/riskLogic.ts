@@ -15,7 +15,7 @@ export type RiskInput = {
   total?: number | null; // RISK-RULES-1020: charged total (amount + fees) when known
 };
 // RISK-RULES-1020: "hold" stays in the type only so existing callers still compile; scoreRisk never returns it.
-export type RiskResult = { score?: number; action: "allow" | "step_up" | "hold" | "block"; reasons?: string[]; mode?: string; error?: boolean };
+export type RiskResult = { score?: number; action: "allow" | "step_up" | "hold" | "block"; reasons?: string[]; mode?: string; error?: boolean; timed_out?: boolean }; // RISK-AWAIT-BLOCK-1103
 const RULES_VER = "d2-1020";
 const SHADOW_STEPUP_FLAGS = ["fqa_metro_newcard_ge55", "fqa_newcard_ge150"]; // Fraud & QA ADD 1+2: shadow step-up flags
 
