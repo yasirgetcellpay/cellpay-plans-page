@@ -9,9 +9,6 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import CcpaBar from "@/components/CcpaBar"; // CCPA-BANNER-1029
 import Home from "./pages/Home.tsx";
 import DynamicCarrier from "./pages/DynamicCarrier.tsx";
-import PaymentCallback from "./pages/PaymentCallback.tsx";
-import OrderConfirmation from "./pages/OrderConfirmation.tsx";
-import CashAppReturn from "./pages/CashAppReturn.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AmountRedirect from "./pages/AmountRedirect.tsx";
 import LegacyAmountRedirect from "./pages/LegacyAmountRedirect.tsx";
@@ -128,6 +125,9 @@ function lazyPage<T extends import("react").ComponentType<any>>(load: () => Prom
 }
 const loadCheckout = () => import("./pages/Checkout.tsx");
 const Checkout = lazyPage(loadCheckout);
+const PaymentCallback = lazyPage(() => import("./pages/PaymentCallback.tsx")); // GO-MAINJS-SHRINK-1102
+const OrderConfirmation = lazyPage(() => import("./pages/OrderConfirmation.tsx")); // GO-MAINJS-SHRINK-1102
+const CashAppReturn = lazyPage(() => import("./pages/CashAppReturn.tsx")); // GO-MAINJS-SHRINK-1102
 const Profile = lazyPage(() => import("./pages/Profile.tsx"));
 const Orders = lazyPage(() => import("./pages/Orders.tsx"));
 const ForgotPassword = lazyPage(() => import("./pages/ForgotPassword.tsx"));
