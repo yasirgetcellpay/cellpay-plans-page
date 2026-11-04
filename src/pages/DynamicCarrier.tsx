@@ -299,7 +299,7 @@ const DynamicCarrier = ({
   // LCP-ADS-1007: Metro PCS (EN) headline is known up front, so it matches the static first screen (vite.config.ts) and never changes after load.
   const isMetroEn = carrierSlug === "metropcs" && lang !== "es";
   const isTwEn = carrierSlug === "total-wireless" && lang !== "es"; // COPY-1024
-  const [heading, setHeading] = useState(seoH1Override || (isMetroEn ? "Metro PCS Pay Bill Online" : isTwEn ? "Pay Your Total Wireless Bill Online" : "")); // COPY-1024
+  const [heading, setHeading] = useState(seoH1Override || (carrierSlug === "pageplusadd" && lang !== "es" ? "Page Plus Add-On Balance — Pay Online" : isMetroEn ? "Metro PCS Pay Bill Online" : isTwEn ? "Pay Your Total Wireless Bill Online" : "")); // COPY-1024 // PAGEPLUS-ADDON-HEAD-1104
   const [subheading, setSubheading] = useState(
     seoIntroOverride || (isMetroEn ? "Pay your Metro by T-Mobile prepaid bill online. No login needed." : isTwEn ? "Pay as a guest with just the phone number. No login needed." : ""), // COPY-1024
   );
@@ -494,6 +494,10 @@ const DynamicCarrier = ({
         if (window.location.pathname.replace(/\/+$/, "") === "/guest-lyca.html") applySeoHead({ path: "/lyca.html" }); // GUEST-CANONICAL-1103
         if (window.location.pathname.replace(/\/+$/, "") === "/guest-net10.html") applySeoHead({ path: "/net10.html" }); // GUEST-CANONICAL-1103
         if (window.location.pathname.replace(/\/+$/, "") === "/guest-pageplus.html") applySeoHead({ path: "/pageplus.html" }); // GUEST-CANONICAL-1103
+        if (window.location.pathname.replace(/\/+$/, "") === "/pageplus-addon" && lang !== "es") { // PAGEPLUS-ADDON-HEAD-1104
+          applySeoHead({ title: "Page Plus Add-On Balance — Pay Online | CellPay", description: "Add an add-on balance to your Page Plus line online with CellPay. No login needed. Service fee shown before you pay.", path: "/pageplus-addon" }); // PAGEPLUS-ADDON-HEAD-1104
+          setHeading("Page Plus Add-On Balance — Pay Online"); // PAGEPLUS-ADDON-HEAD-1104
+        } // PAGEPLUS-ADDON-HEAD-1104
         if (seoH1Override) setHeading(seoH1Override);
         if (seoIntroOverride) setSubheading(seoIntroOverride);
 

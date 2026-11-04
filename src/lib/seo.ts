@@ -89,7 +89,18 @@ export function applySeoHead(data: SeoHeadData) {
   }
   if (data.keywords !== undefined) upsertMeta("keywords", data.keywords || "");
 
-  const rawPath = data.path ?? (typeof window !== "undefined" ? window.location.pathname : "/");
+  const guestOwnerPaths: Record<string, string> = { // PAGEPLUS-ADDON-HEAD-1104
+    "/guest-metropcs.html": "/metropcs.html", // PAGEPLUS-ADDON-HEAD-1104
+    "/guest-metro-pcs.html": "/metropcs.html", // PAGEPLUS-ADDON-HEAD-1104
+    "/guest-h2o.html": "/h2o.html", // PAGEPLUS-ADDON-HEAD-1104
+    "/guest-lyca.html": "/lyca.html", // PAGEPLUS-ADDON-HEAD-1104
+    "/guest-net10.html": "/net10.html", // PAGEPLUS-ADDON-HEAD-1104
+    "/guest-pageplus.html": "/pageplus.html", // PAGEPLUS-ADDON-HEAD-1104
+    "/guest-boost.html": "/boost.html", // PAGEPLUS-ADDON-HEAD-1104
+    "/guest-simple-mobile.html": "/s1.html", // PAGEPLUS-ADDON-HEAD-1104
+  }; // PAGEPLUS-ADDON-HEAD-1104
+  const currentPath = typeof window !== "undefined" ? window.location.pathname : "/"; // PAGEPLUS-ADDON-HEAD-1104
+  const rawPath = data.path ?? (guestOwnerPaths[currentPath.replace(/\/+$/, "")] ?? currentPath); // PAGEPLUS-ADDON-HEAD-1104
   // GSC-DUP-1007: same path form as the static canonical (no trailing slash except the home page).
   const path = rawPath.length > 1 ? rawPath.replace(/\/+$/, "") || "/" : rawPath;
   const url = `${siteOrigin()}${path}`;
