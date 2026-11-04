@@ -369,7 +369,7 @@ const lcpFloor1010 = (src: string, outDir: string): string => {
     const face = /@font-face\{font-family:Open Sans;[^}]*\}/;
     if (!face.test(css) || /<\/style/i.test(css)) return src;
     const late =
-      '<script>addEventListener("load",function(){setTimeout(function(){try{var f=new FontFace("Open Sans",\'url(/fonts/open-sans-latin-var-v44.woff2) format("woff2")\',{weight:"300 800",style:"normal",display:"swap"});f.load().then(function(x){document.fonts.add(x)})}catch(e){}},0)})</script>';
+      '<script>addEventListener("load",function(){setTimeout(function(){try{var f=new FontFace("Open Sans",\'url(/fonts/open-sans-go-subset-v1.woff2) format("woff2")\',{weight:"400 800",style:"normal",display:"optional"});f.load().then(function(x){document.fonts.add(x)})}catch(e){}},0)})</script>'; // OPEN-SANS-SUBSET-1103
     return src
       .replace(/<link rel="preload" as="font"[^>]*>/, "")
       .replace(link[0], () => `<style>${css.replace(face, "")}</style>${late}`);
