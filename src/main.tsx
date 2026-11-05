@@ -2,7 +2,9 @@ import { createRoot } from "react-dom/client";
 import App, { preloadHowToPay, isHowToPayPath } from "./App.tsx";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import "./index.css";
+import { enforceRefillHostNoindex } from "./lib/refillNoindex"; // REFILL-NOINDEX-P3-1105
 
+enforceRefillHostNoindex(); // REFILL-NOINDEX-P3-1105
 const rootEl = document.getElementById("root")!;
 const mount = () =>
   createRoot(rootEl).render(

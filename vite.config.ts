@@ -970,6 +970,25 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/go/totalwireless.html", "es/go/totalwireless/index.html",
       "es/go/tracfone.html", "es/go/tracfone/index.html",
     ]);
+    // REFILL-NOINDEX-P3-1105: shared-build shells stay index,follow in raw HTML for www; sync script flips to noindex,follow only on refill host.
+    const REFILL_NOINDEX_SHELLS = new Set<string>([ // REFILL-NOINDEX-P3-1105
+      "metropcs.html", "metro-pcs.html", "straight-talk.html", "topup-crc.html", "total-wireless.html", "total-wireless/index.html", // REFILL-NOINDEX-P3-1105
+      "tmobile-flexi.html", "topup-at.html", "s1.html", "boost.html", "h2o.html", "pageplus.html", // REFILL-NOINDEX-P3-1105
+      "metropcs/index.html", "boost/index.html", "s1/index.html", "h2o/index.html", "pageplus/index.html", "straight-talk/index.html", "topup-crc/index.html", "topup-at/index.html", "tmobile-flexi/index.html", // REFILL-NOINDEX-P3-1105
+      "es/metropcs.html", "es/metro-pcs.html", "es/straight-talk.html", "es/topup-crc.html", "es/total-wireless.html", "es/total-wireless/index.html", // REFILL-NOINDEX-P3-1105
+      "es/tmobile-flexi.html", "es/topup-at.html", "es/s1.html", "es/boost.html", "es/h2o.html", "es/pageplus.html", // REFILL-NOINDEX-P3-1105
+      "es/metropcs/index.html", "es/boost/index.html", "es/s1/index.html", "es/h2o/index.html", "es/pageplus/index.html", "es/straight-talk/index.html", "es/topup-crc/index.html", "es/topup-at/index.html", "es/tmobile-flexi/index.html", // REFILL-NOINDEX-P3-1105
+    ]); // REFILL-NOINDEX-P3-1105
+    const isRefillNoindexShell = (route: string) => // REFILL-NOINDEX-P3-1105
+      REFILL_NOINDEX_SHELLS.has(route) || /^(es\/como-pagar|how-to-pay)\//.test(route); // REFILL-NOINDEX-P3-1105
+    const refillNoindexScript = // REFILL-NOINDEX-P3-1105
+      `<script data-refill-noindex-p3-1105="1">(function(){try{var h=(location.hostname||"").toLowerCase();` + // REFILL-NOINDEX-P3-1105
+      `if(h==="www.cellpay.us"||h==="cellpay.us")return;` + // REFILL-NOINDEX-P3-1105
+      `if(!(h==="refill.cellpay.us"||h.slice(-12)===".lovable.app"||h.indexOf("lovableproject.com")>=0||h.slice(-12)===".lovable.dev"))return;` + // REFILL-NOINDEX-P3-1105
+      `var m=document.querySelector('meta[name="robots"]');var c=(m&&m.getAttribute("content")||"").toLowerCase();` + // REFILL-NOINDEX-P3-1105
+      `if(c.indexOf("noindex")>=0&&c.indexOf("nofollow")>=0)return;` + // REFILL-NOINDEX-P3-1105
+      `if(!m){m=document.createElement("meta");m.setAttribute("name","robots");document.head.appendChild(m);}` + // REFILL-NOINDEX-P3-1105
+      `m.setAttribute("content","noindex,follow");}catch(e){}})();</script>`; // REFILL-NOINDEX-P3-1105
     // GO-LANDERS-1007: /go shells that stay noindex,follow but still carry the www self-canonical + EN/ES hreflang pair in the raw HTML
     // (same canonical seo.ts sets at runtime). Both sides of each pair must be listed.
     const GO_LINKED = new Set<string>([
@@ -1864,6 +1883,13 @@ const htmlAliasPlugin = (): Plugin => ({
         }
       }
 
+      if (!meta.noindex && isRefillNoindexShell(route)) { // REFILL-NOINDEX-P3-1105
+        // Inject sync host-aware flip immediately after robots meta so refill first paint can noindex without touching www raw intent. // REFILL-NOINDEX-P3-1105
+        out = out.replace( // REFILL-NOINDEX-P3-1105
+          /(<meta\s+name="robots"\s+content="[^"]*"\s*\/?>)/i, // REFILL-NOINDEX-P3-1105
+          `$1\n    ${refillNoindexScript}`, // REFILL-NOINDEX-P3-1105
+        ); // REFILL-NOINDEX-P3-1105
+      } // REFILL-NOINDEX-P3-1105
       // GSC-DUP-1007: static absolute canonical to www on every indexable page (both hosts), plus hreflang en/es/x-default
       // when the page is self-canonical and has an EN/ES twin. noindex shells (/go, aliases, -espanol, removed carriers, admin)
       // get none. seo.ts sets the same canonical at runtime.
