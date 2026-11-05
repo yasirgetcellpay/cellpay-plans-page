@@ -487,21 +487,9 @@ const App = () => (
         {/* Legacy Google Ads landing URLs — keep working for crawlers/bots */}
         <Route path="/amount.php" element={<AmountRedirect />} />
         {/* H2O Wireless legacy/alt paths (handle both '+' and '-' separators) */}
-        {(["/h2o-wireless", "/h2o+wireless", "/h2o-wireless/bill+payment", "/h2o-wireless/bill-payment", "/h2o+wireless/bill+payment"]).map((p) => (
-          <Route
-            key={p}
-            path={p}
-            element={
-              <DynamicCarrier
-                carrierName="H2O Wireless"
-                carrierSlug="h2o"
-                carrierId={6}
-                brandColor="hsl(195,85%,50%)"
-                logo={h2oLogo}
-              />
-            }
-          />
-        ))}
+        {(["/h2o-wireless", "/h2o+wireless", "/h2o-wireless/bill+payment", "/h2o-wireless/bill-payment", "/h2o+wireless/bill+payment"]).map((p) => ( // H2O-WIRELESS-CANONICAL-1105
+          <Route key={p} path={p} element={<AliasRedirect to="/h2o.html" />} /> // H2O-WIRELESS-CANONICAL-1105
+        ))}{/* H2O-WIRELESS-CANONICAL-1105 */}
         {/* PagePlus path-style alias */}
         <Route path="/pageplus" element={<AliasRedirect to="/pageplus.html" />} />
         {/* Metro PCS legacy alias → canonical /metropcs.html */}
@@ -1788,6 +1776,11 @@ const App = () => (
         <Route path="/es/go/simple.html" element={<AliasRedirect to="/es/go/simple-mobile" />} />{/* // SIMPLE-PUSH-1023 */}
         <Route path="/es/go/simple/" element={<AliasRedirect to="/es/go/simple-mobile" />} />{/* // SIMPLE-PUSH-1023 */}
         {/* Fallback: any unmatched /es/* path → strip /es and redirect to English. */}
+        <Route path="/es/h2o-wireless" element={<AliasRedirect to="/es/h2o.html" />} />{/* H2O-WIRELESS-CANONICAL-1105 */}
+        <Route path="/es/h2o-wireless/bill-payment" element={<AliasRedirect to="/es/h2o.html" />} />{/* H2O-WIRELESS-CANONICAL-1105 */}
+        <Route path="/es/h2o+wireless" element={<AliasRedirect to="/es/h2o.html" />} />{/* H2O-WIRELESS-CANONICAL-1105 */}
+        <Route path="/es/h2o-wireless/bill+payment" element={<AliasRedirect to="/es/h2o.html" />} />{/* H2O-WIRELESS-CANONICAL-1105 */}
+        <Route path="/es/h2o+wireless/bill+payment" element={<AliasRedirect to="/es/h2o.html" />} />{/* H2O-WIRELESS-CANONICAL-1105 */}
         <Route path="/es/*" element={<EsFallback />} />
         <Route path="*" element={<CatchAll />} />
       </Routes>

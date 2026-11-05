@@ -171,8 +171,7 @@ const HTML_ROUTES = [
   "us-cellular-espanol.html",
   "verizon-wireless-flexi-espanol.html",
   // H2O alt paths used by older Google Ads campaigns
-  "h2o-wireless/index.html",
-  "h2o-wireless/bill-payment/index.html",
+  // H2O alias shells are generated through VARIANT_SHELLS. // H2O-WIRELESS-CANONICAL-1105
   // PagePlus path-style alias
   "pageplus/index.html",
   // SPA-SHELLS-1011: /pageplus-addon had no shell of its own (it served the generic home title); now it has its own title.
@@ -1223,10 +1222,7 @@ const htmlAliasPlugin = (): Plugin => ({
           esPath: "/es/" + route,
         };
       }
-      // Path-style aliases (h2o-wireless/, pageplus/)
-      if (route === "h2o-wireless/index.html" || route === "h2o-wireless/bill-payment/index.html") {
-        return { ...CARRIER_META["h2o.html"], lang: "en" };
-      }
+      // Path-style aliases (pageplus/); H2O aliases use their canonical target shell. // H2O-WIRELESS-CANONICAL-1105
       if (route === "pageplus-addon/index.html") {
         // SPA-SHELLS-1011
         return {
@@ -1738,6 +1734,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "es/pageplus/index.html": "es/pageplus.html", // ES-PAGEPLUS-ROUTE-1030
       "es/tracfone/index.html": "es/tracfone.html", // BILLPAY-TRACFONE-1030
       "es/h2o/index.html": "es/h2o.html", // BILLPAY-H2O-1031
+      "h2o-wireless/index.html": "h2o.html", "h2o-wireless/bill-payment/index.html": "h2o.html", // H2O-WIRELESS-CANONICAL-1105
+      "es/h2o-wireless/index.html": "es/h2o.html", "es/h2o-wireless/bill-payment/index.html": "es/h2o.html", // H2O-WIRELESS-CANONICAL-1105
       "es/lyca/index.html": "es/lyca.html", // BILLPAY-LYCA-1101
       "es/net10/index.html": "es/net10.html", // BILLPAY-NET10-1101
       "es/straight-talk/index.html": "es/straight-talk.html", // BILLPAY-ST-SHELL-H1-1025
