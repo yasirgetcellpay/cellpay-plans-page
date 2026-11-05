@@ -189,7 +189,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     faq2: { q: "Can I refill Straight Talk without the Straight Talk app?", a: "Straight Talk offers its own refill options on its official website and app. On CellPay you can refill from any device with only the phone number." },
     autoPayA: "If CellPay Auto Pay is offered at checkout, you can turn it on there; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
     autoPayBody: "If CellPay Auto Pay is offered at checkout, you can turn it on there; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
-    related: [["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"], ["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/straight-talk.html", "Straight Talk bill pay"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // BILLPAY-TITLES-P1-1105
+    related: [["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"], ["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/straight-talk.html", "Straight Talk refill"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // SELECTIVE-REFILL-P2-1105
   }),
   es({
     key: "straight-talk", name: "Straight Talk", slug: "straight-talk", checkout: "/es/straight-talk.html",
@@ -211,7 +211,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     faq2: { q: "Does AT&T have its own way to pay prepaid without signing in?", a: "AT&T offers its own payment options on its official website and app. CellPay is another option if you want to pay without an AT&T login, with " + payWallets("en") + "." },
     autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
     autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
-    related: [["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/topup-at.html", "AT&T Prepaid bill pay"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // BILLPAY-TITLES-P1-1105
+    related: [["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/topup-at.html", "AT&T Prepaid refill"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // SELECTIVE-REFILL-P2-1105
   }),
   es({
     key: "att-prepaid", name: "AT&T Prepaid", slug: "topup-at", checkout: "/es/topup-at.html",
