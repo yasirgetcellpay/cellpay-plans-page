@@ -1540,7 +1540,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `</div></div></nav>` +
         `<section class="text-foreground" style="background-color:${bc}">` +
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">` +
-        `<h1 class="text-xl md:text-2xl font-extrabold">${isEs ? "Pague su Factura de Straight Talk en Línea" : "Pay Your Straight Talk Bill Online"}</h1>` + // BILLPAY-ST-SHELL-H1-1025
+        `<h1 class="text-xl md:text-2xl font-extrabold">${isEs ? "Pague su Factura de Straight Talk en Línea" : "Straight Talk Bill Pay Online"}</h1>` + // BILLPAY-ST-SHELL-H1-1025 BILLPAY-TITLES-P1-1105
         `</div></section>` +
         `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">` +
         `<div class="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">` +
