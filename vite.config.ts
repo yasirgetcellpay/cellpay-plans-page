@@ -803,7 +803,7 @@ const htmlAliasPlugin = (): Plugin => ({
       canonical?: string; // static self-canonical, relative: resolves to the host that serves the file
     };
     const CARRIER_META: Record<string, { title: string; description: string }> = {
-      "topup-at.html":             { title: "AT&T Prepaid Bill Pay Online – No Login, Guest Pay | CellPay",        description: "AT&T Prepaid bill pay online with just your phone number. No login, guest pay. Pay for yourself or someone else." }, // ATT-BILLPAY-H1-1024 // BILLPAY-TITLES-P1-1105
+      "topup-at.html":             { title: "AT&T Prepaid Refill & Bill Pay Online – No Login | CellPay",        description: "AT&T Prepaid refill and bill pay online with just your phone number. No login, guest pay. Pay for yourself or someone else." }, // ATT-BILLPAY-H1-1024 // BILLPAY-TITLES-P1-1105 // SELECTIVE-REFILL-P2-1105
       // EN-META-1007: boost / topup-crc / metropcs (+ metro-pcs variant) use the same title/description that
       // src/pages/DynamicCarrier.tsx sets at runtime for these pages (lang en). Keep in sync.
       "boost.html":                { title: "Pay Boost Mobile Bill Online as a Guest – No Login | CellPay", description: "Pay your Boost Mobile bill online as a guest with just the phone number. No login needed. Service fee shown before you pay." }, // BILLPAY-BOOST-1022
@@ -825,7 +825,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "tracfone.html":             { title: "Pay Your Tracfone Bill Online – No Login | CellPay", description: "Pay your Tracfone bill online with just the phone number. No account or login. Pay for yourself or someone else. Service fee shown before you pay." }, // BILLPAY-TRACFONE-1030
       "ultra-mobile.html":         { title: "Pay Ultra Mobile Bill Online – No Login | CellPay", description: "Pay your Ultra Mobile bill online with just the phone number. No account or login needed. Pay for yourself or someone else. Low service fee shown before you pay." }, // BILLPAY-ULTRA-1028
       "verizon-wireless-flexi.html": { title: "Verizon Prepaid Refill — Online Top-Up | CellPay",   description: "Recharge Verizon Prepaid online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
-      "straight-talk.html":        { title: "Straight Talk Bill Pay Online – Pay as a Guest, No Login | CellPay",       description: "Pay your Straight Talk bill online with just the phone number. No login or account needed. Pay for yourself or someone else. Low service fee shown before you pay." }, // BILLPAY-STRAIGHTTALK-1025 // BILLPAY-TITLES-P1-1105
+      "straight-talk.html":        { title: "Straight Talk Refill & Bill Pay Online – No Login | CellPay",       description: "Straight Talk refill and bill pay online with just the phone number. No login or account. Pay for yourself or someone else. Service fee shown before you pay." }, // BILLPAY-STRAIGHTTALK-1025 // BILLPAY-TITLES-P1-1105 // SELECTIVE-REFILL-P2-1105
       "guest-metropcs.html":       { title: "Metro PCS Guest Payment — Pay Your Bill Online | CellPay",      description: "Pay your Metro PCS bill as a guest. No login needed. All 30-day plans, secure checkout." },
       "guest-boost.html":          { title: "Pay Your Boost Mobile Bill as a Guest",   description: "Pay your Boost Mobile bill as a guest. No login needed. All 30-day plans, secure checkout." },
       "total-wireless.html":       { title: "Total Wireless Bill Pay Online – No Login, Guest Pay | CellPay",       description: "Pay your Total Wireless bill online in minutes. No login needed — enter the phone number, pick your plan and pay with any card or wallet." }, // COPY-1024 // ORGANIC-TW-PAYBILL-FAQ-1027 // BILLPAY-TITLES-P1-1105
@@ -1540,7 +1540,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `</div></div></nav>` +
         `<section class="text-foreground" style="background-color:${bc}">` +
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">` +
-        `<h1 class="text-xl md:text-2xl font-extrabold">${isEs ? "Pague su Factura de Straight Talk en Línea" : "Straight Talk Bill Pay Online"}</h1>` + // BILLPAY-ST-SHELL-H1-1025 BILLPAY-TITLES-P1-1105
+        `<h1 class="text-xl md:text-2xl font-extrabold">${isEs ? "Pague su Factura de Straight Talk en Línea" : "Straight Talk Refill & Bill Pay Online"}</h1>` + // BILLPAY-ST-SHELL-H1-1025 BILLPAY-TITLES-P1-1105 // SELECTIVE-REFILL-P2-1105
         `</div></section>` +
         `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">` +
         `<div class="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">` +

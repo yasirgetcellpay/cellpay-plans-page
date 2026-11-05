@@ -407,16 +407,16 @@ export const BILL_PAGES: BillPage[] = [
   }, // BILLPAY-STRAIGHTTALK-1025
   { // BILLPAY-STRAIGHTTALK-1025
     path: "/straight-talk.html", lang: "en", name: "Straight Talk", // BILLPAY-STRAIGHTTALK-1025
-    title: "Straight Talk Bill Pay Online – Pay as a Guest, No Login | CellPay", // BILLPAY-TITLES-P1-1105
-    description: "Pay your Straight Talk bill online with just the phone number. No login or account needed. Pay for yourself or someone else. Low service fee shown before you pay.", // BILLPAY-STRAIGHTTALK-1025
-    h1: "Straight Talk Bill Pay Online", // BILLPAY-TITLES-P1-1105
+    title: "Straight Talk Refill & Bill Pay Online – No Login | CellPay", // SELECTIVE-REFILL-P2-1105
+    description: "Straight Talk refill and bill pay online with just the phone number. No login or account. Pay for yourself or someone else. Service fee shown before you pay.", // SELECTIVE-REFILL-P2-1105
+    h1: "Straight Talk Refill & Bill Pay Online", // SELECTIVE-REFILL-P2-1105
     sub: "No login. Just the phone number. Pay for yourself or someone else.", // BILLPAY-STRAIGHTTALK-1025
     autoPayInfoLead: "Optional: Auto Pay so you never miss a payment.", // BILLPAY-STRAIGHTTALK-1025
     enterAmount: "Enter the amount you want to recharge", // BILLPAY-STRAIGHTTALK-1025
     securePayment: "Secure payment. Your refill is sent directly to your phone.", // BILLPAY-STRAIGHTTALK-1025
     faqTitle: "Common questions", // BILLPAY-STRAIGHTTALK-1025
     faqs: straightTalkFaqs("en"), // BILLPAY-STRAIGHTTALK-1025
-    guide: ["/how-to-pay/straight-talk", "pay Straight Talk bill"], // BILLPAY-TITLES-P1-1105
+    guide: ["/how-to-pay/straight-talk", "Straight Talk refill"], // SELECTIVE-REFILL-P2-1105
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-STRAIGHTTALK-1025
     // BILLPAY-TITLES-P1-1105: FAQPage and BreadcrumbList enabled.
   }, // BILLPAY-STRAIGHTTALK-1025
@@ -527,16 +527,16 @@ export const BILL_PAGES: BillPage[] = [
   }, // BILLPAY-ATT-1029
   { // BILLPAY-ATT-1029
     path: "/topup-at.html", lang: "en", name: "AT&T Prepaid", // BILLPAY-ATT-1029
-    title: "AT&T Prepaid Bill Pay Online – No Login, Guest Pay | CellPay", // BILLPAY-TITLES-P1-1105
-    description: "AT&T Prepaid bill pay online with just your phone number. No login, guest pay. Pay for yourself or someone else.", // BILLPAY-TITLES-P1-1105
-    h1: "AT&T Prepaid Bill Pay Online", // BILLPAY-TITLES-P1-1105
+    title: "AT&T Prepaid Refill & Bill Pay Online – No Login | CellPay", // SELECTIVE-REFILL-P2-1105
+    description: "AT&T Prepaid refill and bill pay online with just your phone number. No login, guest pay. Pay for yourself or someone else.", // SELECTIVE-REFILL-P2-1105
+    h1: "AT&T Prepaid Refill & Bill Pay Online", // SELECTIVE-REFILL-P2-1105
     sub: "No login. Just the phone number. Pay for yourself or someone else.", // BILLPAY-ATT-1029
     autoPayInfoLead: "Optional: Auto Pay so you never miss a refill.", // BILLPAY-ATT-1029
     enterAmount: "Enter the amount you want to recharge", // BILLPAY-ATT-1029
     securePayment: "Secure payment. Your refill is sent directly to your phone.", // BILLPAY-ATT-1029
     faqTitle: "Common questions", // BILLPAY-ATT-1029
     faqs: attFaqs("en"), // BILLPAY-ATT-1029
-    guide: ["/how-to-pay/att-prepaid", "AT&T Prepaid bill pay"], // BILLPAY-TITLES-P1-1105
+    guide: ["/how-to-pay/att-prepaid", "AT&T Prepaid refill"], // SELECTIVE-REFILL-P2-1105
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-ATT-1029
     // BILLPAY-TITLES-P1-1105: FAQPage and BreadcrumbList enabled.
   }, // BILLPAY-ATT-1029
