@@ -2,6 +2,7 @@
 // Sets <title>, meta description, meta keywords, canonical, og:* and JSON-LD schema.
 // All tags are tagged with data-dynamic-seo so we can clean them up on unmount.
 
+import { enforceRefillHostNoindex } from "./refillNoindex"; // REFILL-NOINDEX-P3-1105
 const DYNAMIC_ATTR = "data-dynamic-seo";
 // refill.cellpay.us (paid ads) and www.cellpay.us (organic) are separate sites that serve this same build.
 // Each host is self-canonical: canonical and og:url use the host the page is served from, never the other one.
@@ -77,6 +78,7 @@ export interface SeoHeadData {
 }
 
 export function applySeoHead(data: SeoHeadData) {
+  enforceRefillHostNoindex(); // REFILL-NOINDEX-P3-1105
   if (data.title) {
     document.title = data.title;
     upsertProperty("og:title", data.title);
