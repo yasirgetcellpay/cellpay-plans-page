@@ -296,8 +296,7 @@ const net10Faqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-NE
 
 export const BILL_PAGES: BillPage[] = [
   { // BILLPAY-METRO-1021
-    ...esPage("/es/metropcs.html", "Metro PCS", ["/es/como-pagar/metro-pcs", "Pagar factura Metro PCS"]),
- // BILLPAY-TITLES-P1-1105
+    ...esPage("/es/metropcs.html", "Metro PCS", ["/es/como-pagar/metro-pcs", "Pagar factura Metro PCS"]), // BILLPAY-TITLES-P1-1105
     title: "Pagar Factura Metro PCS en Línea sin Cuenta | CellPay",
     h1: "Pague su Factura de Metro by T-Mobile en Línea",
     sub: "Pague su línea de Metro PCS como invitado, solo con el número. Sin cuenta ni PIN.",
@@ -314,8 +313,7 @@ export const BILL_PAGES: BillPage[] = [
     securePayment: "Secure payment. Your payment goes to the number you entered.",
     faqTitle: "Common questions",
     faqs: metroFaqs("en"),
-    guide: ["/how-to-pay/metro-pcs", "Metro PCS bill pay"],
- // BILLPAY-TITLES-P1-1105
+    guide: ["/how-to-pay/metro-pcs", "Metro PCS bill pay"], // BILLPAY-TITLES-P1-1105
   },
   { // BILLPAY-BOOST-1022
     ...esPage("/es/boost.html", "Boost Mobile", ["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"]),
