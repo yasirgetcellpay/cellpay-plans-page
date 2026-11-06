@@ -71,6 +71,7 @@ import { merchCfgOfferFor, MERCHCFG_COPY } from "@/lib/declineRecovery"; // AUTO
 import type { KlarnaFunnelEvent, FunnelData } from "@/lib/funnelEvents"; // KLARNA-FUNNEL-1017
 import { klarnaCategoryIds, pickKlarnaCategory, klarnaLocale } from "@/lib/klarnaCategory"; // KLARNA-CAT-1017
 import { firstMissingKlarnaField, type KlarnaField } from "@/lib/klarnaMissing"; // KLARNA-OPEN-1019
+import { klarnaOrderResponseReason, klarnaOrderExceptionReason, klarnaOrderFailureOnce } from "@/lib/klarnaOrderCreate"; // KLARNA-ORDER-CREATE-HARDEN-1105
 
 interface LocationState {
   phone: string;
@@ -2598,11 +2599,15 @@ const Checkout = () => {
           try { trackKlarna("klarna_auth_result", readKlarnaSrc(phone10), klarnaAttempt, { klarna_result: (res.approved && res.authorization_token) ? "approved" : (res.show_form === false ? "declined" : "cancelled"), klarna_category: klarnaCategory, klarna_load: klarnaLoadState, klarna_approved: typeof res.approved === "boolean" ? res.approved : undefined, klarna_show_form: typeof res.show_form === "boolean" ? res.show_form : undefined, klarna_finalize_required: typeof res.finalize_required === "boolean" ? res.finalize_required : undefined, klarna_error: klarnaErrKeys(res.error) }); } catch { /* ignore */ } // KLARNA-FUNNEL-1017 // KLARNA-CAT-1017 // KLARNA-LOG-1017
           if (res.approved && res.authorization_token) {
             setKlarnaToken(res.authorization_token);
+            const orderAttempt = newAttemptId(); // KLARNA-ORDER-CREATE-HARDEN-1105
+            const logOrderFailure = klarnaOrderFailureOnce(reason => trackKlarna("klarna_order_create_failed", readKlarnaSrc(phone10), `order|${orderAttempt}`, { klarna_error: reason })); // KLARNA-ORDER-CREATE-HARDEN-1105
             try {
               await fpReady();
               const result = await submitTransaction(buildKlarnaPayload(res.authorization_token)) as Record<string, unknown>;
+              logOrderFailure(klarnaOrderResponseReason(result)); // KLARNA-ORDER-CREATE-HARDEN-1105
               handleResult(result);
-            } catch {
+            } catch (err) { // KLARNA-ORDER-CREATE-HARDEN-1105
+              logOrderFailure(klarnaOrderExceptionReason(err)); // KLARNA-ORDER-CREATE-HARDEN-1105
               setErrorMsg(lang === "es" ? "El pago con Klarna no se completó. Intente de nuevo o use otro método de pago." : "Klarna payment failed"); // KLARNA-FORM-1018
             }
           } else {
