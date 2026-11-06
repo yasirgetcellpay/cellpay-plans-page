@@ -13,6 +13,7 @@ export interface CheckoutHandoff {
   carrierName: string;
   brandColor: string;
   ultraMdn?: UltraMdnCtx; // ULTRA-MDN-1029
+  smsOptIn?: boolean; // SMS-34332-PHONE-1106
 }
 export type UltraMdnCtx = { mdn: string; barcode: string; kind: "fixed" | "range"; planId: string; carrierId: string | number; purchaseType?: string; rangeMin?: number; rangeMax?: number; amount?: number }; // ULTRA-MDN-1029 (+ amount: fixed plan amount) // PREP-META-1029
 function ultraMdnFrom(v: unknown): UltraMdnCtx | undefined { // ULTRA-MDN-1029
@@ -124,6 +125,7 @@ function readRaw(): (CheckoutHandoff & { ts: number }) | null {
     return {
       ts: v.ts, phone: String(v.phone), amount: String(v.amount), planId: v.planId ?? undefined,
       carrierSlug: v.carrierSlug, carrierName: v.carrierName, brandColor: typeof v.brandColor === "string" ? v.brandColor : "",
+      ...(v.smsOptIn === true ? { smsOptIn: true } : {}), // SMS-34332-PHONE-1106
       ...(ultraMdnFrom(v.ultraMdn) ? { ultraMdn: ultraMdnFrom(v.ultraMdn) } : {}), // ULTRA-MDN-1029
     };
   } catch {
@@ -148,6 +150,7 @@ export function writeCheckoutCtx(s: CheckoutHandoff): void {
     sessionStorage.setItem(CTX_KEY, JSON.stringify({
       v: 1, ts: Date.now(), phone: s.phone, amount: String(s.amount), planId: s.planId ?? null,
       carrierSlug: s.carrierSlug, carrierName: s.carrierName, brandColor: s.brandColor,
+      ...(s.smsOptIn === true ? { smsOptIn: true } : {}), // SMS-34332-PHONE-1106
       ...(s.ultraMdn ? { ultraMdn: s.ultraMdn } : {}), // ULTRA-MDN-1029
     }));
     sessionStorage.setItem(LAST_KEY, JSON.stringify({ v: 1, ts: Date.now(), phone: digits10(s.phone), amount: String(s.amount), carrierSlug: s.carrierSlug }));

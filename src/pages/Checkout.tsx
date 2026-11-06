@@ -82,6 +82,7 @@ interface LocationState {
   brandColor: string;
   ultraMdn?: UltraMdnCtx; // ULTRA-MDN-1029
   ultraOverrideFrom?: number; // ULTRA-AMOUNT-OVERRIDE-1029
+  smsOptIn?: boolean; // SMS-34332-PHONE-1106
 }
 
 type PaymentMethod = "card" | "paypal" | "plaid" | "googlepay" | "applepay" | "klarna" | "cashapp";
@@ -392,7 +393,7 @@ const Checkout = () => {
   const [ultraPlans, setUltraPlans] = useState<UltraPlan[]>([]); // ULTRA-SMART-PREVENT-1024
   useEffect(() => { if (state?.carrierSlug !== "ultra-mobile") return; let cancelled = false; void readUltraPlans().then((plans) => { if (!cancelled) setUltraPlans(plans); }); return () => { cancelled = true; }; }, [state?.carrierSlug]); // ULTRA-SMART-PREVENT-1024
   const ultraSmart = useUltraSmart(state?.carrierSlug || "", phone10, phoneOk, ultraPlans); // ULTRA-SMART-PREVENT-1024
-  const goUltraPlan = (plan: UltraPlan) => { if (!state) return; const next = { ...state, ultraMdn: undefined /* ULTRA-MDN-1029: A plan */, amount: String(plan.amount), planId: plan.plan_id, planName: plan.name, ...(plan.carrierId ? { carrierId: plan.carrierId } : {}) }; writeCheckoutCtx(next); navigate(`${lang === "es" ? "/es" : ""}/checkout${location.search}${location.hash}`, { state: next }); }; // ULTRA-SMART-PREVENT-1024
+  const goUltraPlan = (plan: UltraPlan) => { if (!state) return; const next = { ...state, smsOptIn: smsOptInRef.current === true, ultraMdn: undefined /* ULTRA-MDN-1029: A plan */, amount: String(plan.amount), planId: plan.plan_id, planName: plan.name, ...(plan.carrierId ? { carrierId: plan.carrierId } : {}) }; writeCheckoutCtx(next); navigate(`${lang === "es" ? "/es" : ""}/checkout${location.search}${location.hash}`, { state: next }); }; // ULTRA-SMART-PREVENT-1024 // SMS-34332-PHONE-1106
   const badPhoneGo = () => {
     toast({ title: lang === "es" ? "Ingrese el número de teléfono completo de 10 dígitos." : "Please enter the full 10-digit phone number.", variant: "destructive" });
     if (state) navigate(carrierPageTarget(lang, state.carrierSlug, "", state.amount, location.search, location.hash));
@@ -463,8 +464,9 @@ const Checkout = () => {
   const [merchCfgPayOnce, setMerchCfgPayOnce] = useState(false); // AUTOPAY-MERCHCFG-1101
   useEffect(() => { setMerchCfgOffer(false); setMerchCfgPayOnce(false); }, [paymentMethod]); // AUTOPAY-MERCHCFG-1101
   const mktOptInRef = useRef(true); // MARKETING-OPTIN-1013
-  const [smsOptIn, setSmsOptIn] = useState(false); // SMS-34332-1020
-  const smsOptInRef = useRef(false); // SMS-34332-1020
+  const initialSms = ((location.state as LocationState | null)?.smsOptIn === true) || (!location.state && savedState?.smsOptIn === true); // SMS-34332-PHONE-1106
+  const [smsOptIn, setSmsOptIn] = useState(initialSms); // SMS-34332-PHONE-1106
+  const smsOptInRef = useRef(initialSms); // SMS-34332-PHONE-1106
   mktOptInRef.current = true; // CONSENT-TERMS-1014: consent is given by placing the order (see terms line above PLACE ORDER NOW)
   useEffect(() => { try { sessionStorage.setItem("cp_mkt_consent_v1", "1"); } catch { /* ignore */ } }, []); // CONSENT-EVERY-ATTEMPT-1016: the consent line is shown on this page, so attempts from here carry consent
   const checkoutConfigRef = useRef<Record<string, unknown> | null>(null); // APAP-1007: mirror of checkoutConfig (state is declared below)
@@ -1140,7 +1142,7 @@ const Checkout = () => {
           return;
         }
         setValidation(result);
-        writeCheckoutCtx({ phone: state.phone, amount: String(state.amount), planId: state.planId, carrierSlug: state.carrierSlug, carrierName: state.carrierName, brandColor: state.brandColor, ...(ultraMdnOk ? { ultraMdn: ultraMdnOk } : {}) }); // ULTRA-MDN-1029
+        writeCheckoutCtx({ smsOptIn: smsOptInRef.current === true, phone: state.phone, amount: String(state.amount), planId: state.planId, carrierSlug: state.carrierSlug, carrierName: state.carrierName, brandColor: state.brandColor, ...(ultraMdnOk ? { ultraMdn: ultraMdnOk } : {}) }); // ULTRA-MDN-1029 // SMS-34332-PHONE-1106
         if (config) {
           console.log("Checkout config loaded:", config);
           setCheckoutConfig(config);
@@ -2913,12 +2915,6 @@ const Checkout = () => {
             {email.length > 3 && !isValidEmail(cleanEmail(email)) && ( /* DECLINE-RECOVERY-1014 */
               <p className="text-xs text-destructive mt-1">{tr.invalidEmail}</p>
             )}
-            <label className="flex items-start gap-2 mt-3 cursor-pointer" data-sms-optin="1020">{/* // SMS-34332-1020 */}
-              <input type="checkbox" data-testid="sms-optin" checked={smsOptIn} onChange={(e) => { setSmsOptIn(e.target.checked); smsOptInRef.current = e.target.checked; }} className="mt-0.5 h-4 w-4 shrink-0" />{/* // SMS-34332-1020 */}
-              <span className="text-xs text-muted-foreground leading-snug">{/* // SMS-34332-1020 */}
-                {lang === "es" ? <>Sí, envíenme recordatorios de pago y mensajes de Text-to-Pay de CellPay a este número. La frecuencia de mensajes varía. Pueden aplicar tarifas de mensajes y datos. Responda HELP para ayuda, STOP para cancelar. El consentimiento no es una condición de compra. Vea nuestros <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Términos de SMS</a> y <a href="/es/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Política de Privacidad</a>.</> : <>Yes, text me payment reminders and Text-to-Pay messages from CellPay at this number. Msg frequency varies. Msg &amp; data rates may apply. Reply HELP for help, STOP to cancel. Consent is not a condition of purchase. See our <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>SMS Terms</a> and <a href="/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Privacy Policy</a>.</>}{/* // SMS-34332-1020 */}
-              </span>{/* // SMS-34332-1020 */}
-            </label>{/* // SMS-34332-1020 */}
           </div>
 
           {/* Checkout trust badges — feedback Page 5–6 #2 */}
@@ -3758,7 +3754,7 @@ const Checkout = () => {
           try { // REFUND-RETRY-1018
             if (choice.action === "to_carrier") { // REFUND-RETRY-1018
               const result = await resolveCheckoutFromUrl(lang, `?carrier=${target}&amount=${state.amount}&phone=${phone10}`, ""); // REFUND-RETRY-1018
-              if ("state" in result) { writeCheckoutCtx(result.state); window.location.assign(`${lang === "es" ? "/es" : ""}/checkout${stripResumeParams(location.search)}${location.hash}`); } // REFUND-RETRY-1018
+              if ("state" in result) { writeCheckoutCtx({ ...result.state, smsOptIn: smsOptInRef.current === true }); window.location.assign(`${lang === "es" ? "/es" : ""}/checkout${stripResumeParams(location.search)}${location.hash}`); } // REFUND-RETRY-1018 // SMS-34332-PHONE-1106
               else { close(); navigate(result.to); } // REFUND-RETRY-1018
             } else if (choice.action === "amount") { close(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, undefined, location.search, location.hash)); } // REFUND-RETRY-1018
             else if (choice.action === "number") { close(); navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, state.amount, location.search, location.hash), { state: { focusPhone: true, selectPhone: true } }); } // REFUND-RETRY-1018

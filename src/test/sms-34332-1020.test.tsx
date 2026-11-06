@@ -4,15 +4,16 @@ import ts from "typescript"; // SMS-34332-1020
 import React, { act, useState } from "react"; // SMS-34332-1020
 import { createRoot, type Root } from "react-dom/client"; // SMS-34332-1020
 const source = readFileSync("src/pages/Checkout.tsx", "utf8"); // SMS-34332-1020
+const phoneSource = readFileSync("src/pages/DynamicCarrier.tsx", "utf8"); // SMS-34332-PHONE-1106
 const compile = (code: string, scope: Record<string, unknown>) => new Function(...Object.keys(scope), ts.transpileModule(code, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React } }).outputText)(...Object.values(scope)); // SMS-34332-1020
 let root: Root | undefined; // SMS-34332-1020
 beforeEach(() => { (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true; localStorage.clear(); vi.resetModules(); }); // SMS-34332-1020
 afterEach(() => { act(() => root?.unmount()); root = undefined; document.body.innerHTML = ""; vi.restoreAllMocks(); vi.unstubAllGlobals(); }); // SMS-34332-1020
 describe("SMS-34332-1020 consent", () => { // SMS-34332-1020
   it("starts unchecked and changes only through explicit checkbox input", () => { // SMS-34332-1020
-    const start = source.indexOf('            <label className="flex items-start gap-2 mt-3 cursor-pointer" data-sms-optin="1020">'); // SMS-34332-1020
-    const label = source.slice(start, source.indexOf("</label>", start) + "</label>".length); // SMS-34332-1020
-    const state = source.split("\n").filter((line) => line.includes("const [smsOptIn,") || line.includes("const smsOptInRef =")).join("\n"); // SMS-34332-1020
+    const start = phoneSource.indexOf('            <label className="flex items-start gap-2 mt-3 mb-3 text-left cursor-pointer" data-sms-optin="1020">'); // SMS-34332-PHONE-1106
+    const label = phoneSource.slice(start, phoneSource.indexOf("</label>", start) + "</label>".length); // SMS-34332-PHONE-1106
+    const state = phoneSource.split("\n").filter((line) => line.includes("const [smsOptIn,") || line.includes("const smsOptInRef =")).join("\n"); // SMS-34332-PHONE-1106
     const ref = { current: false }; // SMS-34332-1020
     const Form = compile(`return function Form() {\n${state}\nreturn (${label}); };`, { React, useState, useRef: () => ref, lang: "en" }) as React.ComponentType; // SMS-34332-1020
     const host = document.createElement("div"); document.body.appendChild(host); root = createRoot(host); act(() => root?.render(<Form />)); // SMS-34332-1020
