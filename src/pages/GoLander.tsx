@@ -218,6 +218,8 @@ const GoLander = ({
   const { toast } = useToast();
 
   const [phone, setPhone] = useState(() => formatPhone(takeCheckoutPrefill(carrierSlug)));
+  const [smsOptIn, setSmsOptIn] = useState(false); // SMS-34332-PHONE-1106
+  const smsOptInRef = useRef(false); // SMS-34332-PHONE-1106
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
@@ -444,6 +446,7 @@ const GoLander = ({
         brandColor,
         planId: vzRange ? rangePlanId : planId || rangePlanId || undefined,
         planName,
+        smsOptIn: smsOptInRef.current === true, // SMS-34332-PHONE-1106
         // Landers never force Auto Pay; checkout stays useState(false). Interest is not a pre-check.
       },
     });
@@ -756,6 +759,13 @@ const GoLander = ({
               {phoneDigits.length > 0 && phoneDigits.length < 10 && (
                 <p className="text-[10px] sm:text-xs text-destructive mb-2 -mt-1">{tr.enterAll10}</p>
               )}
+
+            <label className="flex items-start gap-2 mt-3 mb-3 text-left cursor-pointer" data-sms-optin="1020">{/* // SMS-34332-PHONE-1106 */}
+              <input type="checkbox" data-testid="sms-optin" checked={smsOptIn} onChange={(e) => { setSmsOptIn(e.target.checked); smsOptInRef.current = e.target.checked; }} className="mt-0.5 h-4 w-4 shrink-0" />{/* // SMS-34332-PHONE-1106 */}
+              <span className="text-xs text-muted-foreground leading-snug">{/* // SMS-34332-PHONE-1106 */}
+                {lang === "es" ? <>Sí, envíenme recordatorios de pago y mensajes de Text-to-Pay de CellPay a este número. La frecuencia de mensajes varía. Pueden aplicar tarifas de mensajes y datos. Responda HELP para ayuda, STOP para cancelar. El consentimiento no es una condición de compra. Vea nuestros <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Términos de SMS</a> y <a href="/es/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Política de Privacidad</a>.</> : <>Yes, text me payment reminders and Text-to-Pay messages from CellPay at this number. Msg frequency varies. Msg &amp; data rates may apply. Reply HELP for help, STOP to cancel. Consent is not a condition of purchase. See our <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>SMS Terms</a> and <a href="/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Privacy Policy</a>.</>}{/* // SMS-34332-PHONE-1106 */}
+              </span>{/* // SMS-34332-PHONE-1106 */}
+            </label>{/* // SMS-34332-PHONE-1106 */}
 
               {showRange && (
                 <>

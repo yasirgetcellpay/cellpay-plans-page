@@ -283,6 +283,8 @@ const DynamicCarrier = ({
   const tr = t(lang);
   // CK-0: number handed back by Checkout when a direct /checkout load can't be resumed (read once; never in the URL).
   const [phone, setPhone] = useState(() => formatPhone(takeCheckoutPrefill(carrierSlug)));
+  const [smsOptIn, setSmsOptIn] = useState(false); // SMS-34332-PHONE-1106
+  const smsOptInRef = useRef(false); // SMS-34332-PHONE-1106
   const [rpV] = useState(() => (RP_P1_FORMAT || RP_P2_RETRY_BLOCK ? rpVariant() : "control")); // REFILL-PREVENT-1024
   const rpTyped = useRef(false); // REFILL-PREVENT-1024: only numbers typed here (not prefilled/retry/Auto Pay) need confirming
   const [rpConfirm, setRpConfirm] = useState(""); // REFILL-PREVENT-1024
@@ -720,6 +722,7 @@ const DynamicCarrier = ({
         brandColor,
         planId: vzRange ? rangePlanId : selectedPlan?.plan_id,
         planName: selectedPlan?.name,
+        smsOptIn: smsOptInRef.current === true, // SMS-34332-PHONE-1106
       },
     });
   };
@@ -765,6 +768,7 @@ const DynamicCarrier = ({
         brandColor,
         planId: selectedPlan?.plan_id || rangePlanId || undefined,
         planName: selectedPlan?.name,
+        smsOptIn: smsOptInRef.current === true, // SMS-34332-PHONE-1106
       },
     });
   };
@@ -808,6 +812,7 @@ const DynamicCarrier = ({
     setAmount(String(selection.amount)); setUltraMdnActive({ mdn: selection.ultraMdn.mdn, barcode: selection.ultraMdn.barcode, planId: selection.ultraMdn.planId, carrierId: selection.ultraMdn.carrierId, ...(validated?.purchaseType !== undefined ? { purchaseType: validated.purchaseType } : {}) }); // ULTRA-BPATH-FIX-1029 // PREP-META-1029
     navigate(lang === "es" ? "/es/checkout" : "/checkout", { // ULTRA-MDN-1029
       state: { phone, amount: amt, carrierSlug, carrierId: plan.carrierId, carrierName, brandColor, planId: plan.planId, planName: plan.name, // ULTRA-MDN-1029
+        smsOptIn: smsOptInRef.current === true, // SMS-34332-PHONE-1106
         ...selection, ultraMdn: { ...selection.ultraMdn, ...(validated?.purchaseType !== undefined ? { purchaseType: validated.purchaseType } : {}) }, // ULTRA-BPATH-FIX-1029 // PREP-META-1029
       }, // ULTRA-BPATH-FIX-1029
     }); // ULTRA-MDN-1029
@@ -972,6 +977,13 @@ const DynamicCarrier = ({
                 </p>
               )}
 
+
+            <label className="flex items-start gap-2 mt-3 mb-3 text-left cursor-pointer" data-sms-optin="1020">{/* // SMS-34332-PHONE-1106 */}
+              <input type="checkbox" data-testid="sms-optin" checked={smsOptIn} onChange={(e) => { setSmsOptIn(e.target.checked); smsOptInRef.current = e.target.checked; }} className="mt-0.5 h-4 w-4 shrink-0" />{/* // SMS-34332-PHONE-1106 */}
+              <span className="text-xs text-muted-foreground leading-snug">{/* // SMS-34332-PHONE-1106 */}
+                {lang === "es" ? <>Sí, envíenme recordatorios de pago y mensajes de Text-to-Pay de CellPay a este número. La frecuencia de mensajes varía. Pueden aplicar tarifas de mensajes y datos. Responda HELP para ayuda, STOP para cancelar. El consentimiento no es una condición de compra. Vea nuestros <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Términos de SMS</a> y <a href="/es/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Política de Privacidad</a>.</> : <>Yes, text me payment reminders and Text-to-Pay messages from CellPay at this number. Msg frequency varies. Msg &amp; data rates may apply. Reply HELP for help, STOP to cancel. Consent is not a condition of purchase. See our <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>SMS Terms</a> and <a href="/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Privacy Policy</a>.</>}{/* // SMS-34332-PHONE-1106 */}
+              </span>{/* // SMS-34332-PHONE-1106 */}
+            </label>{/* // SMS-34332-PHONE-1106 */}
 
               {showRange && (
                 <>
