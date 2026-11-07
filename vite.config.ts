@@ -1358,7 +1358,7 @@ const htmlAliasPlugin = (): Plugin => ({
     const goSmsCopy = goSmsSource.match(/<span className="text-xs text-muted-foreground leading-snug">[^]*?\{lang === "es" \? <>([^]*?)<\/> : <>([^]*?)<\/>\}/); // GO-PHONE-SHELL-1106
     if (!goSmsCopy) throw new Error("GO-PHONE-SHELL-1106: Missing shared phone disclosure"); // GO-PHONE-SHELL-1106
     const goSmsDisclosure = (isEs: boolean): string => // GO-PHONE-SHELL-1106
-      `<div aria-hidden="true" data-go-sms-shell="1106" class="flex items-start gap-2 mt-3 mb-3 text-left"><span aria-hidden="true" class="inline-block mt-0.5 h-4 w-4 shrink-0"></span><span class="text-xs text-muted-foreground leading-snug">${goSmsCopy[isEs ? 1 : 2].replace(/ onClick=\{\(e\) => e\.stopPropagation\(\)\}/g, "")}</span></div>`; // GO-PHONE-SHELL-1106
+      `<div aria-hidden="true" data-go-sms-shell="1106" class="flex items-start gap-2 mt-3 mb-3 text-left"><span aria-hidden="true" class="inline-block mt-0.5 h-4 w-4 shrink-0"></span><span class="text-xs text-muted-foreground leading-snug">${goSmsCopy[isEs ? 1 : 2].replace(/ onClick=\{\(e\) => e\.stopPropagation\(\)\}/g, "").replace(/<a /g, '<a tabindex="-1" ')}</span></div>`; // GO-PHONE-SHELL-1106
     const goSmsPhoneScreen = (route: string, slug: string, isEs: boolean): string => { // GO-PHONE-SHELL-1106
       const firstScreenPhone = slug === "metro" || slug === "simple-mobile" || (slug === "tmobile" && isEs); // GO-PHONE-SHELL-1106
       const lineNote = activeLineNote(goRouteInfo(route)?.slug ?? "", isEs ? "es" : "en"); // GO-PHONE-SHELL-1106
