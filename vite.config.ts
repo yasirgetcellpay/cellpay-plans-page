@@ -1362,10 +1362,10 @@ const htmlAliasPlugin = (): Plugin => ({
     const goSmsPhoneScreen = (route: string, slug: string, isEs: boolean): string => { // GO-PHONE-SHELL-1106
       const firstScreenPhone = slug === "metro" || slug === "simple-mobile" || (slug === "tmobile" && isEs); // GO-PHONE-SHELL-1106
       const lineNote = activeLineNote(goRouteInfo(route)?.slug ?? "", isEs ? "es" : "en"); // GO-PHONE-SHELL-1106
-      return `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-hidden="true"><div class="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">` + // GO-PHONE-SHELL-1106
-        `<div class="flow-root h-[16.5px] mb-3"></div>` + // GO-PHONE-SHELL-1106: Reserve the unchanged steps line without adding copy.
+      return `<style>[data-go-phone-note]{height:30px}@media(min-width:640px){[data-go-phone-note]{height:${isEs ? "33px" : "16.5px"}}}</style><div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-hidden="true"><div class="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">` + // GO-PHONE-SHELL-1106
+        `<div class="text-[11px] sm:text-xs mb-3" style="height:1.5em"></div>` + // GO-PHONE-SHELL-1106: Reserve the unchanged steps line without adding copy.
         (firstScreenPhone ? "" : `<div class="flow-root h-8 sm:h-5 mb-1.5 sm:mb-2"></div><div class="flow-root h-10 sm:h-12 mb-3"></div>`) + // GO-PHONE-SHELL-1106: Empty phone-area spacing, never a phone field or fake control.
-        (lineNote ? `<div class="flow-root h-[30px] sm:h-[16.5px] mb-2 -mt-2"></div>` : "") + // GO-PHONE-SHELL-1106
+        (lineNote ? `<div data-go-phone-note="" class="mb-2 -mt-2"></div>` : "") + // GO-PHONE-SHELL-1106
         goSmsDisclosure(isEs) + `</div></div>`; // GO-PHONE-SHELL-1106
     }; // GO-PHONE-SHELL-1106
     const goCricketScreen = (isEs: boolean, color: string): string => {
