@@ -16,7 +16,7 @@ import { goLpxForRoute } from "./src/content/goCopy";
 // LPX-1010 (SPEC-LPX-3): carrier sentence + FAQ in the raw HTML of every /go page (shared with GoLander.tsx).
 import { goStaticSentence, goStaticFaqHtml, goAutoPayLine, goRouteInfo, goKeywordsFor } from "./src/content/goPage"; // LPX-1017
 // TOP4-T1-1009: carrier first-screen copy (H1/subline, Verizon trust row) shared with DynamicCarrier.tsx / Verizon.tsx.
-import { top4Hero, verizonTrustLine, usCellularNote } from "./src/content/carrierHero"; // BATCH3-1014
+import { top4Hero, verizonTrustLine, usCellularNote, activeLineNote } from "./src/content/carrierHero"; // BATCH3-1014 // GO-PHONE-SHELL-1106
 // PRIVACY-1007: privacy policy text (shared with src/pages/PrivacyPolicy.tsx) for the static raw HTML (EN + ES).
 import { PRIVACY_PAGES, privacyMainHtml, type PpPage } from "./src/content/privacyPolicy";
 import { SMS_TERMS, smsMainHtml } from "./src/content/smsTerms"; // SMS-34332-1020
@@ -1353,6 +1353,21 @@ const htmlAliasPlugin = (): Plugin => ({
         "¿Cuánto tarda el pago de Cricket?", "¿Qué pasa si el pago falla?", "¿Cómo pido ayuda?",
       ],
     };
+    // GO-PHONE-SHELL-1106: Read the existing React disclosure as the single source; no runtime text, classes or consent changes.
+    const goSmsSource = fs.readFileSync(path.resolve(__dirname, "src/pages/GoLander.tsx"), "utf8"); // GO-PHONE-SHELL-1106
+    const goSmsCopy = goSmsSource.match(/<span className="text-xs text-muted-foreground leading-snug">[^]*?\{lang === "es" \? <>([^]*?)<\/> : <>([^]*?)<\/>\}/); // GO-PHONE-SHELL-1106
+    if (!goSmsCopy) throw new Error("GO-PHONE-SHELL-1106: Missing shared phone disclosure"); // GO-PHONE-SHELL-1106
+    const goSmsDisclosure = (isEs: boolean): string => // GO-PHONE-SHELL-1106
+      `<div aria-hidden="true" data-go-sms-shell="1106" class="flex items-start gap-2 mt-3 mb-3 text-left"><span aria-hidden="true" class="inline-block mt-0.5 h-4 w-4 shrink-0"></span><span class="text-xs text-muted-foreground leading-snug">${goSmsCopy[isEs ? 1 : 2].replace(/ onClick=\{\(e\) => e\.stopPropagation\(\)\}/g, "")}</span></div>`; // GO-PHONE-SHELL-1106
+    const goSmsPhoneScreen = (route: string, slug: string, isEs: boolean): string => { // GO-PHONE-SHELL-1106
+      const firstScreenPhone = slug === "metro" || slug === "simple-mobile" || (slug === "tmobile" && isEs); // GO-PHONE-SHELL-1106
+      const lineNote = activeLineNote(goRouteInfo(route)?.slug ?? "", isEs ? "es" : "en"); // GO-PHONE-SHELL-1106
+      return `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-hidden="true"><div class="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">` + // GO-PHONE-SHELL-1106
+        `<div class="h-[16.5px] mb-3"></div>` + // GO-PHONE-SHELL-1106: Reserve the unchanged steps line without adding copy.
+        (firstScreenPhone ? "" : `<div class="h-4 sm:h-5 mb-1.5 sm:mb-2"></div><div class="h-10 sm:h-12 mb-3"></div>`) + // GO-PHONE-SHELL-1106: Empty phone-area spacing, never a phone field or fake control.
+        (lineNote ? `<div class="h-[15px] sm:h-[18px] mb-2 -mt-2"></div>` : "") + // GO-PHONE-SHELL-1106
+        goSmsDisclosure(isEs) + `</div></div>`; // GO-PHONE-SHELL-1106
+    }; // GO-PHONE-SHELL-1106
     const goCricketScreen = (isEs: boolean, color: string): string => {
       const s = isEs
         ? { steps: "3 pasos: número → monto → pagar", phone: "Ingrese su número de teléfono de Cricket Wireless", amount: "Seleccione el monto",
@@ -1375,6 +1390,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<label class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">${s.phone}</label>` +
         `<div class="relative mb-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>` +
         `<input type="tel" readonly tabindex="-1" placeholder="(XXX) XXX-XXXX" aria-label="${s.phone}" class="${inputCls}" value=""></div>` +
+        goSmsDisclosure(isEs) + // GO-PHONE-SHELL-1106
         `<label class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">${s.amount}</label>` +
         `<div class="relative mb-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>` +
         `<input type="text" inputmode="numeric" readonly tabindex="-1" placeholder="${s.ph}" aria-label="${s.amount}" class="${inputCls}" value=""></div>` +
@@ -1454,7 +1470,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `</div></div>` +
         (slug === "cricket"
           ? goCricketScreen(isEs, look.color)
-          : `<div class="flex justify-center items-start py-16 flex-1 min-h-screen">` +
+          : goSmsPhoneScreen(route, slug, isEs) + `<div class="flex justify-center items-start py-16 flex-1 min-h-screen">` + // GO-PHONE-SHELL-1106
             `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle h-10 w-10 animate-spin text-muted-foreground"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>` +
             `</div>` + goStaticFaqHtml(route, look.color)) +
         `</div></div>`
