@@ -1363,9 +1363,9 @@ const htmlAliasPlugin = (): Plugin => ({
       const firstScreenPhone = slug === "metro" || slug === "simple-mobile" || (slug === "tmobile" && isEs); // GO-PHONE-SHELL-1106
       const lineNote = activeLineNote(goRouteInfo(route)?.slug ?? "", isEs ? "es" : "en"); // GO-PHONE-SHELL-1106
       return `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-hidden="true"><div class="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">` + // GO-PHONE-SHELL-1106
-        `<div class="h-[16.5px] mb-3"></div>` + // GO-PHONE-SHELL-1106: Reserve the unchanged steps line without adding copy.
-        (firstScreenPhone ? "" : `<div class="h-4 sm:h-5 mb-1.5 sm:mb-2"></div><div class="h-10 sm:h-12 mb-3"></div>`) + // GO-PHONE-SHELL-1106: Empty phone-area spacing, never a phone field or fake control.
-        (lineNote ? `<div class="h-[15px] sm:h-[18px] mb-2 -mt-2"></div>` : "") + // GO-PHONE-SHELL-1106
+        `<div class="flow-root h-[16.5px] mb-3"></div>` + // GO-PHONE-SHELL-1106: Reserve the unchanged steps line without adding copy.
+        (firstScreenPhone ? "" : `<div class="flow-root h-8 sm:h-5 mb-1.5 sm:mb-2"></div><div class="flow-root h-10 sm:h-12 mb-3"></div>`) + // GO-PHONE-SHELL-1106: Empty phone-area spacing, never a phone field or fake control.
+        (lineNote ? `<div class="flow-root h-[30px] sm:h-[16.5px] mb-2 -mt-2"></div>` : "") + // GO-PHONE-SHELL-1106
         goSmsDisclosure(isEs) + `</div></div>`; // GO-PHONE-SHELL-1106
     }; // GO-PHONE-SHELL-1106
     const goCricketScreen = (isEs: boolean, color: string): string => {
@@ -1452,6 +1452,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">` +
         `<h1 class="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">${escAttr(content.h1)}</h1>` +
         `<p class="text-xs sm:text-sm opacity-90 mt-1">${tagline}</p>` +
+        ((slug === "metro" || slug === "simple-mobile" || (slug === "tmobile" && isEs)) ? `<div aria-hidden="true" class="max-w-[280px] sm:max-w-[420px] mx-auto mt-3 text-center"><div class="flow-root h-4 sm:h-5 mb-1.5"></div><div class="h-10 sm:h-12"></div></div>` : "") + // GO-PHONE-SHELL-1106: Reserve the existing first-screen phone area without any phone control or new copy.
         (goStaticSentence(route) ? `<p class="text-xs sm:text-sm opacity-90 mt-1">${goStaticSentence(route)}</p>` : "") +
         (noCallLine ? `<p class="text-xs sm:text-sm font-bold mt-1">${noCallLine}</p>` : "") +
         (esHref
