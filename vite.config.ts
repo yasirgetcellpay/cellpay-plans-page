@@ -1439,7 +1439,7 @@ const htmlAliasPlugin = (): Plugin => ({
         ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)} logo" width="94" height="28" class="h-[28px] sm:h-[36px] w-auto object-contain">`
         : `<span class="text-lg font-extrabold" style="color:${look.color}">${escAttr(look.name)}</span>`;
       return (
-        `<div id="root" data-go-prerender="1">` +
+        `<div id="root" data-go-prerender="1">` + (slug === "simple-mobile" && isEs ? `<style>@media(max-width:639px){#root[data-go-prerender] section:first-of-type>div>p:first-of-type{min-height:3rem}}</style>` : "") + // GO-PHONE-SHELL-1106: Measured ES subline changes from two to three 16.5px lines when Open Sans loads; reserve its final readable height.
         `<div class="min-h-screen bg-background font-sans antialiased flex flex-col">` +
         `<header class="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style="border-color:${look.color}">` +
         `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">` +
