@@ -1358,11 +1358,11 @@ const htmlAliasPlugin = (): Plugin => ({
     const goSmsCopy = goSmsSource.match(/<span className="text-xs text-muted-foreground leading-snug">[^]*?\{lang === "es" \? <>([^]*?)<\/> : <>([^]*?)<\/>\}/); // GO-PHONE-SHELL-1106
     if (!goSmsCopy) throw new Error("GO-PHONE-SHELL-1106: Missing shared phone disclosure"); // GO-PHONE-SHELL-1106
     const goSmsDisclosure = (isEs: boolean): string => // GO-PHONE-SHELL-1106
-      `<div aria-hidden="true" data-go-sms-shell="1106" class="flex items-start gap-2 mt-3 mb-3 text-left"><span aria-hidden="true" class="inline-block mt-0.5 h-4 w-4 shrink-0"></span><span class="text-xs text-muted-foreground leading-snug">${goSmsCopy[isEs ? 1 : 2].replace(/ onClick=\{\(e\) => e\.stopPropagation\(\)\}/g, "").replace(/<a /g, '<a tabindex="-1" ')}</span></div>`; // GO-PHONE-SHELL-1106
+      `<div aria-hidden="true" data-go-sms-shell="1106" class="flex items-start gap-2 mt-3 mb-3 text-left"><span aria-hidden="true" class="inline-block mt-0.5 h-4 w-4 shrink-0"></span><span class="text-xs text-muted-foreground leading-snug">${goSmsCopy[isEs ? 1 : 2].replace(/ onClick=\{\(e\) => e\.stopPropagation\(\)\}/g, "").replace(/\bclassName=/g, "class=").replace(/<a /g, '<a tabindex="-1" ')}</span></div>`; // GO-PHONE-SHELL-1106
     const goSmsPhoneScreen = (route: string, slug: string, isEs: boolean): string => { // GO-PHONE-SHELL-1106
       const firstScreenPhone = slug === "metro" || slug === "simple-mobile" || (slug === "tmobile" && isEs); // GO-PHONE-SHELL-1106
       const lineNote = activeLineNote(goRouteInfo(route)?.slug ?? "", isEs ? "es" : "en"); // GO-PHONE-SHELL-1106
-      return `<style>[data-go-phone-note]{height:${isEs ? "45px" : "30px"}}@media(min-width:640px){[data-go-phone-note]{height:${isEs ? "33px" : "16.5px"}}}</style><div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-hidden="true"><div class="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">` + // GO-PHONE-SHELL-1106
+      return `<style>[data-go-phone-note]{height:${slug === "simple-mobile" ? "30px" : isEs ? "45px" : "30px"}}@media(min-width:640px){[data-go-phone-note]{height:${isEs ? "33px" : "16.5px"}}}</style><div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-hidden="true"><div class="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">` + // GO-PHONE-SHELL-1106
         `<div class="mb-3" style="height:16.5px"></div>` + // GO-PHONE-SHELL-1106: Reserve the unchanged steps line without adding copy.
         (firstScreenPhone ? "" : `<div class="flow-root h-8 sm:h-5 mb-1.5 sm:mb-2"></div><div class="flow-root h-10 sm:h-12 mb-3"></div>`) + // GO-PHONE-SHELL-1106: Empty phone-area spacing, never a phone field or fake control.
         (lineNote ? `<div data-go-phone-note="" class="mb-2 -mt-2"></div>` : "") + // GO-PHONE-SHELL-1106
@@ -1452,7 +1452,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">` +
         `<h1 class="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">${escAttr(content.h1)}</h1>` +
         `<p class="text-xs sm:text-sm opacity-90 mt-1">${tagline}</p>` +
-        ((slug === "metro" || slug === "simple-mobile" || (slug === "tmobile" && isEs)) ? `<div aria-hidden="true" class="max-w-[280px] sm:max-w-[420px] mx-auto mt-3 text-center"><div class="flow-root h-4 sm:h-5 mb-1.5"></div><div class="h-10 sm:h-12"></div></div>` : "") + // GO-PHONE-SHELL-1106: Reserve the existing first-screen phone area without any phone control or new copy.
+        ((slug === "metro" || slug === "simple-mobile" || (slug === "tmobile" && isEs)) ? `<div aria-hidden="true" class="max-w-[280px] sm:max-w-[420px] mx-auto mt-3 text-center"><div class="flow-root ${slug === "simple-mobile" && isEs ? "h-8" : "h-4"} sm:h-5 mb-1.5"></div><div class="h-10 sm:h-12"></div></div>` : "") + // GO-PHONE-SHELL-1106: Measured Spanish Simple Mobile label wraps to two 16.5px lines at 390px; desktop remains one line.
         (goStaticSentence(route) ? `<p class="text-xs sm:text-sm opacity-90 mt-1">${goStaticSentence(route)}</p>` : "") +
         (noCallLine ? `<p class="text-xs sm:text-sm font-bold mt-1">${noCallLine}</p>` : "") +
         (esHref
