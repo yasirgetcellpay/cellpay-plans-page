@@ -1828,51 +1828,6 @@ const htmlAliasPlugin = (): Plugin => ({
       }
     };
 
-    const organicSource = (file: string): string => fs.readFileSync(path.resolve(process.cwd(), file), "utf8"); // SPEED-ORGANIC-SHELL-1107
-    const organicExtract = (source: string, pattern: RegExp): string => { // SPEED-ORGANIC-SHELL-1107
-      const match = source.match(pattern); // SPEED-ORGANIC-SHELL-1107
-      if (!match?.[1]) throw new Error("SPEED-ORGANIC-SHELL-1107: header extraction failed"); // SPEED-ORGANIC-SHELL-1107
-      return match[1]; // SPEED-ORGANIC-SHELL-1107
-    }; // SPEED-ORGANIC-SHELL-1107
-    const organicHtml = (jsx: string): string => { // SPEED-ORGANIC-SHELL-1107
-      const result = jsx.replace(/\bclassName=/g, "class=").replace(/\n\s*/g, " ").trim(); // SPEED-ORGANIC-SHELL-1107
-      if (/className=|[{}]|&&|onClick|<(?:form|input|textarea|button|select|label|a)\b/.test(result)) throw new Error("SPEED-ORGANIC-SHELL-1107: non-text header markup"); // SPEED-ORGANIC-SHELL-1107
-      return result; // SPEED-ORGANIC-SHELL-1107
-    }; // SPEED-ORGANIC-SHELL-1107
-    const organicFirstScreen = (route: string): string | null => { // SPEED-ORGANIC-SHELL-1107
-      const switcher = SW_BY_ROUTE.get(route); // SPEED-ORGANIC-SHELL-1107
-      const contact = route === "contact-us/index.html" || route === "contact-us.html"; // SPEED-ORGANIC-SHELL-1107
-      const firstnet = route === "att-firstnet/index.html" || route === "es/att-firstnet/index.html"; // SPEED-ORGANIC-SHELL-1107
-      if (!switcher && !contact && !firstnet) return null; // SPEED-ORGANIC-SHELL-1107
-      let body: string; // SPEED-ORGANIC-SHELL-1107
-      if (switcher) { // SPEED-ORGANIC-SHELL-1107
-        const source = organicSource("src/pages/Switcher.tsx"); // SPEED-ORGANIC-SHELL-1107
-        const outer = organicExtract(source, /(<div className="min-h-screen[^>]+>)/).replace("{pg.lang}", `"${switcher.lang}"`); // SPEED-ORGANIC-SHELL-1107
-        const nav = organicExtract(source, /(<nav[\s\S]*?<\/nav>)/).replace(/<Link to=\{pg\.(?:homePath|altPath)\}/g, "<span").replace(/<\/Link>/g, "</span>").replace('{pg.lang === "es" ? "English" : "Español"}', switcher.lang === "es" ? "English" : "Español"); // SPEED-ORGANIC-SHELL-1107
-        const main = organicExtract(source, /(<main[\s\S]*?<p className="mb-4">\{pg.intro\}<\/p>)/).replace("{pg.h1}", escAttr(switcher.h1)).replace("{pg.intro}", escAttr(switcher.intro)); // SPEED-ORGANIC-SHELL-1107
-        body = organicHtml(`${outer}${nav}${main}</main></div>`); // SPEED-ORGANIC-SHELL-1107
-      } else if (contact) { // SPEED-ORGANIC-SHELL-1107
-        const source = organicSource("src/pages/ContactUs.tsx"); // SPEED-ORGANIC-SHELL-1107
-        const navbar = organicSource("src/components/Navbar.tsx"); // SPEED-ORGANIC-SHELL-1107
-        const outer = organicExtract(source, /(<div className="min-h-screen[^>]+>)/); // SPEED-ORGANIC-SHELL-1107
-        const nav = organicExtract(navbar, /(<nav className="[^"]+">)/); // SPEED-ORGANIC-SHELL-1107
-        const navInner = organicExtract(navbar, /(<div className="max-w-7xl[^>]+>\s*<div className="relative[^>]+>)/); // SPEED-ORGANIC-SHELL-1107
-        const menuOuter = organicExtract(navbar, /(<div className="bg-\[hsl\(174[^>]+>\s*<div[^>]+>\s*<ul[^>]+>)/); // SPEED-ORGANIC-SHELL-1107
-        const itemClass = organicExtract(navbar, /className="(inline-block px-3 sm:px-4[^\"]+)"/); // SPEED-ORGANIC-SHELL-1107
-        const menu = Array.from(navbar.matchAll(/\{ label: "([^"]+)", href:/g), ([, text]) => `<li><span class="${itemClass}">${escAttr(text)}</span></li>`).join(""); // SPEED-ORGANIC-SHELL-1107
-        if (!menu) throw new Error("SPEED-ORGANIC-SHELL-1107: navbar extraction failed"); // SPEED-ORGANIC-SHELL-1107
-        const main = organicExtract(source, /(<main[\s\S]*?<p>[\s\S]*?<\/p>)/); // SPEED-ORGANIC-SHELL-1107
-        body = organicHtml(`${outer}${nav}${navInner}</div></div>${menuOuter}${menu}</ul></div></div></nav>${main}</div></main></div>`); // SPEED-ORGANIC-SHELL-1107
-      } else { // SPEED-ORGANIC-SHELL-1107
-        const source = organicSource("src/pages/ATT.tsx"); // SPEED-ORGANIC-SHELL-1107
-        const brand = organicExtract(source, /const BRAND = "([^"]+)"/); // SPEED-ORGANIC-SHELL-1107
-        const outer = organicExtract(source, /return \(\s*(<div className="min-h-screen[^>]+>)/); // SPEED-ORGANIC-SHELL-1107
-        const nav = organicExtract(source, /(<nav[\s\S]*?<\/nav>)/).replace('style={{ borderColor: BRAND }}', `style="border-color:${brand}"`).replace(/<BackButton \/>/, "").replace(/<img[^>]+\/>/, ""); // SPEED-ORGANIC-SHELL-1107
-        const section = organicExtract(source, /(<section[\s\S]*?<\/section>)/).replace('style={{ backgroundColor: BRAND }}', `style="background-color:${brand}"`); // SPEED-ORGANIC-SHELL-1107
-        body = organicHtml(`${outer}${nav}${section}</div>`); // SPEED-ORGANIC-SHELL-1107
-      } // SPEED-ORGANIC-SHELL-1107
-      return `<div id="root" data-organic-shell="1107">${body}</div>`; // SPEED-ORGANIC-SHELL-1107
-    }; // SPEED-ORGANIC-SHELL-1107
     const renderHtml = (route: string): string => {
       const meta = buildMeta(route);
       const url = `/${route.replace(/\/index\.html$/, "/")}`; // relative: resolves to whichever host serves the file
@@ -2019,7 +1974,7 @@ const htmlAliasPlugin = (): Plugin => ({
       if (swPg) {
         try {
           const ld = `<script type="application/ld+json" data-sw="1">${swJsonLd(swPg)}</script>`;
-          out = out.replace(/<\/head>/i, () => `  ${ld}\n  </head>`); // SPEED-ORGANIC-SHELL-1107
+          out = out.replace(/<\/head>/i, () => `  ${ld}\n  </head>`).replace(/<div id="root"><\/div>/i, () => swStaticHtml(swPg));
           out = out.replace(/\s*<meta name="keywords"[^>]*>/i, ""); // SWITCHER-1014: sitewide keywords say "refill"
           out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${swPg.title}"`); // SWITCHER-1014
         } catch {
@@ -2074,8 +2029,6 @@ const htmlAliasPlugin = (): Plugin => ({
           /* keep plain shell */
         }
       }
-      const organicScreen = organicFirstScreen(route); // SPEED-ORGANIC-SHELL-1107
-      if (organicScreen) out = out.replace(/<div id="root"><\/div>/i, () => organicScreen); // SPEED-ORGANIC-SHELL-1107
       if (goScreen) {
         const screen = goScreen;
         out = out.replace(/<div id="root"><\/div>/i, () => screen);
