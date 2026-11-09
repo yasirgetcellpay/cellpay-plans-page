@@ -343,12 +343,6 @@ const AP_COPY = {
     placeHint: "Tick the Auto Pay authorization above to continue.",
     termsNote: "",
     gpayNote: "Google Pay: CellPay's payment processor securely saves this Google Pay card so Auto Pay can charge it on each renewal. Auto Pay is run by CellPay, not Google. Cancel anytime with the link above.", // GPAY-AUTOPAY-1008
-    walletApNeedCard: "Auto Pay needs a card on file for renewals. Pay today with Apple Pay or Google Pay as usual — then add a card so next month’s refill can go through.", // WALLET-AP-CARD-1109
-    walletApCardTitle: "Add a card for Auto Pay", // WALLET-AP-CARD-1109
-    walletApCardHint: "We use this card only for Auto Pay renewals. Today’s payment stays on Apple Pay or Google Pay.", // WALLET-AP-CARD-1109
-    walletApOrUntick: "Or turn off Auto Pay to pay with Apple Pay or Google Pay only today.", // WALLET-AP-CARD-1109
-    walletApPlaceHint: "Add a card for Auto Pay (or turn Auto Pay off) to continue.", // WALLET-AP-CARD-1109
-    walletApConsentExtra: "I authorize CellPay to save this card and use it for Auto Pay renewals. Today’s payment is still charged to Apple Pay or Google Pay.", // WALLET-AP-CARD-1109
     dateLocale: "en-US",
   },
   es: {
@@ -366,19 +360,12 @@ const AP_COPY = {
     consentConfirmed: "Acepto los términos de pago automático a continuación y autorizo a CellPay a hacer cargos a esta tarjeta cada 30 días hasta que yo cancele.",
     placeHint: "Marque la autorización de pago automático arriba para continuar.",
     gpayNote: "Google Pay: el procesador de pagos de CellPay guarda de forma segura esta tarjeta de Google Pay para que el pago automático pueda cobrarla en cada renovación. El pago automático lo gestiona CellPay, no Google. Cancele cuando quiera con el enlace de arriba.", // GPAY-AUTOPAY-1008
-    walletApNeedCard: "El pago automático necesita una tarjeta guardada para las renovaciones. Pague hoy con Apple Pay o Google Pay como siempre — luego agregue una tarjeta para que la próxima recarga se pueda cobrar.", // WALLET-AP-CARD-1109
-    walletApCardTitle: "Agregue una tarjeta para el pago automático", // WALLET-AP-CARD-1109
-    walletApCardHint: "Usamos esta tarjeta solo para las renovaciones del pago automático. El pago de hoy sigue con Apple Pay o Google Pay.", // WALLET-AP-CARD-1109
-    walletApOrUntick: "O desactive el pago automático para pagar solo hoy con Apple Pay o Google Pay.", // WALLET-AP-CARD-1109
-    walletApPlaceHint: "Agregue una tarjeta para el pago automático (o desactive el pago automático) para continuar.", // WALLET-AP-CARD-1109
-    walletApConsentExtra: "Autorizo a CellPay a guardar esta tarjeta y usarla para las renovaciones del pago automático. El pago de hoy se cobra igual con Apple Pay o Google Pay.", // WALLET-AP-CARD-1109
     dateLocale: "es-US",
   },
 } as const;
 
 const Checkout = () => {
   const location = useLocation();
-  const walletApCardEnabled = typeof window !== "undefined" && window.location.hostname.startsWith("id-preview--") && !["off", "0"].includes(new URLSearchParams(location.search).get("wallet_ap_card") ?? ""); // WALLET-AP-CARD-1109
   const navigate = useNavigate();
   const { toast } = useToast();
   // CK-0: no router state (direct load, new tab, shared link) -> this tab's saved hand-off (30 min), else resolved below. Never blank.
@@ -472,9 +459,6 @@ const Checkout = () => {
   const [saveCard, setSaveCard] = useState(false);
   const [autoPay, setAutoPay] = useState(false);
   const [autoPayTerms, setAutoPayTerms] = useState(false);
-  const [walletApCardConsent, setWalletApCardConsent] = useState(false); // WALLET-AP-CARD-1109
-  const walletApCardActive = walletApCardEnabled && autoPay && (paymentMethod === "applepay" || paymentMethod === "googlepay"); // WALLET-AP-CARD-1109
-  useEffect(() => { if (!walletApCardActive) setWalletApCardConsent(false); }, [walletApCardActive]); // WALLET-AP-CARD-1109
   const [merchCfgOffer, setMerchCfgOffer] = useState(false); // AUTOPAY-MERCHCFG-1101
   const apAtSubmitRef = useRef(false); // AUTOPAY-MERCHCFG-1101
   const [merchCfgPayOnce, setMerchCfgPayOnce] = useState(false); // AUTOPAY-MERCHCFG-1101
@@ -510,7 +494,7 @@ const Checkout = () => {
   const googlePayRecurringCfg = (checkoutConfigRef.current?.googlePay as Record<string, unknown> | undefined)?.recurringSupported;
   const googlePayRecurringOk = !!gpGate && gpGate.ok === true && gpGate.site !== "off" && googlePayRecurringCfg !== false
     && (googlePayRecurringCfg === true || gpGate.site === "on");
-  const autoPayMethodOk = paymentMethod === "card" || (paymentMethod === "applepay" && applePayRecurringOk) || (paymentMethod === "googlepay" && googlePayRecurringOk) || (walletApCardEnabled && (paymentMethod === "applepay" || paymentMethod === "googlepay")); // WALLET-AP-CARD-1109: preview offer only; existing recurring gates and requests unchanged
+  const autoPayMethodOk = paymentMethod === "card" || (paymentMethod === "applepay" && applePayRecurringOk) || (paymentMethod === "googlepay" && googlePayRecurringOk);
   useEffect(() => {
     if (!autoPayMethodOk) {
       if (autoPay || autoPayTerms) {
@@ -1779,8 +1763,6 @@ const Checkout = () => {
     regionCode.length > 0;
 
   const isEmailValid = isValidEmail(cleanEmail(email)); // DECLINE-RECOVERY-1014
-  const isWalletApCardValid = isValidLuhn(cardDigits) && expiryDigits.length === 4 && Number(expiryDigits.slice(0, 2)) >= 1 && Number(expiryDigits.slice(0, 2)) <= 12 && cardCvv.length >= 3 && cardZip.length >= 5 && !nameDigitsBad && firstName.trim().length > 0 && lastName.trim().length > 0; // WALLET-AP-CARD-1109
-  // WALLET-AP-CARD-1109: card-for-AP collected in UI only until Saurabh confirms payload.
 
   // Per-method required-field validation. Every payment method requires email + phone (already provided).
   const klarnaFix = paymentMethod === "klarna" && !submitting && !isKlarnaValid; // KLARNA-OPEN-1019
@@ -1821,7 +1803,7 @@ const Checkout = () => {
   }
 
   const canSubmit = !ultraBarcodeMissing && agreedTerms && !submitting && !confirmingPay && // ULTRA-BPATH-FIX-1029
-     isEmailValid && methodValid && (!autoPay || autoPayTerms) && !ultraSmart.paused && !(ultraSmart.noHistory && !ultraSmart.acknowledged) && (!walletApCardActive || (isWalletApCardValid && walletApCardConsent)); // ULTRA-SMART-PREVENT-1024 // WALLET-AP-CARD-1109
+     isEmailValid && methodValid && (!autoPay || autoPayTerms) && !ultraSmart.paused && !(ultraSmart.noHistory && !ultraSmart.acknowledged); // ULTRA-SMART-PREVENT-1024
 
   // [OURSIDE-RETRY-1012] Data-error fallback (never resends) + flagged single Retry. Per-session record in sessionStorage
   // "cp_ors:<checkout session id>" ({ fallback_shown, failed_method, retry_offered, retry_clicked }); read by submitTransaction.
@@ -3269,39 +3251,17 @@ const Checkout = () => {
                         <a href="/faq" target="_blank" rel="noopener noreferrer" className="underline font-semibold" style={{ color: brandColor }}>{apCopy.cancelLink}</a>
                         {apCopy.cancelTail}
                       </p>
-                      {paymentMethod === "googlepay" && !walletApCardActive && ( // WALLET-AP-CARD-1109
+                      {paymentMethod === "googlepay" && (
                         <p data-testid="autopay-gpay-note" className="text-sm text-foreground leading-relaxed">{apCopy.gpayNote}</p>
                       )}
                     </div>
 
-                    {walletApCardActive && ( // WALLET-AP-CARD-1109
-                      <> {/* WALLET-AP-CARD-1109 */}
-                        <p data-testid="wallet-ap-need-card" className="text-sm text-foreground leading-relaxed">{apCopy.walletApNeedCard}</p> {/* WALLET-AP-CARD-1109 */}
-                        <fieldset data-testid="wallet-ap-card-block" className="min-w-0 space-y-3 border-t border-border pt-3"> {/* WALLET-AP-CARD-1109 */}
-                          <legend className="font-bold text-sm text-foreground">{apCopy.walletApCardTitle}</legend> {/* WALLET-AP-CARD-1109 */}
-                          <p className="text-sm text-muted-foreground">{apCopy.walletApCardHint}</p> {/* WALLET-AP-CARD-1109 */}
-                          <label className="block text-sm text-foreground">{tr.firstName}<input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="mt-1 w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label> {/* WALLET-AP-CARD-1109 */}
-                          <label className="block text-sm text-foreground">{tr.lastName}<input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className="mt-1 w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label> {/* WALLET-AP-CARD-1109 */}
-                          <label className="block text-sm text-foreground">{tr.cardNumber}<input type="text" inputMode="numeric" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} maxLength={19} className="mt-1 w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label> {/* WALLET-AP-CARD-1109 */}
-                          <label className="block text-sm text-foreground">{tr.expiry}<input type="text" inputMode="numeric" value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} maxLength={5} className="mt-1 w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label> {/* WALLET-AP-CARD-1109 */}
-                          <label className="block text-sm text-foreground">{tr.cvv}<input type="password" inputMode="numeric" autoComplete="off" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} maxLength={4} className="mt-1 w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label> {/* WALLET-AP-CARD-1109 */}
-                          <label className="block text-sm text-foreground">{tr.zip}<input type="text" inputMode="numeric" value={cardZip} onChange={(e) => setCardZip(e.target.value.replace(/\D/g, "").slice(0, 5))} maxLength={5} className="mt-1 w-full h-11 px-4 rounded-lg border border-input bg-background text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label> {/* WALLET-AP-CARD-1109 */}
-                        </fieldset> {/* WALLET-AP-CARD-1109 */}
-                        <p data-testid="wallet-ap-or-untick" className="text-sm text-foreground leading-relaxed">{apCopy.walletApOrUntick}</p> {/* WALLET-AP-CARD-1109 */}
-                      </> // WALLET-AP-CARD-1109
-                    )} {/* WALLET-AP-CARD-1109 */}
 
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input type="checkbox" checked={autoPayTerms} onChange={(e) => setAutoPayTerms(e.target.checked)}
                         className="mt-0.5 h-5 w-5 shrink-0 rounded border-input" style={{ accentColor: brandColor }} />
                       <span data-testid="autopay-consent" className="text-sm font-bold text-foreground">{AP_CYCLE_CONFIRMED ? apCopy.consentConfirmed : apCopy.consent}</span>
                     </label>
-                    {walletApCardActive && ( // WALLET-AP-CARD-1109
-                      <label className="flex items-start gap-3 cursor-pointer"> {/* WALLET-AP-CARD-1109 */}
-                        <input type="checkbox" data-testid="wallet-ap-consent-extra" checked={walletApCardConsent} onChange={(e) => setWalletApCardConsent(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 rounded border-input accent-primary" /> {/* WALLET-AP-CARD-1109 */}
-                        <span className="text-sm font-bold text-foreground">{apCopy.walletApConsentExtra}</span> {/* WALLET-AP-CARD-1109 */}
-                      </label> // WALLET-AP-CARD-1109
-                    )} {/* WALLET-AP-CARD-1109 */}
 
                     {/* ARB-1b: the terms box below is in Spanish on /es, so the English-only note is gone. */}
                     <div className="max-h-48 overflow-y-auto rounded-md border border-border bg-background p-3 text-xs text-muted-foreground leading-relaxed space-y-2">
@@ -3396,9 +3356,9 @@ const Checkout = () => {
               </button>
             )}
 
-            {autoPayMethodOk && autoPay && (!autoPayTerms || (walletApCardActive && (!isWalletApCardValid || !walletApCardConsent))) && ( // WALLET-AP-CARD-1109
+            {autoPayMethodOk && autoPay && !autoPayTerms && (
               <p data-testid="autopay-place-hint" role="status" aria-live="polite" className="text-sm font-semibold text-center" style={{ color: brandColor }}>
-                {walletApCardActive && (!isWalletApCardValid || !walletApCardConsent) ? apCopy.walletApPlaceHint : apCopy.placeHint} {/* WALLET-AP-CARD-1109 */}
+                {apCopy.placeHint}
               </p>
             )}
 
