@@ -1512,6 +1512,37 @@ async function vel1Refuse(p: Record<string, unknown>, method: string | null, ori
   }
 }
 
+// [CARDVEL-1109] STOLEN-CARD-DEFENSES-1109 item 2: distinct-card velocity, CARD payments only. One RPC, cardvel_check (service_role):
+// refuse when this card is the 3rd+ distinct BIN6:last4 in 24h on the same phone, email or device id (mf_did; fp1 never used).
+// QA / not_block exempt in SQL. Kill switch (SQL, no deploy): checkout_guard_controls 'cardvel' = on | shadow | off. Fail-open:
+// 800 ms budget, any error = no check (proxy_guard_events cardvel_failopen). The DB answers refuse=true only in mode on.
+const CARDVEL_TIMEOUT_MS = 800;
+async function cardVelRefuse(p: Record<string, unknown>, m: Mf, origin: string | null): Promise<boolean> {
+  const card = m.bin6 && m.last4 && /^\d{6}$/.test(m.bin6) && /^\d{4}$/.test(m.last4) ? `${m.bin6}:${m.last4}` : null;
+  if (!card) return false;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceKey) return false;
+  const failOpen = (why: string): boolean => {
+    try { recordGuardEvent({ code: "cardvel_failopen", method: "POST", endpoint_shape: `checkout/transaction#${why}`, origin_host: originHost(origin), has_origin: origin !== null }); } catch { /* ignore */ }
+    return false;
+  };
+  try {
+    const pay = asRecord(p.payment);
+    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/cardvel_check`, {
+      method: "POST",
+      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" },
+      body: JSON.stringify({ _phone: text(p.phone_number ?? p.phoneNumber), _email: text(pay.email ?? p.email), _did: m.did, _card: card }),
+      signal: AbortSignal.timeout(CARDVEL_TIMEOUT_MS),
+    });
+    if (!res.ok) { await res.body?.cancel(); return failOpen(`http_${res.status}`); }
+    const r = asRecord(await res.json());
+    return r.refuse === true;
+  } catch (e) {
+    return failOpen(e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError") ? "timeout" : "error");
+  }
+}
+
 // [FRAUD-MULTIBLOCK-1012] Multi-factor block keys: device fingerprint (own, fp1:), device id, exact card (BIN6:last4 + MMYY) and
 // normalized billing address. Built from the checkout payload inside the proxy; the full card number never leaves this function
 // except as a keyed hash (mf_card_fp). Kill switch checkout_guard_controls.mfblock = on | shadow | off (missing row = off).
@@ -3231,6 +3262,15 @@ serve(async (req) => {
         }
       } catch { /* vel1 fails open */ }
     }
+    // [CARDVEL-1109] Distinct-card velocity (card only). Same calm 200 as the blocklist; nothing is charged. Fail-open.
+    if (shouldLogTransaction && (paymentMethod || "").toLowerCase() === "cardpayment") {
+      try {
+        if (await cardVelRefuse(payloadRecord, mf ?? buildMf(payloadRecord, cpDev, paymentMethod), guardOrigin)) {
+          return new Response(JSON.stringify({ success: false, blocked: true, code: "RETRY_LATER", retry_after: 1800, message: "We couldn't process this card right now. Please try again in about 30 minutes or use a different payment method. You were not charged." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      } catch { /* cardvel fails open */ }
+    }
+
     // PLAN-RANGES-1016: RETRY-BLOCK (30 min, same phone + plan + amount after CellPay's refill-error result). Before Fix F. Fail-open.
     if (shouldLogTransaction) {
       const rbLeft = await retryBlockCheck(payloadRecord);
