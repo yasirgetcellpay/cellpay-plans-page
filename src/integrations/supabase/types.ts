@@ -2936,6 +2936,10 @@ export type Database = {
         }[]
       }
       blocklist_norm: { Args: { _raw: string; _type: string }; Returns: string }
+      cardvel_check: {
+        Args: { _card: string; _did: string; _email: string; _phone: string }
+        Returns: Json
+      }
       carrier_assist_hash: { Args: { _phone: string }; Returns: string }
       carrier_hint: {
         Args: {
@@ -3523,6 +3527,7 @@ export type Database = {
         }
         Returns: Json
       }
+      scd_is_qa: { Args: { _em: string; _ph: string }; Returns: boolean }
       set_tx_load_text: {
         Args: { _id: string; _text: string }
         Returns: boolean
