@@ -717,11 +717,7 @@ const GoLander = ({
             </Accordion>
           </section>
         </>
-      ) : loading ? (
-        <div className="flex justify-center items-start py-16 flex-1 min-h-screen">
-          <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
+      ) : ( // GO-SPEED-HYDRATION-1110: one card tree for loading + loaded (no full-height spinner)
         <>
           <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4">
             <div className="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">
@@ -766,6 +762,7 @@ const GoLander = ({
                 {lang === "es" ? <>Sí, envíenme recordatorios de pago y mensajes de Text-to-Pay de CellPay a este número. La frecuencia de mensajes varía. Pueden aplicar tarifas de mensajes y datos. Responda HELP para ayuda, STOP para cancelar. El consentimiento no es una condición de compra. Vea nuestros <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Términos de SMS</a> y <a href="/es/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Política de Privacidad</a>.</> : <>Yes, text me payment reminders and Text-to-Pay messages from CellPay at this number. Msg frequency varies. Msg &amp; data rates may apply. Reply HELP for help, STOP to cancel. Consent is not a condition of purchase. See our <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>SMS Terms</a> and <a href="/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Privacy Policy</a>.</>}{/* // SMS-34332-PHONE-1106 */}
               </span>{/* // SMS-34332-PHONE-1106 */}
             </label>{/* // SMS-34332-PHONE-1106 */}
+            {loading && <div className="flex justify-center py-4"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}{/* // GO-SPEED-HYDRATION-1110 */}
 
               {showRange && (
                 <>
@@ -840,6 +837,7 @@ const GoLander = ({
             </div>
           </div>
 
+          {loading ? <div className="flex justify-center items-start py-16 flex-1 min-h-screen" aria-busy="true" /> : (<>{/* // GO-SPEED-HYDRATION-1110 */}
           {carrierSlug === "ultra-mobile" && <div className="max-w-[420px] mx-auto px-4 pb-4"><UltraSmartNotice smart={ultraSmart} lang={lang} onContinue={() => { if (ultraSmart.usual) void handlePlanPayNow({ price: `$${ultraSmart.usual.amount}`, highlight: ultraSmart.usual.name || "" }); }} /></div>}{/* // ULTRA-SMART-PREVENT-1024 */}
           {carrierSlug === "tmobile" && <div className="max-w-[420px] mx-auto px-4 pb-4"><TmoLastPlanNotice smart={tmoSmart} lang={lang} /></div>}{/* // REFILL-PREVENT-TMO-1026 */}
           {showFixedPlans && plans.length > 0 && (
@@ -914,6 +912,7 @@ const GoLander = ({
               ))}
             </Accordion>
           </section>
+          </>)}{/* // GO-SPEED-HYDRATION-1110 */}
         </>
       )}
 
