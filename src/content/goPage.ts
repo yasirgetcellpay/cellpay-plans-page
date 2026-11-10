@@ -151,6 +151,22 @@ export const goTileName = (slug: string, lang: GoPageLang, highlight: string): s
     const m = /^AT&T RTR (\$\d+(?:\.\d+)?)\s*$/.exec(highlight.trim());
     if (m) return lang === "es" ? `Pago de AT&T Prepago ${m[1]}` : `AT&T Prepaid ${m[1]} Payment`;
   }
+  if (slug === "verizon") {
+    const m = /^(\$\d+(?:\.\d+)?) Refill\s*$/.exec(highlight.trim());
+    if (m) return lang === "es" ? `Pago de Verizon Prepago ${m[1]}` : `Verizon Prepaid ${m[1]} Payment`;
+  }
+  if (slug === "total-wireless") {
+    const m = /^(\$\d+(?:\.\d+)?) Refill\s*$/.exec(highlight.trim());
+    if (m) return lang === "es" ? `Pago de Total Wireless ${m[1]}` : `Total Wireless ${m[1]} Payment`;
+  }
+  if (slug === "pageplus") {
+    const m = /^(\$\d+(?:\.\d+)?) Refill\s*$/.exec(highlight.trim());
+    if (m) return lang === "es" ? `Pago de Page Plus ${m[1]}` : `Page Plus ${m[1]} Payment`;
+  }
+  if (slug === "tracfone") {
+    const m = /^(\$\d+(?:\.\d+)?) Refill\s*$/.exec(highlight.trim());
+    if (m) return lang === "es" ? `Pago de TracFone ${m[1]}` : `TracFone ${m[1]} Payment`;
+  }
   if (slug === "s1" && /\b3[- ]?Month\b/i.test(highlight)) return lang === "es" ? "Plan Ilimitado de 3 meses" : "3-month Unlimited plan";
   return highlight;
 };
