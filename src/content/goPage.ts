@@ -149,7 +149,7 @@ export const goCarrierSentence = (slug: string, lang: GoPageLang, fallbackName =
 export const goTileName = (slug: string, lang: GoPageLang, highlight: string): string => {
   if (slug === "topup-at") {
     const m = /^AT&T RTR (\$\d+(?:\.\d+)?)\s*$/.exec(highlight.trim());
-    if (m) return lang === "es" ? `Recarga AT&T Prepago ${m[1]}` : `AT&T Prepaid ${m[1]} Refill`;
+    if (m) return lang === "es" ? `Pago de AT&T Prepago ${m[1]}` : `AT&T Prepaid ${m[1]} Payment`;
   }
   if (slug === "s1" && /\b3[- ]?Month\b/i.test(highlight)) return lang === "es" ? "Plan Ilimitado de 3 meses" : "3-month Unlimited plan";
   return highlight;
