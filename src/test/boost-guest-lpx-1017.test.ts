@@ -53,7 +53,7 @@ describe("BOOST-GUEST-LPX-1017", () => {
     expect(goAutoPayLine("topup-at", "en")).toContain("refill");
   });
 
-  it("preserves T-Mobile Spanish Auto Pay recarga wording", () => {
-    expect(goAutoPayLine("tmobile", "es")).toContain("recarga");
+  it("uses pago wording in T-Mobile Spanish Auto Pay", () => { // SPEC-GO-ES-RECARGA-1110
+    expect(goAutoPayLine("tmobile", "es")).toContain("pago"); // SPEC-GO-ES-RECARGA-1110
   });
 });

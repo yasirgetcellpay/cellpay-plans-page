@@ -32,7 +32,7 @@ export const goKeywordsFor = (slug: string, lang: "en" | "es"): string | undefin
 
 export const goAutoPayLine = (slug: string, lang: "en" | "es"): string => {
   if (slug === "topup-at" && lang === "en") return "Optional: Auto Pay so you never miss a bill payment. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link."; // GO-ATT-FAQLD-COPY-1102
-  const pay = goUsesPayWording(slug) || (lang === "es" && slug === "tmobile"); // ES-PAGAR-TMO-1025
+  const pay = goUsesPayWording(slug) || lang === "es"; // SPEC-GO-ES-RECARGA-1110
   return lang === "es"
     ? "Opcional: Auto Pago para no olvidar su " + (pay ? "pago" : "recarga") + ". Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marque o llegue desde un enlace de Pago Automático."
     : "Optional: Auto Pay so you never miss a " + (pay ? "payment" : "refill") + ". You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link.";
@@ -133,7 +133,7 @@ export const goFaqsEs = (c: string, payIn = false) => { const pay = payIn || c =
 export const goFaqList = (slug: string, lang: GoPageLang, fallbackName = ""): Array<{ q: string; a: string }> => {
   const c = GO_AD_NAMES[slug] ?? fallbackName;
   const r = refundFaq(slug, lang);
-  return [...(lang === "es" ? goFaqsEs(c, goUsesPayWording(slug)) : goFaqsEn(c, goUsesPayWording(slug))), ...(r ? [r] : [])];
+  return [...(lang === "es" ? goFaqsEs(c, true) : goFaqsEn(c, goUsesPayWording(slug))), ...(r ? [r] : [])]; // SPEC-GO-ES-RECARGA-1110
 };
 export const goFaqJsonLd = (slug: string, lang: GoPageLang): string => JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", inLanguage: lang, mainEntity: goFaqList(slug, lang).map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }); // GO-ATT-FAQLD-COPY-1102
 

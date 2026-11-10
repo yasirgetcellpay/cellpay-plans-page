@@ -1171,7 +1171,7 @@ const App = () => (
               logo={attLogo}
               h1="Pague AT&T Prepaid en línea"
               title="Pague AT&T Prepaid en línea | CellPay"
-              description="Pague su AT&T Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              description="Pague su AT&T Prepago en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." // SPEC-GO-ES-RECARGA-1110
             />
           }
         />
@@ -1187,7 +1187,7 @@ const App = () => (
               logo={attLogo}
               h1="Pague AT&T Prepaid en línea"
               title="Pague AT&T Prepaid en línea | CellPay"
-              description="Pague su AT&T Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              description="Pague su AT&T Prepago en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." // SPEC-GO-ES-RECARGA-1110
             />
           }
         />
@@ -1400,7 +1400,7 @@ const App = () => (
               logo={verizonLogo}
               h1="Pague Verizon Prepaid en línea"
               title="Pague Verizon Prepaid en línea | CellPay"
-              description="Pague su Verizon Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              description="Pague su Verizon Prepago en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." // SPEC-GO-ES-RECARGA-1110
             />
           }
         />
@@ -1416,7 +1416,7 @@ const App = () => (
               logo={verizonLogo}
               h1="Pague Verizon Prepaid en línea"
               title="Pague Verizon Prepaid en línea | CellPay"
-              description="Pague su Verizon Prepaid en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar."
+              description="Pague su Verizon Prepago en línea. Sin cuenta. Escriba el número, elija el monto y pague. Cargo por servicio bajo, mostrado antes de pagar." // SPEC-GO-ES-RECARGA-1110
             />
           }
         />
