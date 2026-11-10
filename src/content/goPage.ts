@@ -94,7 +94,7 @@ export const goFaqsEn = (c: string, pay = false) => [
 ];
 
 /** Very simple Spanish. Never "cualquier". No refunds / 24/7 / instant / authorized. */
-export const goFaqsEs = (c: string, payIn = false) => { const pay = payIn || c === "T-Mobile"; return [ // ES-PAGAR-TMO-1025: ES T-Mobile uses payment wording
+export const goFaqsEs = (c: string, payIn = false) => { const pay = true; return [ // SPEC-GO-ES-RECARGA-1110
   {
     q: `¿Puedo pagar mi factura de ${c} sin cuenta?`,
     a: `Sí. No necesita cuenta ni iniciar sesión. Escriba el número de teléfono de ${c}, elija el monto o plan y pague como invitado.`,
