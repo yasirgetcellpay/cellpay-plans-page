@@ -9,6 +9,12 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import CcpaBar from "@/components/CcpaBar"; // CCPA-BANNER-1029
 import Home from "./pages/Home.tsx";
 import DynamicCarrier from "./pages/DynamicCarrier.tsx";
+import NotFound from "./pages/NotFound.tsx";
+import AmountRedirect from "./pages/AmountRedirect.tsx";
+import LegacyAmountRedirect from "./pages/LegacyAmountRedirect.tsx";
+import StraightTalk from "./pages/StraightTalk.tsx";
+import Verizon from "./pages/Verizon.tsx";
+import ATT from "./pages/ATT.tsx";
 // SPEED-1006: paid-ad landers (/go/*, /es/go/*) load with the main bundle, so the headline paints in the first render (no extra file to wait for).
 import GoLander from "./pages/GoLander.tsx";
 import { Toaster } from "@/components/ui/toaster";
@@ -122,12 +128,6 @@ const Checkout = lazyPage(loadCheckout);
 const PaymentCallback = lazyPage(() => import("./pages/PaymentCallback.tsx")); // GO-MAINJS-SHRINK-1102
 const OrderConfirmation = lazyPage(() => import("./pages/OrderConfirmation.tsx")); // GO-MAINJS-SHRINK-1102
 const CashAppReturn = lazyPage(() => import("./pages/CashAppReturn.tsx")); // GO-MAINJS-SHRINK-1102
-const NotFound = lazyPage(() => import("./pages/NotFound.tsx")); // GO-ATT-LCP-1110B
-const AmountRedirect = lazyPage(() => import("./pages/AmountRedirect.tsx")); // GO-ATT-LCP-1110B
-const LegacyAmountRedirect = lazyPage(() => import("./pages/LegacyAmountRedirect.tsx")); // GO-ATT-LCP-1110B
-const StraightTalk = lazyPage(() => import("./pages/StraightTalk.tsx")); // GO-ATT-LCP-1110B
-const Verizon = lazyPage(() => import("./pages/Verizon.tsx")); // GO-ATT-LCP-1110B
-const ATT = lazyPage(() => import("./pages/ATT.tsx")); // GO-ATT-LCP-1110B
 const Profile = lazyPage(() => import("./pages/Profile.tsx"));
 const Orders = lazyPage(() => import("./pages/Orders.tsx"));
 const ForgotPassword = lazyPage(() => import("./pages/ForgotPassword.tsx"));
