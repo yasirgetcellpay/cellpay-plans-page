@@ -1,5 +1,5 @@
 import { tmoCapMax, tmoCapBlocked, tmoCapMsg } from "@/lib/tmoCap"; // TMO-CAP-200-1022
-import { useState, useCallback, useEffect, useRef, useSyncExternalStore } from "react"; // VZ-PREPAID-GUARD-1017 // GO-PRERENDER-1110
+import { useState, useCallback, useEffect, useRef } from "react"; // VZ-PREPAID-GUARD-1017
 import { Phone, DollarSign, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom"; // VZ-PREPAID-GUARD-1017
@@ -217,10 +217,7 @@ const GoLander = ({
   const lpx = goLpxForCarrier(carrierSlug, lang === "es" ? "es" : "en"); // LPX-1010
   const { toast } = useToast();
 
-  const hydrated = useSyncExternalStore(() => () => {}, () => true, () => false); // GO-PRERENDER-1110
-  const deferredPrefill = useRef(typeof window !== "undefined" && (window as any).__GO_SSR_HYDRATING__ === true); // GO-PRERENDER-1110
-  const [phone, setPhone] = useState(() => deferredPrefill.current ? "" : formatPhone(takeCheckoutPrefill(carrierSlug))); // GO-PRERENDER-1110
-  useEffect(() => { if (deferredPrefill.current) { deferredPrefill.current = false; setPhone(formatPhone(takeCheckoutPrefill(carrierSlug))); } }, [carrierSlug]); // GO-PRERENDER-1110
+  const [phone, setPhone] = useState(() => formatPhone(takeCheckoutPrefill(carrierSlug)));
   const [smsOptIn, setSmsOptIn] = useState(false); // SMS-34332-PHONE-1106
   const smsOptInRef = useRef(false); // SMS-34332-PHONE-1106
   const [amount, setAmount] = useState("");
@@ -231,8 +228,6 @@ const GoLander = ({
   // Optional Auto Pay interest on the lander — never pre-checked, never required to pay.
   // Real Auto Pay opt-in stays unchecked-by-default on Checkout.
   const [autoPayInterest, setAutoPayInterest] = useState(false);
-  const autoPayRef = useRef<HTMLInputElement>(null); // GO-PRERENDER-1110
-  useEffect(() => { const el = autoPayRef.current; if (hydrated && el && el.checked !== autoPayInterest) el.checked = autoPayInterest; }, [hydrated, autoPayInterest]); // GO-PRERENDER-1110
 
   const [carrierName, setCarrierName] = useState(initialName);
   // TOP4-T1-1009: "T-Mobile Prepaid" / "Verizon Prepaid" in labels; carrierName (API name) still goes to checkout unchanged.
@@ -533,7 +528,7 @@ const GoLander = ({
         : "No phone call needed. Pay Boost online in 3 steps."
       : null;
   // GO-COPY-1008: visible "En español" switch on English /go pages (every /go page has an /es/go twin).
-  const esHref = !isEs ? `/es${location.pathname}` : null; // GO-PRERENDER-1110
+  const esHref = !isEs && typeof window !== "undefined" ? `/es${window.location.pathname}` : null;
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
   const autoPayLine = goAutoPayLine(carrierSlug, isEs ? "es" : "en"); // LPX-1017
   const amountHelp = goUsesPayWording(carrierSlug) ? (isEs ? "Ingrese el monto que desea pagar" : "Enter the amount you want to pay") : (isEs && carrierSlug === "tmobile") ? "Ingrese el monto que desea pagar" : tr.enterAmount; // LPX-1017 // ES-PAGAR-TMO-GOLANDER-1025
@@ -608,7 +603,7 @@ const GoLander = ({
               </label>{/* // METRO-FIRSTSCREEN-1023b */}
               <div className="relative">{/* // METRO-FIRSTSCREEN-1023b */}
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />{/* // METRO-FIRSTSCREEN-1023b */}
-                {hydrated ? <input id="go-phone-input" name="phone" type="tel" value={phone} onChange={handlePhoneChange} placeholder={tr.phonePlaceholder} aria-label={firstScreenPhoneLabel ?? (isEs ? "Ingrese su número de teléfono de Metro PCS" : "Enter Your Metro PCS Phone Number")} className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" /> : <div className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-muted-foreground text-center flex items-center justify-center">{tr.phonePlaceholder}</div>}{/* // GO-PRERENDER-1110 */}
+                <input id="go-phone-input" name="phone" type="tel" value={phone} onChange={handlePhoneChange} placeholder={tr.phonePlaceholder} aria-label={firstScreenPhoneLabel ?? (isEs ? "Ingrese su número de teléfono de Metro PCS" : "Enter Your Metro PCS Phone Number")} className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" />{/* // METRO-FIRSTSCREEN-1023b // FIRSTSCREEN-PAY-EXTEND-1026 */}
               </div>{/* // METRO-FIRSTSCREEN-1023b */}
             </div> // METRO-FIRSTSCREEN-1023b
           )}
@@ -629,7 +624,6 @@ const GoLander = ({
         <div className="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">
           <label className="flex items-start gap-2 cursor-pointer">
             <input
-              ref={autoPayRef} // GO-PRERENDER-1110
               type="checkbox"
               checked={autoPayInterest}
               onChange={(e) => setAutoPayInterest(e.target.checked)}
@@ -741,7 +735,7 @@ const GoLander = ({
               </label>
               <div className="relative mb-3">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-                {hydrated ? <input // GO-PRERENDER-1110
+                <input
                   id="go-phone-input"
                   name="phone"
                   type="tel"
@@ -751,7 +745,7 @@ const GoLander = ({
                   aria-label={tr.enterPhoneLabel(shownName)}
                   className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
                   style={{ "--tw-ring-color": bc } as React.CSSProperties}
-                /> : <div className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-muted-foreground text-center flex items-center justify-center">{tr.phonePlaceholder}</div>} {/* // GO-PRERENDER-1110 */}
+                />
               </div>
               </>}{/* // METRO-FIRSTSCREEN-1023b */}
               {lineNote && <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 -mt-2">{lineNote}</p>}
@@ -764,8 +758,8 @@ const GoLander = ({
                 <p className="text-[10px] sm:text-xs text-destructive mb-2 -mt-1">{tr.enterAll10}</p>
               )}
 
-            <label className={`flex items-start gap-2 mt-3 mb-3 text-left${hydrated ? " cursor-pointer" : ""}`} data-sms-optin="1020">{/* // GO-PRERENDER-1110 */}
-              {hydrated ? <input type="checkbox" data-testid="sms-optin" checked={smsOptIn} onChange={(e) => { setSmsOptIn(e.target.checked); smsOptInRef.current = e.target.checked; }} className="mt-0.5 h-4 w-4 shrink-0" /> : <span aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />}{/* // GO-PRERENDER-1110 */}
+            <label className="flex items-start gap-2 mt-3 mb-3 text-left cursor-pointer" data-sms-optin="1020">{/* // SMS-34332-PHONE-1106 */}
+              <input type="checkbox" data-testid="sms-optin" checked={smsOptIn} onChange={(e) => { setSmsOptIn(e.target.checked); smsOptInRef.current = e.target.checked; }} className="mt-0.5 h-4 w-4 shrink-0" />{/* // SMS-34332-PHONE-1106 */}
               <span className="text-xs text-muted-foreground leading-snug">{/* // GO-SMS-LCP-1106-REVERT */}
                 {lang === "es" ? <>Sí, envíenme recordatorios de pago y mensajes de Text-to-Pay de CellPay a este número. La frecuencia de mensajes varía. Pueden aplicar tarifas de mensajes y datos. Responda HELP para ayuda, STOP para cancelar. El consentimiento no es una condición de compra. Vea nuestros <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Términos de SMS</a> y <a href="/es/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Política de Privacidad</a>.</> : <>Yes, text me payment reminders and Text-to-Pay messages from CellPay at this number. Msg frequency varies. Msg &amp; data rates may apply. Reply HELP for help, STOP to cancel. Consent is not a condition of purchase. See our <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>SMS Terms</a> and <a href="/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Privacy Policy</a>.</>}{/* // SMS-34332-PHONE-1106 */}
               </span>{/* // SMS-34332-PHONE-1106 */}

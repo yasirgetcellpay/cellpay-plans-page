@@ -1,5 +1,4 @@
-import { build, defineConfig, type Plugin } from "vite"; // GO-PRERENDER-1110
-import { pathToFileURL } from "node:url"; // GO-PRERENDER-1110
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import fs from "fs";
@@ -490,8 +489,7 @@ const goCrit1017 = (out: string, setup: GoCrit1017 | null): string => {
 const htmlAliasPlugin = (): Plugin => ({
   name: "lovable-html-route-aliases",
   apply: "build",
-  async closeBundle() { // GO-PRERENDER-1110
-    if (process.env.GO_SSR_BUILD === "1") return; // GO-PRERENDER-1110
+  closeBundle() {
     const outDir = path.resolve(__dirname, "dist");
     const indexPath = path.join(outDir, "index.html");
     if (!fs.existsSync(indexPath)) {
@@ -2101,40 +2099,6 @@ const htmlAliasPlugin = (): Plugin => ({
     } catch {
       /* keep plain index.html */
     }
-
-    const ssrDir = path.resolve(__dirname, "node_modules/.cache/go-ssr"); // GO-PRERENDER-1110
-    const ssrRoutes = ["boost", "metro", "simple-mobile", "cricket", "att", "ultra", "straight-talk", "net10", "h2o", "lyca", "tmobile", "verizon", "pageplus", "totalwireless", "tracfone"].flatMap((carrier) => ["go/", "es/go/"].flatMap((prefix) => [`${prefix}${carrier}.html`, `${prefix}${carrier}/index.html`])); // GO-PRERENDER-1110
-    let renderGo: ((url: string) => string) | undefined; let ssrFailure = "SSR unavailable"; let ssrCount = 0; const ssrStarted = performance.now(); // GO-PRERENDER-1110
-    const previousSsrBuild = process.env.GO_SSR_BUILD; // GO-PRERENDER-1110
-    try { // GO-PRERENDER-1110
-      process.env.GO_SSR_BUILD = "1"; // GO-PRERENDER-1110
-      try { // GO-PRERENDER-1110
-        await build({ root: __dirname, resolve: { alias: { "@": path.resolve(__dirname, "./src") } }, build: { ssr: "src/entry-go-ssr.tsx", outDir: ssrDir, emptyOutDir: true, copyPublicDir: false } }); // GO-PRERENDER-1110
-        const bundle = fs.readdirSync(ssrDir).find((file) => /^entry-go-ssr\.(m?js)$/.test(file)); // GO-PRERENDER-1110
-        if (!bundle) throw new Error("Missing SSR entry"); // GO-PRERENDER-1110
-        renderGo = (await import(/* @vite-ignore */ pathToFileURL(path.join(ssrDir, bundle)).href)).renderGo; // GO-PRERENDER-1110
-        console.log(`[GO-PRERENDER] nested-build-ms=${Math.round(performance.now() - ssrStarted)}`); // GO-PRERENDER-1110
-      } catch (error) { ssrFailure = error instanceof Error ? error.message : String(error); } // GO-PRERENDER-1110
-      finally { if (previousSsrBuild === undefined) delete process.env.GO_SSR_BUILD; else process.env.GO_SSR_BUILD = previousSsrBuild; } // GO-PRERENDER-1110
-      for (const route of ssrRoutes) { // GO-PRERENDER-1110
-        try { // GO-PRERENDER-1110
-          if (!renderGo) throw new Error(ssrFailure); // GO-PRERENDER-1110
-          const file = path.join(outDir, route); const shell = fs.readFileSync(file, "utf8"); const markup = renderGo("/" + route.replace(/\/index\.html$/, "")); // GO-PRERENDER-1110
-          const consent = route.startsWith("es/") ? "Sí, envíenme recordatorios de pago y mensajes de Text-to-Pay de CellPay a este número." : "Yes, text me payment reminders and Text-to-Pay messages from CellPay at this number."; // GO-PRERENDER-1110
-          if (!markup.includes(consent)) throw new Error("Missing exact consent disclosure"); // GO-PRERENDER-1110
-          const rootTag = '<div id="root" data-go-prerender="1">'; const start = shell.indexOf(rootTag); // GO-PRERENDER-1110
-          if (start < 0) throw new Error("Missing prerender root"); // GO-PRERENDER-1110
-          const tags = /<div\b[^>]*>|<\/div>/g; tags.lastIndex = start + rootTag.length; let depth = 1; let end = -1; let tag: RegExpExecArray | null; // GO-PRERENDER-1110
-          while ((tag = tags.exec(shell))) { depth += tag[0].startsWith("</") ? -1 : 1; if (!depth) { end = tag.index; break; } } // GO-PRERENDER-1110
-          if (end < 0) throw new Error("Unbalanced prerender root"); // GO-PRERENDER-1110
-          const css = Array.from(shell.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g), (match) => match[1]).join("\n"); // GO-PRERENDER-1110
-          const cssClasses = new Set(Array.from(css.matchAll(/\.((?:\\[0-9a-fA-F]{1,6}\s?|\\.|[\w-])+)/g), (match) => match[1].replace(/\\([0-9a-fA-F]{1,6})\s?|\\(.)/g, (_all, hex, char) => hex ? String.fromCodePoint(parseInt(hex, 16)) : char))); // GO-PRERENDER-1110
-          const missingClasses = [...new Set(Array.from(markup.matchAll(/\sclass="([^"]*)"/g)).flatMap((match) => match[1].split(/\s+/)))].filter((name) => name && !cssClasses.has(name)); // GO-PRERENDER-1110
-          if (missingClasses.length) console.log(`[GO-PRERENDER] missing-css ${route}: ${missingClasses.join(",")}`); // GO-PRERENDER-1110
-          fs.writeFileSync(file, shell.slice(0, start) + '<div id="root" data-go-prerender="1" data-go-ssr="1">' + markup + shell.slice(end)); ssrCount++; // GO-PRERENDER-1110
-        } catch (error) { console.log(`[GO-PRERENDER] fallback ${route}: ${error instanceof Error ? error.message : String(error)}`); } // GO-PRERENDER-1110
-      } // GO-PRERENDER-1110
-    } finally { fs.rmSync(ssrDir, { recursive: true, force: true }); console.log(`[GO-PRERENDER] ssr=${ssrCount}/60 fallback=${60 - ssrCount}`); } // GO-PRERENDER-1110
 
     // Build regression check: every route in HTML_ROUTES must exist in dist/
     // with non-empty HTML content. Fails the build if anything is missing so

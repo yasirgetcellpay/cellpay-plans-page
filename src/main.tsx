@@ -1,18 +1,17 @@
-import { createRoot, hydrateRoot } from "react-dom/client"; // GO-PRERENDER-1110
+import { createRoot } from "react-dom/client";
 import App, { preloadHowToPay, isHowToPayPath } from "./App.tsx";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import "./index.css";
 import { enforceRefillHostNoindex } from "./lib/refillNoindex"; // REFILL-NOINDEX-P3-1105
 
 enforceRefillHostNoindex(); // REFILL-NOINDEX-P3-1105
-const rootEl = document.getElementById("root"); // GO-PRERENDER-1110
-if (!rootEl) throw new Error("Missing application root"); // GO-PRERENDER-1110
-const tree = <AppErrorBoundary><App /></AppErrorBoundary>; // GO-PRERENDER-1110
-const ssr = rootEl.getAttribute("data-go-ssr") === "1" && /^\/(es\/)?go\/[^/]+(\.html)?\/?$/.test(location.pathname); // GO-PRERENDER-1110
-const mount = () => { // GO-PRERENDER-1110
-  if (ssr) { (window as any).__GO_SSR_HYDRATING__ = true; hydrateRoot(rootEl, tree); } // GO-PRERENDER-1110
-  else createRoot(rootEl).render(tree); // GO-PRERENDER-1110
-}; // GO-PRERENDER-1110
+const rootEl = document.getElementById("root")!;
+const mount = () =>
+  createRoot(rootEl).render(
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
+  );
 
 // SPEED-1006b: the /go ad landers ship a static copy of their first screen (vite.config.ts, data-go-prerender).
 // Let the browser paint it first, then React replaces it with the same markup (nothing moves).
