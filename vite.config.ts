@@ -1435,7 +1435,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<section class="text-primary-foreground" style="background-color:${look.color}">` +
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">` +
         `<h1 class="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">${escAttr(content.h1)}</h1>` +
-        (!isEs && slug === "att" && !noCallLine // GO-ATT-LCP-1111B
+        (!isEs && (slug === "att" || slug === "simple-mobile") && !noCallLine // GO-ATT-LCP-1111B // GO-SM-LCP-1112: same static lead block for EN /go/simple-mobile (shell only)
           ? `<p class="text-xs sm:text-sm opacity-90 mt-1" style="padding-bottom:0.5rem">${tagline}<br>${goStaticSentence(route)}<br><a href="${escAttr(esHref as string)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>` // GO-ATT-LCP-1111B
           : ( // GO-ATT-LCP-1111B
           `<p class="text-xs sm:text-sm opacity-90 mt-1">${tagline}</p>` +
