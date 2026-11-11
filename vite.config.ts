@@ -1435,15 +1435,12 @@ const htmlAliasPlugin = (): Plugin => ({
         `<section class="text-primary-foreground" style="background-color:${look.color}">` +
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">` +
         `<h1 class="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">${escAttr(content.h1)}</h1>` +
-        (!isEs && slug === "att" && !noCallLine // GO-ATT-LCP-1111B
-          ? `<p class="text-xs sm:text-sm opacity-90 mt-1 mb-2">${tagline}<br>${goStaticSentence(route)}<br><a href="${escAttr(esHref as string)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>` // GO-ATT-LCP-1111B
-          : ( // GO-ATT-LCP-1111B
-          `<p class="text-xs sm:text-sm opacity-90 mt-1">${tagline}</p>` +
-          (goStaticSentence(route) ? `<p class="text-xs sm:text-sm opacity-90 mt-1">${goStaticSentence(route)}</p>` : "") +
-          (noCallLine ? `<p class="text-xs sm:text-sm font-bold mt-1">${noCallLine}</p>` : "") +
-          (esHref
-            ? `<p class="text-xs sm:text-sm mt-1"><a href="${escAttr(esHref)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>`
-            : ""))) + // GO-ATT-LCP-1111B
+        `<p class="text-xs sm:text-sm opacity-90 mt-1">${tagline}</p>` +
+        (goStaticSentence(route) ? `<p class="text-xs sm:text-sm opacity-90 mt-1">${goStaticSentence(route)}</p>` : "") +
+        (noCallLine ? `<p class="text-xs sm:text-sm font-bold mt-1">${noCallLine}</p>` : "") +
+        (esHref
+          ? `<p class="text-xs sm:text-sm mt-1"><a href="${escAttr(esHref)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>`
+          : "") +
         `</div></section>` +
         `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">` +
         `<div class="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">` +
