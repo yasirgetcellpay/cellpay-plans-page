@@ -251,7 +251,9 @@ const GoLander = ({
 
   // noindex + ads SEO (static shells also ship noindex)
   useEffect(() => {
-    applySeoHead({ title: lpx?.title ?? title, description: feeCopy1019(carrierSlug, lang, goFeeCopy(description)), keywords: goKeywordsFor(carrierSlug, lang === "es" ? "es" : "en"), path: typeof window !== "undefined" ? window.location.pathname : "/" }); // LPX-1017 // METRO-FEECOPY-1019
+    const seoPath = typeof window !== "undefined" ? window.location.pathname : "/"; // SPEC-GO-EN-REFILL-1110
+    const seoKeywords = (seoPath === "/go/simple" || seoPath === "/go/simple/") ? undefined : goKeywordsFor(carrierSlug, lang === "es" ? "es" : "en"); // SPEC-GO-EN-REFILL-1110
+    applySeoHead({ title: lpx?.title ?? title, description: feeCopy1019(carrierSlug, lang, goFeeCopy(description)), keywords: seoKeywords, path: seoPath }); // LPX-1017 // METRO-FEECOPY-1019 // SPEC-GO-EN-REFILL-1110
     let tag = document.querySelector('meta[name="robots"]');
     if (!tag) {
       tag = document.createElement("meta");
@@ -535,7 +537,7 @@ const GoLander = ({
   const faqName = GO_AD_NAMES[carrierSlug] ?? initialName; // ADS-FOLLOWUPS-1008: ad-style name in the FAQs only
   // TOP4-T2A-1009: + "What if my payment doesn't go through?" (T-Mobile, AT&T, Simple Mobile, Verizon only); also in the FAQPage JSON-LD below. // SIMPLE-PUSH-1023
   const goRefundFaq = refundFaq(carrierSlug, isEs ? "es" : "en");
-  const faqs = [...(isEs ? goFaqsEs(faqName, goUsesPayWording(carrierSlug)) : goFaqsEn(faqName, goUsesPayWording(carrierSlug))), ...(goRefundFaq ? [goRefundFaq] : [])]; // LPX-1017
+  const faqs = [...(isEs ? goFaqsEs(faqName, true) : goFaqsEn(faqName, true)), ...(goRefundFaq ? [goRefundFaq] : [])]; // SPEC-GO-EN-REFILL-1110
   // TOP4-T2A-1009: "active line" note under the number field (same in the loading and loaded layouts, so nothing moves).
   const lineNote = activeLineNote(carrierSlug, isEs ? "es" : "en");
   // SPEED-WWW-1008: while the carrier view loads, Cricket (amount range, no plan grid) shows its loaded layout (same form, pay bar
