@@ -6,7 +6,7 @@ import { goKeywordsFor } from "../content/goPage";
 const tmo = {
   en: {
     h1: "Pay Your T-Mobile Prepaid Bill as a Guest",
-    subline: "T-Mobile Prepaid refill or bill pay with just the phone number, without signing in. Pay for yourself or someone else with a debit or credit card.",
+    subline: "T-Mobile Prepaid bill pay with just the phone number, without signing in. Pay for yourself or someone else with a debit or credit card.", // SPEC-GO-EN-REFILL-1110
     title: "Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay",
   },
   es: {

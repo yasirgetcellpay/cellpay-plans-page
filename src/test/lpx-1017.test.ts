@@ -10,13 +10,13 @@ describe("LPX-1017", () => {
     });
   }
   it("keeps Tracfone refill FAQs", () => {
-    expect(JSON.stringify(goFaqList("tracfone", "en"))).toContain("refill");
+    expect(JSON.stringify(goFaqList("tracfone", "en"))).not.toMatch(/refill/i); // SPEC-GO-EN-REFILL-1110
   });
   it("uses payment in Boost's first Auto Pay sentence", () => {
     expect(goAutoPayLine("boost", "en").split(". ")[0] + ".").toMatch(/payment\.$/);
   });
   it("keeps refill in Tracfone's first Auto Pay sentence", () => {
-    expect(goAutoPayLine("tracfone", "en").split(". ")[0] + ".").toMatch(/refill\.$/);
+    expect(goAutoPayLine("tracfone", "en").split(". ")[0] + ".").toMatch(/payment\.$/); // SPEC-GO-EN-REFILL-1110
   });
   it.each(["boost", "tracfone"])("%s Spanish Auto Pay uses usted", (slug) => {
     expect(goAutoPayLine(slug, "es")).toContain("lo marque o llegue");
@@ -39,7 +39,7 @@ describe("LPX-1017", () => {
   });
   it("sets T-Mobile's English subline and preserves its derived title", () => {
     const copy = goLpxForCarrier("tmobile", "en");
-    expect(copy?.subline).toBe("T-Mobile Prepaid refill or bill pay with just the phone number, without signing in. Pay for yourself or someone else with a debit or credit card."); // TMO-ATT-LPX-1018
+    expect(copy?.subline).toBe("T-Mobile Prepaid bill pay with just the phone number, without signing in. Pay for yourself or someone else with a debit or credit card."); // TMO-ATT-LPX-1018 // SPEC-GO-EN-REFILL-1110
     expect(copy?.title).toBe("Pay My T-Mobile Prepaid Bill or Refill as a Guest | CellPay"); // TMO-ATT-LPX-1018
   });
   it("sets AT&T's English guest-pay subline", () => {
@@ -50,6 +50,6 @@ describe("LPX-1017", () => {
     expect(goKeywordsFor("boost", "en")).not.toContain("refill");
   });
   it("leaves Tracfone keywords unchanged", () => {
-    expect(goKeywordsFor("tracfone", "en")).toBeUndefined();
+    expect(goKeywordsFor("tracfone", "en")).toBe("Tracfone pay bill, pay Tracfone bill, Tracfone bill payment, pay Tracfone as guest, pay Tracfone with phone number"); // SPEC-GO-EN-REFILL-1110
   });
 });

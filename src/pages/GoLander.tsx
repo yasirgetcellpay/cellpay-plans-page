@@ -749,7 +749,7 @@ const GoLander = ({
               {lineNote && <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 -mt-2">{lineNote}</p>}
               {phoneDigits.length === 10 && (
                 <p className="text-[10px] sm:text-xs text-cellpay-green font-semibold mb-2 -mt-1">
-                  ✓ {goUsesPayWording(carrierSlug) ? (isEs ? "Pagando" : "Paying") : (isEs && carrierSlug === "tmobile") ? "Procesando" : tr.refilling /* // ES-PAGAR-TMO-GOLANDER-1025 */}: {phone}
+                  ✓ {isEs ? (goUsesPayWording(carrierSlug) ? "Pagando" : carrierSlug === "tmobile" ? "Procesando" : tr.refilling) : "Paying" /* // SPEC-GO-EN-REFILL-1110 */}: {phone}
                 </p>
               )}
               {phoneDigits.length > 0 && phoneDigits.length < 10 && (

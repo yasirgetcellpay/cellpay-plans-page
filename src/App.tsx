@@ -1328,7 +1328,7 @@ const App = () => (
               logo={verizonLogo}
               h1="Pay Your Verizon Prepaid Bill Online"
               title="Pay Your Verizon Prepaid Bill Online | CellPay"
-              description="Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay."
+              description="Pay your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." /* // SPEC-GO-EN-REFILL-1110 */
             />
           }
         />
@@ -1343,7 +1343,7 @@ const App = () => (
               logo={verizonLogo}
               h1="Pay Your Verizon Prepaid Bill Online"
               title="Pay Your Verizon Prepaid Bill Online | CellPay"
-              description="Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay."
+              description="Pay your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." /* // SPEC-GO-EN-REFILL-1110 */
             />
           }
         />

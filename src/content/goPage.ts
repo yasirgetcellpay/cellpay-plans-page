@@ -11,7 +11,7 @@ export const GO_PAY_WORDING = new Set(["metropcs", "boost", "topup-crc"]);
 export const goUsesPayWording = (slug: string): boolean => GO_PAY_WORDING.has(slug);
 
 export const goKeywordsFor = (slug: string, lang: "en" | "es"): string | undefined => {
-  const keywords: Record<string, { en: string; es: string }> = {
+  const keywords: Record<string, { en: string; es?: string }> = { // SPEC-GO-EN-REFILL-1110
     tmobile: { en: "T-Mobile pay bill, pay my T-Mobile bill, pay T-Mobile bill as guest, pay T-Mobile with phone number, pay T-Mobile without signing in", es: "pagar T-Mobile, pagar factura de T-Mobile, pagar el teléfono T-Mobile, pagar T-Mobile sin cuenta" }, // TMO-ATT-LPX-1018
     "topup-at": { en: "AT&T Prepaid pay bill, pay AT&T bill, ATT prepaid pay bill, pay AT&T Prepaid as guest, AT&T pay my bill prepaid", es: "pagar AT&T Prepago, pagar factura de AT&T, pago de AT&T Prepago sin cuenta" }, // TMO-ATT-LPX-1018
     metropcs: {
@@ -26,13 +26,23 @@ export const goKeywordsFor = (slug: string, lang: "en" | "es"): string | undefin
       en: "Cricket pay bill, pay Cricket bill with debit card, Cricket Wireless bill payment, pay Cricket bill as guest",
       es: "pagar Cricket, pagar Cricket con tarjeta, pago de factura Cricket, pagar Cricket sin cuenta",
     },
+    "verizon": { en: "Verizon Prepaid pay bill, pay Verizon Prepaid bill, pay Verizon bill as guest, pay Verizon with phone number, pay Verizon without signing in" }, // SPEC-GO-EN-REFILL-1110
+    "s1": { en: "Simple Mobile pay bill, pay Simple Mobile bill, Simple Mobile bill payment, pay Simple Mobile as guest, pay Simple Mobile with phone number" }, // SPEC-GO-EN-REFILL-1110
+    "h2o": { en: "H2O Wireless pay bill, pay H2O bill, H2O Wireless bill payment, pay H2O as guest, pay H2O without signing in" }, // SPEC-GO-EN-REFILL-1110
+    "lyca": { en: "Lyca Mobile pay bill, pay Lyca bill, Lyca Mobile bill payment, pay Lyca as guest, pay Lyca with phone number" }, // SPEC-GO-EN-REFILL-1110
+    "net10": { en: "Net10 pay bill, pay Net10 bill, Net10 bill payment, pay Net10 as guest, pay Net10 with phone number" }, // SPEC-GO-EN-REFILL-1110
+    "pageplus": { en: "Page Plus pay bill, pay Page Plus bill, Page Plus bill payment, pay Page Plus as guest, pay Page Plus with phone number" }, // SPEC-GO-EN-REFILL-1110
+    "straight-talk": { en: "Straight Talk pay bill, pay Straight Talk bill, Straight Talk bill payment, pay Straight Talk as guest, pay Straight Talk with phone number" }, // SPEC-GO-EN-REFILL-1110
+    "total-wireless": { en: "Total Wireless pay bill, pay Total Wireless bill, Total Wireless bill payment, pay Total Wireless as guest, pay Total Wireless with phone number" }, // SPEC-GO-EN-REFILL-1110
+    "tracfone": { en: "Tracfone pay bill, pay Tracfone bill, Tracfone bill payment, pay Tracfone as guest, pay Tracfone with phone number" }, // SPEC-GO-EN-REFILL-1110
+    "ultra-mobile": { en: "Ultra Mobile pay bill, pay Ultra Mobile bill, Ultra Mobile bill payment, pay Ultra Mobile as guest, pay Ultra Mobile with phone number" }, // SPEC-GO-EN-REFILL-1110
   };
   return keywords[slug]?.[lang];
 };
 
 export const goAutoPayLine = (slug: string, lang: "en" | "es"): string => {
   if (slug === "topup-at" && lang === "en") return "Optional: Auto Pay so you never miss a bill payment. You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link."; // GO-ATT-FAQLD-COPY-1102
-  const pay = goUsesPayWording(slug) || lang === "es"; // SPEC-GO-ES-RECARGA-1110
+  const pay = true; // SPEC-GO-EN-REFILL-1110
   return lang === "es"
     ? "Opcional: Auto Pago para no olvidar su " + (pay ? "pago" : "recarga") + ". Lo puede activar al pagar. El Pago Automático está desactivado a menos que lo marque o llegue desde un enlace de Pago Automático."
     : "Optional: Auto Pay so you never miss a " + (pay ? "payment" : "refill") + ". You can turn it on at checkout. Auto Pay stays off unless you tick it, or you came from an Auto Pay link.";
@@ -133,7 +143,7 @@ export const goFaqsEs = (c: string, payIn = false) => { const pay = true; return
 export const goFaqList = (slug: string, lang: GoPageLang, fallbackName = ""): Array<{ q: string; a: string }> => {
   const c = GO_AD_NAMES[slug] ?? fallbackName;
   const r = refundFaq(slug, lang);
-  return [...(lang === "es" ? goFaqsEs(c, true) : goFaqsEn(c, goUsesPayWording(slug))), ...(r ? [r] : [])]; // SPEC-GO-ES-RECARGA-1110
+  return [...(lang === "es" ? goFaqsEs(c, true) : goFaqsEn(c, true)), ...(r ? [r] : [])]; // SPEC-GO-EN-REFILL-1110
 };
 export const goFaqJsonLd = (slug: string, lang: GoPageLang): string => JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", inLanguage: lang, mainEntity: goFaqList(slug, lang).map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }); // GO-ATT-FAQLD-COPY-1102
 

@@ -50,7 +50,7 @@ describe("BOOST-GUEST-LPX-1017", () => {
   });
 
   it("preserves AT&T English Auto Pay refill wording", () => {
-    expect(goAutoPayLine("topup-at", "en")).toContain("refill");
+    expect(goAutoPayLine("topup-at", "en")).toContain("bill payment"); // SPEC-GO-EN-REFILL-1110
   });
 
   it("uses pago wording in T-Mobile Spanish Auto Pay", () => { // SPEC-GO-ES-RECARGA-1110

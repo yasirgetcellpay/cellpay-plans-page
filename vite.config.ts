@@ -880,8 +880,8 @@ const htmlAliasPlugin = (): Plugin => ({
       "go/lyca/index.html": { title: "Pay Your Lyca Mobile Bill Online | CellPay", description: "Pay your Lyca Mobile bill online. No login. Pay for anyone. Enter the phone number, pick a plan, pay. Low service fee shown before you pay." },
       "go/tmobile.html": { title: "Pay My T-Mobile Prepaid Bill as a Guest | CellPay", description: "Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay." }, // TMO-ATT-LPX-1018 // LP-AVG-COPY-1021
       "go/tmobile/index.html": { title: "Pay My T-Mobile Prepaid Bill as a Guest | CellPay", description: "Pay your T-Mobile bill as a guest with just the phone number. No sign-in, no account. Debit or credit card. Service fee shown before you pay." }, // TMO-ATT-LPX-1018 // LP-AVG-COPY-1021
-      "go/verizon.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
-      "go/verizon/index.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay or refill your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." },
+      "go/verizon.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." }, // SPEC-GO-EN-REFILL-1110
+      "go/verizon/index.html": { title: "Pay Your Verizon Prepaid Bill Online | CellPay", description: "Pay your Verizon Prepaid bill online. Guest OK — enter the phone number, pick the amount, pay. Low service fee shown before you pay." }, // SPEC-GO-EN-REFILL-1110
       // GO-LANDERS-1007 Batch A
       "es/go/tmobile.html": { title: "Pagar factura de T-Mobile en línea | CellPay", description: "Pague su factura de T-Mobile en línea como invitado. Solo el número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar." }, // TMO-ATT-LPX-1018
       "es/go/tmobile/index.html": { title: "Pagar factura de T-Mobile en línea | CellPay", description: "Pague su factura de T-Mobile en línea como invitado. Solo el número de teléfono, sin iniciar sesión. Tarjeta de débito o crédito. Cargo por servicio mostrado antes de pagar." }, // TMO-ATT-LPX-1018
@@ -1949,7 +1949,8 @@ const htmlAliasPlugin = (): Plugin => ({
       const goKeywords = goInfo ? goKeywordsFor(goInfo.slug, goInfo.lang) : undefined;
       if (goKeywords !== undefined) {
         out = out.replace(/<meta name="keywords"[^>]*>/i, () => `<meta name="keywords" content="${escAttr(goKeywords)}" />`);
-        out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${escAttr(meta.title)}"`);
+        const goImageAlt = goInfo?.lang === "en" && goInfo.slug === "h2o" ? "Pay Your H2O Wireless Bill Without Signing In | CellPay" : goInfo?.lang === "en" && goInfo.slug === "verizon" ? "Pay Your Verizon Prepaid Bill Without Signing In | CellPay" : meta.title; // SPEC-GO-EN-REFILL-1110
+        out = out.replace(/(<meta (?:property="og:image:alt"|name="twitter:image:alt") content=")[^"]*"/gi, (_m, p1) => `${p1}${escAttr(goImageAlt)}"`); // SPEC-GO-EN-REFILL-1110
       }
       // AI-ANSWERS-1014: amount answer pages never say "refill": drop the sitewide keywords tag; image alt = page title.
       if (htpPage?.amount) {
