@@ -1436,7 +1436,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">` +
         `<h1 class="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">${escAttr(content.h1)}</h1>` +
         (!isEs && slug === "att" && !noCallLine // GO-ATT-LCP-1111B
-          ? `<p class="text-xs sm:text-sm opacity-90 mt-1 mb-2">${tagline}<br>${goStaticSentence(route)}<br><a href="${escAttr(esHref)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>` // GO-ATT-LCP-1111B
+          ? `<p class="text-xs sm:text-sm opacity-90 mt-1 mb-2">${tagline}<br>${goStaticSentence(route)}<br><a href="${escAttr(esHref as string)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>` // GO-ATT-LCP-1111B
           : ( // GO-ATT-LCP-1111B
           `<p class="text-xs sm:text-sm opacity-90 mt-1">${tagline}</p>` +
           (goStaticSentence(route) ? `<p class="text-xs sm:text-sm opacity-90 mt-1">${goStaticSentence(route)}</p>` : "") +
