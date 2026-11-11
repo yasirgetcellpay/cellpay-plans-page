@@ -1,5 +1,4 @@
 # Project architecture rules
-- Keep checkout card marks in CheckoutCardBrands and shared wallet marks in PaymentBrands so checkout assets cannot change lander footers or enlarge the entry chunk. // CHECKOUT-CARD-LABEL-LOGOS-1110
 - Keep receipt enrollment in a pure shared server rule and one frontend enrollment/offer predicate; bound receipt-only service reads and expose only a boolean so payment behavior and profile privacy remain unchanged. // AUTOPAY-RECEIPT-ENROLL-1102
 - Keep receipt SMS in a shared background-only sender with service-only atomic paid-identity claims and top-level checkout language, so delivery failures cannot alter or delay payment responses. // POSTPAY-SMS-34332-1030
 - Keep the CCPA notice in one route-aware component outside Routes, with deferred same-origin geography and reversible body spacing; share privacy heading IDs between static and React renderers so consent/payment code remains untouched. // CCPA-BANNER-1029
