@@ -529,6 +529,7 @@ const GoLander = ({
       : null;
   // GO-COPY-1008: visible "En español" switch on English /go pages (every /go page has an /es/go twin).
   const esHref = !isEs && typeof window !== "undefined" ? `/es${window.location.pathname}` : null;
+  const leadBlock = carrierSlug === "topup-at" && !isEs && !metroFirstScreen && !noCallLine; // GO-ATT-LCP-1111B: one static lead block (LCP) — same text, same size
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
   const autoPayLine = goAutoPayLine(carrierSlug, isEs ? "es" : "en"); // LPX-1017
   const amountHelp = goUsesPayWording(carrierSlug) ? (isEs ? "Ingrese el monto que desea pagar" : "Enter the amount you want to pay") : (isEs && carrierSlug === "tmobile") ? "Ingrese el monto que desea pagar" : tr.enterAmount; // LPX-1017 // ES-PAGAR-TMO-GOLANDER-1025
@@ -595,27 +596,38 @@ const GoLander = ({
       <section style={{ backgroundColor: bc }} className="text-primary-foreground">
         <div className="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">
           <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">{lpx?.h1 ?? h1}</h1>
-          <p className="text-xs sm:text-sm opacity-90 mt-1">{tagline}</p>
-          {metroFirstScreen && ( // METRO-FIRSTSCREEN-1023b
-            <div className="max-w-[280px] sm:max-w-[420px] mx-auto mt-3 text-center">{/* // METRO-FIRSTSCREEN-1023b */}
-              <label htmlFor="go-phone-input" className="block text-xs sm:text-sm font-bold mb-1.5">{/* // METRO-FIRSTSCREEN-1023b */}
-                {firstScreenPhoneLabel ?? (isEs ? "Ingrese su número de teléfono de Metro PCS" : "Enter Your Metro PCS Phone Number")}{/* // METRO-FIRSTSCREEN-1023b // FIRSTSCREEN-PAY-EXTEND-1026 */}
-              </label>{/* // METRO-FIRSTSCREEN-1023b */}
-              <div className="relative">{/* // METRO-FIRSTSCREEN-1023b */}
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />{/* // METRO-FIRSTSCREEN-1023b */}
-                <input id="go-phone-input" name="phone" type="tel" value={phone} onChange={handlePhoneChange} placeholder={tr.phonePlaceholder} aria-label={firstScreenPhoneLabel ?? (isEs ? "Ingrese su número de teléfono de Metro PCS" : "Enter Your Metro PCS Phone Number")} className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" />{/* // METRO-FIRSTSCREEN-1023b // FIRSTSCREEN-PAY-EXTEND-1026 */}
-              </div>{/* // METRO-FIRSTSCREEN-1023b */}
-            </div> // METRO-FIRSTSCREEN-1023b
-          )}
-          <p className="text-xs sm:text-sm opacity-90 mt-1">{goCarrierSentence(carrierSlug, isEs ? "es" : "en", faqName)}</p>
-          {noCallLine && <p className="text-xs sm:text-sm font-bold mt-1">{noCallLine}</p>}
-          {esHref && (
-            <p className="text-xs sm:text-sm mt-1">
-              <a href={esHref} lang="es" hrefLang="es" className="font-semibold underline underline-offset-2">
-                En español
-              </a>
+          {leadBlock ? ( // GO-ATT-LCP-1111B
+            <p className="text-xs sm:text-sm opacity-90 mt-1 mb-2">{/* GO-ATT-LCP-1111B */}
+              {tagline}
+              <br />{/* GO-ATT-LCP-1111B */}
+              {goCarrierSentence(carrierSlug, "en", faqName)}{/* GO-ATT-LCP-1111B */}
+              {esHref && (<><br /><a href={esHref} lang="es" hrefLang="es" className="font-semibold underline underline-offset-2">En español</a></>)}{/* GO-ATT-LCP-1111B */}
             </p>
-          )}
+          ) : ( // GO-ATT-LCP-1111B
+            <>{/* GO-ATT-LCP-1111B */}
+            <p className="text-xs sm:text-sm opacity-90 mt-1">{tagline}</p>
+            {metroFirstScreen && ( // METRO-FIRSTSCREEN-1023b
+              <div className="max-w-[280px] sm:max-w-[420px] mx-auto mt-3 text-center">{/* // METRO-FIRSTSCREEN-1023b */}
+                <label htmlFor="go-phone-input" className="block text-xs sm:text-sm font-bold mb-1.5">{/* // METRO-FIRSTSCREEN-1023b */}
+                  {firstScreenPhoneLabel ?? (isEs ? "Ingrese su número de teléfono de Metro PCS" : "Enter Your Metro PCS Phone Number")}{/* // METRO-FIRSTSCREEN-1023b // FIRSTSCREEN-PAY-EXTEND-1026 */}
+                </label>{/* // METRO-FIRSTSCREEN-1023b */}
+                <div className="relative">{/* // METRO-FIRSTSCREEN-1023b */}
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />{/* // METRO-FIRSTSCREEN-1023b */}
+                  <input id="go-phone-input" name="phone" type="tel" value={phone} onChange={handlePhoneChange} placeholder={tr.phonePlaceholder} aria-label={firstScreenPhoneLabel ?? (isEs ? "Ingrese su número de teléfono de Metro PCS" : "Enter Your Metro PCS Phone Number")} className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center" />{/* // METRO-FIRSTSCREEN-1023b // FIRSTSCREEN-PAY-EXTEND-1026 */}
+                </div>{/* // METRO-FIRSTSCREEN-1023b */}
+              </div> // METRO-FIRSTSCREEN-1023b
+            )}
+            <p className="text-xs sm:text-sm opacity-90 mt-1">{goCarrierSentence(carrierSlug, isEs ? "es" : "en", faqName)}</p>
+            {noCallLine && <p className="text-xs sm:text-sm font-bold mt-1">{noCallLine}</p>}
+            {esHref && (
+              <p className="text-xs sm:text-sm mt-1">
+                <a href={esHref} lang="es" hrefLang="es" className="font-semibold underline underline-offset-2">
+                  En español
+                </a>
+              </p>
+            )}
+            {/* GO-ATT-LCP-1111B */}</>
+          )}{/* GO-ATT-LCP-1111B */}
         </div>
       </section>
 
