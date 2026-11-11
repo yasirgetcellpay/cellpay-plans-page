@@ -28,7 +28,7 @@ export function PaymentMethodPicker({ methods, selected, onSelect, brandColor, l
       <button type="button" data-testid="method-primary" data-method={primary.key} onClick={() => onSelect(primary.key)} onPointerDown={(e) => { if (e.pointerType === "mouse" && e.button === 0 && selected !== primary.key) onSelect(primary.key); }} aria-pressed={selected === primary.key}
         className={cls(primary.key, "w-full min-h-[60px] px-3 gap-3 text-sm flex-row")} style={on(primary.key)}>
         {selected === primary.key && <CheckCircle2 className="absolute top-1.5 right-1.5 h-3.5 w-3.5" style={{ color: brandColor }} aria-hidden="true" />}
-        <span className="h-7 flex items-center justify-center"><primary.Brand className="h-6 w-auto max-w-[72px] object-contain" /></span>
+        <span className="h-7 flex items-center justify-center"><primary.Brand className={`h-6 w-auto ${primary.key === "card" ? "max-w-[168px]" : "max-w-[72px]"} object-contain`} /></span>
         <span>{primary.label}</span>
       </button>
       {rest.length > 0 && (
