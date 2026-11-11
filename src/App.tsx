@@ -374,9 +374,8 @@ const CatchAll = () => {
 const TrackQueueStarter = () => { useEffect(() => { startTrackQueue(); }, []); return null; }; // DB-OUTAGE-TRACK-1017
 // ES-LANG-1023: on /es/go/* only, mark the document Spanish at runtime. Other routes are not touched.
 const EsGoLang = () => { const { pathname } = useLocation(); useEffect(() => { try { if (/^\/es(\/|$|\.html)/.test(pathname)) document.documentElement.lang = "es"; } catch { /* ignore */ } }, [pathname]); return null; }; // ES-LANG-1023 // ES-LANG-1023b: all /es routes
-const App = () => (
-  <AuthProvider>
-    <BrowserRouter>
+export const AppRoutes = () => ( // GO-PRERENDER-1110
+    <> {/* // GO-PRERENDER-1110 */}
       <EsGoLang />{/* // ES-LANG-1023 */}
       <TrackingCapture />
       <TrackQueueStarter />
@@ -1795,8 +1794,8 @@ const App = () => (
           </WhenIdle>
         </HelpChatBoundary>
       )}
-    </BrowserRouter>
-  </AuthProvider>
+    </> // GO-PRERENDER-1110
 );
 
+const App = () => <AuthProvider><BrowserRouter><AppRoutes /></BrowserRouter></AuthProvider>; // GO-PRERENDER-1110
 export default App;
