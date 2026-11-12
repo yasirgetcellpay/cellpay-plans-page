@@ -530,6 +530,7 @@ const GoLander = ({
   // GO-COPY-1008: visible "En español" switch on English /go pages (every /go page has an /es/go twin).
   const esHref = !isEs && typeof window !== "undefined" ? `/es${window.location.pathname}` : null;
   const leadBlock = carrierSlug === "topup-at" && !isEs && !metroFirstScreen && !noCallLine; // GO-ATT-LCP-1111B: one static lead block (LCP) — same text, same size
+  const boostLead = carrierSlug === "boost" && !isEs && !metroFirstScreen && !!noCallLine; // GO-BOOST-LCP-1112: one static lead block (LCP) — same words, bold line kept
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
   const autoPayLine = goAutoPayLine(carrierSlug, isEs ? "es" : "en"); // LPX-1017
   const amountHelp = goUsesPayWording(carrierSlug) ? (isEs ? "Ingrese el monto que desea pagar" : "Enter the amount you want to pay") : (isEs && carrierSlug === "tmobile") ? "Ingrese el monto que desea pagar" : tr.enterAmount; // LPX-1017 // ES-PAGAR-TMO-GOLANDER-1025
@@ -602,6 +603,15 @@ const GoLander = ({
               <br />{/* GO-ATT-LCP-1111B */}
               {goCarrierSentence(carrierSlug, "en", faqName)}{/* GO-ATT-LCP-1111B */}
               {esHref && (<><br /><a href={esHref} lang="es" hrefLang="es" className="font-semibold underline underline-offset-2">En español</a></>)}{/* GO-ATT-LCP-1111B */}
+            </p>
+          ) : boostLead ? ( // GO-BOOST-LCP-1112
+            <p className="text-xs sm:text-sm opacity-90 mt-1" style={{ paddingBottom: "0.75rem" }}>{/* GO-BOOST-LCP-1112 */}
+              {tagline}
+              <br />
+              {goCarrierSentence(carrierSlug, "en", faqName)}
+              <br />
+              <span className="font-bold">{noCallLine}</span>
+              {esHref && (<><br /><a href={esHref} lang="es" hrefLang="es" className="font-semibold underline underline-offset-2">En español</a></>)}
             </p>
           ) : ( // GO-ATT-LCP-1111B
             <>{/* GO-ATT-LCP-1111B */}
