@@ -14,6 +14,7 @@ const ROWS: Record<string, Row> = {
   verizon: { name: "Verizon", h1En: "Pay Your Verizon Prepaid Bill Without Signing In", h1Es: "Pague su factura de Verizon sin iniciar sesión" },
   "topup-crc": { name: "Cricket", h1En: "Pay Your Cricket Wireless Bill as a Guest — With Your Phone Number", h1Es: "Pagar Cricket en línea o por teléfono — con tarjeta, sin iniciar sesión", sublineEn: "No login. Pay online with a debit or credit card.", sublineEs: "Pague por teléfono o en línea, en español. Escriba su número, elija su plan y pague.", titleEn: "Pay Your Cricket Bill as a Guest | CellPay", titleEs: "Pagar Cricket en línea o por teléfono | CellPay" }, // CRICKET-BROAD-COPY-1020 // ES-PAGAR-CRICKET-1025
   h2o: { name: "H2O", h1En: "Pay Your H2O Wireless Bill Without Signing In", h1Es: "Pague su factura de H2O sin iniciar sesión" },
+  "straight-talk": { name: "Straight Talk", h1En: "Make a Straight Talk Payment", sublineEn: "Make a Straight Talk payment online with just the phone number. No sign-in. Pay for yourself or someone else.", sublineEs: "Sin cuenta. Pague por usted o por otra persona.", titleEn: "Straight Talk Make a Payment – Pay Your Bill Online | CellPay" }, // GO-ST-LCP-1112 Part B
   s1: { name: "Simple Mobile", h1Es: "Pague su factura de Simple Mobile sin iniciar sesión" },
   metropcs: { name: "Metro", h1En: "MetroPCS Bill Payment Online — Pay as a Guest", h1Es: "Pagar Metro PCS en línea con tarjeta, sin cuenta", sublineEn: "Pay your Metro PCS bill online. No login or PIN. Pay for yourself or someone else.", sublineEs: "Pague su línea de Metro PCS sin cuenta ni PIN. Ingrese el número de Metro by T-Mobile y pague en línea con tarjeta de débito o crédito.", titleEn: "MetroPCS Bill Payment Online — Pay as a Guest | CellPay", titleEs: "Pagar Metro PCS en línea como invitado | CellPay" }, // METRO-LPX-1019; LP-AVG-COPY-1021; METRO-FIRSTSCREEN-1023
 };
@@ -26,6 +27,7 @@ const ROUTE_TO_CARRIER: Record<string, string> = {
   verizon: "verizon",
   cricket: "topup-crc",
   h2o: "h2o",
+  "straight-talk": "straight-talk",
   "simple-mobile": "s1",
   metro: "metropcs",
 };
