@@ -1437,7 +1437,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<h1 class="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">${escAttr(content.h1)}</h1>` +
         (!isEs && slug === "boost" && noCallLine // GO-BOOST-LCP-1112: one static lead block, same as GoLander boostLead
           ? `<p class="text-xs sm:text-sm opacity-90 mt-1" style="padding-bottom:0.75rem">${tagline}<br>${goStaticSentence(route)}<br><span class="font-bold">${noCallLine}</span><br><a href="${escAttr(esHref as string)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>` // GO-BOOST-LCP-1112
-          : (!isEs && (slug === "att" || slug === "simple-mobile" || slug === "metro") && !noCallLine // GO-ATT-LCP-1111B // GO-SM-LCP-1112: same static lead block for EN /go/simple-mobile (shell only) // GO-METRO-LCP-1112: same, EN /go/metro (shell only)
+          : (!isEs && (slug === "att" || slug === "simple-mobile" || slug === "metro" || slug === "tmobile" || slug === "verizon") && !noCallLine // GO-ATT-LCP-1111B // GO-SM-LCP-1112: same static lead block for EN /go/simple-mobile (shell only) // GO-METRO-LCP-1112: same, EN /go/metro (shell only) // GO-TMOBILE-LCP-1112 // GO-VERIZON-LCP-1112
           ? `<p class="text-xs sm:text-sm opacity-90 mt-1" style="padding-bottom:0.5rem">${tagline}<br>${goStaticSentence(route)}<br><a href="${escAttr(esHref as string)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>` // GO-ATT-LCP-1111B
           : ( // GO-ATT-LCP-1111B
           `<p class="text-xs sm:text-sm opacity-90 mt-1">${tagline}</p>` +
