@@ -1441,13 +1441,15 @@ const htmlAliasPlugin = (): Plugin => ({
           ? `<p class="text-xs sm:text-sm opacity-90 mt-1" style="padding-bottom:0.5rem">${tagline}<br>${goStaticSentence(route)}<br><a href="${escAttr(esHref as string)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>` // GO-ATT-LCP-1111B
           : (isEs && (slug === "tmobile" || slug === "simple-mobile") && !noCallLine // GO-ES-LCP-1113: one static lead block for ES T-Mobile / Simple Mobile (shell only, no language link)
           ? `<p class="text-xs sm:text-sm opacity-90 mt-1" style="padding-bottom:0.25rem">${tagline}<br>${goStaticSentence(route)}</p>` // GO-ES-LCP-1113
+          : (isEs && slug === "boost" && noCallLine // GO-ES-BOOST-LCP-1113: one static lead block for ES Boost (shell only, no language link; bold no-call line kept as a span)
+          ? `<p class="text-xs sm:text-sm opacity-90 mt-1" style="padding-bottom:0.25rem">${tagline}<br>${goStaticSentence(route)}<br><span class="font-bold">${noCallLine}</span></p>` // GO-ES-BOOST-LCP-1113
           : ( // GO-ATT-LCP-1111B
           `<p class="text-xs sm:text-sm opacity-90 mt-1">${tagline}</p>` +
           (goStaticSentence(route) ? `<p class="text-xs sm:text-sm opacity-90 mt-1">${goStaticSentence(route)}</p>` : "") +
           (noCallLine ? `<p class="text-xs sm:text-sm font-bold mt-1">${noCallLine}</p>` : "") +
           (esHref
             ? `<p class="text-xs sm:text-sm mt-1"><a href="${escAttr(esHref)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>`
-            : ""))))) + // GO-BOOST-LCP-1112 // GO-ES-LCP-1113
+            : "")))))) + // GO-BOOST-LCP-1112 // GO-ES-LCP-1113 // GO-ES-BOOST-LCP-1113
         `</div></section>` +
         `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">` +
         `<div class="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">` +
