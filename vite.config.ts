@@ -1390,6 +1390,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<div class="w-full" data-orientation="vertical">${faqItems}</div></section>`
       );
     };
+
     // ATT-LP-QS-1114: EN /go/att static first screen — phone + amount above Auto Pay (same classes as GoLander attQsLayout) so hydration does not shift the form.
     const goAttEnScreen = (color: string): string => {
       const phone = "Enter Your AT&T Phone Number";
