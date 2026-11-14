@@ -531,7 +531,7 @@ const GoLander = ({
   const esHref = !isEs && typeof window !== "undefined" ? `/es${window.location.pathname}` : null;
   const leadBlock = carrierSlug === "topup-at" && !isEs && !metroFirstScreen && !noCallLine; // GO-ATT-LCP-1111B: one static lead block (LCP) — same text, same size
   const attQsLayout = carrierSlug === "topup-at" && !isEs; // ATT-LP-QS-1114: amount before SMS; Auto Pay moves below the form (EN /go/att only). Lead block kept.
-  const esApBelow = isEs && (carrierSlug === "topup-at" || carrierSlug === "verizon"); // GO-ES-VZ-ATT-LCP-1114-v2: ES AT&T / Verizon: Auto Pay card below the form only (amount stays after SMS, gated on showRange).
+  const esApBelow = isEs && (carrierSlug === "topup-at" || carrierSlug === "verizon" || carrierSlug === "ultra-mobile" || carrierSlug === "lyca"); // GO-ES-ULTRA-LYCA-LCP-1115: + ES Ultra / Lyca // GO-ES-VZ-ATT-LCP-1114-v2: ES AT&T / Verizon: Auto Pay card below the form only (amount stays after SMS, gated on showRange).
   const boostLead = carrierSlug === "boost" && !isEs && !metroFirstScreen && !!noCallLine; // GO-BOOST-LCP-1112: one static lead block (LCP) — same words, bold line kept
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
   const autoPayLine = goAutoPayLine(carrierSlug, isEs ? "es" : "en"); // LPX-1017
