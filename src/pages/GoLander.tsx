@@ -530,6 +530,7 @@ const GoLander = ({
   // GO-COPY-1008: visible "En español" switch on English /go pages (every /go page has an /es/go twin).
   const esHref = !isEs && typeof window !== "undefined" ? `/es${window.location.pathname}` : null;
   const leadBlock = carrierSlug === "topup-at" && !isEs && !metroFirstScreen && !noCallLine; // GO-ATT-LCP-1111B: one static lead block (LCP) — same text, same size
+  const attQsLayout = carrierSlug === "topup-at" && !isEs; // ATT-LP-QS-1114: amount before SMS; Auto Pay moves below the form (EN /go/att only). Lead block kept.
   const boostLead = carrierSlug === "boost" && !isEs && !metroFirstScreen && !!noCallLine; // GO-BOOST-LCP-1112: one static lead block (LCP) — same words, bold line kept
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
   const autoPayLine = goAutoPayLine(carrierSlug, isEs ? "es" : "en"); // LPX-1017
@@ -568,6 +569,35 @@ const GoLander = ({
       el.remove();
     };
   }, [faqJsonLd]);
+
+  const autoPayCard = ( // ATT-LP-QS-1114: same card; placement depends on attQsLayout
+      <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">
+        <div className="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoPayInterest}
+              onChange={(e) => setAutoPayInterest(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-input"
+              style={{ accentColor: bc }}
+            />
+            <span className="text-[11px] sm:text-xs text-foreground leading-relaxed">
+              {autoPayLine}
+            </span>
+          </label>
+          <p className="mt-2 text-[11px] sm:text-xs font-semibold text-foreground text-center">
+            {feeLine}
+          </p>
+          <div
+            className="mt-2 flex flex-wrap items-center justify-center gap-1.5"
+            dangerouslySetInnerHTML={{ __html: GO_PAY_MARKS }}
+          />
+          <p className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug text-center">
+            {PAY_METHODS}
+          </p>
+        </div>
+      </div>
+  );
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased flex flex-col">
@@ -641,33 +671,9 @@ const GoLander = ({
         </div>
       </section>
 
-      {/* SPEED-LANDER-LCP2: Autopay benefit always after H1 (matches goFirstScreen; checkbox stays unchecked). */}
-      <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">
-        <div className="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">
-          <label className="flex items-start gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={autoPayInterest}
-              onChange={(e) => setAutoPayInterest(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-input"
-              style={{ accentColor: bc }}
-            />
-            <span className="text-[11px] sm:text-xs text-foreground leading-relaxed">
-              {autoPayLine}
-            </span>
-          </label>
-          <p className="mt-2 text-[11px] sm:text-xs font-semibold text-foreground text-center">
-            {feeLine}
-          </p>
-          <div
-            className="mt-2 flex flex-wrap items-center justify-center gap-1.5"
-            dangerouslySetInnerHTML={{ __html: GO_PAY_MARKS }}
-          />
-          <p className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug text-center">
-            {PAY_METHODS}
-          </p>
-        </div>
-      </div>
+      {/* SPEED-LANDER-LCP2: Autopay benefit after H1 (default). ATT-LP-QS-1114 EN /go/att moves this card below the form so phone+amount clear the fold and the sticky pay bar. Checkbox stays unchecked. */}
+      {!attQsLayout && autoPayCard}
+
 
       {loading && skeletonRange ? (
         <>
@@ -780,6 +786,60 @@ const GoLander = ({
                 <p className="text-[10px] sm:text-xs text-destructive mb-2 -mt-1">{tr.enterAll10}</p>
               )}
 
+              {(showRange || attQsLayout) && (
+                <>
+                  <label
+                    htmlFor="go-amount-input"
+                    className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2"
+                  >
+                    {tr.selectAmount}
+                  </label>
+                  <div className="relative mb-1">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                    <input
+                      id="go-amount-input"
+                      name="amount"
+                      type="text"
+                      inputMode="numeric"
+                      value={amount}
+                      onChange={handleAmountChange}
+                      onPaste={handleAmountPaste}
+                      onBlur={handleAmountBlur}
+                      placeholder={tr.amountPlaceholder(rangeMin, rangeMax)}
+                      aria-label={tr.selectAmount}
+                      aria-invalid={showAmountMessage}
+                      aria-describedby={showAmountMessage ? "go-amount-error" : undefined}
+                      className="w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center"
+                      style={{ "--tw-ring-color": bc } as React.CSSProperties}
+                    />
+                  </div>
+                  {showAmountMessage && (
+                    <p
+                      id="go-amount-error"
+                      role="alert"
+                      className="text-[11px] sm:text-xs text-destructive font-semibold mt-1 mb-1"
+                    >
+                      {amountMessage}
+                    </p>
+                  )}
+                  {rangeAmountValid && !metroFirstScreen && ( // METRO-FIRSTSCREEN-1023b
+                    <button
+                      type="button"
+                      onClick={handlePay}
+                      disabled={verifying || ultraSmart.paused || (ultraSmart.noHistory && !ultraSmart.acknowledged)} // ULTRA-SMART-PREVENT-1024
+                      className="mt-3 w-full h-10 sm:h-11 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm sm:text-base transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2"
+                      style={{ backgroundColor: bc }}
+                    >
+                      {verifying && <Loader2 className="h-4 w-4 animate-spin" />}
+                      {verifying ? tr.verifying : tr.payNow}
+                    </button>
+                  )}
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">
+                    {showFixedPlans ? tr.orSelectPlanBelow : amountHelp}
+                  </p>
+                </>
+              )}
+
             <label className="flex items-start gap-2 mt-3 mb-3 text-left cursor-pointer" data-sms-optin="1020">{/* // SMS-34332-PHONE-1106 */}
               <input type="checkbox" data-testid="sms-optin" checked={smsOptIn} onChange={(e) => { setSmsOptIn(e.target.checked); smsOptInRef.current = e.target.checked; }} className="mt-0.5 h-4 w-4 shrink-0" />{/* // SMS-34332-PHONE-1106 */}
               <span className="text-xs text-muted-foreground leading-snug">{/* // GO-SMS-LCP-1106-REVERT */}
@@ -788,7 +848,7 @@ const GoLander = ({
             </label>{/* // SMS-34332-PHONE-1106 */}
             {loading && <div className="flex justify-center py-4"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}{/* // GO-SPEED-HYDRATION-1110 */}
 
-              {showRange && (
+              {!attQsLayout && showRange && (
                 <>
                   <label
                     htmlFor="go-amount-input"
@@ -860,6 +920,8 @@ const GoLander = ({
 
             </div>
           </div>
+
+          {attQsLayout && autoPayCard /* ATT-LP-QS-1114 */}
 
           {loading ? <div className="flex justify-center items-start py-16 flex-1 min-h-screen" aria-busy="true" /> : (<>{/* // GO-SPEED-HYDRATION-1110 */}
           {carrierSlug === "ultra-mobile" && <div className="max-w-[420px] mx-auto px-4 pb-4"><UltraSmartNotice smart={ultraSmart} lang={lang} onContinue={() => { if (ultraSmart.usual) void handlePlanPayNow({ price: `$${ultraSmart.usual.amount}`, highlight: ultraSmart.usual.name || "" }); }} /></div>}{/* // ULTRA-SMART-PREVENT-1024 */}

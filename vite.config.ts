@@ -600,7 +600,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/att.html": {
-        h1: "Pay My AT&T Prepaid Bill Online", // SPEC-ATT-GO-LP-1030
+        h1: "Pay Your AT&T Prepaid Bill, No Login Needed", // ATT-LP-QS-1114 // SPEC-ATT-GO-LP-1030
         intro: "Pay your AT&T Prepaid bill with just the phone number — no login needed. Pay with debit or credit card.", // SPEC-ATT-GO-LP-1030
       },
       "go/cricket/index.html": {
@@ -608,7 +608,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/att/index.html": {
-        h1: "Pay My AT&T Prepaid Bill Online", // SPEC-ATT-GO-LP-1030
+        h1: "Pay Your AT&T Prepaid Bill, No Login Needed", // ATT-LP-QS-1114 // SPEC-ATT-GO-LP-1030
         intro: "Pay your AT&T Prepaid bill with just the phone number — no login needed. Pay with debit or credit card.", // SPEC-ATT-GO-LP-1030
       },
       "go/straight-talk.html": {
@@ -1390,6 +1390,30 @@ const htmlAliasPlugin = (): Plugin => ({
         `<div class="w-full" data-orientation="vertical">${faqItems}</div></section>`
       );
     };
+    // ATT-LP-QS-1114: EN /go/att static first screen — phone + amount above Auto Pay (same classes as GoLander attQsLayout) so hydration does not shift the form.
+    const goAttEnScreen = (color: string): string => {
+      const phone = "Enter Your AT&T Phone Number";
+      const amount = "Select Amount";
+      const ph = "Enter an amount between 15 - 100";
+      const help = "Enter the amount you want to recharge";
+      const steps = "3 steps: number → amount → pay";
+      const inputCls = "w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center";
+      const phoneSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`;
+      const dollarSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
+      return (
+        `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4">` +
+        `<div class="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">` +
+        `<p class="text-[11px] sm:text-xs text-muted-foreground mb-3">${steps}</p>` +
+        `<label for="go-phone-input" class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">${phone}</label>` +
+        `<div class="relative mb-3">${phoneSvg}` +
+        `<input id="go-phone-input" name="phone" type="tel" readonly tabindex="-1" placeholder="(XXX) XXX-XXXX" aria-label="${phone}" class="${inputCls}" value=""></div>` +
+        `<label for="go-amount-input" class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">${amount}</label>` +
+        `<div class="relative mb-1">${dollarSvg}` +
+        `<input id="go-amount-input" name="amount" type="text" inputmode="numeric" readonly tabindex="-1" placeholder="${ph}" aria-label="${amount}" class="${inputCls}" value=""></div>` +
+        `<p class="text-[10px] sm:text-xs text-muted-foreground mt-2">${help}</p>` +
+        `</div></div>`
+      );
+    };
     const goFirstScreen = (route: string): string | null => {
       const lpx = goLpxForRoute(route); // LPX-1010
       const content0 = GO_CONTENT[route];
@@ -1451,6 +1475,7 @@ const htmlAliasPlugin = (): Plugin => ({
             ? `<p class="text-xs sm:text-sm mt-1"><a href="${escAttr(esHref)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>`
             : "")))))) + // GO-BOOST-LCP-1112 // GO-ES-LCP-1113 // GO-ES-BOOST-LCP-1113
         `</div></section>` +
+        ((!isEs && slug === "att") ? goAttEnScreen(look.color) : "") + // ATT-LP-QS-1114
         `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">` +
         `<div class="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">` +
         `<label class="flex items-start gap-2">` +
