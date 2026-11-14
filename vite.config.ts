@@ -1444,6 +1444,18 @@ const htmlAliasPlugin = (): Plugin => ({
       const esHref = isEs ? null : "/es/" + route.replace(/\/index\.html$/, "");
       // PAYCOPY-1008: shared list (same as GoLander PAY_METHODS)
       const payMethods = payBrandsComma();
+      const esApBelow = isEs && (slug === "att" || slug === "verizon"); // GO-ES-VZ-ATT-LCP-1114-v2: same rule as GoLander esApBelow
+      const apCardHtml = // GO-ES-VZ-ATT-LCP-1114-v2: same Auto Pay card markup as before, now a const so it can be placed
+        `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">` +
+        `<div class="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">` +
+        `<label class="flex items-start gap-2">` +
+        `<input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-input" style="accent-color:${look.color}">` +
+        `<span class="text-[11px] sm:text-xs text-foreground leading-relaxed">${autoPayLine}</span>` +
+        `</label>` +
+        `<p class="mt-2 text-[11px] sm:text-xs font-semibold text-foreground text-center">${feeLine}</p>` +
+        `<div class="mt-2 flex flex-wrap items-center justify-center gap-1.5">${GO_PAY_MARKS}</div>` +
+        `<p class="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug text-center">${payMethods}</p>` +
+        `</div></div>`;
       const carrier = logo
         ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)} logo" width="94" height="28" class="h-[28px] sm:h-[36px] w-auto object-contain">`
         : `<span class="text-lg font-extrabold" style="color:${look.color}">${escAttr(look.name)}</span>`;
@@ -1464,7 +1476,7 @@ const htmlAliasPlugin = (): Plugin => ({
           ? `<p class="text-xs sm:text-sm opacity-90 mt-1" style="padding-bottom:0.75rem">${tagline}<br>${goStaticSentence(route)}<br><span class="font-bold">${noCallLine}</span><br><a href="${escAttr(esHref as string)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>` // GO-BOOST-LCP-1112
           : (!isEs && (slug === "att" || slug === "simple-mobile" || slug === "metro" || slug === "tmobile" || slug === "verizon" || slug === "straight-talk" || slug === "h2o" || slug === "ultra") && !noCallLine // GO-ATT-LCP-1111B // GO-SM-LCP-1112: same static lead block for EN /go/simple-mobile (shell only) // GO-METRO-LCP-1112: same, EN /go/metro (shell only) // GO-TMOBILE-LCP-1112 // GO-VERIZON-LCP-1112 // GO-ST-LCP-1112 // GO-H2O-LCP-1112 // GO-ULTRA-LCP-1113
           ? `<p class="text-xs sm:text-sm opacity-90 mt-1" style="padding-bottom:0.5rem">${tagline}<br>${goStaticSentence(route)}<br><a href="${escAttr(esHref as string)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>` // GO-ATT-LCP-1111B
-          : (isEs && (slug === "tmobile" || slug === "simple-mobile") && !noCallLine // GO-ES-LCP-1113: one static lead block for ES T-Mobile / Simple Mobile (shell only, no language link)
+          : (isEs && (slug === "tmobile" || slug === "simple-mobile" || slug === "verizon" || slug === "att") && !noCallLine // GO-ES-LCP-1113: one static lead block for ES T-Mobile / Simple Mobile (shell only, no language link) // GO-ES-VZ-ATT-LCP-1114: + ES Verizon / AT&T
           ? `<p class="text-xs sm:text-sm opacity-90 mt-1" style="padding-bottom:0.25rem">${tagline}<br>${goStaticSentence(route)}</p>` // GO-ES-LCP-1113
           : (isEs && slug === "boost" && noCallLine // GO-ES-BOOST-LCP-1113: one static lead block for ES Boost (shell only, no language link; bold no-call line kept as a span)
           ? `<p class="text-xs sm:text-sm opacity-90 mt-1" style="padding-bottom:0.25rem">${tagline}<br>${goStaticSentence(route)}<br><span class="font-bold">${noCallLine}</span></p>` // GO-ES-BOOST-LCP-1113
@@ -1477,21 +1489,12 @@ const htmlAliasPlugin = (): Plugin => ({
             : "")))))) + // GO-BOOST-LCP-1112 // GO-ES-LCP-1113 // GO-ES-BOOST-LCP-1113
         `</div></section>` +
         ((!isEs && slug === "att") ? goAttEnScreen(look.color) : "") + // ATT-LP-QS-1114
-        `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">` +
-        `<div class="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">` +
-        `<label class="flex items-start gap-2">` +
-        `<input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-input" style="accent-color:${look.color}">` +
-        `<span class="text-[11px] sm:text-xs text-foreground leading-relaxed">${autoPayLine}</span>` +
-        `</label>` +
-        `<p class="mt-2 text-[11px] sm:text-xs font-semibold text-foreground text-center">${feeLine}</p>` +
-        `<div class="mt-2 flex flex-wrap items-center justify-center gap-1.5">${GO_PAY_MARKS}</div>` +
-        `<p class="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug text-center">${payMethods}</p>` +
-        `</div></div>` +
+        (esApBelow ? "" : apCardHtml) + // GO-ES-VZ-ATT-LCP-1114-v2: ES AT&T / Verizon render the same card after the loader block
         (slug === "cricket"
           ? goCricketScreen(isEs, look.color)
           : `<div class="flex justify-center items-start py-16 flex-1 min-h-screen">` +
             `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle h-10 w-10 animate-spin text-muted-foreground"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>` +
-            `</div>` + goStaticFaqHtml(route, look.color)) +
+            `</div>` + (esApBelow ? apCardHtml : "") + goStaticFaqHtml(route, look.color)) + // GO-ES-VZ-ATT-LCP-1114-v2
         `</div></div>`
       );
     };
@@ -1835,7 +1838,7 @@ const htmlAliasPlugin = (): Plugin => ({
 
     // CRICKET-LCP-1020: defer only these four shells' app assets until after first paint.
     const cricketAfterPaint = (route: string, shell: string): string => {
-      if (!["go/cricket.html", "go/cricket/index.html", "es/go/cricket.html", "es/go/cricket/index.html", "go/boost.html", "go/boost/index.html", "es/go/boost.html", "es/go/boost/index.html", "es/go/tmobile.html", "es/go/tmobile/index.html", "es/go/metro.html", "es/go/metro/index.html", "es/go/pageplus.html", "es/go/pageplus/index.html", "go/tmobile.html", "go/tmobile/index.html", "go/att.html", "go/att/index.html", "go/metro.html", "go/metro/index.html", "go/verizon.html", "go/verizon/index.html", "go/straight-talk.html", "go/straight-talk/index.html", "go/h2o.html", "go/h2o/index.html", "go/ultra.html", "go/ultra/index.html", "go/simple-mobile.html", "go/simple-mobile/index.html", "es/go/simple-mobile.html", "es/go/simple-mobile/index.html", "es/go/verizon.html", "es/go/verizon/index.html", "es/go/net10.html", "es/go/net10/index.html"].includes(route)) return shell; // BOOST-LCP-1021: + 4 Boost shells // ES-GO-LCP-1021: + 6 ES T-Mobile/Metro/Page Plus shells // GO-EN-LCP-1022: + 4 EN T-Mobile/AT&T shells // GO-EN-LCP-1022b: + 2 EN Metro shells // GO-VZ-LCP-1023 // SIMPLE-PUSH-1023 // ES-GO-LCP-1024: + 6 ES Simple Mobile/Verizon/Net10 shells // GO-SM-LCP-1103 // GO-ST-LCP-1112: + 2 EN Straight Talk shells // GO-H2O-LCP-1112: + 2 EN H2O shells // GO-ULTRA-LCP-1113: + 2 EN Ultra shells
+      if (!["go/cricket.html", "go/cricket/index.html", "es/go/cricket.html", "es/go/cricket/index.html", "go/boost.html", "go/boost/index.html", "es/go/boost.html", "es/go/boost/index.html", "es/go/tmobile.html", "es/go/tmobile/index.html", "es/go/metro.html", "es/go/metro/index.html", "es/go/pageplus.html", "es/go/pageplus/index.html", "go/tmobile.html", "go/tmobile/index.html", "go/att.html", "go/att/index.html", "go/metro.html", "go/metro/index.html", "go/verizon.html", "go/verizon/index.html", "go/straight-talk.html", "go/straight-talk/index.html", "go/h2o.html", "go/h2o/index.html", "go/ultra.html", "go/ultra/index.html", "go/simple-mobile.html", "go/simple-mobile/index.html", "es/go/simple-mobile.html", "es/go/simple-mobile/index.html", "es/go/verizon.html", "es/go/verizon/index.html", "es/go/net10.html", "es/go/net10/index.html", "es/go/att.html", "es/go/att/index.html"].includes(route)) return shell; // BOOST-LCP-1021: + 4 Boost shells // ES-GO-LCP-1021: + 6 ES T-Mobile/Metro/Page Plus shells // GO-EN-LCP-1022: + 4 EN T-Mobile/AT&T shells // GO-EN-LCP-1022b: + 2 EN Metro shells // GO-VZ-LCP-1023 // SIMPLE-PUSH-1023 // ES-GO-LCP-1024: + 6 ES Simple Mobile/Verizon/Net10 shells // GO-SM-LCP-1103 // GO-ST-LCP-1112: + 2 EN Straight Talk shells // GO-H2O-LCP-1112: + 2 EN H2O shells // GO-ULTRA-LCP-1113: + 2 EN Ultra shells // GO-ES-VZ-ATT-LCP-1114: + 2 ES AT&T shells
       try {
         const head = shell.match(/<head\b[^>]*>[\s\S]*?<\/head>/i);
         if (!head || !/<\/body>/i.test(shell)) return shell;

@@ -531,6 +531,7 @@ const GoLander = ({
   const esHref = !isEs && typeof window !== "undefined" ? `/es${window.location.pathname}` : null;
   const leadBlock = carrierSlug === "topup-at" && !isEs && !metroFirstScreen && !noCallLine; // GO-ATT-LCP-1111B: one static lead block (LCP) — same text, same size
   const attQsLayout = carrierSlug === "topup-at" && !isEs; // ATT-LP-QS-1114: amount before SMS; Auto Pay moves below the form (EN /go/att only). Lead block kept.
+  const esApBelow = isEs && (carrierSlug === "topup-at" || carrierSlug === "verizon"); // GO-ES-VZ-ATT-LCP-1114-v2: ES AT&T / Verizon: Auto Pay card below the form only (amount stays after SMS, gated on showRange).
   const boostLead = carrierSlug === "boost" && !isEs && !metroFirstScreen && !!noCallLine; // GO-BOOST-LCP-1112: one static lead block (LCP) — same words, bold line kept
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
   const autoPayLine = goAutoPayLine(carrierSlug, isEs ? "es" : "en"); // LPX-1017
@@ -672,7 +673,7 @@ const GoLander = ({
       </section>
 
       {/* SPEED-LANDER-LCP2: Autopay benefit after H1 (default). ATT-LP-QS-1114 EN /go/att moves this card below the form so phone+amount clear the fold and the sticky pay bar. Checkbox stays unchecked. */}
-      {!attQsLayout && autoPayCard}
+      {!attQsLayout && !esApBelow && autoPayCard}{/* GO-ES-VZ-ATT-LCP-1114-v2 */}
 
 
       {loading && skeletonRange ? (
@@ -921,7 +922,7 @@ const GoLander = ({
             </div>
           </div>
 
-          {attQsLayout && autoPayCard /* ATT-LP-QS-1114 */}
+          {(attQsLayout || esApBelow) && autoPayCard /* ATT-LP-QS-1114 GO-ES-VZ-ATT-LCP-1114-v2 */}
 
           {loading ? <div className="flex justify-center items-start py-16 flex-1 min-h-screen" aria-busy="true" /> : (<>{/* // GO-SPEED-HYDRATION-1110 */}
           {carrierSlug === "ultra-mobile" && <div className="max-w-[420px] mx-auto px-4 pb-4"><UltraSmartNotice smart={ultraSmart} lang={lang} onContinue={() => { if (ultraSmart.usual) void handlePlanPayNow({ price: `$${ultraSmart.usual.amount}`, highlight: ultraSmart.usual.name || "" }); }} /></div>}{/* // ULTRA-SMART-PREVENT-1024 */}
