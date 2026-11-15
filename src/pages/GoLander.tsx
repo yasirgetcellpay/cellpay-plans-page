@@ -787,7 +787,7 @@ const GoLander = ({
                 <p className="text-[10px] sm:text-xs text-destructive mb-2 -mt-1">{tr.enterAll10}</p>
               )}
 
-              {(showRange || attQsLayout) && (
+              {attQsLayout && (
                 <>
                   <label
                     htmlFor="go-amount-input"
