@@ -249,14 +249,18 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
   }),
   en({
     key: "t-mobile-prepaid", name: "T-Mobile Prepaid", slug: "tmobile", checkout: "/tmobile-flexi.html", an: "a",
-    title: "How to Pay Your T-Mobile Prepaid Bill or Refill Online | CellPay",
+    title: "How to Pay Your T-Mobile Prepaid Bill Online, No Login | CellPay",
     description: `T-Mobile Prepaid pay bill online, no login: enter the number, pick an amount, pay by ${payWith("en", "card")}.`,
-    h1: "How to Pay Your T-Mobile Prepaid Bill or Refill Online",
+    h1: "How to Pay Your T-Mobile Prepaid Bill Online (No Login)",
     step3: "Choose a plan from the list or enter a custom amount.",
     autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
     autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
+    moreFaqs: [
+      { q: "Can I pay a T-Mobile postpaid (monthly) bill here?", a: "No. CellPay is for T-Mobile Prepaid numbers only. To pay a T-Mobile postpaid bill, pay T-Mobile directly on its official site or app." },
+      { q: "Does T-Mobile have its own way to pay without signing in?", a: "Yes. T-Mobile offers its own guest payment on its official site. CellPay is another option if you want to pay with just the phone number, with Apple Pay, Google Pay, PayPal and more, and see the total before you pay." },
+    ],
     related: [["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/tmobile-flexi.html", "T-Mobile Prepaid bill pay"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // BILLPAY-TITLES-P1-1105
-    updatedIso: "2026-10-08", updatedText: "Last updated: October 8, 2026",
+    updatedIso: "2026-11-15", updatedText: "Last updated: November 15, 2026",
   }),
   es({
     key: "t-mobile-prepaid", name: "T-Mobile Prepaid", slug: "tmobile", checkout: "/es/tmobile-flexi.html",
