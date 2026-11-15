@@ -41,7 +41,7 @@ const CARRIERS = (es: boolean) => {
     { name: "T-Mobile Prepaid", href: `${p}/tmobile-flexi.html` },
     { name: "AT&T Prepaid", href: `${p}/topup-at.html` },
     { name: "Straight Talk", href: `${p}/straight-talk.html` }, // BILLPAY-HUB-LINKS-1102
-    { name: "Total Wireless", href: `${p}/total-wireless.html` }, // BILLPAY-HUB-LINKS-1102
+    { name: "Total Wireless", href: es ? `${p}/total-wireless.html` : `${p}/total-wireless` }, // BILLPAY-HUB-LINKS-1102
     { name: es ? "Verizon Prepago" : "Verizon Prepaid", href: `${p}/verizon` }, // BILLPAY-HUB-LINKS-1102
     { name: "Ultra Mobile", href: `${p}/ultra-mobile.html` }, // BILLPAY-HUB-LINKS-1102
     { name: "Page Plus", href: `${p}/pageplus.html` }, // BILLPAY-HUB-LINKS-1102
@@ -61,6 +61,17 @@ const GUIDES = (es: boolean) => {
     { name: "Simple Mobile", href: `${p}simple-mobile` },
     { name: "T-Mobile Prepaid", href: `${p}t-mobile-prepaid` },
     { name: "AT&T Prepaid", href: `${p}att-prepaid` },
+    ...(!es ? [
+      { name: "Straight Talk", href: "/how-to-pay/straight-talk" },
+      { name: "Verizon Prepaid", href: "/how-to-pay/verizon-prepaid" },
+      { name: "Total Wireless", href: "/how-to-pay/total-wireless" },
+      { name: "Ultra Mobile", href: "/how-to-pay/ultra-mobile" },
+      { name: "Tracfone", href: "/how-to-pay/tracfone" },
+      { name: "Page Plus", href: "/how-to-pay/page-plus" },
+      { name: "H2O Wireless", href: "/how-to-pay/h2o" },
+      { name: "Lyca Mobile", href: "/how-to-pay/lyca-mobile" },
+      { name: "Net10 Wireless", href: "/how-to-pay/net10" },
+    ] : []),
   ];
 };
 

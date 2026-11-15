@@ -121,7 +121,7 @@ const en = (o: {
   updated: o.updatedText ?? "Last updated: October 7, 2026",
   updatedIso: o.updatedIso ?? UPDATED_ISO,
   related: o.related,
-  labels: { ...LABELS_EN, payNow: `Pay ${o.name} now`, other: `Other ways to pay ${o.name}`, ctaBottom: "Refill now" }, // HOWTO-CTA-1023
+  labels: { ...LABELS_EN, payNow: `Pay ${o.name} now`, other: `Other ways to pay ${o.name}`, ctaBottom: "Pay now" }, // HOWTO-CTA-1023
 });
 
 const es = (o: {
@@ -869,7 +869,7 @@ const amtPage = (c: AmtCarrier, a: number, lang: HtpLang): HtpPage => {
     related: [],
     labels: isEs
       ? { ...LABELS_ES, payNow: `Pagar ${name} ahora`, other: "", ctaBottom: "Recargue ahora" } // AEO-15-TMO-AMOUNTS-1021 // HOWTO-CTA-1023
-      : { ...LABELS_EN, payNow: `Pay ${name} now`, other: "", ctaBottom: "Refill now" }, // AEO-15-TMO-AMOUNTS-1021 // HOWTO-CTA-1023
+      : { ...LABELS_EN, payNow: `Pay ${name} now`, other: "", ctaBottom: "Pay now" }, // AEO-15-TMO-AMOUNTS-1021 // HOWTO-CTA-1023
     amount: a,
     parentPath,
     parentLabel: isEs ? `Guía completa: cómo pagar ${name}` : `Full guide: how to pay ${name}`, // AEO-15-TMO-AMOUNTS-1021
