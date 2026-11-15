@@ -160,7 +160,7 @@ const es = (o: {
   autoPayTitle: "Auto Pago",
   autoPay: o.autoPayBody,
   faqs: [
-    sfFirst(o.slug, "es", { q: `¿Puedo pagar ${o.name} en línea sin iniciar sesión?`, a: `Sí. En CellPay ingresa el número de teléfono de ${o.name}, elige el monto o el plan y paga. No necesita una cuenta de ${o.name} ni una cuenta de CellPay. CellPay es un servicio de pago independiente, no ${o.name}.` }), // TOP4-T4-1009
+    sfFirst(o.slug, "es", { q: `¿Puedo pagar ${o.name} en línea sin iniciar sesión?`, a: `Sí. En CellPay ingrese el número de teléfono de ${o.name}, elija el monto o el plan y pague. No necesita una cuenta de ${o.name} ni una cuenta de CellPay. CellPay es un servicio de pago independiente, no ${o.name}.` }), // TOP4-T4-1009
     ...(o.faq2 ? [o.faq2] : []),
     { q: `¿Cuánto tarda en acreditarse un pago de ${o.name} hecho en CellPay?`, a: o.postA ?? /* SEO-CONTENT-1014 */ /* BATCH3-1014 */ "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Si no se ha acreditado después de 30 minutos, escriba a support@getcellpay.com con su número de teléfono y los datos de la transacción. Cuando el pago se completa, verá una confirmación con los datos de su transacción." },
     { q: `¿Hay un cargo por pagar ${o.name} en CellPay?`, a: "Sí, se aplica un cargo por servicio. El cargo por servicio se muestra en el resumen del pedido antes de pagar, así que ve el total completo primero. Los impuestos y cargos pueden variar según la ubicación." },
@@ -176,7 +176,7 @@ const es = (o: {
   updated: o.updatedText ?? "Última actualización: 7 de octubre de 2026",
   updatedIso: o.updatedIso ?? UPDATED_ISO,
   related: o.related,
-  labels: { ...LABELS_ES, payNow: `Pagar ${o.name} ahora`, other: `Otras formas de pagar ${o.name}`, ctaBottom: "Recargue ahora" }, // HOWTO-CTA-1023
+  labels: { ...LABELS_ES, payNow: `Pagar ${o.name} ahora`, other: `Otras formas de pagar ${o.name}`, ctaBottom: "Pague ahora" }, // HOWTO-CTA-1023
 });
 
 export const HOW_TO_PAY_PAGES: HtpPage[] = [
@@ -351,15 +351,18 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     title: "Cómo Pagar su Factura de Metro by T-Mobile (MetroPCS) en Línea | CellPay",
     description: "Pagar Metro PCS en línea sin iniciar sesión: ingrese el número de Metro by T-Mobile, elija el monto y pague con tarjeta, Apple Pay, Google Pay y más.",
     h1: "Cómo pagar su factura de Metro by T-Mobile (MetroPCS) en línea",
+    intro: `Para pagar Metro PCS en línea sin iniciar sesión, solo necesita el número de teléfono de Metro by T-Mobile de 10 dígitos. En la página de Metro by T-Mobile de CellPay, ingrese el número, elija el monto o el plan y pague con ${PAY_ES}. No necesita cuenta ni contraseña. El cargo por servicio se muestra antes de pagar y la mayoría de los pagos se acreditan en pocos minutos (hasta 30 minutos). CellPay es un servicio de pago independiente, no Metro by T-Mobile; también puede pagar directamente en el sitio oficial de Metro by T-Mobile.`,
     step3: "Elija un plan de la lista o ingrese un monto personalizado.",
     autoPayA: "S\u00ed. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca est\u00e1 marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
     autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca est\u00e1 marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
     moreFaqs: [
       { q: "¿Qué hago si no sé cuánto debo?", a: "CellPay no muestra el saldo de Metro by T-Mobile. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de Metro by T-Mobile, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar." },
       { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." },
+      { q: "¿Metro PCS y Metro by T-Mobile son lo mismo?", a: "Sí. Metro PCS ahora se llama Metro by T-Mobile. Si tiene un número de Metro PCS, puede pagar Metro PCS en línea en la página de Metro by T-Mobile de CellPay con solo el número de teléfono." },
+      { q: "¿Metro by T-Mobile tiene su propio pago en línea sin iniciar sesión?", a: "Sí. Metro by T-Mobile ofrece su propio pago único en su sitio oficial. CellPay es otra opción si quiere pagar solo con el número de teléfono, con Apple Pay, Google Pay, PayPal y más, y ver el total antes de pagar." },
     ],
     related: [["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"], ["/es/como-pagar/cricket", "Cómo pagar Cricket Wireless"] /* CRICKET-GUIDE-1014 */, ["/es/como-pagar/lyca-mobile", "Cómo pagar Lyca Mobile"], ["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], ["/guest-metro-pcs.html", "Pagar Metro by T-Mobile como invitado"], ["/es/metropcs.html", "Pagar factura Metro PCS"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]], // BILLPAY-TITLES-P1-1105
-    updatedIso: "2026-10-12", updatedText: "Última actualización: 12 de octubre de 2026",
+    updatedIso: "2026-11-15", updatedText: "Última actualización: 15 de noviembre de 2026",
   }),
   // SEO-CONTENT-1014 (AEO-08-BOOST-1014): Boost Mobile pay-bill guide pair (SPEC-09 + Oct 14 overrides). "Pay now" goes to /boost.html
   // (ES: /es/boost.html). Built like the Metro/Lyca pairs; pay wording only (no "refill"/"recarga"), no fee amounts or plan prices.
@@ -868,7 +871,7 @@ const amtPage = (c: AmtCarrier, a: number, lang: HtpLang): HtpPage => {
     updatedIso: isTmo ? "2026-10-21" : "2026-10-14", // AEO-15-TMO-AMOUNTS-1021
     related: [],
     labels: isEs
-      ? { ...LABELS_ES, payNow: `Pagar ${name} ahora`, other: "", ctaBottom: "Recargue ahora" } // AEO-15-TMO-AMOUNTS-1021 // HOWTO-CTA-1023
+      ? { ...LABELS_ES, payNow: `Pagar ${name} ahora`, other: "", ctaBottom: "Pague ahora" } // AEO-15-TMO-AMOUNTS-1021 // HOWTO-CTA-1023
       : { ...LABELS_EN, payNow: `Pay ${name} now`, other: "", ctaBottom: "Pay now" }, // AEO-15-TMO-AMOUNTS-1021 // HOWTO-CTA-1023
     amount: a,
     parentPath,
