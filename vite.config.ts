@@ -505,7 +505,7 @@ const htmlAliasPlugin = (): Plugin => ({
     const GUEST_CONTENT: Record<string, { h1: string; intro: string }> = {
       "guest-metro-pcs.html": {
         h1: "Metro PCS Guest Payment — One-Time Payment, No login needed",
-        intro: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment.",
+        intro: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your payment posts to your line after checkout.",
       },
       "guest-h2o.html": {
         h1: "H2O Wireless Guest Payment — One-Time Refill, No login needed",
@@ -529,11 +529,11 @@ const htmlAliasPlugin = (): Plugin => ({
       },
       "guest-metropcs.html": {
         h1: "Metro PCS Guest Payment — One-Time Payment, No login needed",
-        intro: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment.",
+        intro: "Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your payment posts to your line after checkout.",
       },
       "guest-boost.html": {
         h1: "Pay Your Boost Mobile Bill as a Guest",
-        intro: "Pay your Boost Mobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment.",
+        intro: "Pay your Boost Mobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your payment posts to your line after checkout.",
       },
     };
 

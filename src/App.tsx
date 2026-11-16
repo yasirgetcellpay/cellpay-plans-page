@@ -508,7 +508,7 @@ const App = () => (
               seoTitleOverride="Metro PCS Guest Payment — Pay Your Bill Online | CellPay"
               seoDescriptionOverride="Make a Metro by T-Mobile (Metro PCS) guest payment online. No login needed — enter your phone number, choose your 30-day plan, and pay securely."
               seoH1Override="Metro PCS Guest Payment — One-Time Payment, No login needed"
-              seoIntroOverride="Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment."
+              seoIntroOverride="Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your payment posts to your line after checkout."
             />
           }
         />
@@ -525,7 +525,7 @@ const App = () => (
               seoTitleOverride="Metro PCS Guest Payment — Pay Your Bill Online | CellPay"
               seoDescriptionOverride="Make a Metro by T-Mobile (Metro PCS) guest payment online. No login needed — enter your phone number, choose your 30-day plan, and pay securely."
               seoH1Override="Metro PCS Guest Payment — One-Time Payment, No login needed"
-              seoIntroOverride="Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment."
+              seoIntroOverride="Pay your Metro by T-Mobile (Metro PCS) bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your payment posts to your line after checkout."
             />
           }
         />
@@ -542,7 +542,7 @@ const App = () => (
               seoTitleOverride="Pay Your Boost Mobile Bill as a Guest"
               seoDescriptionOverride="Make a Boost Mobile guest payment online. No login needed — enter your phone number, choose your 30-day plan, and pay securely."
               seoH1Override="Pay Your Boost Mobile Bill as a Guest"
-              seoIntroOverride="Pay your Boost Mobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your refill is sent to your line after payment."
+              seoIntroOverride="Pay your Boost Mobile bill as a guest online. Enter your phone number, pick a 30-day plan, and check out securely. No login needed. Your payment posts to your line after checkout."
             />
           }
         />
