@@ -189,7 +189,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     faq2: { q: "Can I refill Straight Talk without the Straight Talk app?", a: "Straight Talk offers its own refill options on its official website and app. On CellPay you can refill from any device with only the phone number." },
     autoPayA: "If CellPay Auto Pay is offered at checkout, you can turn it on there; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
     autoPayBody: "If CellPay Auto Pay is offered at checkout, you can turn it on there; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
-    related: [["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"], ["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/straight-talk.html", "Straight Talk refill"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // SELECTIVE-REFILL-P2-1105
+    related: [["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"], ["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/straight-talk.html", "Straight Talk refill"], ["/total-wireless", "Total Wireless bill pay"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // SELECTIVE-REFILL-P2-1105
   }),
   es({
     key: "straight-talk", name: "Straight Talk", slug: "straight-talk", checkout: "/es/straight-talk.html",
@@ -200,7 +200,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     faq2: { q: "¿Puedo recargar Straight Talk sin la aplicación de Straight Talk?", a: "Straight Talk ofrece sus propias opciones de recarga en su sitio web oficial y en su aplicación. En CellPay puede recargar desde su teléfono, tableta o computadora solo con el número de teléfono." },
     autoPayA: "Si CellPay ofrece Auto Pago al pagar, puede activarlo ahí; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
     autoPayBody: "Si CellPay ofrece Auto Pago al pagar, puede activarlo ahí; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
-    related: [["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/como-pagar/simple-mobile", "Cómo pagar Simple Mobile"], ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], ["/es/straight-talk.html", "Pagar factura Straight Talk"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]], // BILLPAY-TITLES-P1-1105
+    related: [["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/como-pagar/simple-mobile", "Cómo pagar Simple Mobile"], ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], ["/es/straight-talk.html", "Pagar factura Straight Talk"], ["/es/como-pagar/total-wireless", "Cómo pagar Total Wireless"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]], // BILLPAY-TITLES-P1-1105
   }),
   en({
     key: "att-prepaid", name: "AT&T Prepaid", slug: "topup-at", checkout: "/topup-at.html", an: "an",
@@ -626,7 +626,7 @@ HOW_TO_PAY_PAGES.push( // AEO-12-TRACFONE-1018
       { q: "What if I don't know how much I owe?", a: "CellPay doesn't show your Tracfone balance. Check the amount due in your Tracfone app, account or text messages, then choose that plan or amount here. The total with the service fee is shown before you pay." }, // AEO-12-TRACFONE-1018
       { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." }, // AEO-12-TRACFONE-1018
     ], // AEO-12-TRACFONE-1018
-    related: [["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/net10", "How to pay Net10 Wireless"], ["/how-to-pay/ultra-mobile", "How to pay Ultra Mobile"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // AEO-12-TRACFONE-1018
+    related: [["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/net10", "How to pay Net10 Wireless"], ["/how-to-pay/ultra-mobile", "How to pay Ultra Mobile"], ["/total-wireless", "Total Wireless bill pay"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // AEO-12-TRACFONE-1018
     updatedIso: "2026-10-18", updatedText: "Last updated: October 18, 2026", // AEO-12-TRACFONE-1018
   }), // AEO-12-TRACFONE-1018
   es({ // AEO-12-TRACFONE-1018
@@ -651,7 +651,7 @@ HOW_TO_PAY_PAGES.push( // AEO-12-TRACFONE-1018
       { q: "¿Qué hago si no sé cuánto debo?", a: "CellPay no muestra el saldo de Tracfone. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de Tracfone, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar." }, // AEO-12-TRACFONE-1018
       { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." }, // AEO-12-TRACFONE-1018
     ], // AEO-12-TRACFONE-1018
-    related: [["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/net10", "Cómo pagar Net10 Wireless"], ["/es/como-pagar/ultra-mobile", "Cómo pagar Ultra Mobile"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]], // AEO-12-TRACFONE-1018
+    related: [["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/net10", "Cómo pagar Net10 Wireless"], ["/es/como-pagar/ultra-mobile", "Cómo pagar Ultra Mobile"], ["/es/como-pagar/total-wireless", "Cómo pagar Total Wireless"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]], // AEO-12-TRACFONE-1018
     updatedIso: "2026-10-18", updatedText: "Última actualización: 18 de octubre de 2026", // AEO-12-TRACFONE-1018
   }), // AEO-12-TRACFONE-1018
 ); // AEO-12-TRACFONE-1018
@@ -685,7 +685,7 @@ HOW_TO_PAY_PAGES.push( // AEO-13-PAGEPLUS-1019
       { q: "What if I don't know how much I owe?", a: "CellPay doesn't show your Page Plus balance. Check the amount due in your Page Plus app, account or text messages, then choose that plan or amount here. The total with the service fee is shown before you pay." }, // AEO-13-PAGEPLUS-1019
       { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." }, // AEO-13-PAGEPLUS-1019
     ], // AEO-13-PAGEPLUS-1019
-    related: [["/how-to-pay/tracfone", "How to pay Tracfone"], ["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/net10", "How to pay Net10 Wireless"], ["/guest-pageplus.html", "Pay without an account"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // AEO-13-PAGEPLUS-1019
+    related: [["/how-to-pay/tracfone", "How to pay Tracfone"], ["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/net10", "How to pay Net10 Wireless"], ["/guest-pageplus.html", "Pay without an account"], ["/total-wireless", "Total Wireless bill pay"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // AEO-13-PAGEPLUS-1019
     updatedIso: "2026-10-19", updatedText: "Last updated: October 19, 2026", // AEO-13-PAGEPLUS-1019
   }), // AEO-13-PAGEPLUS-1019
   es({ // AEO-13-PAGEPLUS-1019
@@ -710,7 +710,7 @@ HOW_TO_PAY_PAGES.push( // AEO-13-PAGEPLUS-1019
       { q: "¿Qué hago si no sé cuánto debo?", a: "CellPay no muestra el saldo de Page Plus. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de Page Plus, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar." }, // AEO-13-PAGEPLUS-1019
       { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." }, // AEO-13-PAGEPLUS-1019
     ], // AEO-13-PAGEPLUS-1019
-    related: [["/es/como-pagar/tracfone", "Cómo pagar Tracfone"], ["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/net10", "Cómo pagar Net10 Wireless"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]], // AEO-13-PAGEPLUS-1019
+    related: [["/es/como-pagar/tracfone", "Cómo pagar Tracfone"], ["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/net10", "Cómo pagar Net10 Wireless"], ["/es/como-pagar/total-wireless", "Cómo pagar Total Wireless"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]], // AEO-13-PAGEPLUS-1019
     updatedIso: "2026-10-19", updatedText: "Última actualización: 19 de octubre de 2026", // AEO-13-PAGEPLUS-1019
   }), // AEO-13-PAGEPLUS-1019
 ); // AEO-13-PAGEPLUS-1019
