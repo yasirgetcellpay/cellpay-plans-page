@@ -67,7 +67,7 @@ const metroFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [
   { q: "¿Puedo pagar la línea de Metro de otra persona?", a: "Sí, ingrese su número." },
 ] : [
   { q: "How do I pay my Metro PCS bill online?", a: "Enter the Metro phone number, pick the amount for your plan, and pay. It takes about a minute." },
-  { q: "Can I pay Metro PCS as a guest?", a: "Yes. No account or login. You only need the phone number." },
+  { q: "Can I pay my Metro bill as a guest with just the number?", a: "Yes. Enter the 10-digit Metro phone number, pick the amount for your plan, and pay. No account, no login and no PIN." }, // METRO-FAQ-1117
   { q: "Can I pay without the account PIN?", a: "Yes, the phone number is enough." },
   { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en")}` },
   { q: "When does my payment post?", a: "Usually within minutes. You get a confirmation on screen and by email." },
@@ -314,6 +314,7 @@ export const BILL_PAGES: BillPage[] = [
     faqTitle: "Common questions",
     faqs: metroFaqs("en"),
     guide: ["/how-to-pay/metro-pcs", "Metro PCS bill pay"], // BILLPAY-TITLES-P1-1105
+    preFaq: ["Pay your Metro bill as a guest with just the number", "Yes. You can pay your Metro by T-Mobile bill online as a guest with only the 10-digit phone number. No account, login or PIN. Enter the number, pick your amount, and pay. Last updated: November 17, 2026."], // METRO-FAQ-1117
   },
   { // BILLPAY-BOOST-1022
     ...esPage("/es/boost.html", "Boost Mobile", ["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"]),
