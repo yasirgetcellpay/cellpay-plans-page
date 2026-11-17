@@ -533,6 +533,7 @@ const GoLander = ({
   const attQsLayout = carrierSlug === "topup-at" && !isEs; // ATT-LP-QS-1114: amount before SMS; Auto Pay moves below the form (EN /go/att only). Lead block kept.
   const esApBelow = isEs && (carrierSlug === "topup-at" || carrierSlug === "verizon" || carrierSlug === "ultra-mobile"); // GO-ES-ULTRA-LCP-1115: + ES Ultra // GO-ES-VZ-ATT-LCP-1114-v2: ES AT&T / Verizon: Auto Pay card below the form only (amount stays after SMS, gated on showRange).
   const boostLead = carrierSlug === "boost" && !isEs && !metroFirstScreen && !!noCallLine; // GO-BOOST-LCP-1112: one static lead block (LCP) — same words, bold line kept
+  const esH2oLead = isEs && carrierSlug === "h2o" && !noCallLine; // ES-GO-MERGED-LEAD-1117: one static lead block (LCP) for ES H2O, same markup as the shell
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
   const autoPayLine = goAutoPayLine(carrierSlug, isEs ? "es" : "en"); // LPX-1017
   const amountHelp = goUsesPayWording(carrierSlug) ? (isEs ? "Ingrese el monto que desea pagar" : "Enter the amount you want to pay") : (isEs && carrierSlug === "tmobile") ? "Ingrese el monto que desea pagar" : tr.enterAmount; // LPX-1017 // ES-PAGAR-TMO-GOLANDER-1025
@@ -643,6 +644,12 @@ const GoLander = ({
               <br />
               <span className="font-bold">{noCallLine}</span>
               {esHref && (<><br /><a href={esHref} lang="es" hrefLang="es" className="font-semibold underline underline-offset-2">En español</a></>)}
+            </p>
+          ) : esH2oLead ? ( // ES-GO-MERGED-LEAD-1117
+            <p className="text-xs sm:text-sm opacity-90 mt-1" style={{ paddingBottom: "0.25rem" }}>{/* ES-GO-MERGED-LEAD-1117 */}
+              {tagline}
+              <br />
+              {goCarrierSentence(carrierSlug, "es", faqName)}
             </p>
           ) : ( // GO-ATT-LCP-1111B
             <>{/* GO-ATT-LCP-1111B */}
