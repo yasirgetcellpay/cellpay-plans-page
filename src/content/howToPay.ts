@@ -372,7 +372,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     description: "Boost Mobile pay bill as guest: enter the Boost number, pick an amount and pay online. No login. Service fee shown before you pay.",
     h1: "How to Pay a Boost Mobile Bill as a Guest (No Login)",
     step3: "Enter the amount you want to pay.",
-    faq2: { q: "Does Boost Mobile have online guest pay?", a: "Boost Mobile offers its own payment options on its official website and app. On CellPay you can pay online with only the Boost number." },
+    faq2: { q: "Does Boost Mobile have its own online guest payment?", a: "Boost Mobile's help page lists guest payment by phone: you call Boost Customer Care and use the automated system. On CellPay you can pay online as a guest with just the 10-digit Boost number. No login needed." }, // BOOST-FAQ-1117
     postA: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. If it hasn't posted after 30 minutes, email support@getcellpay.com with your phone number and transaction details. You see a confirmation with your transaction details once the payment goes through.",
     autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
     autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
@@ -381,7 +381,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
       { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." },
     ],
     related: [["/how-to-pay/metro-pcs", "How to pay Metro by T-Mobile"], ["/how-to-pay/cricket", "How to pay Cricket Wireless"] /* CRICKET-GUIDE-1014 */, ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/guest-boost.html", "Pay Boost Mobile as a guest"], ["/boost.html", "Pay Boost Mobile now"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
-    updatedIso: "2026-10-14", updatedText: "Last updated: October 14, 2026",
+    updatedIso: "2026-11-17", updatedText: "Last updated: November 17, 2026", // BOOST-FAQ-1117
   }),
   es({
     key: "boost-mobile", name: "Boost Mobile", slug: "boost", checkout: "/es/boost.html",

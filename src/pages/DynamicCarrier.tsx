@@ -1222,7 +1222,13 @@ const DynamicCarrier = ({
             </p>
           )}
           {window.location.pathname.replace(/\/+$/, "") === "/guest-boost.html" && ( // BILLPAY-BOOST-1022
-            <p className="max-w-3xl mx-auto px-4 py-2 text-sm text-center"><a href="/boost.html" className="underline">Pay your Boost Mobile bill online</a></p>
+            <>
+              <div className="max-w-3xl mx-auto px-4 py-2 text-sm">{/* BOOST-FAQ-1117 */}
+                <h3 className="font-bold">Does Boost Mobile have its own online guest payment?</h3>
+                <p>Boost Mobile's help page lists guest payment by phone: you call Boost Customer Care and use the automated system. On CellPay you can pay online as a guest with just the 10-digit Boost number. No login needed.</p>
+              </div>
+              <p className="max-w-3xl mx-auto px-4 py-2 text-sm text-center"><a href="/boost.html" className="underline">Pay your Boost Mobile bill online</a></p>
+            </>
           )}
           {/* SIMPLE-SPEC-1-1009: language switch /s1.html <-> /es/s1.html */}
           {isSimple && (
