@@ -214,8 +214,12 @@ function useStickyConsentClear(barRef: { current: HTMLDivElement | null }, activ
       if (!label) return; // STICKY-CONSENT-CLEAR-1118
       const bar = barRef.current; // STICKY-CONSENT-CLEAR-1118
       const barTop = bar && bar.offsetHeight > 0 ? bar.getBoundingClientRect().top : window.innerHeight - barHeight(); // STICKY-CONSENT-CLEAR-1118
-      const bottom = label.getBoundingClientRect().bottom; // STICKY-CONSENT-CLEAR-1118
-      setClear(bottom <= barTop || bottom <= 0); // STICKY-CONSENT-CLEAR-1118
+      const lr = label.getBoundingClientRect(); // CONSENT-OVERLAY-CLEAR-1119
+      const bottom = lr.bottom; // STICKY-CONSENT-CLEAR-1118 // CONSENT-OVERLAY-CLEAR-1119
+      const ban = document.querySelector<HTMLElement>('[data-ccpa-dock="top"]'); // CONSENT-OVERLAY-CLEAR-1119: top-docked privacy notice
+      const banBottom = ban ? ban.getBoundingClientRect().bottom : 0; // CONSENT-OVERLAY-CLEAR-1119
+      const underBanner = banBottom > 0 && lr.top < banBottom && bottom > banBottom; // CONSENT-OVERLAY-CLEAR-1119: consent partly under the notice = bar hidden (notice bottom acts as viewport top)
+      setClear((bottom <= barTop || bottom <= 0) && !underBanner); // STICKY-CONSENT-CLEAR-1118 // CONSENT-OVERLAY-CLEAR-1119
       if (!io && typeof IntersectionObserver !== "undefined") { // STICKY-CONSENT-CLEAR-1118
         io = new IntersectionObserver(() => schedule(), { rootMargin: `0px 0px -${barHeight()}px 0px`, threshold: [0, 1] }); // STICKY-CONSENT-CLEAR-1118
         io.observe(label); // STICKY-CONSENT-CLEAR-1118

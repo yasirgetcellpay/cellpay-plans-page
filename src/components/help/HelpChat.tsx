@@ -20,11 +20,12 @@ const HelpChatPanel = lazy(loadPanel);
  * helpMobileGuard.ts (the old overlap guard is deleted). Hidden until the first measurement (one frame) so it never
  * flashes over the bar. (body.hide-chat-mobile is NOT used: DynamicCarrier and Checkout set it for the old Tidio widget.)
  */
-function useMobileLauncher(pathname: string): { mobile: boolean; hide: boolean; lift: number; docked: boolean } {
+function useMobileLauncher(pathname: string): { mobile: boolean; hide: boolean; lift: number; docked: boolean; consent: boolean } { // CONSENT-OVERLAY-CLEAR-1119: + consent
   const [mobile, setMobile] = useState(() => typeof window !== "undefined" && window.matchMedia(HELP_MOBILE_QUERY).matches);
   const [hide, setHide] = useState(true);
   const [lift, setLift] = useState(0);
   const [docked, setDocked] = useState(false);
+  const [consent, setConsent] = useState(false); // CONSENT-OVERLAY-CLEAR-1119
 
   useEffect(() => {
     const mq = window.matchMedia(HELP_MOBILE_QUERY);
@@ -35,12 +36,12 @@ function useMobileLauncher(pathname: string): { mobile: boolean; hide: boolean; 
   }, []);
 
   useEffect(() => {
-    if (!mobile) { setHide(false); setLift(0); setDocked(false); return; }
+    if (!mobile) { setHide(false); setLift(0); setDocked(false); setConsent(false); return; } // CONSENT-OVERLAY-CLEAR-1119: + setConsent
     setHide(true);
-    return watchHelpDock(({ lift: l, typing, docked: d }) => { setLift(l); setDocked(d); setHide(typing); });
+    return watchHelpDock(({ lift: l, typing, docked: d, consent: c }) => { setLift(l); setDocked(d); setHide(typing); setConsent(c); }); // CONSENT-OVERLAY-CLEAR-1119: + consent
   }, [mobile, pathname]);
 
-  return { mobile, hide: mobile && hide, lift: mobile ? lift : 0, docked: mobile && docked };
+  return { mobile, hide: mobile && hide, lift: mobile ? lift : 0, docked: mobile && docked, consent: mobile && consent }; // CONSENT-OVERLAY-CLEAR-1119
 }
 
 /** Runtime switch (help_settings, cached 5 min). Until it answers, and on any error, everything is OFF. */
@@ -62,7 +63,7 @@ const HelpChat = () => {
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const hidden = isHelpHiddenPath(pathname);
-  const { mobile, hide: hideOnMobile, lift, docked } = useMobileLauncher(pathname);
+  const { mobile, hide: hideOnMobile, lift, docked, consent } = useMobileLauncher(pathname); // CONSENT-OVERLAY-CLEAR-1119: + consent
 
   // Focus goes back to the launcher after the panel closes by any route (X, Esc, a carrier/topic link that navigates).
   // On phones the launcher may be hidden for a frame (guard re-measures after navigation), so the request waits up to
@@ -107,7 +108,7 @@ const HelpChat = () => {
       {!(mobile ? open || hideOnMobile : false) && (
         <button
           key={lift > 0 ? `${docked ? "dock" : "lift"}-${lift}` : "base"}
-          style={lift > 0 ? { bottom: `${lift}px` } : undefined}
+          style={lift > 0 || consent ? { ...(lift > 0 ? { bottom: `${lift}px` } : {}), ...(consent ? { visibility: "hidden" as const, pointerEvents: "none" as const } : {}) } : undefined} // CONSENT-OVERLAY-CLEAR-1119: hidden (stays mounted, measurable) while SMS consent is in its zone
           ref={launcherRef}
           type="button"
           onClick={toggle}

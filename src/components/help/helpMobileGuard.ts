@@ -100,7 +100,24 @@ export function ctaAvoidPx(base: { left: number; right: number; top: number; bot
   return up;
 }
 
-export interface HelpDockState { lift: number; typing: boolean; docked: boolean; }
+/** CONSENT-OVERLAY-CLEAR-1119: phones on /go + /es/go only. The launcher hides (visibility:hidden, no taps) while the SMS consent label is in
+ *  its zone, measured at its LIFTED place (inline bottom / docked in the Pay bar / translateY dodge): label.bottom > launcherTop - 8 and
+ *  label.top < viewport height. It shows again once consent is clear (or scrolled past) and hides again if consent comes back.
+ *  Label not found = visible (today's behaviour) + console.warn after 3 s. */
+export const HELP_CONSENT_GAP_PX = 8; // CONSENT-OVERLAY-CLEAR-1119
+const HELP_CONSENT_PATH = /^\/(?:es\/)?go\//; // CONSENT-OVERLAY-CLEAR-1119
+export function consentBlocksLauncher(lift: number, docked: boolean): boolean { // CONSENT-OVERLAY-CLEAR-1119
+  if (!HELP_CONSENT_PATH.test(window.location.pathname)) return false; // CONSENT-OVERLAY-CLEAR-1119
+  const label = document.querySelector<HTMLElement>("label[data-sms-optin]"); // CONSENT-OVERLAY-CLEAR-1119
+  if (!label) return false; // CONSENT-OVERLAY-CLEAR-1119
+  const vh = window.innerHeight; // CONSENT-OVERLAY-CLEAR-1119
+  const el = document.querySelector<HTMLElement>("[data-help-widget] [data-testid='help-launcher']"); // CONSENT-OVERLAY-CLEAR-1119
+  const top = el ? el.getBoundingClientRect().top : vh - (lift > 0 ? lift : HELP_MOBILE_BOTTOM_PX) - (docked ? HELP_LAUNCHER_SIZE_PX : 44); // CONSENT-OVERLAY-CLEAR-1119
+  const r = label.getBoundingClientRect(); // CONSENT-OVERLAY-CLEAR-1119
+  return r.bottom > top - HELP_CONSENT_GAP_PX && r.top < vh; // CONSENT-OVERLAY-CLEAR-1119
+} // CONSENT-OVERLAY-CLEAR-1119
+
+export interface HelpDockState { lift: number; typing: boolean; docked: boolean; consent: boolean; } // CONSENT-OVERLAY-CLEAR-1119: + consent
 
 /**
  * Phones: reports { lift, typing, docked } now and on every change. lift = bottom offset above a bottom fixed Pay bar (0 = default
@@ -108,9 +125,9 @@ export interface HelpDockState { lift: number; typing: boolean; docked: boolean;
  * (the bar appears after plans load), when the viewport or the bar resizes, and on focus changes. Returns a cleanup function.
  */
 export function watchHelpDock(onState: (s: HelpDockState) => void): () => void {
-  let lift = 0, typing = false, docked = false, sent = "";
+  let lift = 0, typing = false, docked = false, consent = false, sent = ""; // CONSENT-OVERLAY-CLEAR-1119: + consent
   const bars = new Set<Element>();
-  const publish = () => { const k = `${lift}|${typing}|${docked}`; if (k !== sent) { sent = k; onState({ lift, typing, docked }); } };
+  const publish = () => { const k = `${lift}|${typing}|${docked}|${consent}`; if (k !== sent) { sent = k; onState({ lift, typing, docked, consent }); } }; // CONSENT-OVERLAY-CLEAR-1119
   const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => { lift = barLiftPx(bars, window.innerHeight); docked = inDockSlot(bars, window.innerHeight); publish(); });
   const measure = () => {
     const found = findBottomBars();
@@ -118,8 +135,9 @@ export function watchHelpDock(onState: (s: HelpDockState) => void): () => void {
     for (const b of [...bars]) if (!found.has(b) || !b.isConnected) { bars.delete(b); ro?.unobserve(b); }
     lift = barLiftPx(bars, window.innerHeight);
     docked = inDockSlot(bars, window.innerHeight);
+    avoid(); // CONSENT-OVERLAY-CLEAR-1119: dodge first, then measure consent at the lifted place
+    consent = consentBlocksLauncher(lift, docked); // CONSENT-OVERLAY-CLEAR-1119
     publish();
-    avoid();
   };
   // Step above a full-width page button passing the launcher's corner (not while docked in a bar slot). Written straight on the
   // launcher in the same frame as the scroll (transform: no layout shift, no transition), so it never paints over the button.
@@ -139,7 +157,7 @@ export function watchHelpDock(onState: (s: HelpDockState) => void): () => void {
     el.style.transform = next ? `translateY(-${next}px)` : "";
   };
   let aframe = 0;
-  const scheduleAvoid = () => { if (!aframe) aframe = window.requestAnimationFrame(() => { aframe = 0; avoid(); }); };
+  const scheduleAvoid = () => { if (!aframe) aframe = window.requestAnimationFrame(() => { aframe = 0; avoid(); consent = consentBlocksLauncher(lift, docked); publish(); }); }; // CONSENT-OVERLAY-CLEAR-1119: re-check consent on scroll
   let frame = 0;
   const schedule = () => { if (!frame) frame = window.requestAnimationFrame(() => { frame = 0; measure(); }); };
   const mo = new MutationObserver(schedule);
@@ -154,8 +172,9 @@ export function watchHelpDock(onState: (s: HelpDockState) => void): () => void {
   document.addEventListener("focusin", onFocus);
   document.addEventListener("focusout", onFocus);
   typing = false; onFocus(); measure();
+  const consentWarn = HELP_CONSENT_PATH.test(window.location.pathname) ? window.setTimeout(() => { if (!document.querySelector("label[data-sms-optin]")) console.warn("help_consent_fallback: SMS consent label not found; Help launcher stays visible"); }, 3000) : 0; // CONSENT-OVERLAY-CLEAR-1119
   return () => {
-    mo.disconnect(); ro?.disconnect(); window.cancelAnimationFrame(frame); window.cancelAnimationFrame(aframe);
+    mo.disconnect(); ro?.disconnect(); window.cancelAnimationFrame(frame); window.cancelAnimationFrame(aframe); window.clearTimeout(consentWarn); // CONSENT-OVERLAY-CLEAR-1119
     window.removeEventListener("resize", schedule);
     window.removeEventListener("scroll", scheduleAvoid);
     document.removeEventListener("focusin", onFocus);

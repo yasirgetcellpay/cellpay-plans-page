@@ -47,6 +47,7 @@ export default function CcpaBar() {
   const checkout = /^\/(?:es\/)?checkout\/?$/.test(pathname);
   const visible = eligible && !dismissed && !checkout;
   const es = pathname.startsWith("/es");
+  const goTop = /^\/(?:es\/)?go\//.test(pathname); // CONSENT-OVERLAY-CLEAR-1119: /go + /es/go landers dock the notice to the top
 
   useEffect(() => {
     let cancelled = false;
@@ -84,7 +85,7 @@ export default function CcpaBar() {
   }, [pathname, search]);
 
   useEffect(() => {
-    if (!visible) return;
+    if (!visible || goTop) return; // CONSENT-OVERLAY-CLEAR-1119: top-docked notice adds no body padding (no layout shift)
     const bar = barRef.current;
     if (!bar) return;
     const previousPadding = document.body.style.paddingBottom;
@@ -102,12 +103,12 @@ export default function CcpaBar() {
       try { observer?.disconnect(); document.body.style.paddingBottom = previousPadding; }
       catch { /* Best-effort layout cleanup. */ }
     };
-  }, [visible, es]);
+  }, [visible, es, goTop]); // CONSENT-OVERLAY-CLEAR-1119
 
   // CCPA-BANNER-DESKTOP-1029
   if (!visible) return null;
   return (
-    <div ref={barRef} role="region" aria-label="Privacy notice" className="fixed bottom-0 left-0 right-0 z-30 flex min-h-[44px] flex-wrap items-center gap-x-3 gap-y-1 bg-[hsl(var(--cellpay-dark))] px-3 lg:pr-28 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))] text-[12px] leading-normal text-primary-foreground">
+    <div ref={barRef} role="region" aria-label="Privacy notice" data-ccpa-dock={goTop ? "top" : undefined} className={goTop ? "fixed top-0 left-0 right-0 z-[51] flex min-h-[44px] flex-wrap items-center gap-x-3 gap-y-1 bg-[hsl(var(--cellpay-dark))] px-3 lg:pr-28 pt-[calc(8px+env(safe-area-inset-top))] pb-2 text-[12px] leading-normal text-primary-foreground" : "fixed bottom-0 left-0 right-0 z-30 flex min-h-[44px] flex-wrap items-center gap-x-3 gap-y-1 bg-[hsl(var(--cellpay-dark))] px-3 lg:pr-28 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))] text-[12px] leading-normal text-primary-foreground"}>{/* CONSENT-OVERLAY-CLEAR-1119: on /go + /es/go the notice docks to the top, above the z-50 sticky header, so it never covers the SMS consent; wording, links, Got it, geo/GPC/dismissal unchanged; other routes keep the bottom bar */}
       <p className="min-w-0 flex-1 basis-[240px]">
         {es ? "Usamos cookies para anuncios y el uso del sitio. California: " : "We use cookies for ads and site use. California: "}
         <a className="text-primary-foreground underline" href={es ? "/es/privacy-policy#no-vender" : "/privacy-policy#do-not-sell"}>
