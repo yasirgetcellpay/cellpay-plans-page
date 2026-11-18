@@ -889,6 +889,13 @@ export const htpCommonAmounts = (pg: HtpPage): Array<[string, string]> =>
     ? []
     : HTP_AMOUNTS.map((a) => [pg.lang === "es" ? `/es/como-pagar/${pg.key}/${a}` : `/how-to-pay/${pg.key}/${a}`, pg.lang === "es" ? `Pagar $${a} a ${AMT_CARRIERS.find((c) => c.key === pg.key)?.esName ?? pg.carrierName}` : `Pay $${a} to ${pg.carrierName}`]); // AEO-15-TMO-AMOUNTS-1021
 
+/** AMOUNT-INLINKS-1118: "Other amounts" sibling links on an amount page = the parent guide's "Common amounts" links (same strings) minus this page. Cricket deferred. */
+export const htpOtherAmounts = (pg: HtpPage): Array<[string, string]> => { // AMOUNT-INLINKS-1118
+  if (!pg.amount || pg.key === "cricket" || !pg.parentPath) return []; // AMOUNT-INLINKS-1118
+  const parent = howToPayByPath(pg.parentPath); // AMOUNT-INLINKS-1118
+  return parent ? htpCommonAmounts(parent).filter(([h]) => h !== pg.path) : []; // AMOUNT-INLINKS-1118
+}; // AMOUNT-INLINKS-1118
+
 export const howToPayByPath = (pathname: string): HtpPage | undefined => {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
   return HOW_TO_PAY_PAGES.find((x) => x.path === p);
@@ -1040,6 +1047,7 @@ export const howToPayStaticHtml = (pg: HtpPage): string => {
       head +
       h2(pg.methodsTitle ?? "") + `<p>${esc(pg.methodsLine ?? "")}</p>` + `<p class="mt-2 font-bold">${esc(pg.feeLine ?? "")}</p>` +
       faqHtml + foot +
+      (htpOtherAmounts(pg).length ? h2(pg.lang === "es" ? "Otros montos" : "Other amounts") + `<ul class="list-disc pl-6 space-y-1">` + htpOtherAmounts(pg).map(([h, t]) => `<li><a href="${h}" class="underline">${esc(t)}</a></li>`).join("") + `</ul>` : "") + // AMOUNT-INLINKS-1118
       `<p class="mt-6"><a href="${pg.parentPath}" class="underline">${esc(pg.parentLabel ?? "")}</a></p>` +
       ctaBottom + // HOWTO-CTA-1023
       `</main></div></div>`

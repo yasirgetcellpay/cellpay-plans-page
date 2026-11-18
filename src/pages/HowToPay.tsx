@@ -6,7 +6,7 @@ import { fetchCarrierView } from "@/services/apiWrapper";
 import { RP_P4_DEAD_AMOUNTS } from "@/lib/refillPreventFlags"; // LYCA-SKU-FIX-1024
 import { fetchDeadAmounts, isDeadAmount, withTimeout, type DeadAmount } from "@/lib/refillPrevent"; // LYCA-SKU-FIX-1024
 import { applySeoHead } from "@/lib/seo";
-import { howToPayByPath, howToPayJsonLd, htpPlanNames, htpPlansNote, htpCommonAmounts } from "@/content/howToPay"; // AI-ANSWERS-1014: + htpCommonAmounts
+import { howToPayByPath, howToPayJsonLd, htpPlanNames, htpPlansNote, htpCommonAmounts, htpOtherAmounts } from "@/content/howToPay"; // AI-ANSWERS-1014: + htpCommonAmounts // AMOUNT-INLINKS-1118: + htpOtherAmounts
 import NotFound from "./NotFound.tsx";
 
 type LivePlan = { label: string };
@@ -100,6 +100,13 @@ const HowToPay = () => {
             ))}
             <p className="text-xs text-muted-foreground mt-8">{pg.disclaimer}</p>
             <p className="text-xs text-muted-foreground">{pg.updated}</p>
+            {htpOtherAmounts(pg).length > 0 && (
+              <>
+                {/* AMOUNT-INLINKS-1118: same markup as howToPayStaticHtml */}
+                <h2 className="text-xl font-extrabold mt-8 mb-3">{pg.lang === "es" ? "Otros montos" : "Other amounts"}</h2>
+                <ul className="list-disc pl-6 space-y-1">{htpOtherAmounts(pg).map(([h, t]) => <li key={h}><a href={h} className="underline">{t}</a></li>)}</ul>
+              </>
+            )}
             <p className="mt-6"><a href={pg.parentPath} className="underline">{pg.parentLabel}</a></p>
           </>
         ) : (
