@@ -390,7 +390,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     h1: "Cómo pagar su factura de Boost Mobile como invitado (sin iniciar sesión)",
     introLead: "Para pagar su factura de Boost Mobile en línea como invitado, sin iniciar sesión",
     step3: "Ingrese el monto que desea pagar.",
-    faq2: { q: "¿Boost Mobile tiene pago en línea como invitado?", a: "Boost Mobile ofrece sus propias formas de pago en su sitio web oficial y en su aplicación. En CellPay puede pagar en línea solo con el número de Boost." },
+    faq2: { q: "¿Boost Mobile tiene pago en línea como invitado?", a: "La página de ayuda de Boost Mobile indica que el pago como invitado se hace por teléfono: usted llama a Atención al Cliente de Boost y usa el sistema automatizado. En CellPay puede pagar en línea como invitado solo con el número de Boost de 10 dígitos. Sin iniciar sesión." }, // ES-BOOST-GUEST-FAQ-1118
     postA: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Si no se ha acreditado después de 30 minutos, escriba a support@getcellpay.com con su número de teléfono y los datos de la transacción. Cuando el pago se completa, verá una confirmación con los datos de su transacción.",
     autoPayA: "S\u00ed. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca est\u00e1 marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
     autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca est\u00e1 marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
@@ -399,7 +399,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
       { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." },
     ],
     related: [["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"], ["/es/como-pagar/cricket", "Cómo pagar Cricket Wireless"] /* CRICKET-GUIDE-1014 */, ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/guest-boost.html", "Pagar Boost Mobile como invitado"], ["/es/boost.html", "Pagar Boost Mobile ahora"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
-    updatedIso: "2026-10-14", updatedText: "Última actualización: 14 de octubre de 2026",
+    updatedIso: "2026-11-18", updatedText: "Última actualización: 18 de noviembre de 2026", // ES-BOOST-GUEST-FAQ-1118
   }),
   // CRICKET-GUIDE-1014: Cricket Wireless pay-bill guide pair, built like the Boost/Metro pairs. "Pay now" goes to /topup-crc.html
   // (ES: /es/topup-crc.html), no amount prefill. Pay wording only; no fee amounts or plan prices.
