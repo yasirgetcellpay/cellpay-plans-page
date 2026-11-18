@@ -195,6 +195,56 @@ export interface GoLanderProps {
   firstScreenCta?: string; // FIRSTSCREEN-PAY-EXTEND-1026
 }
 
+// STICKY-CONSENT-CLEAR-1118: the mobile Total / Pay bar stays hidden (no paint, no taps, no focus) until the SMS consent label
+// is fully above the bar's top edge (or scrolled off the top), and hides again if consent comes back into the bar zone. Visibility
+// only: Pay handler, disabled logic, prices and copy are unchanged. IntersectionObserver plus a scroll/resize fallback. Fail-safe:
+// if the consent label is not found after 3 s the bar shows, with console.warn + dataLayer event sticky_consent_fallback.
+const STICKY_HIDDEN: React.CSSProperties = { visibility: "hidden", opacity: 0, pointerEvents: "none" }; // STICKY-CONSENT-CLEAR-1118
+function useStickyConsentClear(barRef: { current: HTMLDivElement | null }, active: boolean): boolean { // STICKY-CONSENT-CLEAR-1118
+  const [clear, setClear] = useState(false); // STICKY-CONSENT-CLEAR-1118
+  useEffect(() => { // STICKY-CONSENT-CLEAR-1118
+    if (!active || typeof window === "undefined") return; // STICKY-CONSENT-CLEAR-1118
+    const findLabel = () => document.querySelector<HTMLElement>("label[data-sms-optin]"); // STICKY-CONSENT-CLEAR-1118
+    const barHeight = () => (barRef.current && barRef.current.offsetHeight > 0 ? barRef.current.offsetHeight : 64); // STICKY-CONSENT-CLEAR-1118
+    let raf = 0; // STICKY-CONSENT-CLEAR-1118
+    let io: IntersectionObserver | null = null; // STICKY-CONSENT-CLEAR-1118
+    const update = () => { // STICKY-CONSENT-CLEAR-1118
+      raf = 0; // STICKY-CONSENT-CLEAR-1118
+      const label = findLabel(); // STICKY-CONSENT-CLEAR-1118
+      if (!label) return; // STICKY-CONSENT-CLEAR-1118
+      const bar = barRef.current; // STICKY-CONSENT-CLEAR-1118
+      const barTop = bar && bar.offsetHeight > 0 ? bar.getBoundingClientRect().top : window.innerHeight - barHeight(); // STICKY-CONSENT-CLEAR-1118
+      const bottom = label.getBoundingClientRect().bottom; // STICKY-CONSENT-CLEAR-1118
+      setClear(bottom <= barTop || bottom <= 0); // STICKY-CONSENT-CLEAR-1118
+      if (!io && typeof IntersectionObserver !== "undefined") { // STICKY-CONSENT-CLEAR-1118
+        io = new IntersectionObserver(() => schedule(), { rootMargin: `0px 0px -${barHeight()}px 0px`, threshold: [0, 1] }); // STICKY-CONSENT-CLEAR-1118
+        io.observe(label); // STICKY-CONSENT-CLEAR-1118
+      } // STICKY-CONSENT-CLEAR-1118
+    }; // STICKY-CONSENT-CLEAR-1118
+    const schedule = () => { if (!raf) raf = window.requestAnimationFrame(update); }; // STICKY-CONSENT-CLEAR-1118
+    const timer = window.setTimeout(() => { // STICKY-CONSENT-CLEAR-1118
+      if (findLabel()) return; // STICKY-CONSENT-CLEAR-1118
+      setClear(true); // STICKY-CONSENT-CLEAR-1118
+      console.warn("sticky_consent_fallback: SMS consent label not found after 3 s; showing the Pay bar"); // STICKY-CONSENT-CLEAR-1118
+      const w = window as unknown as { dataLayer?: unknown[] }; // STICKY-CONSENT-CLEAR-1118
+      (w.dataLayer = w.dataLayer || []).push({ event: "sticky_consent_fallback", page_path: window.location.pathname }); // STICKY-CONSENT-CLEAR-1118
+    }, 3000); // STICKY-CONSENT-CLEAR-1118
+    window.addEventListener("scroll", schedule, { passive: true }); // STICKY-CONSENT-CLEAR-1118
+    window.addEventListener("resize", schedule); // STICKY-CONSENT-CLEAR-1118
+    window.addEventListener("orientationchange", schedule); // STICKY-CONSENT-CLEAR-1118
+    schedule(); // STICKY-CONSENT-CLEAR-1118
+    return () => { // STICKY-CONSENT-CLEAR-1118
+      window.clearTimeout(timer); // STICKY-CONSENT-CLEAR-1118
+      if (raf) window.cancelAnimationFrame(raf); // STICKY-CONSENT-CLEAR-1118
+      window.removeEventListener("scroll", schedule); // STICKY-CONSENT-CLEAR-1118
+      window.removeEventListener("resize", schedule); // STICKY-CONSENT-CLEAR-1118
+      window.removeEventListener("orientationchange", schedule); // STICKY-CONSENT-CLEAR-1118
+      if (io) io.disconnect(); // STICKY-CONSENT-CLEAR-1118
+    }; // STICKY-CONSENT-CLEAR-1118
+  }, [active, barRef]); // STICKY-CONSENT-CLEAR-1118
+  return clear; // STICKY-CONSENT-CLEAR-1118
+} // STICKY-CONSENT-CLEAR-1118
+
 const GoLander = ({
   carrierName: initialName,
   carrierSlug,
@@ -573,6 +623,8 @@ const GoLander = ({
       el.remove();
     };
   }, [faqJsonLd]);
+  const stickyBarRef = useRef<HTMLDivElement>(null); // STICKY-CONSENT-CLEAR-1118
+  const stickyClear = useStickyConsentClear(stickyBarRef, showRange && !loading); // STICKY-CONSENT-CLEAR-1118
 
   const autoPayCard = ( // ATT-LP-QS-1114: same card; placement depends on attQsLayout
       <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">
@@ -724,7 +776,7 @@ const GoLander = ({
             </div>
           </div>
           <div className="max-w-[420px] mx-auto px-4 pb-24 sm:pb-8">
-            <div className="hidden sm:flex justify-center">
+            <div className="flex justify-center">{/* STICKY-CONSENT-CLEAR-1118: in-page Pay also on mobile (was hidden sm:flex) */}
               <button type="button" disabled className="h-[48px] px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2" style={{ backgroundColor: bc }}>
                 {tr.payNow}
               </button>
@@ -733,7 +785,7 @@ const GoLander = ({
           <div
             data-help-dock-slot=""
             className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] pl-3 pr-[72px] py-2 flex items-center gap-2"
-            style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)" }}
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)", ...STICKY_HIDDEN }} // STICKY-CONSENT-CLEAR-1118: loading bar (Pay disabled) stays hidden
           >
             <div className="flex-1 text-left leading-tight">
               <p className="text-[10px] text-muted-foreground">{tr.total}</p>
@@ -949,7 +1001,7 @@ const GoLander = ({
 
           {showRange && (
             <div className="max-w-[420px] mx-auto px-4 pb-24 sm:pb-8">
-              <div className="hidden sm:flex justify-center">
+              <div className="flex justify-center">{/* STICKY-CONSENT-CLEAR-1118: in-page Pay also on mobile, below consent (was hidden sm:flex) */}
                 <button
                   type="button"
                   onClick={handlePay}
@@ -966,9 +1018,10 @@ const GoLander = ({
 
           {showRange && (
             <div
+              ref={stickyBarRef} // STICKY-CONSENT-CLEAR-1118
               data-help-dock-slot=""
               className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] pl-3 pr-[72px] py-2 flex items-center gap-2"
-              style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)" }}
+              style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.5rem)", ...(stickyClear ? {} : STICKY_HIDDEN) }} // STICKY-CONSENT-CLEAR-1118
             >
               <div className="flex-1 text-left leading-tight">
                 <p className="text-[10px] text-muted-foreground">{tr.total}</p>

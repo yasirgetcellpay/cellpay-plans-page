@@ -1380,9 +1380,9 @@ const htmlAliasPlugin = (): Plugin => ({
         `<input type="text" inputmode="numeric" readonly tabindex="-1" placeholder="${s.ph}" aria-label="${s.amount}" class="${inputCls}" value=""></div>` +
         `<p class="text-[10px] sm:text-xs text-muted-foreground mt-2">${s.help}</p>` +
         `</div></div>` +
-        `<div class="max-w-[420px] mx-auto px-4 pb-24 sm:pb-8"><div class="hidden sm:flex justify-center">` +
+        `<div class="max-w-[420px] mx-auto px-4 pb-24 sm:pb-8"><div class="flex justify-center">` + // STICKY-CONSENT-CLEAR-1118: in-page Pay also on mobile
         `<button type="button" disabled class="h-[48px] px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2" style="background-color:${color}">${s.pay}</button></div></div>` +
-        `<div data-help-dock-slot="" class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] pl-3 pr-[72px] py-2 flex items-center gap-2" style="padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 0.5rem)">` +
+        `<div data-help-dock-slot="" class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] pl-3 pr-[72px] py-2 flex items-center gap-2" style="padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 0.5rem);visibility:hidden;opacity:0;pointer-events:none">` + // STICKY-CONSENT-CLEAR-1118: shell bar (Pay disabled) hidden
         `<div class="flex-1 text-left leading-tight"><p class="text-[10px] text-muted-foreground">Total</p><p class="text-base font-extrabold text-foreground">$—</p></div>` +
         `<button type="button" disabled class="flex-[2] h-[46px] rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-sm transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2" style="background-color:${color}">${s.pay}</button></div>` +
         `<section class="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">` +
