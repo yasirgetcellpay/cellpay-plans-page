@@ -534,6 +534,8 @@ const GoLander = ({
   const esApBelow = isEs && (carrierSlug === "topup-at" || carrierSlug === "verizon" || carrierSlug === "ultra-mobile"); // GO-ES-ULTRA-LCP-1115: + ES Ultra // GO-ES-VZ-ATT-LCP-1114-v2: ES AT&T / Verizon: Auto Pay card below the form only (amount stays after SMS, gated on showRange).
   const boostLead = carrierSlug === "boost" && !isEs && !metroFirstScreen && !!noCallLine; // GO-BOOST-LCP-1112: one static lead block (LCP) — same words, bold line kept
   const esH2oLead = isEs && carrierSlug === "h2o" && !noCallLine; // ES-GO-MERGED-LEAD-1117: one static lead block (LCP) for ES H2O, same markup as the shell
+  const cricketLead = carrierSlug === "topup-crc" && !isEs && !metroFirstScreen && !noCallLine; // GO-CRICKET-LCP-1118: one static lead block (LCP) for EN Cricket, same markup as the shell
+  const esCricketLead = isEs && carrierSlug === "topup-crc" && !noCallLine; // GO-CRICKET-LCP-1118: one static lead block (LCP) for ES Cricket, same markup as the shell
   const stepsLine = isEs ? "3 pasos: número → monto → pagar" : "3 steps: number → amount → pay";
   const autoPayLine = goAutoPayLine(carrierSlug, isEs ? "es" : "en"); // LPX-1017
   const amountHelp = goUsesPayWording(carrierSlug) ? (isEs ? "Ingrese el monto que desea pagar" : "Enter the amount you want to pay") : (isEs && carrierSlug === "tmobile") ? "Ingrese el monto que desea pagar" : tr.enterAmount; // LPX-1017 // ES-PAGAR-TMO-GOLANDER-1025
@@ -629,7 +631,7 @@ const GoLander = ({
       <section style={{ backgroundColor: bc }} className="text-primary-foreground">
         <div className="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">
           <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">{lpx?.h1 ?? h1}</h1>
-          {leadBlock ? ( // GO-ATT-LCP-1111B
+          {(leadBlock || cricketLead) ? ( // GO-ATT-LCP-1111B // GO-CRICKET-LCP-1118
             <p className="text-xs sm:text-sm opacity-90 mt-1" style={{ paddingBottom: "0.5rem" }}>{/* GO-ATT-LCP-1111B */}
               {tagline}
               <br />{/* GO-ATT-LCP-1111B */}
@@ -645,7 +647,7 @@ const GoLander = ({
               <span className="font-bold">{noCallLine}</span>
               {esHref && (<><br /><a href={esHref} lang="es" hrefLang="es" className="font-semibold underline underline-offset-2">En español</a></>)}
             </p>
-          ) : esH2oLead ? ( // ES-GO-MERGED-LEAD-1117
+          ) : (esH2oLead || esCricketLead) ? ( // ES-GO-MERGED-LEAD-1117 // GO-CRICKET-LCP-1118
             <p className="text-xs sm:text-sm opacity-90 mt-1" style={{ paddingBottom: "0.25rem" }}>{/* ES-GO-MERGED-LEAD-1117 */}
               {tagline}
               <br />
