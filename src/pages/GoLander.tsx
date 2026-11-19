@@ -687,6 +687,7 @@ const GoLander = ({
       <section style={{ backgroundColor: bc }} className="text-primary-foreground">
         <div className="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">
           <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">{lpx?.h1 ?? h1}</h1>
+          {leadBlock && <p className="text-xs sm:text-sm opacity-90 mt-1 font-semibold">{"Pay for any AT&T Prepaid plan here."}</p>}{/* GO-ATT-PLAN-LINE-1119: EN /go/att only, between H1 and hero p */}
           {(leadBlock || cricketLead) ? ( // GO-ATT-LCP-1111B // GO-CRICKET-LCP-1118
             <p className="text-xs sm:text-sm opacity-90 mt-1" style={{ paddingBottom: "0.5rem" }}>{/* GO-ATT-LCP-1111B */}
               {tagline}

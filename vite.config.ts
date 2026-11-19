@@ -1472,6 +1472,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<section class="text-primary-foreground" style="background-color:${look.color}">` +
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:py-4 text-center">` +
         `<h1 class="text-lg sm:text-xl md:text-2xl font-extrabold leading-snug">${escAttr(content.h1)}</h1>` +
+        ((!isEs && slug === "att" && !noCallLine) ? `<p class="text-xs sm:text-sm opacity-90 mt-1 font-semibold">Pay for any AT&amp;T Prepaid plan here.</p>` : "") + // GO-ATT-PLAN-LINE-1119: EN /go/att shell only, same markup as GoLander
         (!isEs && slug === "boost" && noCallLine // GO-BOOST-LCP-1112: one static lead block, same as GoLander boostLead
           ? `<p class="text-xs sm:text-sm opacity-90 mt-1" style="padding-bottom:0.75rem">${tagline}<br>${goStaticSentence(route)}<br><span class="font-bold">${noCallLine}</span><br><a href="${escAttr(esHref as string)}" lang="es" hreflang="es" class="font-semibold underline underline-offset-2">En español</a></p>` // GO-BOOST-LCP-1112
           : (!isEs && (slug === "att" || slug === "simple-mobile" || slug === "metro" || slug === "tmobile" || slug === "verizon" || slug === "straight-talk" || slug === "h2o" || slug === "ultra" || slug === "cricket") && !noCallLine // GO-ATT-LCP-1111B // GO-SM-LCP-1112: same static lead block for EN /go/simple-mobile (shell only) // GO-METRO-LCP-1112: same, EN /go/metro (shell only) // GO-TMOBILE-LCP-1112 // GO-VERIZON-LCP-1112 // GO-ST-LCP-1112 // GO-H2O-LCP-1112 // GO-ULTRA-LCP-1113 // GO-CRICKET-LCP-1118
