@@ -9,6 +9,7 @@ import { HOW_TO_PAY_PAGES, howToPayJsonLd, howToPayStaticHtml } from "./src/cont
 import { SIMPLE_META, simpleStaticBlock, simpleJsonLd } from "./src/content/simplePage";
 // SEO-CONTENT-1014: pay-wording head/H1 + 4-question FAQ and FAQPage/BreadcrumbList JSON-LD (es Metro, es Boost, en+es Cricket).
 import { billPageByPath, billJsonLd, billStaticBlock } from "./src/content/billCarrierSeo";
+import { ST_ORG_TITLE, ST_ORG_DESC, ST_ORG_H1, stOrgHtml } from "./src/content/straightTalkOrganic"; // ST-ORGANIC-1119
 // PAYCOPY-1008: payment methods named in raw HTML come from the shared list (follows src/config/paymentFlags.ts).
 import { weAcceptLine, payBrandsComma, PAYPAL_SHOWN } from "./src/content/paymentMethods";
 // LPX-1010: ad-lander H1 / title / subline per carrier (shared with GoLander.tsx).
@@ -825,7 +826,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "tracfone.html":             { title: "Pay Your Tracfone Bill Online – No Login | CellPay", description: "Pay your Tracfone bill online with just the phone number. No account or login. Pay for yourself or someone else. Service fee shown before you pay." }, // BILLPAY-TRACFONE-1030
       "ultra-mobile.html":         { title: "Pay Ultra Mobile Bill Online – No Login | CellPay", description: "Pay your Ultra Mobile bill online with just the phone number. No account or login needed. Pay for yourself or someone else. Low service fee shown before you pay." }, // BILLPAY-ULTRA-1028
       "verizon-wireless-flexi.html": { title: "Verizon Prepaid Refill — Online Top-Up | CellPay",   description: "Recharge Verizon Prepaid online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
-      "straight-talk.html":        { title: "Straight Talk Refill & Bill Pay Online – No Login | CellPay",       description: "Straight Talk refill and bill pay online with just the phone number. No login or account. Pay for yourself or someone else. Service fee shown before you pay." }, // BILLPAY-STRAIGHTTALK-1025 // BILLPAY-TITLES-P1-1105 // SELECTIVE-REFILL-P2-1105
+      "straight-talk.html":        { title: ST_ORG_TITLE,       description: ST_ORG_DESC }, // BILLPAY-STRAIGHTTALK-1025 // BILLPAY-TITLES-P1-1105 // SELECTIVE-REFILL-P2-1105 // ST-ORGANIC-1119
       "guest-metropcs.html":       { title: "Metro PCS Guest Payment — Pay Your Bill Online | CellPay",      description: "Pay your Metro PCS bill as a guest. No login needed. All 30-day plans, secure checkout." },
       "guest-boost.html":          { title: "Pay Your Boost Mobile Bill as a Guest",   description: "Pay your Boost Mobile bill as a guest. No login needed. All 30-day plans, secure checkout." },
       "total-wireless.html":       { title: "Total Wireless Bill Pay Online – No Login, Guest Pay | CellPay",       description: "Pay your Total Wireless bill online in minutes. No login needed — enter the phone number, pick your plan and pay with any card or wallet." }, // COPY-1024 // ORGANIC-TW-PAYBILL-FAQ-1027 // BILLPAY-TITLES-P1-1105
@@ -1598,7 +1599,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `</div></div></nav>` +
         `<section class="text-foreground" style="background-color:${bc}">` +
         `<div class="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">` +
-        `<h1 class="text-xl md:text-2xl font-extrabold">${isEs ? "Pague su Factura de Straight Talk en Línea" : "Straight Talk Refill & Bill Pay Online"}</h1>` + // BILLPAY-ST-SHELL-H1-1025 BILLPAY-TITLES-P1-1105 // SELECTIVE-REFILL-P2-1105
+        `<h1 class="text-xl md:text-2xl font-extrabold">${isEs ? "Pague su Factura de Straight Talk en Línea" : ST_ORG_H1}</h1>` + // BILLPAY-ST-SHELL-H1-1025 BILLPAY-TITLES-P1-1105 // SELECTIVE-REFILL-P2-1105 // ST-ORGANIC-1119
         `</div></section>` +
         `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">` +
         `<div class="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">` +
@@ -1610,6 +1611,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<p class="text-[10px] sm:text-xs text-muted-foreground">Enter the phone number you want to recharge</p>` +
         `</div></div>` +
         `<div class="min-h-screen"></div>` +
+        (!isEs ? stOrgHtml() : "") + // ST-ORGANIC-1119
         `</div></div>`
       );
     };

@@ -41,6 +41,7 @@ export const HOW_TO_USE: Record<HtuLang, HtuPage> = {
     guidesLabel: "Carrier guides: ",
     guides: [
       ["/how-to-pay/straight-talk", "How to pay Straight Talk"],
+      ["/straight-talk.html", "Straight Talk: refill or pay your bill as a guest"], // ST-ORGANIC-1119
       ["/how-to-pay/att-prepaid", "How to pay AT&T Prepaid"],
       ["/how-to-pay/simple-mobile", "How to pay Simple Mobile"],
       ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"],

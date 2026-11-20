@@ -67,7 +67,7 @@ const CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
 const faqMain = (): string =>
   MAIN + H1("Frequently Asked Questions") + `<div class="w-full" data-orientation="vertical">` +
   FAQ_QS.map((q) => `<div data-state="closed" data-orientation="vertical" class="border-b"><h3 data-orientation="vertical" data-state="closed" class="flex"><button type="button" aria-expanded="false" data-state="closed" data-orientation="vertical" class="flex flex-1 items-center justify-between py-4 transition-all hover:underline text-left font-bold text-foreground">${esc(q)}${CHEVRON}</button></h3></div>`).join("") +
-  `</div></main>`;
+  `</div><p class="mt-6 text-sm"><a href="/straight-talk.html" class="underline">Pay your Straight Talk bill or refill as a guest</a></p></main>`; // ST-ORGANIC-1119
 
 /** route (dist file) -> the page's <main> HTML, or null when the route has no shell. */
 export const infoMainHtml = (route: string): string | null => {

@@ -9,6 +9,7 @@ import { PlanGrid } from "@/components/PlanGrid";
 import { fetchCarrierView, verifyPhone } from "@/services/apiWrapper";
 import { useToast } from "@/hooks/use-toast";
 import { applySeoHead } from "@/lib/seo";
+import { ST_ORG_TITLE, ST_ORG_DESC, ST_ORG_H1, ST_ORG_INTRO, ST_ORG_UPDATED, ST_ORG_FAQ_TITLE, ST_ORG_FAQS } from "../content/straightTalkOrganic"; // ST-ORGANIC-1119
 import { useEmailPrefill } from "@/hooks/useEmailPrefill"; // ST-PREFILL-1018
 
 const brandColor = "hsl(72,74%,44%)";
@@ -46,7 +47,7 @@ const StraightTalk = () => {
     const isEs = typeof window !== "undefined" && window.location.pathname.startsWith("/es");
     applySeoHead(isEs
       ? { title: 'Pagar Factura Straight Talk en Línea sin Cuenta | CellPay', description: 'Pague su factura de Straight Talk en línea solo con el número de teléfono. Sin cuenta y sin iniciar sesión.' } // BILLPAY-STRAIGHTTALK-H1-1025
-      : { title: 'Pay Straight Talk Bill Online – No Login, Pay as Guest | CellPay', description: 'Pay your Straight Talk bill online with just the phone number. No login or account needed. Pay for yourself or someone else.' }); // BILLPAY-STRAIGHTTALK-H1-1025
+      : { title: ST_ORG_TITLE, description: ST_ORG_DESC }); // BILLPAY-STRAIGHTTALK-H1-1025 // ST-ORGANIC-1119
   }, []);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -174,7 +175,7 @@ const StraightTalk = () => {
       </nav>
       <section className="text-foreground" style={{ backgroundColor: brandColor }}>
         <div className="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-xl md:text-2xl font-extrabold">{typeof window !== "undefined" && window.location.pathname.startsWith("/es") ? "Pague su Factura de Straight Talk en Línea" : "Pay Your Straight Talk Bill Online"}</h1>{/* BILLPAY-STRAIGHTTALK-H1-1025 */}
+          <h1 className="text-xl md:text-2xl font-extrabold">{typeof window !== "undefined" && window.location.pathname.startsWith("/es") ? "Pague su Factura de Straight Talk en Línea" : ST_ORG_H1}</h1>{/* BILLPAY-STRAIGHTTALK-H1-1025 // ST-ORGANIC-1119 */}
         </div>
       </section>
       <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">
@@ -219,6 +220,14 @@ const StraightTalk = () => {
       )}
 
       </div>
+      {/* // ST-ORGANIC-1119 */}{!(typeof window !== "undefined" && window.location.pathname.startsWith("/es")) && (
+        <section className="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-left" data-st-organic="1">{/* // ST-ORGANIC-1119 */}
+          <p className="text-sm text-foreground leading-relaxed">{ST_ORG_INTRO}</p>{/* // ST-ORGANIC-1119 */}
+          <p className="text-xs text-muted-foreground mt-2">{ST_ORG_UPDATED}</p>{/* // ST-ORGANIC-1119 */}
+          <h2 className="text-xl font-extrabold text-foreground mt-8 mb-4">{ST_ORG_FAQ_TITLE}</h2>{/* // ST-ORGANIC-1119 */}
+          {/* // ST-ORGANIC-1119 */}{ST_ORG_FAQS.map(({ q, a }) => <div key={q} className="mb-4"><h3 className="font-bold">{q}</h3><p className="text-sm text-muted-foreground mt-1">{a}</p></div>)}
+        </section> // ST-ORGANIC-1119
+      )}{/* // ST-ORGANIC-1119 */}
       <PaymentBar />
       <CarrierFooter brandColor={brandColor} carrierName="Straight Talk" />
     </div>

@@ -3,6 +3,7 @@
 // AND vite.config.ts (raw HTML), so the visible FAQ and the FAQPage JSON-LD stay word for word identical.
 // Wording rule (Metro, Boost, Cricket): pay/payment, pagar/pago only. No fee amounts. Relative imports only (vite.config.ts loads this).
 import { methodsLong } from "./paymentMethods";
+import { ST_ORG_TITLE, ST_ORG_DESC, ST_ORG_H1, ST_ORG_FAQ_TITLE, ST_ORG_FAQS } from "./straightTalkOrganic"; // ST-ORGANIC-1119
 
 export type BillLang = "en" | "es";
 export type BillFaq = { q: string; a: string };
@@ -140,14 +141,7 @@ const straightTalkFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BIL
   { q: "¿Puedo pagar con Apple Pay o con tarjeta?", a: `Sí. ${methodsLong("es")}` }, // BILLPAY-STRAIGHTTALK-1025
   { q: "¿Cuándo se aplica mi pago?", a: "Por lo general en pocos minutos. Recibe una confirmación en pantalla y por correo electrónico." }, // BILLPAY-STRAIGHTTALK-1025
   { q: "¿Funciona para los planes de 30 días de Straight Talk?", a: "Sí. Elija un plan de la lista en esta página. Verá el monto antes de pagar." }, // BILLPAY-STRAIGHTTALK-1025
-] : [ // BILLPAY-STRAIGHTTALK-1025
-  { q: "How do I pay my Straight Talk bill online?", a: "Enter the Straight Talk phone number, pick your plan, and pay. No account needed." }, // BILLPAY-STRAIGHTTALK-1025
-  { q: "Can I pay my Straight Talk bill without logging in?", a: "Yes. You only need the phone number." }, // BILLPAY-STRAIGHTTALK-1025
-  { q: "Can I pay someone else's Straight Talk line?", a: "Yes. Enter their Straight Talk number and double-check it before you pay." }, // BILLPAY-STRAIGHTTALK-1025
-  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-STRAIGHTTALK-1025
-  { q: "When does my payment post?", a: "Usually within minutes. You get a confirmation on screen and by email." }, // BILLPAY-STRAIGHTTALK-1025
-  { q: "Does it work for Straight Talk 30-day plans?", a: "Yes. Choose a plan from the list on this page. No prices are listed here — you'll see the amount before you pay." }, // BILLPAY-STRAIGHTTALK-1025
-]; // BILLPAY-STRAIGHTTALK-1025
+] : ST_ORG_FAQS; // ST-ORGANIC-1119
 
 const totalWirelessFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-TOTALWIRELESS-1026
   { q: "¿Cómo pago mi factura de Total Wireless en línea?", a: "Ingrese el número de teléfono de Total Wireless, elija su plan y pague. No necesita una cuenta." }, // BILLPAY-TOTALWIRELESS-1026
@@ -408,14 +402,14 @@ export const BILL_PAGES: BillPage[] = [
   }, // BILLPAY-STRAIGHTTALK-1025
   { // BILLPAY-STRAIGHTTALK-1025
     path: "/straight-talk.html", lang: "en", name: "Straight Talk", // BILLPAY-STRAIGHTTALK-1025
-    title: "Straight Talk Refill & Bill Pay Online – No Login | CellPay", // SELECTIVE-REFILL-P2-1105
-    description: "Straight Talk refill and bill pay online with just the phone number. No login or account. Pay for yourself or someone else. Service fee shown before you pay.", // SELECTIVE-REFILL-P2-1105
-    h1: "Straight Talk Refill & Bill Pay Online", // SELECTIVE-REFILL-P2-1105
+    title: ST_ORG_TITLE, // SELECTIVE-REFILL-P2-1105 // ST-ORGANIC-1119
+    description: ST_ORG_DESC, // SELECTIVE-REFILL-P2-1105 // ST-ORGANIC-1119
+    h1: ST_ORG_H1, // SELECTIVE-REFILL-P2-1105 // ST-ORGANIC-1119
     sub: "No login. Just the phone number. Pay for yourself or someone else.", // BILLPAY-STRAIGHTTALK-1025
     autoPayInfoLead: "Optional: Auto Pay so you never miss a payment.", // BILLPAY-STRAIGHTTALK-1025
     enterAmount: "Enter the amount you want to recharge", // BILLPAY-STRAIGHTTALK-1025
     securePayment: "Secure payment. Your refill is sent directly to your phone.", // BILLPAY-STRAIGHTTALK-1025
-    faqTitle: "Common questions", // BILLPAY-STRAIGHTTALK-1025
+    faqTitle: ST_ORG_FAQ_TITLE, // BILLPAY-STRAIGHTTALK-1025 // ST-ORGANIC-1119
     faqs: straightTalkFaqs("en"), // BILLPAY-STRAIGHTTALK-1025
     guide: ["/how-to-pay/straight-talk", "Straight Talk refill"], // SELECTIVE-REFILL-P2-1105
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-STRAIGHTTALK-1025

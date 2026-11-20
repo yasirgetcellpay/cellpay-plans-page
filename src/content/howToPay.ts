@@ -882,6 +882,9 @@ const amtPage = (c: AmtCarrier, a: number, lang: HtpLang): HtpPage => {
   };
 };
 HOW_TO_PAY_PAGES.push(...AMT_CARRIERS.flatMap((c) => HTP_AMOUNTS.flatMap((a) => [amtPage(c, a, "en"), amtPage(c, a, "es")])));
+for (const pg of HOW_TO_PAY_PAGES.filter((p) => p.key === "straight-talk" && p.lang === "en")) { // ST-ORGANIC-1119
+  pg.labels.payNow = "Refill or pay Straight Talk as a guest"; // ST-ORGANIC-1119
+} // ST-ORGANIC-1119
 
 /** AI-ANSWERS-1014: "Common amounts" links for a parent guide (empty for amount pages and other carriers). */
 export const htpCommonAmounts = (pg: HtpPage): Array<[string, string]> =>

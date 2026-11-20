@@ -80,6 +80,7 @@ const FAQ = () => {
             </AccordionItem>
           ))}
         </Accordion>
+        <p className="mt-6 text-sm"><a href="/straight-talk.html" className="underline">Pay your Straight Talk bill or refill as a guest</a></p>{/* // ST-ORGANIC-1119 */}
       </main>
       <div id="unsubscribe-autopay" style={{ scrollMarginTop: 80 }}>
         <HelpQuickActions />
