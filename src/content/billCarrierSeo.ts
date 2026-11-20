@@ -122,16 +122,14 @@ const tmobileFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-
   { q: "¿Cómo consulto mi saldo?", a: "Marque #BAL# o #999# desde su teléfono T-Mobile." }, // ORGANIC-ES-BILLPAY-TW-TMO-1027
   { q: "¿Hay un cargo por servicio?", a: "Sí. Verá el cargo por servicio antes de pagar." }, // ORGANIC-ES-BILLPAY-TW-TMO-1027
 ] : [ // BILLPAY-TMOBILE-1024
-  { q: "How do I pay my T-Mobile Prepaid bill as a guest?", a: "Enter the T-Mobile phone number, pick your plan or amount, and pay. No account needed." }, // BILLPAY-TMOBILE-1024
-  { q: "Can I pay my T-Mobile bill without logging in?", a: "Yes. You don't need a T-Mobile login. The phone number is enough." }, // BILLPAY-TMOBILE-1024
-  { q: "Can I pay someone else's T-Mobile line?", a: "Yes. Enter their T-Mobile number and double-check it before you pay." }, // BILLPAY-TMOBILE-1024
-  { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-TMOBILE-1024
-  { q: "When does my payment post?", a: "Usually within minutes. You get a confirmation on screen and by email." }, // BILLPAY-TMOBILE-1024
-  { q: "I switched to T-Mobile Prepaid, including from UScellular. Can I pay here?", a: "Yes. Enter your T-Mobile phone number and pay the same way." }, // BILLPAY-TMOBILE-1024 // USC-FLEXI-1025 // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
-  { q: "Is a refill online different from a refill card or PIN?", a: "Yes. We load the amount directly to your T-Mobile Prepaid number. There is no card to buy and no PIN code to enter." }, // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
-  { q: "Does the amount need to match my plan?", a: "Yes. Pick the amount that exactly matches your T-Mobile Prepaid plan." }, // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
-  { q: "Does this work for T-Mobile postpaid?", a: "No. This page is for T-Mobile Prepaid numbers only." }, // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
-  { q: "How do I check my balance?", a: "Dial #BAL# or #999# from your T-Mobile phone." }, // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
+  { q: "How do I make my T-Mobile payment online without logging in?", a: "Enter the 10-digit T-Mobile phone number, pick your plan or amount, review the total and pay with a card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. No T-Mobile login or CellPay account is needed." }, // TMO-PREPAID-AEO-1120
+  { q: "Do I need a T-Mobile login or a CellPay account?", a: "No. You pay as a guest with just the phone number. You don't need a carrier login, a CellPay account or the account holder's password." }, // TMO-PREPAID-AEO-1120
+  { q: "Can I pay someone else's T-Mobile line?", a: "Yes. You only need their T-Mobile phone number. The charge goes on your payment method, not their account. Double-check the number, because all CellPay payments are final." }, // TMO-PREPAID-AEO-1120
+  { q: "Is there a fee to make my T-Mobile payment on CellPay?", a: "Yes, a service fee applies. The service fee is shown in the order summary before you pay, so you see the full total first." }, // TMO-PREPAID-AEO-1120
+  { q: "How long does a T-Mobile payment take to post?", a: "Most payments post within minutes; allow up to 30 minutes. You get a confirmation on screen and by email. If it hasn't posted after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." }, // TMO-PREPAID-AEO-1120
+  { q: "What payment methods can I use?", a: "Credit and debit cards (Visa, Mastercard, American Express, Discover), Apple Pay on supported devices, Google Pay, PayPal, Klarna, Cash App and Pay by Bank." }, // TMO-PREPAID-AEO-1120
+  { q: "What happens if the refill can't be added to my line?", a: "If the carrier cannot add the refill, the payment is automatically refunded. Completed payments are final." }, // TMO-PREPAID-AEO-1120
+  { q: "Does this work for T-Mobile postpaid?", a: "No. This page is for T-Mobile Prepaid numbers only." }, // TMO-PREPAID-AEO-1120 (Q8 live text kept verbatim)
 ]; // BILLPAY-TMOBILE-1024
 
 const straightTalkFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-STRAIGHTTALK-1025
@@ -383,7 +381,7 @@ export const BILL_PAGES: BillPage[] = [
     guide: ["/how-to-pay/t-mobile-prepaid", "T-Mobile Prepaid bill pay"], // BILLPAY-TITLES-P1-1105
     more: [["/pay-your-phone-bill", "Pay your phone bill"]], // BILLPAY-TMOBILE-1024
     // BILLPAY-TITLES-P1-1105: FAQPage and BreadcrumbList enabled.
-    preFaq: ["Add a T-Mobile Prepaid refill online", "Pick your amount and pay. The refill loads straight to the T-Mobile Prepaid number. No card to buy and no PIN code to enter."], // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
+    preFaq: ["Add a T-Mobile Prepaid refill online", "To make your T-Mobile payment online without logging in, enter the 10-digit T-Mobile phone number above, pick your plan or amount, review the total and pay. You don't need a T-Mobile login or a CellPay account, and the service fee is shown before you pay. Most payments post within minutes; allow up to 30 minutes. Pick your amount and pay. The refill loads straight to the T-Mobile Prepaid number. No card to buy and no PIN code to enter."], // TMO-PREPAID-AEO-1120
   }, // BILLPAY-TMOBILE-1024
   { // BILLPAY-STRAIGHTTALK-1025
     path: "/es/straight-talk.html", lang: "es", name: "Straight Talk", // BILLPAY-STRAIGHTTALK-1025
