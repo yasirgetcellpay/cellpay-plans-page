@@ -1,6 +1,6 @@
 import { methodsLong } from "./paymentMethods"; // ST-ORGANIC-1119
-export const ST_ORG_TITLE = "Straight Talk Refill & Bill Pay as Guest – No Login | CellPay"; // ST-ORGANIC-1119
-export const ST_ORG_DESC = "Pay your Straight Talk bill or refill online as a guest with just the phone number. No login or account. Pay for yourself or someone else. Fee shown before you pay."; // ST-ORGANIC-1119
+export const ST_ORG_TITLE = "Straight Talk Refill & Bill Pay as Guest, No Login | CellPay"; // ST-ORGANIC-1119
+export const ST_ORG_DESC = "Pay your Straight Talk bill or refill online as a guest with only the phone number. No login or account. Pay for others too. Fee shown before you pay."; // ST-ORGANIC-1119
 export const ST_ORG_H1 = "Pay or Refill Straight Talk Online as a Guest"; // ST-ORGANIC-1119
 export const ST_ORG_INTRO = "Pay your Straight Talk bill or refill your Straight Talk plan online as a guest. Enter the 10-digit Straight Talk phone number, choose a plan, and pay with a card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. No login or account is needed. You see the total, including the service fee, before you pay. CellPay is an independent payment service and is not Straight Talk."; // ST-ORGANIC-1119
 export const ST_ORG_UPDATED = "Last updated: November 19, 2026"; // ST-ORGANIC-1119
