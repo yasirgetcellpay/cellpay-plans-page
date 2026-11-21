@@ -52,6 +52,7 @@ import { RP_P2_RETRY_BLOCK, RP_P6_ST_PASTDUE } from "@/lib/refillPreventFlags"; 
 import { recordRetryBlock, isPlanMismatchLoadText, isStPastDue, stPastDueText } from "@/lib/refillPrevent"; // REFILL-PREVENT-1024
 import { RP_P4_DEAD_AMOUNTS, RP_P2c_DISC_24H } from "@/lib/refillPreventFlags"; // LYCA-SKU-FIX-1024
 import { fetchDeadAmounts, withTimeout, recordDiscBlock, isDiscontinuedLoadText } from "@/lib/refillPrevent"; // LYCA-SKU-FIX-1024
+import { tmoExchangeBad, tmoCheckNumberText } from "@/lib/tmoPhoneFormat"; // TMO-FORMAT-1121
 import { loadTextFrom, loadTextPick, isCcRefund, pickReasonText, pickRefundLine, pickButtons, type LoadPick } from "@/lib/loadTextPick"; // LOADTEXT-PICK-1019 (replaces the LOADTEXT-REASON-1017 import here; src/lib/loadTextReason.ts stays)
 import { isVerizonSlug, VZ_NOTE, VZ_NOTICE_MIN, vzBlockText } from "@/lib/vzPrepaid"; // VZ-PREPAID-GUARD-1017
 import { tmoRetryText } from "@/lib/tmoRetry"; // TMO-LOOKUP-1020
@@ -380,7 +381,8 @@ const Checkout = () => {
   const tr = t(lang);
   // REFUNDED-STATE-1017: never charge a phone that isn't a valid 10-digit US number.
   const phone10 = normalizePhone(String(state?.phone || ""));
-  const phoneOk = /^[2-9]\d{9}$/.test(phone10);
+  const tmoFmtBad = tmoExchangeBad(state?.carrierSlug, phone10); // TMO-FORMAT-1121
+  const phoneOk = /^[2-9]\d{9}$/.test(phone10) && !tmoFmtBad; // TMO-FORMAT-1121: T-Mobile exchange 0/1 also fails
   const ultraMdnOk = !!state?.ultraMdn && state.carrierSlug === "ultra-mobile" && phone10 === state.ultraMdn.mdn && String(state.planId) === state.ultraMdn.planId && !!state.ultraMdn.barcode && ultraMdnAmountOk(state.ultraMdn, Number(state.amount)) ? state.ultraMdn : null; // ULTRA-MDN-1029
   const ultraMdnArg = ultraMdnOk ? { barcode: String(ultraMdnOk.barcode), kind: ultraMdnOk.kind } : undefined; // ULTRA-MDN-1029
   const ultraMdnExtra = ultraMdnOk ? { barcode: String(ultraMdnOk.barcode), carrierId: ultraMdnOk.carrierId, plan_id: ultraMdnOk.planId, phone_number: ultraMdnOk.mdn } : {}; // ULTRA-MDN-1029
@@ -396,6 +398,11 @@ const Checkout = () => {
   const ultraSmart = useUltraSmart(state?.carrierSlug || "", phone10, phoneOk, ultraPlans); // ULTRA-SMART-PREVENT-1024
   const goUltraPlan = (plan: UltraPlan) => { if (!state) return; const next = { ...state, smsOptIn: smsOptInRef.current === true, ultraMdn: undefined /* ULTRA-MDN-1029: A plan */, amount: String(plan.amount), planId: plan.plan_id, planName: plan.name, ...(plan.carrierId ? { carrierId: plan.carrierId } : {}) }; writeCheckoutCtx(next); navigate(`${lang === "es" ? "/es" : ""}/checkout${location.search}${location.hash}`, { state: next }); }; // ULTRA-SMART-PREVENT-1024 // SMS-34332-PHONE-1106
   const badPhoneGo = () => {
+    if (tmoFmtBad) { // TMO-FORMAT-1121: keep the number so the customer can fix one digit
+      toast({ title: tmoCheckNumberText(lang), variant: "destructive" });
+      if (state) navigate(carrierPageTarget(lang, state.carrierSlug, state.phone, state.amount, location.search, location.hash));
+      return;
+    }
     toast({ title: lang === "es" ? "Ingrese el número de teléfono completo de 10 dígitos." : "Please enter the full 10-digit phone number.", variant: "destructive" });
     if (state) navigate(carrierPageTarget(lang, state.carrierSlug, "", state.amount, location.search, location.hash));
   };
