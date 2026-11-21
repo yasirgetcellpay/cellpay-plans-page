@@ -895,8 +895,11 @@ export const htpCommonAmounts = (pg: HtpPage): Array<[string, string]> =>
     ? []
     : HTP_AMOUNTS.map((a) => [pg.lang === "es" ? `/es/como-pagar/${pg.key}/${a}` : `/how-to-pay/${pg.key}/${a}`, pg.lang === "es" ? `Pagar $${a} a ${AMT_CARRIERS.find((c) => c.key === pg.key)?.esName ?? pg.carrierName}` : `Pay $${a} to ${pg.carrierName}`]); // AEO-15-TMO-AMOUNTS-1021
 
+/** RELATED-CARRIERS-INLINKS-1121: heading for the sibling-amount block ("Other Cricket amounts" on Cricket amount pages). */
+export const htpOtherAmountsTitle = (pg: HtpPage): string => pg.key === "cricket" ? (pg.lang === "es" ? "Otros montos de Cricket" : "Other Cricket amounts") : (pg.lang === "es" ? "Otros montos" : "Other amounts"); // RELATED-CARRIERS-INLINKS-1121
 /** AMOUNT-INLINKS-1118: "Other amounts" sibling links on an amount page = the parent guide's "Common amounts" links (same strings) minus this page. Cricket deferred. */
 export const htpOtherAmounts = (pg: HtpPage): Array<[string, string]> => { // AMOUNT-INLINKS-1118
+  if (pg.amount && pg.key === "cricket") return HTP_AMOUNTS.filter((a) => a !== pg.amount).map((a) => [pg.lang === "es" ? `/es/como-pagar/cricket/${a}` : `/how-to-pay/cricket/${a}`, pg.lang === "es" ? `Pago de Cricket de $${a}` : `Cricket $${a} payment`]); // RELATED-CARRIERS-INLINKS-1121
   if (!pg.amount || pg.key === "cricket" || !pg.parentPath) return []; // AMOUNT-INLINKS-1118
   const parent = howToPayByPath(pg.parentPath); // AMOUNT-INLINKS-1118
   return parent ? htpCommonAmounts(parent).filter(([h]) => h !== pg.path) : []; // AMOUNT-INLINKS-1118
@@ -1053,7 +1056,7 @@ export const howToPayStaticHtml = (pg: HtpPage): string => {
       head +
       h2(pg.methodsTitle ?? "") + `<p>${esc(pg.methodsLine ?? "")}</p>` + `<p class="mt-2 font-bold">${esc(pg.feeLine ?? "")}</p>` +
       faqHtml + foot +
-      (htpOtherAmounts(pg).length ? h2(pg.lang === "es" ? "Otros montos" : "Other amounts") + `<ul class="list-disc pl-6 space-y-1">` + htpOtherAmounts(pg).map(([h, t]) => `<li><a href="${h}" class="underline">${esc(t)}</a></li>`).join("") + `</ul>` : "") + // AMOUNT-INLINKS-1118
+      (htpOtherAmounts(pg).length ? h2(htpOtherAmountsTitle(pg)) + `<ul class="list-disc pl-6 space-y-1">` + htpOtherAmounts(pg).map(([h, t]) => `<li><a href="${h}" class="underline">${esc(t)}</a></li>`).join("") + `</ul>` : "") + // AMOUNT-INLINKS-1118
       `<p class="mt-6"><a href="${pg.parentPath}" class="underline">${esc(pg.parentLabel ?? "")}</a></p>` +
       ctaBottom + // HOWTO-CTA-1023
       `</main></div></div>`

@@ -24,6 +24,7 @@ export type BillPage = {
   more?: [string, string][]; // BILLPAY-BOOST-1022 extra internal links [href, label]
   faqOnly?: boolean; // BILLPAY-TMOBILE-1024: JSON-LD = FAQPage only (no BreadcrumbList)
   preFaq?: [string, string]; // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027  (H2 heading + short paragraph shown above the FAQ)
+  related?: { title: string; links: [string, string][] }; // RELATED-CARRIERS-INLINKS-1121
 };
 
 const WWW = "https://www.cellpay.us";
@@ -685,6 +686,21 @@ export const BILL_PAGES: BillPage[] = [
   }, // BILLPAY-NET10-1101
 ];
 
+// RELATED-CARRIERS-INLINKS-1121: "Related carriers" ring (7 carriers x EN/ES, 3 links each; /verizon adds Verizon Wireless). Root-relative final www paths only.
+const RC_NAMES: Record<string, string> = { h2o: "H2O Wireless", lyca: "Lyca Mobile", net10: "Net10", pageplus: "Page Plus", tracfone: "Tracfone", ultra: "Ultra Mobile", verizon: "Verizon Prepaid" }; // RELATED-CARRIERS-INLINKS-1121
+const RC_PATH: Record<string, string> = { h2o: "/h2o.html", lyca: "/lyca.html", net10: "/net10.html", pageplus: "/pageplus.html", tracfone: "/tracfone.html", ultra: "/ultra-mobile.html", verizon: "/verizon" }; // RELATED-CARRIERS-INLINKS-1121
+const RC_RING: Record<string, string[]> = { h2o: ["lyca", "net10", "pageplus"], lyca: ["net10", "pageplus", "tracfone"], net10: ["pageplus", "tracfone", "ultra"], pageplus: ["tracfone", "ultra", "verizon"], tracfone: ["ultra", "verizon", "h2o"], ultra: ["verizon", "h2o", "lyca"], verizon: ["h2o", "lyca", "net10"] }; // RELATED-CARRIERS-INLINKS-1121
+for (const [src, targets] of Object.entries(RC_RING)) { // RELATED-CARRIERS-INLINKS-1121
+  for (const lang of ["en", "es"] as const) { // RELATED-CARRIERS-INLINKS-1121
+    const pre = lang === "es" ? "/es" : ""; // RELATED-CARRIERS-INLINKS-1121
+    const pg = BILL_PAGES.find((x) => x.path === pre + RC_PATH[src]); // RELATED-CARRIERS-INLINKS-1121
+    if (!pg) continue; // RELATED-CARRIERS-INLINKS-1121
+    const links: [string, string][] = targets.map((t) => [pre + RC_PATH[t], lang === "es" ? `Pague su factura de ${RC_NAMES[t]}` : `${RC_NAMES[t]} bill pay`]); // RELATED-CARRIERS-INLINKS-1121
+    if (src === "verizon") links.push([pre + "/verizon-wireless-flexi.html", lang === "es" ? "Pague su factura de Verizon Wireless" : "Verizon Wireless bill pay"]); // RELATED-CARRIERS-INLINKS-1121
+    pg.related = { title: lang === "es" ? "Otros operadores" : "Related carriers", links }; // RELATED-CARRIERS-INLINKS-1121
+  } // RELATED-CARRIERS-INLINKS-1121
+} // RELATED-CARRIERS-INLINKS-1121
+
 const BILL_PATH_ALIAS: Record<string, string> = { "/total-wireless": "/total-wireless.html", "/es/total-wireless": "/es/total-wireless.html", "/ultra-mobile": "/ultra-mobile.html", "/es/ultra-mobile": "/es/ultra-mobile.html", "/topup-at": "/topup-at.html", "/es/topup-at": "/es/topup-at.html" }; // TW-FAQ-HYDRATE-SHELL-1027 // BILLPAY-ULTRA-1028 // BILLPAY-ATT-1029
 
 export const billPageByPath = (pathname: string): BillPage | undefined => {
@@ -720,6 +736,7 @@ export const billStaticBlock = (pg: BillPage): string =>
   (pg.preFaq ? `<h2 class="text-2xl font-extrabold text-foreground mb-2 text-left">${esc(pg.preFaq[0])}</h2><p class="text-sm text-muted-foreground mb-6 text-left">${esc(pg.preFaq[1])}</p>` : "") + // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027
   `<h2 class="text-2xl font-extrabold text-foreground mb-4 text-left">${esc(pg.faqTitle)}</h2>` +
   pg.faqs.map((f) => `<div class="mb-4 text-left"><h3 class="font-bold">${esc(f.q)}</h3><p class="text-sm text-muted-foreground mt-1">${esc(f.a)}</p></div>`).join("") +
+  (pg.related ? `<h2 class="text-lg font-bold text-foreground mt-6 mb-2 text-left">${esc(pg.related.title)}</h2><ul class="list-disc pl-6 space-y-1 text-sm text-left">` + pg.related.links.map(([href, label]) => `<li><a href="${href}" class="underline">${esc(label)}</a></li>`).join("") + `</ul>` : "") + // RELATED-CARRIERS-INLINKS-1121
   (pg.guide ? `<p class="text-sm mt-4"><a href="${pg.guide[0]}" class="underline">${esc(pg.guide[1])}</a></p>` : "") +
   (pg.more ? pg.more.map(([href, label]) => `<p class="text-sm mt-2"><a href="${href}" class="underline">${esc(label)}</a></p>`).join("") : "") + // BILLPAY-BOOST-1022
   `</section>`;

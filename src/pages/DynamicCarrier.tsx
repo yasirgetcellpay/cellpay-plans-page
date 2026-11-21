@@ -1179,6 +1179,7 @@ const DynamicCarrier = ({
                   <p className="text-sm text-muted-foreground mt-1">{f.a}</p>
                 </div>
               ))}
+              {bill.related && (<><h2 className="text-lg font-bold text-foreground mt-6 mb-2 text-left">{bill.related.title}</h2><ul className="list-disc pl-6 space-y-1 text-sm text-left">{bill.related.links.map(([href, label]) => (<li key={href}><a href={href} className="underline">{label}</a></li>))}</ul></>)} {/* RELATED-CARRIERS-INLINKS-1121 */}
               {carrierSlug === "topup-crc" && bill.guide && ( // BILLPAY-CRICKET-1023
                 <p className="text-sm mt-4 text-left"><a href={bill.guide[0]} className="underline">{bill.guide[1]}</a></p> /* BILLPAY-CRICKET-1023 */
               )} {/* BILLPAY-CRICKET-1023 */}
