@@ -350,7 +350,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
   es({
     key: "metro-pcs", name: "Metro by T-Mobile", slug: "metropcs", checkout: "/es/metropcs.html",
     title: "Cómo Pagar su Factura de Metro by T-Mobile (MetroPCS) en Línea | CellPay",
-    description: "Pague Metro PCS en línea como invitado, sin iniciar sesión: ingrese el número de Metro by T-Mobile, elija el monto y pague con tarjeta, Apple Pay, Google Pay y más.", // ES-METRO-INVITADO-1119
+    description: "Pague Metro by T-Mobile en línea como invitado, sin iniciar sesión. Ingrese su número, elija el monto y pague con tarjeta, Apple Pay o Google Pay.", // ES-METRO-INVITADO-1119
     h1: "Cómo pagar su factura de Metro by T-Mobile (MetroPCS) en línea",
     intro: `Para pagar Metro PCS en línea como invitado, sin iniciar sesión, solo necesita el número de teléfono de Metro by T-Mobile de 10 dígitos. En la página de Metro by T-Mobile de CellPay, ingrese el número, elija el monto o el plan y pague con ${PAY_ES}. No necesita cuenta ni contraseña. El cargo por servicio se muestra antes de pagar y la mayoría de los pagos se acreditan en pocos minutos (hasta 30 minutos). CellPay es un servicio de pago independiente, no Metro by T-Mobile; también puede pagar directamente en el sitio oficial de Metro by T-Mobile.`, // ES-METRO-INVITADO-1119
     faq1Q: "¿Puedo pagar Metro by T-Mobile como invitado, sin iniciar sesión?", // ES-METRO-INVITADO-1119
