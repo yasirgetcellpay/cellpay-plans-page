@@ -268,7 +268,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     title: "Cómo pagar su factura de T-Mobile como invitado | CellPay", // ES-TMO-HOWTO-TWIN-1122 (was TOP4-T4-1009 "Cómo Pagar la Factura de T-Mobile Prepago en Línea | CellPay")
     description: "Pague su factura de T-Mobile como invitado, sin iniciar sesión. Ingrese su número, elija el monto y pague con tarjeta, Apple Pay o Google Pay.", // ES-TMO-HOWTO-TWIN-1122
     h1: "Cómo pagar su factura de T-Mobile como invitado, sin iniciar sesión", // ES-TMO-HOWTO-TWIN-1122
-    introLead: "Para pagar su factura de T-Mobile como invitado, sin iniciar sesión", // ES-TMO-HOWTO-TWIN-1122
+    intro: `Para pagar su factura de T-Mobile como invitado, sin iniciar sesión, vaya a la página de T-Mobile de CellPay, ingrese el número de teléfono de 10 dígitos, elija el monto o el plan y pague con ${payWith("es", "tarjeta de débito o crédito")}. El cargo por servicio se muestra antes de pagar y la mayoría de los pagos se acreditan en pocos minutos (hasta 30 minutos). CellPay es un servicio de pago independiente, no T-Mobile; también puede pagar directamente en el sitio oficial de T-Mobile.`, // ES-TMO-HOWTO-TWIN-1122 (spec intro; methods follow paymentFlags)
     step3: "Elija un plan de la lista o ingrese un monto personalizado.",
     autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
     autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
