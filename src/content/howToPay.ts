@@ -205,14 +205,16 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
   }),
   en({
     key: "att-prepaid", name: "AT&T Prepaid", slug: "topup-at", checkout: "/topup-at.html", an: "an",
-    title: "How to Pay Your AT&T Prepaid Bill Online Without Signing In | CellPay",
-    description: `AT&T Prepaid pay bill online without signing in: enter the number, pick an amount and pay by ${payWith("en", "card")}.`,
-    h1: "How to Pay Your AT&T Prepaid Bill Online Without Signing In",
+    title: "How to Pay AT&T Prepaid Without Signing In | CellPay", // ATT-PREPAID-AEO-1122
+    description: `Pay AT&T Prepaid without signing in: enter the 10-digit number, pick an amount and pay by ${payWith("en", "card")}.`, // ATT-PREPAID-AEO-1122
+    h1: "How to Pay AT&T Prepaid Without Signing In", // ATT-PREPAID-AEO-1122
+    intro: `You can pay AT&T Prepaid without signing in. Go to CellPay's AT&T Prepaid page, enter the 10-digit AT&T Prepaid phone number, pick an amount or plan, and pay as a guest with ${PAY_EN}. The service fee is shown before you pay, and most payments post within a few minutes (up to 30 minutes). CellPay is an independent payment service, not AT&T Prepaid; you can also pay AT&T Prepaid directly on its official site.`, // ATT-PREPAID-AEO-1122
     step3: "Choose an amount or plan on the page. The available amounts and any minimum are shown at checkout.", // AI-ANSWER-1010 item 2
     faq2: { q: "Does AT&T have its own way to pay prepaid without signing in?", a: "AT&T offers its own payment options on its official website and app. CellPay is another option if you want to pay without an AT&T login, with " + payWallets("en") + "." },
     autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
     autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
     related: [["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/simple-mobile", "How to pay Simple Mobile"], ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/topup-at.html", "AT&T Prepaid refill"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // SELECTIVE-REFILL-P2-1105
+    updatedIso: "2026-11-22", updatedText: "Last updated: November 22, 2026", // ATT-PREPAID-AEO-1122
   }),
   es({
     key: "att-prepaid", name: "AT&T Prepaid", slug: "topup-at", checkout: "/es/topup-at.html",
@@ -552,6 +554,12 @@ for (const pg of HOW_TO_PAY_PAGES.filter((p) => p.key === "t-mobile-prepaid" && 
   pg.faqs[0] = { q: "¿Puedo pagar mi factura de T-Mobile como invitado, solo con el número de teléfono?", a: "Sí. Ingrese el número de teléfono de 10 dígitos de T-Mobile, elija el monto o el plan y pague. No necesita cuenta ni iniciar sesión, y puede pagar la línea de otra persona." }; // ES-TMO-HOWTO-TWIN-1122
   const mi = pg.faqs.findIndex((f) => f.q === "¿Qué métodos de pago puedo usar?"); // ES-TMO-HOWTO-TWIN-1122
   if (mi >= 0) pg.faqs[mi] = { q: "¿Puedo pagar T-Mobile con tarjeta de débito? ¿Qué otros métodos hay?", a: "Sí. Puede usar " + payList("es", { first: `tarjetas de débito y crédito (${CARD_BRANDS})`, conj: "and", bankNote: true, appleNote: true }) + "." }; // ES-TMO-HOWTO-TWIN-1122 (methods follow paymentFlags)
+}
+
+// ATT-PREPAID-AEO-1122: EN AT&T Prepaid how-to only. FAQ Q1 is reworded here, not in carrierHero.searchFaqs (it also feeds other AT&T pages).
+// 12 FAQs stay 12; Q2-Q12 untouched; the same data drives the visible FAQ and the FAQPage JSON-LD.
+for (const pg of HOW_TO_PAY_PAGES.filter((p) => p.key === "att-prepaid" && p.lang === "en")) { // ATT-PREPAID-AEO-1122
+  if (pg.faqs[0]?.q === "Can I pay my AT&T Prepaid bill as a guest, with just the phone number?") pg.faqs[0] = { q: "Can I pay AT&T Prepaid without signing in?", a: "Yes. Enter the 10-digit AT&T Prepaid phone number, pick your amount or plan, and pay as a guest. No login or account is needed, and you can pay for someone else's line. The service fee is shown before you pay." }; // ATT-PREPAID-AEO-1122
 }
 
 HOW_TO_PAY_PAGES.push( // AEO-11-ULTRA-1017
