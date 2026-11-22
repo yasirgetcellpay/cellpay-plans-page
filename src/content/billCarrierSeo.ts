@@ -181,6 +181,8 @@ const verizonFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-
   { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-VERIZON-PREPAID-1027
   { q: "Can I set up Auto Pay?", a: "Yes. Auto Pay is optional. You can turn it on at checkout. It is never pre-checked." }, // BILLPAY-VERIZON-PREPAID-1027
 ]; // BILLPAY-VERIZON-PREPAID-1027
+export const ULTRA_EN_TITLE = "Pay Ultra Mobile Bill or Recharge Online, No Login | CellPay"; // ULTRA-REFRESH-1122 (shared with vite.config.ts raw head)
+export const ULTRA_EN_DESC = "Pay your Ultra Mobile bill or recharge online without signing in. Enter the number, choose your plan and pay as a guest. Service fee shown before you pay."; // ULTRA-REFRESH-1122
 const ultraFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-ULTRA-1028
   { q: "¿Cómo pago mi factura de Ultra Mobile en línea?", a: "Ingrese el número de teléfono de Ultra Mobile, elija el plan y pague. No necesita una cuenta." }, // BILLPAY-ULTRA-1028
   { q: "¿Puedo pagar mi factura de Ultra Mobile sin iniciar sesión?", a: "Sí. No necesita iniciar sesión ni una cuenta. Solo necesita el número de teléfono." }, // BILLPAY-ULTRA-1028
@@ -189,12 +191,13 @@ const ultraFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-UL
   { q: "¿Cuándo se aplica mi pago?", a: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Cuando el pago se completa, verá una confirmación con los datos de su transacción." }, // BILLPAY-ULTRA-1028
   { q: "¿Puedo activar el Auto Pago?", a: "Sí. El Auto Pago es opcional. Lo puede activar al pagar. Nunca está marcado de antemano." }, // BILLPAY-ULTRA-1028
 ] : [ // BILLPAY-ULTRA-1028
-  { q: "How do I pay my Ultra Mobile bill online?", a: "Enter the Ultra Mobile phone number, pick your plan, and pay. No account needed." }, // BILLPAY-ULTRA-1028
-  { q: "Can I pay my Ultra Mobile bill without a login?", a: "Yes. You don't need a login or an account. The phone number is enough." }, // BILLPAY-ULTRA-1028
+  { q: "How do I pay my Ultra Mobile bill or recharge online?", a: "Enter the Ultra Mobile phone number, pick your plan, and pay. No account needed. The service fee is shown before you pay." }, // ULTRA-REFRESH-1122
+  { q: "Can I pay my Ultra Mobile bill as a guest, without a login?", a: "Yes. You don't need a login or an account. The phone number is enough." }, // ULTRA-REFRESH-1122
   { q: "Can I pay someone else's Ultra Mobile line?", a: "Yes. Enter their Ultra Mobile number and double-check it before you pay." }, // BILLPAY-ULTRA-1028
   { q: "Can I pay with Apple Pay or a card?", a: `Yes. ${methodsLong("en").replace("Apple Pay on supported Apple devices", "Apple Pay on supported devices")}` }, // BILLPAY-ULTRA-1028
   { q: "When does my payment post?", a: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. You see a confirmation with your transaction details once the payment goes through." }, // BILLPAY-ULTRA-1028
   { q: "Can I set up Auto Pay?", a: "Yes. Auto Pay is optional. You can turn it on at checkout. It is never pre-checked." }, // BILLPAY-ULTRA-1028
+  { q: "How do I recharge my Ultra Mobile plan without signing in?", a: "Open the Ultra Mobile page on CellPay, enter the phone number, choose your plan and pay as a guest. No login or account is needed, and the service fee is shown before you pay." }, // ULTRA-REFRESH-1122
 ]; // BILLPAY-ULTRA-1028
 const attFaqs = (lang: BillLang): BillFaq[] => lang === "es" ? [ // BILLPAY-ATT-1029
   { q: "¿Cómo pago mi factura de AT&T Prepaid en línea?", a: "Ingrese el número de teléfono de AT&T Prepaid, elija el monto o el plan y pague. No necesita una cuenta." }, // BILLPAY-ATT-1029
@@ -491,10 +494,10 @@ export const BILL_PAGES: BillPage[] = [
   }, // BILLPAY-ULTRA-1028
   { // BILLPAY-ULTRA-1028
     path: "/ultra-mobile.html", lang: "en", name: "Ultra Mobile", // BILLPAY-ULTRA-1028
-    title: "Pay Ultra Mobile Bill Online – No Login | CellPay", // BILLPAY-ULTRA-1028
-    description: "Pay your Ultra Mobile bill online with just the phone number. No account or login needed. Pay for yourself or someone else. Low service fee shown before you pay.", // BILLPAY-ULTRA-1028
-    h1: "Pay Your Ultra Mobile Bill Online", // BILLPAY-ULTRA-1028
-    sub: "No login needed. Enter your phone number, choose your plan, and you're recharged.", // BILLPAY-ULTRA-1028
+    title: ULTRA_EN_TITLE, // BILLPAY-ULTRA-1028 // ULTRA-REFRESH-1122
+    description: ULTRA_EN_DESC, // BILLPAY-ULTRA-1028 // ULTRA-REFRESH-1122
+    h1: "Pay Your Ultra Mobile Bill or Recharge Online", // BILLPAY-ULTRA-1028 // ULTRA-REFRESH-1122
+    sub: "Pay your Ultra Mobile bill or recharge online without signing in. Enter the Ultra Mobile phone number, choose your plan and pay as a guest; the service fee is shown before you pay.", // BILLPAY-ULTRA-1028 // ULTRA-REFRESH-1122
     autoPayInfoLead: "Optional: Auto Pay so you never miss a refill.", // BILLPAY-ULTRA-1028
     enterAmount: "Enter the amount you want to recharge", // BILLPAY-ULTRA-1028
     securePayment: "Secure payment. Your refill is sent directly to your phone.", // BILLPAY-ULTRA-1028

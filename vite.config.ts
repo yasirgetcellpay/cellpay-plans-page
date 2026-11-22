@@ -8,7 +8,7 @@ import { HOW_TO_PAY_PAGES, howToPayJsonLd, howToPayStaticHtml } from "./src/cont
 // SIMPLE-SPEC-1-1009: Simple Mobile answer page text (shared with DynamicCarrier.tsx) for /s1.html + /es/s1.html raw HTML.
 import { SIMPLE_META, simpleStaticBlock, simpleJsonLd } from "./src/content/simplePage";
 // SEO-CONTENT-1014: pay-wording head/H1 + 4-question FAQ and FAQPage/BreadcrumbList JSON-LD (es Metro, es Boost, en+es Cricket).
-import { billPageByPath, billJsonLd, billStaticBlock } from "./src/content/billCarrierSeo";
+import { billPageByPath, billJsonLd, billStaticBlock, ULTRA_EN_TITLE, ULTRA_EN_DESC } from "./src/content/billCarrierSeo"; // ULTRA-REFRESH-1122
 import { ST_ORG_TITLE, ST_ORG_DESC, ST_ORG_H1, stOrgHtml } from "./src/content/straightTalkOrganic"; // ST-ORGANIC-1119
 // PAYCOPY-1008: payment methods named in raw HTML come from the shared list (follows src/config/paymentFlags.ts).
 import { weAcceptLine, payBrandsComma, PAYPAL_SHOWN } from "./src/content/paymentMethods";
@@ -824,7 +824,7 @@ const htmlAliasPlugin = (): Plugin => ({
       "s1.html":                   SIMPLE_META.en, // SIMPLE-SPEC-1-1009: same title/description as DynamicCarrier sets at runtime
       "tmobile-flexi.html":        { title: "T-Mobile Prepaid Bill Pay Online – Guest Pay, No Login | CellPay",    description: "T-Mobile Prepaid bill pay online as a guest with just the phone number. No login, no account. Service fee shown before you pay." }, // BILLPAY-TMOBILE-1024 // ORGANIC-TMO-REFILL-ONLINE-FAQ-1027 // BILLPAY-TITLES-P1-1105
       "tracfone.html":             { title: "Pay Your Tracfone Bill Online – No Login | CellPay", description: "Pay your Tracfone bill online with just the phone number. No account or login. Pay for yourself or someone else. Service fee shown before you pay." }, // BILLPAY-TRACFONE-1030
-      "ultra-mobile.html":         { title: "Pay Ultra Mobile Bill Online – No Login | CellPay", description: "Pay your Ultra Mobile bill online with just the phone number. No account or login needed. Pay for yourself or someone else. Low service fee shown before you pay." }, // BILLPAY-ULTRA-1028
+      "ultra-mobile.html":         { title: ULTRA_EN_TITLE, description: ULTRA_EN_DESC }, // BILLPAY-ULTRA-1028 // ULTRA-REFRESH-1122
       "verizon-wireless-flexi.html": { title: "Verizon Prepaid Refill — Online Top-Up | CellPay",   description: "Recharge Verizon Prepaid online. All 30-day plans, secure checkout. Low service fee shown before you pay." },
       "straight-talk.html":        { title: ST_ORG_TITLE,       description: ST_ORG_DESC }, // BILLPAY-STRAIGHTTALK-1025 // BILLPAY-TITLES-P1-1105 // SELECTIVE-REFILL-P2-1105 // ST-ORGANIC-1119
       "guest-metropcs.html":       { title: "Metro PCS Guest Payment — Pay Your Bill Online | CellPay",      description: "Pay your Metro PCS bill as a guest. No login needed. All 30-day plans, secure checkout." },
