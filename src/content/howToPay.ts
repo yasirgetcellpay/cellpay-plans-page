@@ -2,7 +2,7 @@
 // Single source for the React page (src/pages/HowToPay.tsx) AND the static raw HTML + JSON-LD emitted by vite.config.ts,
 // so visible FAQ text and FAQPage JSON-LD stay word for word identical. Relative imports only: vite.config.ts loads this file.
 // PAYCOPY-1008: payment methods come from ./paymentMethods (follows src/config/paymentFlags.ts; PayPal only while enabled).
-import { methodsLong, payWith, payWallets } from "./paymentMethods";
+import { methodsLong, payWith, payWallets, payList, CARD_BRANDS } from "./paymentMethods"; // ES-TMO-HOWTO-TWIN-1122: payList, CARD_BRANDS
 // TOP4-T2A-1009: "Why was my payment refunded?" FAQ for AT&T Prepaid / Simple Mobile / T-Mobile Prepaid (null for others).
 import { refundFaq, searchFaqs } from "./carrierHero";
 // No prices or fee amounts here: plan prices render live from the carrier catalog; the fee is shown at checkout.
@@ -265,15 +265,15 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
   }),
   es({
     key: "t-mobile-prepaid", name: "T-Mobile Prepaid", slug: "tmobile", checkout: "/es/tmobile-flexi.html",
-    title: "Cómo Pagar la Factura de T-Mobile Prepago en Línea | CellPay", // TOP4-T4-1009 ("pagar factura t mobile")
-    description: "Pagar factura de T-Mobile Prepago en línea sin iniciar sesión: ingrese el número, elija el monto y pague con tarjeta, Apple Pay, Google Pay y más.",
-    h1: "Cómo pagar la factura de T-Mobile Prepago en línea",
-    introLead: "Para pagar su factura o recargar su línea de T-Mobile Prepaid en línea sin iniciar sesión",
+    title: "Cómo pagar su factura de T-Mobile como invitado | CellPay", // ES-TMO-HOWTO-TWIN-1122 (was TOP4-T4-1009 "Cómo Pagar la Factura de T-Mobile Prepago en Línea | CellPay")
+    description: "Pague su factura de T-Mobile como invitado, sin iniciar sesión. Ingrese su número, elija el monto y pague con tarjeta, Apple Pay o Google Pay.", // ES-TMO-HOWTO-TWIN-1122
+    h1: "Cómo pagar su factura de T-Mobile como invitado, sin iniciar sesión", // ES-TMO-HOWTO-TWIN-1122
+    introLead: "Para pagar su factura de T-Mobile como invitado, sin iniciar sesión", // ES-TMO-HOWTO-TWIN-1122
     step3: "Elija un plan de la lista o ingrese un monto personalizado.",
     autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.",
     autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.",
     related: [["/es/como-pagar/simple-mobile", "Cómo pagar Simple Mobile"], ["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/att-prepaid", "Cómo pagar AT&T Prepaid"], ["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], ["/es/tmobile-flexi.html", "Pagar factura T-Mobile Prepago"], ["/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]], // BILLPAY-TITLES-P1-1105
-    updatedIso: "2026-10-08", updatedText: "Última actualización: 8 de octubre de 2026",
+    updatedIso: "2026-11-22", updatedText: "Última actualización: 22 de noviembre de 2026", // ES-TMO-HOWTO-TWIN-1122
   }),
   // TOP4-T4-1009: Verizon Prepaid pay-bill pages (SPEC-05 + SPEC-T4). "Pay now" goes to /verizon-wireless-flexi.html (the page
   // that takes most Verizon sales and the one Ads uses); /verizon stays linked in "Related".
@@ -545,6 +545,14 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
     updatedIso: "2026-10-16", updatedText: "Última actualización: 16 de octubre de 2026",
   }),
 ];
+
+// ES-TMO-HOWTO-TWIN-1122: ES T-Mobile how-to only. FAQ Q1 (guest) and the payment-methods Q are reworded here, not in carrierHero.searchFaqs,
+// because searchFaqs also feeds /es/tmobile-flexi.html (stays byte-identical). 11 FAQs stay 11; the same data drives visible FAQ and FAQPage JSON-LD.
+for (const pg of HOW_TO_PAY_PAGES.filter((p) => p.key === "t-mobile-prepaid" && p.lang === "es")) { // ES-TMO-HOWTO-TWIN-1122
+  pg.faqs[0] = { q: "¿Puedo pagar mi factura de T-Mobile como invitado, solo con el número de teléfono?", a: "Sí. Ingrese el número de teléfono de 10 dígitos de T-Mobile, elija el monto o el plan y pague. No necesita cuenta ni iniciar sesión, y puede pagar la línea de otra persona." }; // ES-TMO-HOWTO-TWIN-1122
+  const mi = pg.faqs.findIndex((f) => f.q === "¿Qué métodos de pago puedo usar?"); // ES-TMO-HOWTO-TWIN-1122
+  if (mi >= 0) pg.faqs[mi] = { q: "¿Puedo pagar T-Mobile con tarjeta de débito? ¿Qué otros métodos hay?", a: "Sí. Puede usar " + payList("es", { first: `tarjetas de débito y crédito (${CARD_BRANDS})`, conj: "and", bankNote: true, appleNote: true }) + "." }; // ES-TMO-HOWTO-TWIN-1122 (methods follow paymentFlags)
+}
 
 HOW_TO_PAY_PAGES.push( // AEO-11-ULTRA-1017
   en({ // AEO-11-ULTRA-1017
