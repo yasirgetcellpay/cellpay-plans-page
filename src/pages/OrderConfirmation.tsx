@@ -431,7 +431,7 @@ const OrderConfirmation = () => {
             <NotWorkingYet lang={lang} orderId={String(transaction.id || transaction.hashid || "")} brandColor={brandColor} />
 
             {/* GROWTH-1007-B: Auto Pay prompt (display + link only; never enrolls, never charges) */}
-            <AutoPayReceiptCard lang={lang} hashid={hashid} brandColor={brandColor} enrolledServer={enrolledServer} />
+            <AutoPayReceiptCard lang={lang} hashid={hashid} brandColor={brandColor} enrolledServer={enrolledServer} carrier={`${transaction.carrier?.slug || ""} ${transaction.carrier?.name || carrierName || ""}`} />
 
             {/* RT-3: pay again next time (number saved on this device only; display + localStorage, no tracking change) */}
             <PayAgainCard

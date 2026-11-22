@@ -330,10 +330,10 @@ const earlyPurchase = (hid: string, slug: string, plan: unknown, amountIn: unkno
 const AP_CYCLE_CONFIRMED = false;
 const AP_COPY = {
   en: {
-    offerTitle: "Never miss a refill: turn on Auto Pay (optional)",
+    offerTitle: "Auto Pay: never miss a refill (optional)",
     offerBadge: "Recommended", // AUTOPAY-PUSH-1012
-    offerBenefit: "Refills this number each month on your payment date, so your service doesn't lapse.",
-    offerHow: "Charges the same amount to this same payment method. Nothing extra is charged today. Cancel anytime online, no login needed. You'll see the full terms before you agree.", // AUTOPAY-LIFT-1009
+    offerBenefit: "We refill this number for you every month, which helps avoid late payments and service cut-offs.",
+    offerHow: "Same amount, same payment method. Nothing extra today. Renews every month until you cancel. Cancel anytime online, no login needed. You'll see the full terms before you agree.", // AUTOPAY-LIFT-1009
     chargeInterim: "Auto Pay recharges this number with this card. Renews monthly on your payment date, cancel anytime.",
     chargeKnown: (amount: string, date: string) => `Auto Pay charges today's total, ${amount}, to this card every 30 days, starting ${date}, until you cancel.`,
     chargeUnknown: (date: string) => `Auto Pay charges the same amount as today's order to this card every 30 days, starting ${date}, until you cancel.`,
@@ -348,10 +348,10 @@ const AP_COPY = {
     dateLocale: "en-US",
   },
   es: {
-    offerTitle: "No se quede sin recarga: active el pago automático (opcional)",
+    offerTitle: "Pago automático: nunca se quede sin recarga (opcional)",
     offerBadge: "Recomendado", // AUTOPAY-PUSH-1012
-    offerBenefit: "Recarga este número cada mes en su fecha de pago, para que su servicio no se interrumpa.",
-    offerHow: "Cobra el mismo monto a este mismo método de pago. Hoy no se cobra nada adicional. Cancele en línea cuando quiera, sin iniciar sesión. Verá los términos completos antes de aceptar.", // AUTOPAY-LIFT-1009
+    offerBenefit: "Recargamos este número por usted cada mes, lo que ayuda a evitar pagos atrasados y cortes de servicio.",
+    offerHow: "Mismo monto, mismo método de pago. Hoy no se cobra nada adicional. Se renueva cada mes hasta que usted cancele. Cancele en línea cuando quiera, sin iniciar sesión. Verá los términos completos antes de aceptar.", // AUTOPAY-LIFT-1009
     chargeInterim: "El pago automático recarga este número con esta tarjeta. Se renueva cada mes en la fecha de su pago; cancele cuando quiera.",
     chargeKnown: (amount: string, date: string) => `El pago automático cobra el total de hoy, ${amount}, a esta tarjeta cada 30 días, a partir del ${date}, hasta que usted cancele.`,
     chargeUnknown: (date: string) => `El pago automático cobra el mismo monto del pedido de hoy a esta tarjeta cada 30 días, a partir del ${date}, hasta que usted cancele.`,
@@ -424,8 +424,8 @@ const Checkout = () => {
   const apBill = ["metropcs", "boost", "topup-crc"].includes(String(state?.carrierSlug || ""));
   const apCopy = apBill
     ? (lang === "es"
-      ? { ...AP_COPY.es, offerTitle: "Nunca te pierdas un pago: active el pago automático (opcional)", offerBenefit: "Paga este número cada mes en su fecha de pago, para que su servicio no se interrumpa.", chargeInterim: "El pago automático paga este número con esta tarjeta. Se renueva cada mes en la fecha de su pago; cancele cuando quiera." }
-      : { ...AP_COPY.en, offerTitle: "Never miss a payment: turn on Auto Pay (optional)", offerBenefit: "Pays this number each month on your payment date, so your service doesn't lapse.", chargeInterim: "Auto Pay pays this number with this card. Renews monthly on your payment date, cancel anytime." })
+      ? { ...AP_COPY.es, offerTitle: "Pago automático: nunca se atrase en su pago (opcional)", offerBenefit: "Pagamos este número por usted cada mes, lo que ayuda a evitar pagos atrasados y cortes de servicio.", chargeInterim: "El pago automático paga este número con esta tarjeta. Se renueva cada mes en la fecha de su pago; cancele cuando quiera." }
+      : { ...AP_COPY.en, offerTitle: "Auto Pay: never miss a payment (optional)", offerBenefit: "We pay this number for you every month, which helps avoid late payments and service cut-offs.", chargeInterim: "Auto Pay pays this number with this card. Renews monthly on your payment date, cancel anytime." })
     : AP_COPY[lang === "es" ? "es" : "en"];
 
   const [loading, setLoading] = useState(true);

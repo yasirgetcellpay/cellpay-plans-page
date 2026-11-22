@@ -8,18 +8,21 @@ import { Link } from "react-router-dom";
 import { Repeat } from "lucide-react";
 import type { Language } from "@/lib/i18n";
 import { payAgainPath } from "@/lib/payAgain";
+import { isPayWord } from "@/lib/orderRefundState"; // AUTOPAY-OPTIN-WORDING-1122: Metro/Boost/Cricket "payment" wording
 
 export const AP_LAST_KEY = "cp_autopay_last_v1"; // set by Checkout on a successful card order with Auto Pay authorized
 
-interface Props { lang: Language; hashid: string; brandColor: string; paidByCard?: boolean; enrolledServer?: boolean }
+// AUTOPAY-OPTIN-WORDING-1122: carrier is display-only ("slug name"); unknown/empty -> default refill wording.
+interface Props { lang: Language; hashid: string; brandColor: string; paidByCard?: boolean; enrolledServer?: boolean; readonly carrier?: string }
 
 // AUTOPAY-RECEIPT-ENROLL-1102: share the receipt confirmation and redundant-offer decision.
 export const isAutoPayEnrolled = (enrolledServer: boolean | undefined, hashid: string, sessionValue: string | null): boolean =>
   enrolledServer === true || (!!hashid && sessionValue === hashid);
 export const shouldHidePostPurchaseAutoPay = isAutoPayEnrolled;
 
-export const AutoPayReceiptCard = ({ lang, hashid, brandColor, paidByCard, enrolledServer }: Props) => {
+export const AutoPayReceiptCard = ({ lang, hashid, brandColor, paidByCard, enrolledServer, carrier = "" }: Props) => {
   const es = lang === "es";
+  const bill = isPayWord(String(carrier || "")); // AUTOPAY-OPTIN-WORDING-1122: never Refill/Recarga for Metro/Boost/Cricket
   let sessionValue: string | null = null;
   try { sessionValue = sessionStorage.getItem(AP_LAST_KEY); } catch { /* ignore */ }
   const enrolled = isAutoPayEnrolled(enrolledServer, hashid, sessionValue);
@@ -49,20 +52,26 @@ export const AutoPayReceiptCard = ({ lang, hashid, brandColor, paidByCard, enrol
     <div className="bg-card rounded-xl border-2 p-5" style={{ borderColor: brandColor }} data-testid="ap-receipt-offer">
       <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
         <Repeat className="h-5 w-5" style={{ color: brandColor }} aria-hidden="true" />
-        {es ? "¿No quiere volver a preocuparse por recargar?" : "Never worry about your refill again"}
+        {bill
+          ? (es ? "¿No quiere volver a atrasarse en su pago?" : "Never miss a payment again")
+          : (es ? "¿No quiere volver a preocuparse por recargar?" : "Never worry about your refill again")}
       </h2>
       <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc pl-5">
-        <li>{es ? "Su número se recarga solo en su fecha de pago" : "Your number refills itself on your payment date"}</li>
-        <li>{es ? "Sin cortes de servicio por olvidar pagar" : "No service cut-off from a missed payment"}</li>
+        <li>{bill
+          ? (es ? "Pagamos este número por usted cada mes" : "We pay this number for you every month")
+          : (es ? "Recargamos este número por usted cada mes" : "We refill this number for you every month")}</li>
+        <li>{es ? "Ayuda a evitar pagos atrasados y cortes de servicio" : "Helps avoid late payments and service cut-offs"}</li>
         <li>{es ? "Cancele en línea cuando quiera, sin iniciar sesión" : "Cancel online anytime, no login needed"}</li>
       </ul>
       <Link to={payAgainPath(lang)} onClick={() => { try { sessionStorage.setItem("cp_ap_highlight_v1", "1"); } catch { /* ignore */ } }}
         className="mt-4 inline-flex items-center justify-center px-6 py-3 rounded-full text-primary-foreground font-bold text-sm hover:opacity-90"
         style={{ backgroundColor: brandColor }} data-testid="ap-receipt-cta">
-        {es ? "Activar pago automático en mi próxima recarga" : "Turn on Auto Pay with my next refill"}
+        {bill
+          ? (es ? "Activar pago automático en mi próximo pago (opcional)" : "Turn on Auto Pay for my next payment (optional)")
+          : (es ? "Activar pago automático en mi próxima recarga (opcional)" : "Turn on Auto Pay for my next refill (optional)")}
       </Link>
       <p className="text-xs text-muted-foreground mt-2">
-        {es ? "Nada se cobra ahora. Usted elige y autoriza el pago automático en el pago." : "Nothing is charged now. You choose and authorize Auto Pay at checkout."}
+        {es ? "Hoy no se cobra nada. La próxima vez, marque el pago automático y acepte los términos. Se renueva cada mes hasta que usted cancele." : "Nothing is charged now. Next time at checkout, tick Auto Pay and agree to the terms. Renews every month until you cancel."}
       </p>
     </div>
   );
