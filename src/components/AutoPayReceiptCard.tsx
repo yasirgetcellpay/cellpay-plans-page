@@ -8,7 +8,6 @@ import { Link } from "react-router-dom";
 import { Repeat } from "lucide-react";
 import type { Language } from "@/lib/i18n";
 import { payAgainPath } from "@/lib/payAgain";
-import { isPayWord } from "@/lib/orderRefundState"; // AUTOPAY-OPTIN-WORDING-1122: Metro/Boost/Cricket "payment" wording
 
 export const AP_LAST_KEY = "cp_autopay_last_v1"; // set by Checkout on a successful card order with Auto Pay authorized
 
@@ -22,7 +21,7 @@ export const shouldHidePostPurchaseAutoPay = isAutoPayEnrolled;
 
 export const AutoPayReceiptCard = ({ lang, hashid, brandColor, paidByCard, enrolledServer, carrier = "" }: Props) => {
   const es = lang === "es";
-  const bill = isPayWord(String(carrier || "")); // AUTOPAY-OPTIN-WORDING-1122: never Refill/Recarga for Metro/Boost/Cricket
+  const bill = /metro|boost|cricket/i.test(String(carrier || "")); // AUTOPAY-OPTIN-WORDING-1122: never Refill/Recarga for Metro/Boost/Cricket (same test as isPayWord)
   let sessionValue: string | null = null;
   try { sessionValue = sessionStorage.getItem(AP_LAST_KEY); } catch { /* ignore */ }
   const enrolled = isAutoPayEnrolled(enrolledServer, hashid, sessionValue);
