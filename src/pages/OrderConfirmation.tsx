@@ -444,7 +444,7 @@ const OrderConfirmation = () => {
             />
 
             {/* retention-1006: optional refill reminder email (UNCHECKED; saved only on tick; no payment/tracking change) */}
-            <ReminderOptIn lang={lang} hashid={hashid} email={transaction.user?.email} brandColor={brandColor} />
+            <ReminderOptIn lang={lang} hashid={hashid} email={transaction.user?.email} brandColor={brandColor} carrier={`${transaction.carrier?.slug || ""} ${transaction.carrier?.name || carrierName || ""}`} />
 
             {/* AUTOPAY-POSTPURCHASE-1013: Auto Pay for next month (below the receipt; link only, never enrolls or charges) */}
             {!hidePostPurchaseAutoPay && <PostPurchaseAutoPay lang={lang} hashid={hashid} brandColor={brandColor} />}

@@ -10,8 +10,9 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 type State = "idle" | "saving" | "saved" | "error" | "need_email";
 
-export function ReminderOptIn({ lang, hashid, email, brandColor }: { lang: Language; hashid: string; email?: string; brandColor: string }) {
+export function ReminderOptIn({ lang, hashid, email, brandColor, carrier = "" }: { lang: Language; hashid: string; email?: string; brandColor: string; carrier?: string }) {
   const es = lang === "es";
+  const bill = /metro|boost|cricket|topup-crc/i.test(String(carrier || "")); // PAYMENT-WORDING-1122: Metro/Boost/Cricket "payment" wording (same slug+name test as AutoPayReceiptCard, + topup-crc)
   const hasEmail = !!email && email.trim().toLowerCase() !== PLACEHOLDER && EMAIL_RE.test(email.trim());
   const [checked, setChecked] = useState(false);
   const [typed, setTyped] = useState("");
@@ -68,7 +69,9 @@ export function ReminderOptIn({ lang, hashid, email, brandColor }: { lang: Langu
         />
         <span>
           <span className="block text-sm font-bold text-foreground">
-            {es ? "Envíenme un correo antes de mi próxima recarga" : "Email me a reminder before my next refill"}
+            {bill
+              ? (es ? "Envíenme un correo antes de mi próximo pago" : "Email me a reminder before my next payment") // PAYMENT-WORDING-1122
+              : (es ? "Envíenme un correo antes de mi próxima recarga" : "Email me a reminder before my next refill")}
           </span>
           <span className="block text-xs text-muted-foreground mt-1">
             {es

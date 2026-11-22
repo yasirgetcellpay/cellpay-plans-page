@@ -3377,7 +3377,7 @@ const Checkout = () => {
             )}
 
             <p className="text-center text-xs text-muted-foreground">
-              {tr.securePoweredBy}
+              {apBill ? (lang === "es" ? "Pago seguro con tecnología de CellPay. Su pago se envía a su teléfono." : "Secure payment powered by CellPay. Your payment is sent directly to your phone.") : tr.securePoweredBy}
             </p>
 
           </div>
