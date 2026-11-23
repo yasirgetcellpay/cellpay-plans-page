@@ -3022,6 +3022,7 @@ export type Database = {
           wbraid: string
         }[]
       }
+      cp_profit_csv_json: { Args: { _token: string }; Returns: Json }
       cp_profit_value: {
         Args: { _amount: number; _slug: string; _total: number }
         Returns: number
