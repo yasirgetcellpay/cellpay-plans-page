@@ -23,6 +23,7 @@ export type HtpPage = {
   description: string;
   h1: string;
   intro: string;
+  quick?: HtpQuick; // HOWTO-METRO-AEO-1123
   steps: Array<{ name: string; text: string }>;
   need: string[];
   feeRows: Array<[string, string]>;
@@ -70,6 +71,7 @@ const GO_PATHS: Record<HtpPage["key"], string> = { // HOWTO-CTA-1023
 const LABELS_EN = { payNow: "", steps: "Steps", need: "What you need", fees: "Fees and totals", item: "Item", amount: "Amount", other: "", faq: "Frequently asked questions", related: "Related", breadcrumbHowTo: "How to pay", tool: payWith("en", "Card"), supply: "10-digit phone number" };
 const LABELS_ES = { payNow: "", steps: "Pasos", need: "Lo que necesita", fees: "Cargos y totales", item: "Concepto", amount: "Monto", other: "", faq: "Preguntas frecuentes", related: "Relacionado", breadcrumbHowTo: "Cómo pagar", tool: payWith("es", "Tarjeta"), supply: "Número de teléfono de 10 dígitos" };
 
+export type HtpQuick = { label: string; text: string; items: Array<[string] | [string, string, string]>; note: string }; // HOWTO-METRO-AEO-1123 (item [before, tel, after] renders a tel: link)
 const en = (o: {
   key: HtpPage["key"]; name: string; slug: string; checkout: string; title: string; description: string; h1: string;
   step3: string; faq2?: HtpFaq; autoPayA: string; autoPayBody: string; related: Array<[string, string]>; an: string;
@@ -78,7 +80,9 @@ const en = (o: {
   postA?: string; // SEO-CONTENT-1014: optional "how fast" answer (pay-wording carriers)
   intro?: string; // CRICKET-GUIDE-1014: optional answer-first intro override
   steps?: Array<{ name: string; text: string }>; // AEO-09-NET10-1015: optional steps override
+  quick?: HtpQuick; appendFaqs?: HtpFaq[]; // HOWTO-METRO-AEO-1123
 }): HtpPage => ({
+  quick: o.quick, // HOWTO-METRO-AEO-1123
   key: o.key, lang: "en", path: `/how-to-pay/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
   goPath: GO_PATHS[o.key], // HOWTO-CTA-1023
@@ -116,6 +120,7 @@ const en = (o: {
     ...sfRest(o.slug, "en"), // TOP4-T4-1009
     ...(o.moreFaqs ?? []), // AEO-06-LYCA-1011
     ...[refundFaq(o.slug, "en")].filter((f): f is HtpFaq => !!f), // TOP4-T2A-1009
+    ...(o.appendFaqs ?? []), // HOWTO-METRO-AEO-1123
   ],
   disclaimer: `CellPay is an independent payment service and is not affiliated with ${o.name}.`,
   updated: o.updatedText ?? "Last updated: October 7, 2026",
@@ -134,7 +139,9 @@ const es = (o: {
   postA?: string; // SEO-CONTENT-1014
   intro?: string; // CRICKET-GUIDE-1014: optional answer-first intro override
   steps?: Array<{ name: string; text: string }>; // AEO-09-NET10-1015: optional steps override
+  quick?: HtpQuick; appendFaqs?: HtpFaq[]; // HOWTO-METRO-AEO-1123
 }): HtpPage => ({
+  quick: o.quick, // HOWTO-METRO-AEO-1123
   key: o.key, lang: "es", path: `/es/como-pagar/${o.key}`, enPath: `/how-to-pay/${o.key}`, esPath: `/es/como-pagar/${o.key}`,
   carrierSlug: o.slug, carrierName: o.name, checkoutPath: o.checkout, title: o.title, description: o.description, h1: o.h1,
   goPath: `/es${GO_PATHS[o.key]}`, // HOWTO-CTA-1023
@@ -172,6 +179,7 @@ const es = (o: {
     ...sfRest(o.slug, "es"), // TOP4-T4-1009
     ...(o.moreFaqs ?? []), // AEO-06-LYCA-1011
     ...[refundFaq(o.slug, "es")].filter((f): f is HtpFaq => !!f), // TOP4-T2A-1009
+    ...(o.appendFaqs ?? []), // HOWTO-METRO-AEO-1123
   ],
   disclaimer: `CellPay es un servicio de pago independiente y no está afiliado a ${o.name}.`,
   updated: o.updatedText ?? "Última actualización: 7 de octubre de 2026",
@@ -336,9 +344,15 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
   // AEO-07-METRO-1012: Metro by T-Mobile pay-bill pages (SPEC-07/08 + overrides). "Pay now" goes to /metropcs.html (ES: /es/metropcs.html). Built like the Lyca/Verizon pairs.
   en({
     key: "metro-pcs", name: "Metro by T-Mobile", slug: "metropcs", checkout: "/metropcs.html", an: "a",
-    title: "How to Pay Your Metro by T-Mobile (MetroPCS) Bill Online | CellPay",
-    description: `Metro PCS pay bill online, no login: enter the Metro by T-Mobile number, pick an amount, pay by ${payWith("en", "card")}.`,
-    h1: "How to Pay Your Metro by T-Mobile (MetroPCS) Bill Online",
+    title: "Metro PCS Pay Bill: Online as a Guest or by Phone | CellPay", // HOWTO-METRO-AEO-1123
+    description: "Metro PCS pay bill without logging in: pay online as a guest with CellPay, or call Metro by T-Mobile's pay line at 1-888-863-8768.", // HOWTO-METRO-AEO-1123
+    h1: "Metro PCS Pay Bill: Pay Online as a Guest or by Phone", // HOWTO-METRO-AEO-1123
+    quick: { label: "Quick answer", text: "Metro PCS is now Metro by T-Mobile. You can pay the bill two ways:", items: [["Online as a guest: no login or account needed. On CellPay, enter the 10-digit Metro by T-Mobile phone number, pick an amount and pay. You see the total, including any service fee, before you pay."], ["By phone: call Metro by T-Mobile at ", "1-888-863-8768", " (1-888-8-METRO-8). This is Metro's own number, not CellPay's."]], note: "Phone number checked on Metro by T-Mobile's official Contact Us page on Nov 23, 2026. CellPay is an independent payment service, not Metro by T-Mobile." }, // HOWTO-METRO-AEO-1123
+    appendFaqs: [ // HOWTO-METRO-AEO-1123
+      { q: "What is the phone number to pay my Metro PCS bill?", a: "Call Metro by T-Mobile at 1-888-863-8768 (1-888-8-METRO-8) to pay by phone. That is Metro's own line, listed on its official Contact Us page. To pay online without logging in, you can use CellPay: enter the 10-digit phone number, pick an amount and pay. CellPay is an independent payment service, not Metro by T-Mobile." }, // HOWTO-METRO-AEO-1123
+      { q: "Are Metro PCS and Metro by T-Mobile the same?", a: "Yes. Metro PCS is now called Metro by T-Mobile. If you have a Metro PCS number, you can pay on CellPay's Metro by T-Mobile page with just the phone number." }, // HOWTO-METRO-AEO-1123
+      { q: "Does Metro by T-Mobile have its own online payment without logging in?", a: "Yes. Metro by T-Mobile offers its own one-time guest payment on its official site. CellPay is another option if you want to pay with just the phone number, with Apple Pay, Google Pay, PayPal and more, and see the total before you pay." }, // HOWTO-METRO-AEO-1123
+    ], // HOWTO-METRO-AEO-1123
     step3: "Choose a plan from the list or enter a custom amount.",
     autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.",
     autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.",
@@ -347,13 +361,17 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
       { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." },
     ],
     related: [["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/how-to-pay/boost-mobile", "How to pay Boost Mobile"], ["/how-to-pay/cricket", "How to pay Cricket Wireless"] /* CRICKET-GUIDE-1014 */, ["/how-to-pay/lyca-mobile", "How to pay Lyca Mobile"], ["/how-to-pay/verizon-prepaid", "How to pay Verizon Prepaid"], ["/guest-metro-pcs.html", "Pay Metro by T-Mobile as a guest"], ["/metropcs.html", "Metro PCS bill pay"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // BILLPAY-TITLES-P1-1105
-    updatedIso: "2026-10-12", updatedText: "Last updated: October 12, 2026",
+    updatedIso: "2026-11-23", updatedText: "Last updated: November 23, 2026", // HOWTO-METRO-AEO-1123
   }),
   es({
     key: "metro-pcs", name: "Metro by T-Mobile", slug: "metropcs", checkout: "/es/metropcs.html",
-    title: "Cómo Pagar su Factura de Metro by T-Mobile (MetroPCS) en Línea | CellPay",
-    description: "Pague Metro by T-Mobile en línea como invitado, sin iniciar sesión. Ingrese su número, elija el monto y pague con tarjeta, Apple Pay o Google Pay.", // ES-METRO-INVITADO-1119
-    h1: "Cómo pagar su factura de Metro by T-Mobile (MetroPCS) en línea",
+    title: "Pagar Metro PCS como Invitado o por Teléfono | CellPay", // HOWTO-METRO-AEO-1123
+    description: "Pague Metro PCS sin iniciar sesión: en línea como invitado con CellPay o llame a Metro by T-Mobile al 1-888-863-8768.", // HOWTO-METRO-AEO-1123
+    h1: "Pagar Metro PCS: en línea como invitado o por teléfono", // HOWTO-METRO-AEO-1123
+    quick: { label: "Respuesta rápida", text: "Metro PCS ahora es Metro by T-Mobile. Puede pagar la factura de dos maneras:", items: [["En línea como invitado: sin cuenta ni contraseña. En CellPay, ingrese el número de teléfono de Metro by T-Mobile de 10 dígitos, elija el monto y pague. Verá el total, con cualquier cargo por servicio, antes de pagar."], ["Por teléfono: llame a Metro by T-Mobile al ", "1-888-863-8768", " (1-888-8-METRO-8). Es el número de Metro, no de CellPay."]], note: "Número verificado en la página oficial de contacto de Metro by T-Mobile el 23 de nov. de 2026. CellPay es un servicio de pago independiente, no Metro by T-Mobile." }, // HOWTO-METRO-AEO-1123
+    appendFaqs: [ // HOWTO-METRO-AEO-1123
+      { q: "¿Cuál es el número de teléfono para pagar Metro PCS?", a: "Llame a Metro by T-Mobile al 1-888-863-8768 (1-888-8-METRO-8) para pagar por teléfono. Es la línea de Metro, que aparece en su página oficial de contacto. Para pagar en línea sin iniciar sesión, puede usar CellPay: ingrese el número de teléfono de 10 dígitos, elija el monto y pague. CellPay es un servicio de pago independiente, no Metro by T-Mobile." }, // HOWTO-METRO-AEO-1123
+    ], // HOWTO-METRO-AEO-1123
     intro: `Para pagar Metro PCS en línea como invitado, sin iniciar sesión, solo necesita el número de teléfono de Metro by T-Mobile de 10 dígitos. En la página de Metro by T-Mobile de CellPay, ingrese el número, elija el monto o el plan y pague con ${PAY_ES}. No necesita cuenta ni contraseña. El cargo por servicio se muestra antes de pagar y la mayoría de los pagos se acreditan en pocos minutos (hasta 30 minutos). CellPay es un servicio de pago independiente, no Metro by T-Mobile; también puede pagar directamente en el sitio oficial de Metro by T-Mobile.`, // ES-METRO-INVITADO-1119
     faq1Q: "¿Puedo pagar Metro by T-Mobile como invitado, sin iniciar sesión?", // ES-METRO-INVITADO-1119
     faq2: { q: "¿Cómo pago Metro by T-Mobile como invitado en CellPay?", a: "Ingrese el número de teléfono de Metro by T-Mobile de 10 dígitos, elija el monto o el plan, revise el total y pague. No necesita cuenta, usuario ni contraseña, y puede pagar por usted o por otra persona." }, // ES-METRO-INVITADO-1119
@@ -367,7 +385,7 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
       { q: "¿Metro by T-Mobile tiene su propio pago en línea sin iniciar sesión?", a: "Sí. Metro by T-Mobile ofrece su propio pago único en su sitio oficial. CellPay es otra opción si quiere pagar solo con el número de teléfono, con Apple Pay, Google Pay, PayPal y más, y ver el total antes de pagar." },
     ],
     related: [["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/es/como-pagar/boost-mobile", "Cómo pagar Boost Mobile"], ["/es/como-pagar/cricket", "Cómo pagar Cricket Wireless"] /* CRICKET-GUIDE-1014 */, ["/es/como-pagar/lyca-mobile", "Cómo pagar Lyca Mobile"], ["/es/como-pagar/verizon-prepaid", "Cómo pagar Verizon Prepago"], ["/guest-metro-pcs.html", "Pagar Metro by T-Mobile como invitado"], ["/es/metropcs.html", "Pagar factura Metro PCS"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]], // BILLPAY-TITLES-P1-1105
-    updatedIso: "2026-11-20", updatedText: "Última actualización: 20 de noviembre de 2026", // ES-METRO-INVITADO-1119
+    updatedIso: "2026-11-23", updatedText: "Última actualización: 23 de noviembre de 2026", // HOWTO-METRO-AEO-1123
   }),
   // SEO-CONTENT-1014 (AEO-08-BOOST-1014): Boost Mobile pay-bill guide pair (SPEC-09 + Oct 14 overrides). "Pay now" goes to /boost.html
   // (ES: /es/boost.html). Built like the Metro/Lyca pairs; pay wording only (no "refill"/"recarga"), no fee amounts or plan prices.
@@ -1084,6 +1102,7 @@ export const howToPayStaticHtml = (pg: HtpPage): string => {
     `<nav class="border-b border-border bg-card"><div class="max-w-3xl mx-auto px-5 h-14 flex items-center"><a class="font-extrabold text-lg" href="${pg.lang === "es" ? "/es" : "/"}">CellPay</a></div></nav>` +
     `<main class="max-w-3xl mx-auto px-5 py-8 leading-relaxed">` +
     `<h1 class="text-2xl md:text-3xl font-extrabold leading-tight mb-4">${esc(pg.h1)}</h1>` +
+    (pg.quick ? `<section class="mb-6" data-htp-quick>` + h2(pg.quick.label) + `<p>${esc(pg.quick.text)}</p><ul class="list-disc pl-6 space-y-1 mt-2">` + pg.quick.items.map((it) => `<li>${esc(it[0])}${it.length === 3 ? `<a href="tel:+18888638768" class="underline">${esc(it[1])}</a>${esc(it[2])}` : ""}</li>`).join("") + `</ul><p class="text-xs text-muted-foreground mt-2">${esc(pg.quick.note)}</p></section>` : "") + // HOWTO-METRO-AEO-1123
     `<div class="rounded-xl border border-border bg-muted/40 p-4 mb-6"><p>${esc(pg.intro)}</p><a href="${pg.checkoutPath}" class="inline-block mt-3 rounded-lg bg-primary text-primary-foreground font-bold px-5 py-2.5">${esc(L.payNow)}</a></div>` +
     h2(L.steps) + `<ol class="list-decimal pl-6 space-y-2">` + pg.steps.map((s, i) => `<li id="step-${i + 1}"><strong>${esc(s.name)}.</strong> ${esc(s.text)}</li>`).join("") + `</ol>` +
     h2(L.need) + `<ul class="list-disc pl-6 space-y-1">` + pg.need.map((n) => `<li>${esc(n)}</li>`).join("") + `</ul>` +

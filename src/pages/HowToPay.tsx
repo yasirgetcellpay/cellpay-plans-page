@@ -73,6 +73,18 @@ const HowToPay = () => {
       </nav>
       <main className="max-w-3xl mx-auto px-5 py-8 leading-relaxed">
         <h1 className="text-2xl md:text-3xl font-extrabold leading-tight mb-4">{pg.h1}</h1>
+        {pg.quick ? ( /* HOWTO-METRO-AEO-1123 */
+          <section className="mb-6" data-htp-quick>
+            <h2 className="text-xl font-extrabold mt-8 mb-3">{pg.quick.label}</h2>
+            <p>{pg.quick.text}</p>
+            <ul className="list-disc pl-6 space-y-1 mt-2">
+              {pg.quick.items.map((it, i) => (
+                <li key={i}>{it[0]}{it.length === 3 ? <><a href="tel:+18888638768" className="underline">{it[1]}</a>{it[2]}</> : null}</li>
+              ))}
+            </ul>
+            <p className="text-xs text-muted-foreground mt-2">{pg.quick.note}</p>
+          </section>
+        ) : null}
         <div className="rounded-xl border border-border bg-muted/40 p-4 mb-6">
           <p>{pg.intro}</p>
           <a href={pg.checkoutPath} className="inline-block mt-3 rounded-lg bg-primary text-primary-foreground font-bold px-5 py-2.5">{L.payNow}</a>
