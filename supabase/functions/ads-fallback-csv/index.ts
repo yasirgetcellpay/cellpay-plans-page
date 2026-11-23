@@ -99,7 +99,9 @@ Deno.serve(async (req) => {
       // CLICKID-GAP-1022: rows may carry gbraid/wbraid instead of gclid; exactly one click id per row.
       const PAGE = 1000;
       const data: unknown[] = [];
-      for (let from = 0; from < 100000; from += PAGE) {
+      const { data: j, error: je } = await sb.rpc("cp_profit_csv_json", { _token: token }); // CP-PROFIT-90D-1123: single jsonb call first
+      if (!je && Array.isArray(j) && j.length > 0) data.push(...(j as unknown[])); // CP-PROFIT-90D-1123
+      else for (let from = 0; from < 100000; from += PAGE) { // CP-PROFIT-90D-1123: fallback to existing paged loop
         const { data: pg, error } = await sb.rpc("cp_profit_csv", { _token: token }).range(from, from + PAGE - 1);
         if (error) return empty(500);
         const arr = (pg ?? []) as unknown[];
