@@ -404,7 +404,9 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
       { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." },
     ],
     related: [["/how-to-pay/metro-pcs", "How to pay Metro by T-Mobile"], ["/how-to-pay/cricket", "How to pay Cricket Wireless"] /* CRICKET-GUIDE-1014 */, ["/how-to-pay/t-mobile-prepaid", "How to pay T-Mobile Prepaid"], ["/guest-boost.html", "Pay Boost Mobile as a guest"], ["/boost.html", "Pay Boost Mobile now"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]],
-    updatedIso: "2026-11-17", updatedText: "Last updated: November 17, 2026", // BOOST-FAQ-1117
+    quick: { label: "Quick answer", text: "You can pay a Boost Mobile bill as a guest two ways:", items: [["Online, no call needed: on CellPay, enter the 10-digit Boost Mobile number, pick an amount and pay. No Boost login or CellPay account. You see the total, including any service fee, before you pay."], ["By phone: Boost Mobile's help page says you can call Boost Customer Care and use its automated system to make a guest payment."]], note: "CellPay is an independent payment service, not Boost Mobile." }, // HOWTO-BOOST-AEO-1123
+    appendFaqs: [{ q: "Can I pay Boost Mobile as a guest without calling?", a: "Yes. On CellPay you pay online with just the 10-digit Boost Mobile number and the amount. No phone call, Boost login or CellPay account is needed. CellPay is an independent payment service, not Boost Mobile." }], // HOWTO-BOOST-AEO-1123
+    updatedIso: "2026-11-23", updatedText: "Last updated: November 23, 2026", // BOOST-FAQ-1117 // HOWTO-BOOST-AEO-1123
   }),
   es({
     key: "boost-mobile", name: "Boost Mobile", slug: "boost", checkout: "/es/boost.html",
@@ -422,7 +424,9 @@ export const HOW_TO_PAY_PAGES: HtpPage[] = [
       { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." },
     ],
     related: [["/es/como-pagar/metro-pcs", "Cómo pagar Metro by T-Mobile"], ["/es/como-pagar/cricket", "Cómo pagar Cricket Wireless"] /* CRICKET-GUIDE-1014 */, ["/es/como-pagar/t-mobile-prepaid", "Cómo pagar T-Mobile Prepaid"], ["/guest-boost.html", "Pagar Boost Mobile como invitado"], ["/es/boost.html", "Pagar Boost Mobile ahora"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]],
-    updatedIso: "2026-11-18", updatedText: "Última actualización: 18 de noviembre de 2026", // ES-BOOST-GUEST-FAQ-1118
+    quick: { label: "Respuesta rápida", text: "Puede pagar una factura de Boost Mobile como invitado de dos formas:", items: [["En línea, sin llamar: en CellPay, ingrese el número de Boost Mobile de 10 dígitos, elija el monto y pague. No necesita iniciar sesión en Boost ni una cuenta de CellPay. Usted ve el total, incluido cualquier cargo por servicio, antes de pagar."], ["Por teléfono: la página de ayuda de Boost Mobile indica que puede llamar a Atención al Cliente de Boost y usar su sistema automatizado para hacer un pago como invitado."]], note: "CellPay es un servicio de pago independiente, no Boost Mobile." }, // HOWTO-BOOST-AEO-1123
+    appendFaqs: [{ q: "¿Puedo pagar Boost Mobile como invitado sin llamar?", a: "Sí. En CellPay paga en línea solo con el número de Boost Mobile de 10 dígitos y el monto. No necesita llamar, iniciar sesión en Boost ni una cuenta de CellPay. CellPay es un servicio de pago independiente, no Boost Mobile." }], // HOWTO-BOOST-AEO-1123
+    updatedIso: "2026-11-23", updatedText: "Última actualización: 23 de noviembre de 2026", // ES-BOOST-GUEST-FAQ-1118 // HOWTO-BOOST-AEO-1123
   }),
   // CRICKET-GUIDE-1014: Cricket Wireless pay-bill guide pair, built like the Boost/Metro pairs. "Pay now" goes to /topup-crc.html
   // (ES: /es/topup-crc.html), no amount prefill. Pay wording only; no fee amounts or plan prices.
