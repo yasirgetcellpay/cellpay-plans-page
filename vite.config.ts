@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import fs from "fs";
+import { createHash } from "crypto"; // GO-LANDER-LCP-1124 (node builtin, build-time only; not a package)
 import { componentTagger } from "lovable-tagger";
 // AEO-PAGES-1007: how-to-pay page text (shared with src/pages/HowToPay.tsx) for static raw HTML + JSON-LD.
 import { HOW_TO_PAY_PAGES, howToPayJsonLd, howToPayStaticHtml } from "./src/content/howToPay";
@@ -1392,6 +1393,7 @@ const htmlAliasPlugin = (): Plugin => ({
       );
     };
 
+    const GO_PHONE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`; // GO-LANDER-LCP-1124: hoisted from goAttEnScreen (byte-identical), shared with goLcpCardScreen
     // ATT-LP-QS-1114: EN /go/att static first screen — phone + amount above Auto Pay (same classes as GoLander attQsLayout) so hydration does not shift the form.
     const goAttEnScreen = (color: string): string => {
       const phone = "Enter Your AT&T Phone Number";
@@ -1400,20 +1402,64 @@ const htmlAliasPlugin = (): Plugin => ({
       const help = "Enter the amount you want to recharge";
       const steps = "3 steps: number → amount → pay";
       const inputCls = "w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center";
-      const phoneSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`;
       const dollarSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
       return (
         `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4">` +
         `<div class="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">` +
         `<p class="text-[11px] sm:text-xs text-muted-foreground mb-3">${steps}</p>` +
         `<label for="go-phone-input" class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">${phone}</label>` +
-        `<div class="relative mb-3">${phoneSvg}` +
+        `<div class="relative mb-3">${GO_PHONE_SVG}` +
         `<input id="go-phone-input" name="phone" type="tel" readonly tabindex="-1" placeholder="(XXX) XXX-XXXX" aria-label="${phone}" class="${inputCls}" value=""></div>` +
         `<label for="go-amount-input" class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">${amount}</label>` +
         `<div class="relative mb-1">${dollarSvg}` +
         `<input id="go-amount-input" name="amount" type="text" inputmode="numeric" readonly tabindex="-1" placeholder="${ph}" aria-label="${amount}" class="${inputCls}" value=""></div>` +
         `<p class="text-[10px] sm:text-xs text-muted-foreground mt-2">${help}</p>` +
         `</div></div>`
+      );
+    };
+    // GO-LANDER-LCP-1124 Part A: static copy of GoLander's first (loading) card — phone + SMS disclosure — so the disclosure paints at FCP.
+    // EN only. ES is HELD (Parvez). Markup MUSTs: SPEC-GO-LANDER-LCP-1124-PARTA §3 (no checkbox, inert label, readonly phone, no form/button).
+    const GO_LCP_SHELL_EN_SLUGS = ["tracfone", "net10"]; // Part A only. Do NOT add slugs or ES without a new SPEC.
+    const GO_SMS_SPAN_EN = `Yes, text me payment reminders and Text-to-Pay messages from CellPay at this number. Msg frequency varies. Msg &amp; data rates may apply. Reply HELP for help, STOP to cancel. Consent is not a condition of purchase. See our <a href="/sms-terms" target="_blank" rel="noopener" class="underline">SMS Terms</a> and <a href="/privacy-policy" target="_blank" rel="noopener" class="underline">Privacy Policy</a>.`;
+    const GO_SMS_SHA_EN = "853a26a13cf27841273b83fd4ef35e1da3974876ca9df68368f3dd2433eccf53";
+    // GO-LANDER-LCP-1124: the shell disclosure MUST equal GoLander's rendered disclosure (src/pages/GoLander.tsx, SMS-34332-PHONE-1106 line).
+    let goSmsGuard: boolean | null = null;
+    const goSmsSpanMatchesSource = (): boolean => {
+      if (goSmsGuard !== null) return goSmsGuard;
+      const fail = (why: string) => { console.warn("[GO-LANDER-LCP-1124] guard FAIL (" + why + "): spinner shell kept for /go/tracfone + /go/net10"); return (goSmsGuard = false); };
+      try {
+        const src = fs.readFileSync(path.resolve(__dirname, "src/pages/GoLander.tsx"), "utf8");
+        const hits = src.split("\n").filter((l) => l.includes('{lang === "es" ? <>') && l.includes("Text-to-Pay"));
+        if (hits.length !== 1) return fail("expected 1 consent line, found " + hits.length);
+        if (!src.includes('<span className="text-xs text-muted-foreground leading-snug">')) return fail("span classes changed");
+        if (!src.includes('<input type="checkbox" data-testid="sms-optin" checked={smsOptIn}')) return fail("checkbox markup changed");
+        const m = hits[0].match(/\{lang === "es" \? <>([\s\S]*?)<\/> : <>([\s\S]*?)<\/>\}/);
+        if (!m) return fail("consent JSX shape changed");
+        const en = m[2].split(" onClick={(e) => e.stopPropagation()}").join("").split(' className="').join(' class="');
+        if (/[{}]/.test(en)) return fail("unexpected JSX expression in EN text");
+        if (en !== GO_SMS_SPAN_EN) return fail("EN text differs from GoLander");
+        if (createHash("sha256").update(GO_SMS_SPAN_EN, "utf8").digest("hex") !== GO_SMS_SHA_EN) return fail("EN sha differs from 853a26a1");
+        return (goSmsGuard = true);
+      } catch (e) { return fail("read error " + String(e)); }
+    };
+    const goLcpCardScreen = (slug: string, isEs: boolean, look: { name: string; color: string }): string | null => {
+      if (isEs || !GO_LCP_SHELL_EN_SLUGS.includes(slug)) return null; // ES untouched in Part A
+      if (!goSmsSpanMatchesSource()) return null; // §4.4 guard: fall back to today's spinner shell
+      const steps = "3 steps: number → amount → pay";
+      const phone = `Enter Your ${look.name} Phone Number`;
+      const inputCls = "w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center";
+      const loaderSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle h-6 w-6 animate-spin text-muted-foreground"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>`;
+      return (
+        `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-busy="true">` +
+        `<div class="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">` +
+        `<p class="text-[11px] sm:text-xs text-muted-foreground mb-3">${steps}</p>` +
+        `<label for="go-phone-input" class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">${escAttr(phone)}</label>` +
+        `<div class="relative mb-3">${GO_PHONE_SVG}<input id="go-phone-input" name="phone" type="tel" readonly tabindex="-1" placeholder="(XXX) XXX-XXXX" aria-label="${escAttr(phone)}" class="${inputCls}" value="" style="--tw-ring-color: ${look.color};"></div>` +
+        `<label class="flex items-start gap-2 mt-3 mb-3 text-left"><span aria-hidden="true" class="mt-0.5 h-4 w-4 shrink-0"></span>` +
+        `<span class="text-xs text-muted-foreground leading-snug">${GO_SMS_SPAN_EN}</span></label>` +
+        `<div class="flex justify-center py-4">${loaderSvg}</div>` +
+        `</div></div>` +
+        `<div class="flex justify-center items-start py-16 flex-1 min-h-screen" aria-busy="true"></div>`
       );
     };
     const goFirstScreen = (route: string): string | null => {
@@ -1494,9 +1540,10 @@ const htmlAliasPlugin = (): Plugin => ({
         (esApBelow ? "" : apCardHtml) + // GO-ES-VZ-ATT-LCP-1114-v2: ES AT&T / Verizon render the same card after the loader block
         (slug === "cricket"
           ? goCricketScreen(isEs, look.color)
-          : `<div class="flex justify-center items-start py-16 flex-1 min-h-screen">` +
+          : (goLcpCardScreen(slug, isEs, look) ?? // GO-LANDER-LCP-1124
+            (`<div class="flex justify-center items-start py-16 flex-1 min-h-screen">` +
             `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle h-10 w-10 animate-spin text-muted-foreground"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>` +
-            `</div>` + (esApBelow ? apCardHtml : "") + goStaticFaqHtml(route, look.color)) + // GO-ES-VZ-ATT-LCP-1114-v2
+            `</div>`)) + (esApBelow ? apCardHtml : "") + goStaticFaqHtml(route, look.color)) + // GO-ES-VZ-ATT-LCP-1114-v2
         `</div></div>`
       );
     };
