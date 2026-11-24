@@ -927,7 +927,7 @@
   <!-- // AEO-14-TOTAL-1020 -->
   <url>
     <loc>https://www.cellpay.us/how-to-pay/total-wireless</loc>
-    <lastmod>2026-11-05</lastmod><!-- BILLPAY-TITLES-P1-1105 -->
+    <lastmod>2026-11-24</lastmod><!-- BILLPAY-TITLES-P1-1105 --><!-- // HOWTO-TW-AEO-1124 -->
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/total-wireless" />
@@ -936,7 +936,7 @@
   </url>
   <url>
     <loc>https://www.cellpay.us/es/como-pagar/total-wireless</loc>
-    <lastmod>2026-11-05</lastmod><!-- BILLPAY-TITLES-P1-1105 -->
+    <lastmod>2026-11-24</lastmod><!-- BILLPAY-TITLES-P1-1105 --><!-- // HOWTO-TW-AEO-1124 -->
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/total-wireless" />

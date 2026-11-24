@@ -768,6 +768,8 @@ HOW_TO_PAY_PAGES.push( // AEO-14-TOTAL-1020
     title: "How to Pay Your Total Wireless Bill Online (No Login) | CellPay", // AEO-14-TOTAL-1020
     description: "Pay Total Wireless online in 2 minutes: enter the Total Wireless number, pick a plan, pay by card, Apple Pay, Google Pay or PayPal. No login needed.", // AEO-14-TOTAL-1020
     h1: "How to Pay Your Total Wireless Bill Online", // AEO-14-TOTAL-1020
+    quick: { label: "Quick answer", text: "You can pay a Total Wireless bill without signing in two ways:", items: [["Online, no call needed: on CellPay, enter the 10-digit Total Wireless number, pick your plan and pay with a debit or credit card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank. No Total Wireless login or CellPay account. You see the total, including any service fee, before you pay."], ["By phone: call Total Wireless customer care to make a one-time payment."]], note: "CellPay is an independent payment service, not Total Wireless." }, // HOWTO-TW-AEO-1124
+    appendFaqs: [{ q: "Can I pay my Total Wireless bill with a debit card without signing in?", a: "Yes. On CellPay you pay with a debit or credit card, Apple Pay, Google Pay, PayPal, Klarna, Cash App or Pay by Bank using only the 10-digit Total Wireless number. No Total Wireless login or CellPay account is needed. CellPay is an independent payment service, not Total Wireless." }], // HOWTO-TW-AEO-1124
     intro: "To pay your Total Wireless bill online without logging in, open CellPay's Total Wireless page, enter the 10-digit Total Wireless phone number, pick your plan, and pay. Service fee shown before you pay. Most payments post within a few minutes (up to 30 minutes). CellPay is an independent payment service, not Total Wireless.", // AEO-14-TOTAL-1020
     steps: [ // AEO-14-TOTAL-1020
       { name: "Open the page", text: "Open the CellPay Total Wireless page (/total-wireless.html)." }, // AEO-14-TOTAL-1020
@@ -777,7 +779,7 @@ HOW_TO_PAY_PAGES.push( // AEO-14-TOTAL-1020
       { name: "Pay", text: `Pay with ${PAY_EN} and keep your confirmation.` }, // AEO-14-TOTAL-1020
     ], // AEO-14-TOTAL-1020
     step3: "Pick a plan from the list.", // AEO-14-TOTAL-1020
-    faq2: { q: "Does Total Wireless have online guest pay?", a: "Total Wireless offers its own payment options on its official website and app. On CellPay you can pay online with only the Total Wireless number." }, // AEO-14-TOTAL-1020
+    faq2: { q: "Does Total Wireless have online guest pay?", a: "Total Wireless offers its own payment options on its official website and app, and you can call Total Wireless customer care to make a one-time payment. On CellPay you can pay online without signing in, with only the Total Wireless number." }, // AEO-14-TOTAL-1020 // HOWTO-TW-AEO-1124
     postA: "Most payments post within a few minutes, but it can take up to 30 minutes for a payment to show on the account. If it hasn't posted after 30 minutes, email support@getcellpay.com with your phone number and transaction details. You see a confirmation with your transaction details once the payment goes through.", // AEO-14-TOTAL-1020
     autoPayA: "Yes. CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq. Payments already made can't be refunded.", // AEO-14-TOTAL-1020
     autoPayBody: "CellPay offers optional Auto Pay that you can turn on at checkout; it's never pre-checked. You can cancel it anytime with 'Unsubscribe From Autopay' on cellpay.us/faq.", // AEO-14-TOTAL-1020
@@ -786,13 +788,15 @@ HOW_TO_PAY_PAGES.push( // AEO-14-TOTAL-1020
       { q: "I paid but my phone still isn't working. What should I do?", a: "Most payments post in a few minutes; some take up to 30 minutes. Restart your phone. If it still isn't working after 30 minutes, tap Help and choose Check order status, or email support@getcellpay.com with your Order ID." }, // AEO-14-TOTAL-1020
     ], // AEO-14-TOTAL-1020
     related: [["/total-wireless", "pay Total Wireless bill"], ["/how-to-pay/tracfone", "How to pay Tracfone"], ["/how-to-pay/straight-talk", "How to pay Straight Talk"], ["/how-to-pay/page-plus", "How to pay Page Plus"], ["/how-to-use", "How to use CellPay"], ["/faq", "FAQ"], ["/returns-policy", "Returns & Refunds Policy"]], // AEO-14-TOTAL-1020 // ORGANIC-TW-PAYBILL-FAQ-1027
-    updatedIso: "2026-10-20", updatedText: "Last updated: October 20, 2026", // AEO-14-TOTAL-1020
+    updatedIso: "2026-11-24", updatedText: "Last updated: November 24, 2026", // AEO-14-TOTAL-1020 // HOWTO-TW-AEO-1124
   }), // AEO-14-TOTAL-1020
   es({ // AEO-14-TOTAL-1020
     key: "total-wireless", name: "Total Wireless", slug: "total-wireless", checkout: "/es/total-wireless.html", // AEO-14-TOTAL-1020
     title: "Cómo pagar Total Wireless en línea (sin cuenta) | CellPay", // AEO-14-TOTAL-1020
     description: "Pague o recargue Total Wireless en línea: ingrese el número, elija su plan y pague. Sin cuenta. El cargo por servicio se muestra antes de pagar.", // AEO-14-TOTAL-1020
     h1: "Cómo pagar Total Wireless en línea", // AEO-14-TOTAL-1020
+    quick: { label: "Respuesta rápida", text: "Puede pagar una factura de Total Wireless sin iniciar sesión de dos formas:", items: [["En línea, sin llamar: en CellPay, ingrese el número de Total Wireless de 10 dígitos, elija su plan y pague con tarjeta de débito o crédito, Apple Pay, Google Pay, PayPal, Klarna, Cash App o Pay by Bank. No necesita iniciar sesión en Total Wireless ni una cuenta de CellPay. Usted ve el total, incluido cualquier cargo por servicio, antes de pagar."], ["Por teléfono: llame a Atención al Cliente de Total Wireless para hacer un pago único."]], note: "CellPay es un servicio de pago independiente, no Total Wireless." }, // HOWTO-TW-AEO-1124
+    appendFaqs: [{ q: "¿Puedo pagar mi factura de Total Wireless con tarjeta de débito sin iniciar sesión?", a: "Sí. En CellPay paga con tarjeta de débito o crédito, Apple Pay, Google Pay, PayPal, Klarna, Cash App o Pay by Bank usando solo el número de Total Wireless de 10 dígitos. No necesita iniciar sesión en Total Wireless ni una cuenta de CellPay. CellPay es un servicio de pago independiente, no Total Wireless." }], // HOWTO-TW-AEO-1124
     intro: "Para pagar su factura de Total Wireless en línea sin iniciar sesión, abra la página de Total Wireless en CellPay, escriba el número de 10 dígitos, elija su plan y pague. El cargo por servicio se muestra antes de pagar. La mayoría de los pagos se aplican en pocos minutos (hasta 30 minutos). CellPay es un servicio de pago independiente, no Total Wireless.", // AEO-14-TOTAL-1020
     steps: [ // AEO-14-TOTAL-1020
       { name: "Abra la página", text: "Abra la página de Total Wireless en CellPay (/es/total-wireless.html)." }, // AEO-14-TOTAL-1020
@@ -802,7 +806,7 @@ HOW_TO_PAY_PAGES.push( // AEO-14-TOTAL-1020
       { name: "Pague", text: `Pague con ${PAY_ES} y guarde su confirmación.` }, // AEO-14-TOTAL-1020
     ], // AEO-14-TOTAL-1020
     step3: "Elija un plan de la lista.", // AEO-14-TOTAL-1020
-    faq2: { q: "¿Total Wireless tiene pago en línea como invitado?", a: "Total Wireless ofrece sus propias formas de pago en su sitio web oficial y en su aplicación. En CellPay puede pagar en línea solo con el número de Total Wireless." }, // AEO-14-TOTAL-1020
+    faq2: { q: "¿Total Wireless tiene pago en línea como invitado?", a: "Total Wireless ofrece sus propias formas de pago en su sitio web oficial y en su aplicación, y puede llamar a Atención al Cliente de Total Wireless para hacer un pago único. En CellPay puede pagar en línea sin iniciar sesión, solo con el número de Total Wireless." }, // AEO-14-TOTAL-1020 // HOWTO-TW-AEO-1124
     postA: "La mayoría de los pagos se acreditan en pocos minutos, pero el pago puede tardar hasta 30 minutos en aparecer en la cuenta. Si no se ha acreditado después de 30 minutos, escriba a support@getcellpay.com con su número de teléfono y los datos de la transacción. Cuando el pago se completa, verá una confirmación con los datos de su transacción.", // AEO-14-TOTAL-1020
     autoPayA: "Sí. CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq. Los pagos ya realizados no se pueden reembolsar.", // AEO-14-TOTAL-1020
     autoPayBody: "CellPay ofrece Auto Pago opcional que puede activar al pagar; nunca está marcado de antemano. Puede cancelarlo cuando quiera con 'Unsubscribe From Autopay' en cellpay.us/faq.", // AEO-14-TOTAL-1020
@@ -810,8 +814,8 @@ HOW_TO_PAY_PAGES.push( // AEO-14-TOTAL-1020
       { q: "¿Qué hago si no sé cuánto debo?", a: "CellPay no muestra el saldo de Total Wireless. Revise el monto a pagar en la aplicación, la cuenta o los mensajes de texto de Total Wireless, y luego elija ese plan o monto aquí. El total con el cargo por servicio se muestra antes de pagar." }, // AEO-14-TOTAL-1020
       { q: "Ya pagué, pero mi teléfono todavía no funciona. ¿Qué hago?", a: "La mayoría de los pagos se acreditan en unos minutos; algunos tardan hasta 30 minutos. Reinicie su teléfono. Si después de 30 minutos todavía no funciona, toque Ayuda y elija Ver el estado del pedido, o escriba a support@getcellpay.com con su número de pedido." }, // AEO-14-TOTAL-1020
     ], // AEO-14-TOTAL-1020
-    related: [["/es/como-pagar/tracfone", "Cómo pagar Tracfone"], ["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/page-plus", "Cómo pagar Page Plus"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]], // AEO-14-TOTAL-1020
-    updatedIso: "2026-10-20", updatedText: "Última actualización: 20 de octubre de 2026", // AEO-14-TOTAL-1020
+    related: [["/es/total-wireless", "pagar la factura de Total Wireless"], ["/es/como-pagar/tracfone", "Cómo pagar Tracfone"], ["/es/como-pagar/straight-talk", "Cómo pagar Straight Talk"], ["/es/como-pagar/page-plus", "Cómo pagar Page Plus"], ["/es/how-to-use", "Cómo usar CellPay"], ["/faq", "Preguntas frecuentes"], ["/returns-policy", "Política de devoluciones y reembolsos"]], // AEO-14-TOTAL-1020 // HOWTO-TW-AEO-1124
+    updatedIso: "2026-11-24", updatedText: "Última actualización: 24 de noviembre de 2026", // AEO-14-TOTAL-1020 // HOWTO-TW-AEO-1124
   }), // AEO-14-TOTAL-1020
 ); // AEO-14-TOTAL-1020
 for (const pg of HOW_TO_PAY_PAGES.filter((p) => p.key === "total-wireless")) { // AEO-14-TOTAL-1020
