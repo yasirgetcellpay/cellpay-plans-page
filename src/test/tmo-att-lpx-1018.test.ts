@@ -46,9 +46,9 @@ describe("TMO-ATT-LPX-1018", () => {
 
   it("AT&T copy unchanged", () => {
     expect(goLpxForCarrier("topup-at", "en")).toEqual({
-      h1: "Pay Your AT&T Prepaid Bill Without Signing In",
-      subline: "AT&T Prepaid (ATT) guest pay by phone number: no login. Debit or credit card.",
-      title: "Pay Your AT&T Prepaid Bill Without Signing In | CellPay",
+      h1: "AT&T Prepaid Pay My Bill, No Login Needed", // GO-ATT-HEAD-MATCH-1124
+      subline: "Pay your AT&T Prepaid bill with just the phone number — no login needed. Pay with debit or credit card.", // GO-ATT-HEAD-MATCH-1124
+      title: "AT&T Prepaid Pay My Bill – Pay Online, No Login | CellPay", // GO-ATT-HEAD-MATCH-1124
     });
     expect(goLpxForCarrier("topup-at", "es")).toEqual({
       h1: "Pague su factura de AT&T Prepago sin iniciar sesión",

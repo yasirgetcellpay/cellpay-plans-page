@@ -19,7 +19,7 @@ describe("METRO-LPX-1019", () => {
   });
   it("other rows unchanged", () => {
     expect(goLpxForCarrier("tmobile", "en")?.title).toBe("Pay My T-Mobile Prepaid Bill as a Guest | CellPay");
-    expect(goLpxForCarrier("topup-at", "en")?.h1).toBe("Pay Your AT&T Prepaid Bill Without Signing In");
+    expect(goLpxForCarrier("topup-at", "en")?.h1).toBe("AT&T Prepaid Pay My Bill, No Login Needed"); // GO-ATT-HEAD-MATCH-1124
     expect(goLpxForCarrier("boost", "es")?.h1).toBe("Pague su factura de Boost como invitado");
     expect(goLpxForCarrier("topup-crc", "en")?.title).toBe("Pay Your Cricket Bill as a Guest | CellPay");
   });

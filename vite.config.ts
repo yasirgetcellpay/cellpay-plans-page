@@ -602,7 +602,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/att.html": {
-        h1: "Pay Your AT&T Prepaid Bill, No Login Needed", // ATT-LP-QS-1114 // SPEC-ATT-GO-LP-1030
+        h1: "AT&T Prepaid Pay My Bill, No Login Needed", // ATT-LP-QS-1114 // SPEC-ATT-GO-LP-1030 // GO-ATT-HEAD-MATCH-1124
         intro: "Pay your AT&T Prepaid bill with just the phone number — no login needed. Pay with debit or credit card.", // SPEC-ATT-GO-LP-1030
       },
       "go/cricket/index.html": {
@@ -610,7 +610,7 @@ const htmlAliasPlugin = (): Plugin => ({
         intro: "No login. Pay for anyone. Enter the number, pick a plan, pay. Low service fee shown before you pay.",
       },
       "go/att/index.html": {
-        h1: "Pay Your AT&T Prepaid Bill, No Login Needed", // ATT-LP-QS-1114 // SPEC-ATT-GO-LP-1030
+        h1: "AT&T Prepaid Pay My Bill, No Login Needed", // ATT-LP-QS-1114 // SPEC-ATT-GO-LP-1030 // GO-ATT-HEAD-MATCH-1124
         intro: "Pay your AT&T Prepaid bill with just the phone number — no login needed. Pay with debit or credit card.", // SPEC-ATT-GO-LP-1030
       },
       "go/straight-talk.html": {
