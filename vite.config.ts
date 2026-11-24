@@ -1422,7 +1422,7 @@ const htmlAliasPlugin = (): Plugin => ({
     const GO_LCP_SHELL_EN_SLUGS = ["tracfone", "net10"]; // Part A only. Do NOT add slugs or ES without a new SPEC.
     const GO_SMS_SPAN_EN = `Yes, text me payment reminders and Text-to-Pay messages from CellPay at this number. Msg frequency varies. Msg &amp; data rates may apply. Reply HELP for help, STOP to cancel. Consent is not a condition of purchase. See our <a href="/sms-terms" target="_blank" rel="noopener" class="underline">SMS Terms</a> and <a href="/privacy-policy" target="_blank" rel="noopener" class="underline">Privacy Policy</a>.`;
     const GO_SMS_SHA_EN = "853a26a13cf27841273b83fd4ef35e1da3974876ca9df68368f3dd2433eccf53";
-    const GO_LCP_SHELL_ES_SLUGS = ["tracfone", "straight-talk"]; // GO-LANDER-LCP-1124 Part B (Parvez, Nov 23 5:40 PM CT). Quick revert: set to []. Do NOT add slugs (es net10) without a new SPEC.
+    const GO_LCP_SHELL_ES_SLUGS = ["tracfone", "straight-talk", "net10"]; // GO-LANDER-LCP-1124 Part B (Parvez, Nov 23 5:40 PM CT) + GO-ES-NET10-LCP-1124 (net10; Parvez words required). Quick revert: remove "net10" (or set to []). Do NOT add other slugs without a new SPEC.
     const GO_SMS_SPAN_ES = `Sí, envíenme recordatorios de pago y mensajes de Text-to-Pay de CellPay a este número. La frecuencia de mensajes varía. Pueden aplicar tarifas de mensajes y datos. Responda HELP para ayuda, STOP para cancelar. El consentimiento no es una condición de compra. Vea nuestros <a href="/sms-terms" target="_blank" rel="noopener" class="underline">Términos de SMS</a> y <a href="/es/privacy-policy" target="_blank" rel="noopener" class="underline">Política de Privacidad</a>.`;
     const GO_SMS_SHA_ES = "61e3d0588df9444156d5631e6845ab6778fad6fb6b7dbbc49653faa78ab1764a";
     // GO-LANDER-LCP-1124: the shell disclosure MUST equal GoLander's rendered disclosure (src/pages/GoLander.tsx, SMS-34332-PHONE-1106 line).
@@ -1449,7 +1449,7 @@ const htmlAliasPlugin = (): Plugin => ({
     let goSmsGuardEs: boolean | null = null;
     const goSmsSpanEsMatchesSource = (): boolean => {
       if (goSmsGuardEs !== null) return goSmsGuardEs;
-      const fail = (why: string) => { console.warn("[GO-LANDER-LCP-1124] ES guard FAIL (" + why + "): spinner shell kept for /es/go/tracfone + /es/go/straight-talk"); return (goSmsGuardEs = false); };
+      const fail = (why: string) => { console.warn("[GO-LANDER-LCP-1124] ES guard FAIL (" + why + "): spinner shell kept for /es/go/tracfone + /es/go/straight-talk + /es/go/net10"); return (goSmsGuardEs = false); };
       try {
         const src = fs.readFileSync(path.resolve(__dirname, "src/pages/GoLander.tsx"), "utf8");
         const i18n = fs.readFileSync(path.resolve(__dirname, "src/lib/i18n.ts"), "utf8");
