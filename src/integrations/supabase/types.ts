@@ -32,6 +32,123 @@ export type Database = {
         }
         Relationships: []
       }
+      apgate_cancel_queue: {
+        Row: {
+          attempt_count: number
+          block_class: string | null
+          cellpay_domain: string
+          created_at: string
+          hold_reason: string | null
+          id: number
+          last_attempt_at: string | null
+          match_keys: string[]
+          next_charge_date: string | null
+          phone_norm: string
+          resolved_at: string | null
+          status: string
+          transaction_log_id: string
+          trigger_kind: string
+          upstream_kind: string | null
+          upstream_reason: string | null
+          upstream_status: number | null
+        }
+        Insert: {
+          attempt_count?: number
+          block_class?: string | null
+          cellpay_domain?: string
+          created_at?: string
+          hold_reason?: string | null
+          id?: number
+          last_attempt_at?: string | null
+          match_keys: string[]
+          next_charge_date?: string | null
+          phone_norm: string
+          resolved_at?: string | null
+          status: string
+          transaction_log_id: string
+          trigger_kind: string
+          upstream_kind?: string | null
+          upstream_reason?: string | null
+          upstream_status?: number | null
+        }
+        Update: {
+          attempt_count?: number
+          block_class?: string | null
+          cellpay_domain?: string
+          created_at?: string
+          hold_reason?: string | null
+          id?: number
+          last_attempt_at?: string | null
+          match_keys?: string[]
+          next_charge_date?: string | null
+          phone_norm?: string
+          resolved_at?: string | null
+          status?: string
+          transaction_log_id?: string
+          trigger_kind?: string
+          upstream_kind?: string | null
+          upstream_reason?: string | null
+          upstream_status?: number | null
+        }
+        Relationships: []
+      }
+      apgate_hold_phones: {
+        Row: {
+          added_at: string
+          phone_norm: string
+          reason: string
+        }
+        Insert: {
+          added_at?: string
+          phone_norm: string
+          reason: string
+        }
+        Update: {
+          added_at?: string
+          phone_norm?: string
+          reason?: string
+        }
+        Relationships: []
+      }
+      apgate_key_events: {
+        Row: {
+          block_id: string
+          created_at: string
+          id: number
+          processed_at: string | null
+        }
+        Insert: {
+          block_id: string
+          created_at?: string
+          id?: number
+          processed_at?: string | null
+        }
+        Update: {
+          block_id?: string
+          created_at?: string
+          id?: number
+          processed_at?: string | null
+        }
+        Relationships: []
+      }
+      apgate_prior_cancels: {
+        Row: {
+          added_at: string
+          phone_norm: string
+          source: string
+        }
+        Insert: {
+          added_at?: string
+          phone_norm: string
+          source: string
+        }
+        Update: {
+          added_at?: string
+          phone_norm?: string
+          source?: string
+        }
+        Relationships: []
+      }
       autopay_cancel_retry: {
         Row: {
           attempt_count: number
@@ -2913,6 +3030,40 @@ export type Database = {
         }
         Returns: number
       }
+      apgate_alarm: {
+        Args: { _detail?: Json; _kind: string }
+        Returns: undefined
+      }
+      apgate_alarm_check: { Args: never; Returns: undefined }
+      apgate_claim: {
+        Args: { _limit?: number }
+        Returns: {
+          cellpay_domain: string
+          id: number
+          phone_norm: string
+        }[]
+      }
+      apgate_enqueue: { Args: { _trigger: string }; Returns: number }
+      apgate_log: { Args: { _code: string }; Returns: undefined }
+      apgate_mode: { Args: never; Returns: string }
+      apgate_process_keys: { Args: never; Returns: number }
+      apgate_reap: { Args: never; Returns: number }
+      apgate_record: {
+        Args: {
+          _http: number
+          _id: number
+          _kind: string
+          _reason: string
+          _status: string
+        }
+        Returns: undefined
+      }
+      apgate_release: { Args: { _ids: number[] }; Returns: number }
+      apgate_requeue: {
+        Args: { _ids: number[]; _kind: string }
+        Returns: number
+      }
+      apgate_sweep: { Args: never; Returns: number }
       autopay_notice_plan: {
         Args: { _now?: string }
         Returns: {
