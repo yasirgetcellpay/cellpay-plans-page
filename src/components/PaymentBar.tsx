@@ -10,7 +10,7 @@ export const PaymentBar = ({ lang = "en", wallets = false }: { lang?: Language; 
   <div className="bg-card py-8 border-t border-border">
     <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8">
       <span className="font-bold text-muted-foreground uppercase tracking-widest text-sm">{tr.weAccept}</span>
-      <div className="flex items-center space-x-4">
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 sm:gap-x-4 max-w-full">
         <svg className="h-8 w-12" viewBox="0 0 50 30" aria-label="Visa">
           <rect width="50" height="30" rx="4" fill="hsl(var(--payment-visa))" />
           <text x="25" y="19" textAnchor="middle" fill="hsl(var(--primary-foreground))" fontSize="11" fontWeight="bold" fontFamily="sans-serif">VISA</text>
