@@ -158,6 +158,13 @@ const wholeDollarMessage = (lang: string, n: number): string =>
     : `Please enter a whole-dollar amount (for example $${Math.floor(n)} or $${Math.ceil(n)}).`;
 
 /** PAY-1 canonical list (card brands + wallets checkout really accepts). PAYCOPY-1008: from the shared list. */
+// CLS-FIX-1124: intrinsic /go header logo size per carrier slug (same numbers as LOGO_DIMS in DynamicCarrier.tsx / vite.config.ts), so the
+// logo box is reserved before the image arrives. CSS still sets the height (28 / 36 px); unknown slugs keep 94x28.
+const GO_LOGO_DIMS: Record<string, [number, number]> = {
+  s1: [479, 105], "topup-crc": [234, 52], metropcs: [94, 41], tmobile: [52, 52], "topup-at": [560, 120], verizon: [475, 106],
+  boost: [225, 225], h2o: [241, 76], lyca: [314, 123], net10: [140, 64], pageplus: [265, 73], pageplusadd: [265, 73],
+  tracfone: [180, 84], "ultra-mobile": [801, 501], "straight-talk": [117, 75],
+};
 const PAY_METHODS = payBrandsComma();
 
 /**
@@ -631,7 +638,7 @@ const GoLander = ({
   const stickyClear = useStickyConsentClear(stickyBarRef, showRange && !loading); // STICKY-CONSENT-CLEAR-1118
 
   const autoPayCard = ( // ATT-LP-QS-1114: same card; placement depends on attQsLayout
-      <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">
+      <div className="w-full max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">
         <div className="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">
           <label className="flex items-start gap-2 cursor-pointer">
             <input
@@ -671,8 +678,8 @@ const GoLander = ({
               <img
                 src={logo}
                 alt={`${carrierName} logo`}
-                width={94}
-                height={28}
+                width={GO_LOGO_DIMS[carrierSlug]?.[0] ?? 94}
+                height={GO_LOGO_DIMS[carrierSlug]?.[1] ?? 28}
                 className="h-[28px] sm:h-[36px] w-auto object-contain"
               />
             ) : (
@@ -744,7 +751,7 @@ const GoLander = ({
 
       {loading && skeletonRange ? (
         <>
-          <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-busy="true">
+          <div className="w-full max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-busy="true">
             <div className="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">
               <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">{stepsLine}</p>
               <label className="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">
@@ -780,7 +787,7 @@ const GoLander = ({
               <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">{amountHelp}</p>
             </div>
           </div>
-          <div className="max-w-[420px] mx-auto px-4 pb-24 sm:pb-8">
+          <div className="w-full max-w-[420px] mx-auto px-4 pb-24 sm:pb-8">
             <div className="flex justify-center">{/* STICKY-CONSENT-CLEAR-1118: in-page Pay also on mobile (was hidden sm:flex) */}
               <button type="button" disabled className="h-[48px] px-14 rounded-lg hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-primary-foreground font-bold text-lg transition-colors active:scale-[0.97] inline-flex items-center justify-center gap-2" style={{ backgroundColor: bc }}>
                 {tr.payNow}
@@ -816,7 +823,7 @@ const GoLander = ({
         </>
       ) : ( // GO-SPEED-HYDRATION-1110: one card tree for loading + loaded (no full-height spinner)
         <>
-          <div className="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4">
+          <div className="w-full max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4">
             <div className="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">
               <p className="text-[11px] sm:text-xs text-muted-foreground mb-3">
                 {stepsLine}
@@ -913,7 +920,7 @@ const GoLander = ({
                 {lang === "es" ? <>Sí, envíenme recordatorios de pago y mensajes de Text-to-Pay de CellPay a este número. La frecuencia de mensajes varía. Pueden aplicar tarifas de mensajes y datos. Responda HELP para ayuda, STOP para cancelar. El consentimiento no es una condición de compra. Vea nuestros <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Términos de SMS</a> y <a href="/es/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Política de Privacidad</a>.</> : <>Yes, text me payment reminders and Text-to-Pay messages from CellPay at this number. Msg frequency varies. Msg &amp; data rates may apply. Reply HELP for help, STOP to cancel. Consent is not a condition of purchase. See our <a href="/sms-terms" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>SMS Terms</a> and <a href="/privacy-policy" target="_blank" rel="noopener" className="underline" onClick={(e) => e.stopPropagation()}>Privacy Policy</a>.</>}{/* // SMS-34332-PHONE-1106 */}
               </span>{/* // SMS-34332-PHONE-1106 */}
             </label>{/* // SMS-34332-PHONE-1106 */}
-            {loading && <div className="flex justify-center py-4"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}{/* // GO-SPEED-HYDRATION-1110 */}
+            {loading && !attQsLayout && !esApBelow && !metroFirstScreen && <div className="flex justify-center py-4"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}{/* // GO-SPEED-HYDRATION-1110 // CLS-FIX-1124: these layouts show the loader below the Auto Pay card / CTA instead */}
 
               {!attQsLayout && showRange && (
                 <>
@@ -990,9 +997,9 @@ const GoLander = ({
 
           {(attQsLayout || esApBelow) && autoPayCard /* ATT-LP-QS-1114 GO-ES-VZ-ATT-LCP-1114-v2 */}
 
-          {loading ? <div className="flex justify-center items-start py-16 flex-1 min-h-screen" aria-busy="true" /> : (<>{/* // GO-SPEED-HYDRATION-1110 */}
-          {carrierSlug === "ultra-mobile" && <div className="max-w-[420px] mx-auto px-4 pb-4"><UltraSmartNotice smart={ultraSmart} lang={lang} onContinue={() => { if (ultraSmart.usual) void handlePlanPayNow({ price: `$${ultraSmart.usual.amount}`, highlight: ultraSmart.usual.name || "" }); }} /></div>}{/* // ULTRA-SMART-PREVENT-1024 */}
-          {carrierSlug === "tmobile" && <div className="max-w-[420px] mx-auto px-4 pb-4"><TmoLastPlanNotice smart={tmoSmart} lang={lang} /></div>}{/* // REFILL-PREVENT-TMO-1026 */}
+          {loading ? <div className="flex justify-center items-start py-6 flex-1 min-h-screen" aria-busy="true">{(attQsLayout || esApBelow || metroFirstScreen) && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}</div> : (<>{/* // GO-SPEED-HYDRATION-1110 // CLS-FIX-1124 */}
+          {carrierSlug === "ultra-mobile" && <div className="w-full max-w-[420px] mx-auto px-4 pb-4"><UltraSmartNotice smart={ultraSmart} lang={lang} onContinue={() => { if (ultraSmart.usual) void handlePlanPayNow({ price: `$${ultraSmart.usual.amount}`, highlight: ultraSmart.usual.name || "" }); }} /></div>}{/* // ULTRA-SMART-PREVENT-1024 */}
+          {carrierSlug === "tmobile" && <div className="w-full max-w-[420px] mx-auto px-4 pb-4"><TmoLastPlanNotice smart={tmoSmart} lang={lang} /></div>}{/* // REFILL-PREVENT-TMO-1026 */}
           {showFixedPlans && plans.length > 0 && (
             <div className="pt-1 sm:pt-2">
               <PlanGrid
@@ -1005,7 +1012,7 @@ const GoLander = ({
           )}
 
           {showRange && (
-            <div className="max-w-[420px] mx-auto px-4 pb-24 sm:pb-8">
+            <div className="w-full max-w-[420px] mx-auto px-4 pb-24 sm:pb-8">
               <div className="flex justify-center">{/* STICKY-CONSENT-CLEAR-1118: in-page Pay also on mobile, below consent (was hidden sm:flex) */}
                 <button
                   type="button"
