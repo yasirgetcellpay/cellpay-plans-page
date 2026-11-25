@@ -362,7 +362,7 @@
   </url>
   <url>
     <loc>https://www.cellpay.us/how-to-pay/simple-mobile</loc>
-    <lastmod>2026-10-09</lastmod>
+    <lastmod>2026-11-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/simple-mobile" />
@@ -371,7 +371,7 @@
   </url>
   <url>
     <loc>https://www.cellpay.us/es/como-pagar/simple-mobile</loc>
-    <lastmod>2026-10-09</lastmod>
+    <lastmod>2026-11-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/simple-mobile" />
@@ -851,7 +851,7 @@
   <!-- AEO-10-H2O-1016: H2O Wireless how-to-pay pair -->
   <url>
     <loc>https://www.cellpay.us/how-to-pay/h2o</loc>
-    <lastmod>2026-10-16</lastmod>
+    <lastmod>2026-11-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/h2o" />
@@ -860,7 +860,7 @@
   </url>
   <url>
     <loc>https://www.cellpay.us/es/como-pagar/h2o</loc>
-    <lastmod>2026-10-16</lastmod>
+    <lastmod>2026-11-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.cellpay.us/how-to-pay/h2o" />
