@@ -1371,7 +1371,7 @@ const htmlAliasPlugin = (): Plugin => ({
         )
         .join("");
       return (
-        `<div class="w-full max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-busy="true">` +
+        `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-busy="true">` +
         `<div class="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">` +
         `<p class="text-[11px] sm:text-xs text-muted-foreground mb-3">${s.steps}</p>` +
         `<label class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">${s.phone}</label>` +
@@ -1404,7 +1404,7 @@ const htmlAliasPlugin = (): Plugin => ({
       const inputCls = "w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center";
       const dollarSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
       return (
-        `<div class="w-full max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4">` +
+        `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4">` +
         `<div class="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">` +
         `<p class="text-[11px] sm:text-xs text-muted-foreground mb-3">${steps}</p>` +
         `<label for="go-phone-input" class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">${phone}</label>` +
@@ -1476,7 +1476,7 @@ const htmlAliasPlugin = (): Plugin => ({
       const inputCls = "w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center";
       const loaderSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle h-6 w-6 animate-spin text-muted-foreground"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>`;
       return (
-        `<div class="w-full max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-busy="true">` +
+        `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-3 pb-1 sm:pt-4" aria-busy="true">` +
         `<div class="bg-card rounded-xl shadow-lg border border-border p-3 sm:p-5 text-center">` +
         `<p class="text-[11px] sm:text-xs text-muted-foreground mb-3">${steps}</p>` +
         `<label for="go-phone-input" class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">${escAttr(phone)}</label>` +
@@ -1487,18 +1487,6 @@ const htmlAliasPlugin = (): Plugin => ({
         `</div></div>` +
         `<div class="flex justify-center items-start py-16 flex-1 min-h-screen" aria-busy="true"></div>`
       );
-    };
-    // SPEED-WWW-1008 (hoisted above goFirstScreen for CLS-FIX-1124): intrinsic logo sizes (width/height attributes, same numbers as LOGO_DIMS in DynamicCarrier.tsx), so the logo
-    // box is reserved before the image arrives. CSS still sets the height; the width follows the image.
-    const LOGO_DIMS: Record<string, [number, number]> = {
-      "simple-mobile-logo.png": [479, 105], "cricket-logo.webp": [234, 52], "metro-logo.svg": [94, 41], "tmobile-logo.svg": [52, 52],
-      "att-prepaid-logo.webp": [560, 120], "verizon-logo.png": [475, 106], "boost-logo.png": [225, 225], "h2o-logo.png": [241, 76], // ATT-LOGO-1023
-      "lyca-logo.webp": [314, 123], "net10-logo.png": [140, 64], "pageplus-logo.png": [265, 73], "tracfone-logo.svg": [180, 84],
-      "ultra-mobile-logo.png": [801, 501], "straight-talk-logo.svg": [117, 75],
-    };
-    const logoDims = (file?: string): string => {
-      const d = file ? LOGO_DIMS[file] : undefined;
-      return d ? ` width="${d[0]}" height="${d[1]}"` : "";
     };
     const goFirstScreen = (route: string): string | null => {
       const lpx = goLpxForRoute(route); // LPX-1010
@@ -1531,7 +1519,7 @@ const htmlAliasPlugin = (): Plugin => ({
       const payMethods = payBrandsComma();
       const esApBelow = isEs && (slug === "att" || slug === "verizon" || slug === "ultra"); // GO-ES-VZ-ATT-LCP-1114-v2: same rule as GoLander esApBelow // GO-ES-ULTRA-LCP-1115: + ES Ultra
       const apCardHtml = // GO-ES-VZ-ATT-LCP-1114-v2: same Auto Pay card markup as before, now a const so it can be placed
-        `<div class="w-full max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">` +
+        `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-2 pb-2">` +
         `<div class="bg-card rounded-xl border border-border px-3 py-3 sm:px-4 sm:py-3 text-left">` +
         `<label class="flex items-start gap-2">` +
         `<input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-input" style="accent-color:${look.color}">` +
@@ -1542,7 +1530,7 @@ const htmlAliasPlugin = (): Plugin => ({
         `<p class="mt-1 text-[10px] sm:text-[11px] text-muted-foreground leading-snug text-center">${payMethods}</p>` +
         `</div></div>`;
       const carrier = logo
-        ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)} logo"${logoDims(look.logo) || ' width="94" height="28"'} class="h-[28px] sm:h-[36px] w-auto object-contain">`
+        ? `<img src="${escAttr(logo)}" alt="${escAttr(look.name)} logo" width="94" height="28" class="h-[28px] sm:h-[36px] w-auto object-contain">`
         : `<span class="text-lg font-extrabold" style="color:${look.color}">${escAttr(look.name)}</span>`;
       return (
         `<div id="root" data-go-prerender="1">` +
@@ -1590,6 +1578,18 @@ const htmlAliasPlugin = (): Plugin => ({
     // loading block) with the same classes/copy as DynamicCarrier.tsx, so LCP paints before the app code runs.
     // Uses data-go-prerender so main.tsx lets the browser paint it first. Keep in sync with DynamicCarrier.tsx.
     // Only routes in CARRIER_SHELLS get it; anything missing falls back to the old output (build never fails on it).
+    // SPEED-WWW-1008: intrinsic logo sizes (width/height attributes, same numbers as LOGO_DIMS in DynamicCarrier.tsx), so the logo
+    // box is reserved before the image arrives. CSS still sets the height; the width follows the image.
+    const LOGO_DIMS: Record<string, [number, number]> = {
+      "simple-mobile-logo.png": [479, 105], "cricket-logo.webp": [234, 52], "metro-logo.svg": [94, 41], "tmobile-logo.svg": [52, 52],
+      "att-prepaid-logo.webp": [560, 120], "verizon-logo.png": [475, 106], "boost-logo.png": [225, 225], "h2o-logo.png": [241, 76], // ATT-LOGO-1023
+      "lyca-logo.webp": [314, 123], "net10-logo.png": [140, 64], "pageplus-logo.png": [265, 73], "tracfone-logo.svg": [180, 84],
+      "ultra-mobile-logo.png": [801, 501], "straight-talk-logo.svg": [117, 75],
+    };
+    const logoDims = (file?: string): string => {
+      const d = file ? LOGO_DIMS[file] : undefined;
+      return d ? ` width="${d[0]}" height="${d[1]}"` : "";
+    };
     const CARRIER_LOOK: Record<string, { name: string; color: string; logo?: string }> = {
       s1: { name: "Simple Mobile", color: "hsl(101,67%,44%)", logo: "simple-mobile-logo.png" },
       "topup-crc": { name: "Cricket Wireless", color: "hsl(82,60%,42%)", logo: "cricket-logo.webp" },
