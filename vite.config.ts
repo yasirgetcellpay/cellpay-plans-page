@@ -1688,6 +1688,70 @@ const htmlAliasPlugin = (): Plugin => ({
         `</div></div>`
       );
     };
+    // ATT-FIRSTNET-SHELL-1127: /att-firstnet + /es/att-firstnet render src/pages/ATT.tsx (English on both routes), not DynamicCarrier,
+    // so they were not in CARRIER_SHELLS and shipped an empty #root. Static copy of ATT.tsx's first screen (nav, H1 bar, phone + amount
+    // card), inputs readonly until React mounts; the plan grid and the "Important" checkboxes stay React-only. Speed/structure only:
+    // every visible string is copied from ATT.tsx and checked at build time; any mismatch returns null = today's exact output.
+    const ATT_FIRSTNET_SHELLS = new Set<string>(["att-firstnet/index.html", "es/att-firstnet/index.html"]);
+    const attFirstnetFirstScreen = (): string | null => {
+      try {
+        const src = fs.readFileSync(path.resolve(__dirname, "src/pages/ATT.tsx"), "utf-8");
+        const back = fs.readFileSync(path.resolve(__dirname, "src/components/BackButton.tsx"), "utf-8");
+        const must = [
+          `const BRAND = "hsl(196,100%,44%)";`,
+          `alt="AT&T Prepaid"`,
+          `<h1 className="text-xl md:text-2xl font-extrabold">AT&amp;T Prepaid Bill Pay</h1>`,
+          `mb-1.5 sm:mb-2">Enter Your AT&amp;T Phone Number</label>`,
+          `mb-1.5 sm:mb-2">Select Amount</label>`,
+          `placeholder="(XXX) XXX-XXXX"`,
+          "placeholder={`$${rangeMin} - $${rangeMax}`}",
+          `const rangeMin = resolved.rangeMin ?? 5;`,
+          `const rangeMax = Math.min(resolved.rangeMax ?? 300, 150);`,
+          `text-muted-foreground">Or select a plan below</p>`,
+        ];
+        // FRAUD-PREQA-1127 (a): the amount placeholder is emitted only if ATT.tsx's first-render literals match byte for byte, exactly once each.
+        const miss = must.filter((m) => src.split(m).length !== 2);
+        if (miss.length || !back.includes(`aria-label="Go back"`)) {
+          console.warn("[ATT-FIRSTNET-SHELL-1127] ATT.tsx/BackButton.tsx changed, keeping empty #root:", miss.join(" | "));
+          return null;
+        }
+        const logo = goAssetUrl("att-prepaid-logo.webp");
+        if (!logo) return null;
+        const B = "hsl(196,100%,44%)";
+        const inp = "w-full h-10 sm:h-12 pl-10 sm:pl-11 pr-4 rounded-lg border border-input bg-background text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:border-transparent text-center";
+        return (
+          `<div id="root" data-go-prerender="1">` +
+          `<div class="min-h-screen bg-background font-sans antialiased">` +
+          `<nav class="sticky top-0 z-50 bg-card border-b-4 shadow-sm" style="border-color:${B}">` +
+          `<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><div class="relative flex justify-center h-14 sm:h-20 items-center">` +
+          `<button type="button" tabindex="-1" class="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-full hover:bg-muted transition-colors text-foreground" aria-label="Go back"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-5 w-5 sm:h-6 sm:w-6"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg></button>` +
+          `<img src="${escAttr(logo)}" alt="AT&amp;T Prepaid"${logoDims("att-prepaid-logo.webp")} class="h-[32px] sm:h-[44px] w-auto object-contain">` +
+          `</div></div></nav>` +
+          `<section class="text-primary-foreground" style="background-color:${B}">` +
+          `<div class="max-w-7xl mx-auto px-5 py-3 sm:px-6 lg:px-8 text-center">` +
+          `<h1 class="text-xl md:text-2xl font-extrabold">AT&amp;T Prepaid Bill Pay</h1>` +
+          `</div></section>` +
+          `<div class="max-w-[280px] sm:max-w-[420px] mx-auto px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">` +
+          `<div class="bg-card rounded-xl shadow-lg border border-border p-4 sm:p-6 text-center">` +
+          `<label class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">Enter Your AT&amp;T Phone Number</label>` +
+          `<div class="relative mb-3">` +
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>` +
+          `<input type="tel" readonly tabindex="-1" placeholder="(XXX) XXX-XXXX" class="${inp}" style="--tw-ring-color:${B}">` +
+          `</div>` +
+          `<label class="block text-xs sm:text-sm font-bold text-foreground mb-1.5 sm:mb-2">Select Amount</label>` +
+          `<div class="relative mb-1">` +
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>` +
+          `<input type="text" inputmode="numeric" readonly tabindex="-1" placeholder="$5 - $150" class="${inp}" style="--tw-ring-color:${B}">` +
+          `</div>` +
+          `<p class="text-[10px] sm:text-xs text-muted-foreground">Or select a plan below</p>` +
+          `</div></div>` +
+          `<div class="min-h-screen"></div>` +
+          `</div></div>`
+        );
+      } catch {
+        return null;
+      }
+    };
     const NAV_ITEMS: Array<[string, string, string]> = [
       ["Domestic Payments", "/", ""],
       ["Bill Payments", "https://billpay.cellpay.us/billpayment", ` rel="noopener noreferrer"`],
@@ -2035,6 +2099,8 @@ const htmlAliasPlugin = (): Plugin => ({
           ? verizonFirstScreen(route.startsWith("es/"))
           : STRAIGHT_TALK_SHELLS.has(route)
           ? straightTalkFirstScreen(route.startsWith("es/")) // BILLPAY-ST-SHELL-H1-1025
+          : ATT_FIRSTNET_SHELLS.has(route)
+          ? attFirstnetFirstScreen() // ATT-FIRSTNET-SHELL-1127
           : route === "es/index.html"
           ? homeFirstScreen("es")
           : null;
