@@ -51,6 +51,7 @@ const HowToUse = () => {
               </span>
             ))}
           </li>
+          <li>{pg.switchedLabel}{pg.switched.map(([href, text], i) => <span key={href}>{i > 0 && " · "}<a href={href} className="underline">{text}</a></span>)}</li> {/* // RELATED-INLINKS-1126 */}
         </ul>
       </div>
     </main>

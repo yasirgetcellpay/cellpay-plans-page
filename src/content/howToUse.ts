@@ -15,6 +15,7 @@ export type HtuPage = {
   tips: string[];
   guidesLabel: string;
   guides: Array<[string, string]>;
+  switchedLabel: string; switched: Array<[string, string]>; // RELATED-INLINKS-1126
 };
 
 export const HOW_TO_USE: Record<HtuLang, HtuPage> = {
@@ -57,6 +58,8 @@ export const HOW_TO_USE: Record<HtuLang, HtuPage> = {
       ["/how-to-pay/total-wireless", "How to pay Total Wireless"], // AEO-14-TOTAL-1020
       ["/how-to-pay/h2o", "How to pay H2O"], // AEO-10-H2O-1016
     ],
+    switchedLabel: "Just switched carriers? ", // RELATED-INLINKS-1126
+    switched: [["/switched-to-metro", "Switched to Metro PCS? Pay your bill"], ["/switched-to-boost", "Switched to Boost Mobile? Pay your bill"], ["/att-firstnet", "Pay AT&T FirstNet online"]], // RELATED-INLINKS-1126
   },
   es: {
     path: "/es/how-to-use",
@@ -92,5 +95,7 @@ export const HOW_TO_USE: Record<HtuLang, HtuPage> = {
       ["/es/como-pagar/net10", "Cómo pagar Net10 Wireless"], // AEO-09-NET10-1015
       ["/es/como-pagar/h2o", "Cómo pagar H2O Wireless"], // AEO-10-H2O-1016
     ],
+    switchedLabel: "¿Se cambió de compañía? ", // RELATED-INLINKS-1126
+    switched: [["/es/cambiaste-a-metro", "¿Se cambió a Metro PCS? Pague su factura"], ["/es/cambiaste-a-boost", "¿Se cambió a Boost Mobile? Pague su factura"], ["/es/att-firstnet", "Pagar AT&T FirstNet en línea"]], // RELATED-INLINKS-1126
   },
 };

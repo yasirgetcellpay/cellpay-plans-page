@@ -53,7 +53,8 @@ const howToUseMain = (lang: "en" | "es"): string => {
     pg.steps.map((s) => `<div class="flex gap-4 items-start"><div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg">${esc(s.num)}</div><div><h2 class="font-bold text-foreground text-lg">${esc(s.title)}</h2><p class="text-muted-foreground">${esc(s.desc)}</p></div></div>`).join("") +
     `</div><div class="mt-10 bg-card border border-border rounded-lg p-6"><h2 class="text-xl font-bold text-foreground mb-3">${esc(pg.tipsTitle)}</h2><ul class="list-disc list-inside space-y-2 text-muted-foreground">` +
     pg.tips.map((t) => `<li>${esc(t)}</li>`).join("") +
-    `<li>${esc(pg.guidesLabel)}${pg.guides.map(([href, text], i) => `<span>${i > 0 ? " · " : ""}<a href="${href}" class="underline">${esc(text)}</a></span>`).join("")}</li></ul></div></main>`
+    `<li>${esc(pg.guidesLabel)}${pg.guides.map(([href, text], i) => `<span>${i > 0 ? " · " : ""}<a href="${href}" class="underline">${esc(text)}</a></span>`).join("")}</li>` + // RELATED-INLINKS-1126
+    `<li>${esc(pg.switchedLabel)}${pg.switched.map(([href, text], i) => `<span>${i > 0 ? " · " : ""}<a href="${href}" class="underline">${esc(text)}</a></span>`).join("")}</li></ul></div></main>` // RELATED-INLINKS-1126
   );
 };
 
